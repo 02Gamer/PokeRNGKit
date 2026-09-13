@@ -1,5 +1,30 @@
 # Gen 3 Egg
 
+## 0.1.0 UI 收口（2026-09-13）
+
+- 修复：筛选底部操作占据面板整行，三个显示/筛选开关不再被压缩省略，个体值计算器文字不再溢出按钮；
+  空间不足时自然换行。英文筛选、好感度和亲代标签允许换行，六项亲代输入保持底部对齐。
+- 统一：桌面控件使用 30px；768px 以下或粗指针设备恢复 44px 输入、菜单项、IV 快捷按钮和开关标签。
+  亲代 IV 水平内边距为 3px，筛选 IV 为 4px；蛋种类输入为展开按钮保留独立文本空间。
+- 修复：三栏最小轨道合计 1078px，容器断点由 980px 调至 1080px；结果区按剩余高度伸缩，桌面保留
+  180px 表格，短视口和完整控制集需要更多空间时自然滚动。错误提示允许换行，不再省略。
+- 来源核对：`Form/Gen3/Eggs3.cpp` 的 Seed16Bit、Advance32Bit、Calibration/Redraws `0..255`，
+  `Form/Controls/EggSettings.cpp` 的自动完成配置，以及 `Core/Gen3/Generators/EggGenerator3.hpp`
+  的 u32/u8 参数；此次仅修改模块 CSS，输入逻辑、Core 和 Worker 未改变。
+- 浏览器证据：外部 Chrome `http://127.0.0.1:5173/`，检查 Emerald 与 RS/FRLG、中文/英文、浅色/深色、
+  390/768/1280/1920px。390px 三面板无横向溢出，亲代输入约 46×44px，候选项约 44px 高；
+  伊布搜索与 Enter 选择可用，英文标签换行后未发现裁剪，亲代六项输入底边一致。
+- 结果证据：两模式分别生成 9 条 UI 预览样例，首行顶边与表头底边相等；显示遗传来源、显示能力值可操作。
+  `Held Advances=4294967295` 配合 `Max advances=2` 被范围校验拒绝，完整提示在窄屏换行。
+  1920×1080 下 Emerald 预览页高度由 1368px 缩至约 1108px，保留自然滚动，未声称完全无页面滚动。
+- 稳定参考：切回第三世代 ID 与定点时外壳仍为原 block 布局。捕获的 error 来自浏览器扩展请求，
+  未发现应用来源 error。预览服务中途停止后已在同一授权地址重启，确认加载最新样式后才记录修复结果。
+- 已通过：完整 `npm run verify`（Prettier、ESLint、TypeScript、179 个测试文件共 625 项测试、
+  2341 个前端模块及 245 项 PWA 预缓存）。排除桌面构建产物后恢复正常内存设置；
+  保留既有定点 Hook 依赖与大 chunk 警告。此次未重复无改动的原生/Wasm 检查。
+- 待完成：独立提交与推送；缩放、粗指针真机、全部档案和方法组合未完整覆盖。
+  上述结果为工程证据，不是生产算法回归或所有者验收。
+
 ## 完美个体筛选
 
 - 控件：Perfect IV Value / Perfect IV Count；中文界面显示“完美个体值 / 完美个体数”。
@@ -22,7 +47,8 @@
 - 结果支持进度、取消、固定顺序合并、排序、CSV、能力值和遗传来源显示。
 - UI：第三世代 Egg 使用独立 `Gen3EggPanel.css` 和 `gen3egg-page` 页面作用域；Emerald 与 RS/FRLG
   模式切换放入标题栏，乱数信息、设置、筛选三块面板桌面同排，前两块按内容收窄，筛选和结果区共享右边界。
-  输入、下拉、多选、操作按钮和菜单选项统一为 `30px`，长文本截断，窄屏按单列重排。
+  桌面输入、下拉、多选、操作按钮和菜单选项统一为 `30px`，触控为 `44px`；标签可换行，
+  候选文本在触发框宽度内显示，窄屏按单列重排。
 - UI：完美个体值、完美个体数位于分类筛选下方并采用左右结构；显示遗传来源、显示能力值、取消筛选和个体值
   计算器共用底部操作行。结果提示位于标题右侧，结果表首行贴合表头，最后一列表头不保留右边界线。
 
@@ -83,11 +109,15 @@ RS/FRLG Mixed:       iv1 skip 0, iv2 skip 0, inheritance skip 2
 
 浏览器的额外保护不改变上游字段含义：总状态数为 `(Held Max + 1) * (Pickup Max + 1) * Redraw count`，上限为 `150,060,006`，恰好容纳 PokeFinder Emerald 默认 `5000 / 5000 / 0..5`。每次 C ABI 调用还限制为 `100,000` 个 Held/Pickup/Redraw 组合；Worker 以 Held 范围切分后运行。
 
+补充当前实际保护：`domain.ts` 的 Held/Pickup 单段均最多 `1,000,000` 个状态，面板两个 Max Advances
+输入会夹紧到 `999999`；Pickup 状态数乘 Redraw count 还不得超过单次 `100,000` 组合预算。
+这些是浏览器实现限制，不能将表格中的上游 u32 范围理解成 Web 接受任意同等计算规模；本次 UI 修改未放宽限制。
+
 蛋种类选择使用 `AutoCompleteComboBox.tsx`，对应 PokeFinder `Form/Controls/EggSettings.cpp:75` 的 `enableAutoComplete()` 调用；其可编辑、包含匹配、弹出候选和 `NoInsert` 行为与遇敌查询及个体值计算器一致。
 
 ## 4. Wasm 与 Worker 边界
 
-`wasm/modules/gen3egg` 是独立 CMake target 和 `module.json`，API 版本为 1。C ABI 使用 54 个 `uint32_t` 请求字，并返回 22 个 `uint32_t`、88 字节的连续记录：
+`wasm/modules/gen3egg` 是独立 CMake target 和 `module.json`，当前 API 版本为 2。C ABI 使用 56 个 `uint32_t` 请求字，并返回 22 个 `uint32_t`、88 字节的连续记录；末尾两个请求字为 Perfect IV Value / Count，与 bridge、manifest 和 Worker 常量一致：
 
 ```c
 uint32_t gen3egg_api_version();

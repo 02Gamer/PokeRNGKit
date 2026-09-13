@@ -7,19 +7,21 @@
 - 当前稳定参考仅为所有者反馈的第三世代 ID 与第三世代定点；其余模块均待本轮逐项核对，
   不沿用历史“已实现”状态宣称 UI 验收完成。起始 `main` / `da8f8ab` 工作区干净。
 - 首批修改：第三世代 Wild 修正筛选区宽度与三栏断点、恢复手机/粗指针 44px 控件高度，
-  错误提示允许换行。已开始外部 Chrome UI 检查；工程检查已获授权，未提交。
+  错误提示允许换行。已完成首批外部 Chrome 与工程检查，独立提交并推送为 `ebeb357`。
 - 源码补充：Wild 自动完成输入恢复展开按钮文本预留，筛选底部操作允许换行，IV 快捷按钮与
   开关标签同步点击高度；标题栏 ref 修复首次进入时页签落入正文，等级范围独占一行，英文长标签换行。
   地点默认值与切换遭遇类型后的候选选择保持一致，输入范围与算法未改变。
 - 发布渠道已恢复：GitHub CLI 成功登录 `HaKu76`；远端暂无 Release，当前基线 `da8f8ab` 的
-  Actions #33499313935 已成功完成，不包含本轮未提交修复。尚未推送、创建标签或 Release。
+  Actions #33499313935 已成功完成，不包含本轮修复；`ebeb357` 的 Actions #34759421492 已全部成功，
+  包括 Web/Wasm、Windows 桌面包、GitHub Pages 与 Cloudflare 部署。
+  尚未创建版本标签或 Release。
 - 浏览器阻碍已解除：外部 Chrome 已成功读取所有者授权的 `http://127.0.0.1:5173/`，
   标签页、DOM、菜单与输入交互可用；部分截图调用仍有超时，不能把 DOM 测量写成截图验收。
 - 已检查：Wild 的 390/768/1280/1478/1920px 面板宽度、首次进入页签、地点候选与键盘操作、
   Generator/Searcher 样例结果及错误显示；具体证据与剩余项见 [Wild 文档](modules/gen3wild.md)。
   Wild 已改为按剩余空间伸缩结果表，1920×1080 下整页高度由 1312px 收至 1080px；短视口保留
   180px 表格与自然滚动，页脚不覆盖结果。碎岩/Bike/同步/Wild 4 和稳定参考模块的局部布局已复查。
-  下一步验证 Wild 当前改动，按规则独立提交，再推进下一模块。
+  当前正在处理 Egg；本地 `main` 已同步 `origin/main` 的 Wild 提交。
 - 授权状态：所有者已明确授权本轮 `npm run verify`、`npm run verify:full`、`npm run build` 和
   `npm run desktop:package`，本轮不重复询问这些命令。
   生产算法回归仍等待部署 URL 与授权。
@@ -28,10 +30,23 @@
   Wasm 阶段首次因终端未激活 emsdk 失败；加载本机 Emscripten 6.0.6 后，以 `BASE_PATH=./`
   执行完整 `npm run build` 成功。保留既有 Hook 依赖、CMake 共享库支持与大 chunk 警告。
 - 桌面打包：首次下载发生 TLS 中断；使用现有本地代理后下载成功，但解压目录重命名两次报 EPERM。
-  改用打包器 `electronDist=release/win-unpacked.tmp` 入口后完成应用目录打包，便携 EXE 阶段
-  又报告依赖下载 TLS 中断，尚未取得成功结果。另发现桌面包未配置应用图标，归入桌面外壳批次。
+  改用打包器 `electronDist=release/win-unpacked.tmp`，并在当前进程清除代理变量后打包成功。
+  `release/PokeRNGKit.exe` 为 Windows x64、96,854,911 bytes，SHA-256 为
+  `7B58B1B36C06508D4DD99B22313D20292025D1A0956667FEC1CE3CE00F1A61E2`。
+  此包对应 Wild 修复和原 0.0.0 元数据，只是工程试包，未验收桌面运行或发布 0.1.0。
+  桌面包未配置应用图标，归入桌面外壳批次。
+- 网络恢复：GitHub 经显式代理发生 TLS 握手失败，直连返回 200；用进程级 `NO_PROXY=*`、
+  Git `http.proxy=` 与 `http.sslBackend=schannel` 成功推送，未修改全局网络设置。
 - 浏览器补充：旧标签页已失效，接管替换标签页发生焦点控制超时；在同一外部 Chrome 新建
   所有者已授权的 5173 地址后恢复，导航、Wild 标题页签、默认地点与截图可用，无需重新授权。
+- 当前 Egg 修改：仅 `Gen3EggPanel.css`，修复底部操作压缩、英文标签裁剪、亲代输入内边距、触控高度、
+  三栏断点和结果区高度。两模式、四种视口、两种语言、浅深主题和错误提示已取得工程证据，
+  详见 [Egg 文档](modules/gen3egg.md)。完整 `npm run verify` 已通过：179 个测试文件、625 项测试，
+  2341 个前端模块与 245 项 PWA 预缓存。下一步独立提交推送 Egg，然后核对 Seed 工具。
+  预览服务停止后已在同一授权地址通过 `npm run dev:ui` 重启。
+- 工程修复：桌面打包后的 `release` 目录未被 ESLint 排除，导致一次默认堆 OOM；提高当前进程堆上限
+  后发现 8197 条错误均来自已生成的桌面网页资产。`eslint.config.js` 增加 `release` 忽略，
+  保持源码规则不变；正常内存设置下完整 `verify` 已通过。本批格式检查均通过，无格式失败。
 - 功能清单复核：共享 3DS RNG Info 的 Timeline / Timeline Leap 仍是禁用入口，不能宣称完整工作流；
   Gen IV Voltorb Flip 为库存记录的未实现扩展，Gen V 参数/时间深审仍待进行。发布限制见发布计划。
 

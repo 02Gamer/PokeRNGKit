@@ -61,10 +61,9 @@
 #root .main-content.gen3egg-page .gen3egg-settings-panel .field > span {
   display: block;
   min-width: 0;
-  overflow: hidden;
   line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root
@@ -187,6 +186,7 @@
 
 #root .main-content.gen3egg-page .egg-parent-ivs {
   grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: end;
   margin-top: 5px;
 }
 
@@ -203,7 +203,6 @@
 }
 
 #root .main-content.gen3egg-page .egg-parent-ivs input {
-  padding-inline: 3px;
   text-align: center;
 }
 
@@ -233,7 +232,23 @@
   .main-content.gen3egg-page
   .gen3egg-control-grid
   input:not([type="checkbox"]):not([type="radio"]) {
-  padding-inline: 8px;
+  padding-inline: var(--gen3egg-input-padding, 8px);
+  padding-inline-end: var(
+    --gen3egg-input-padding-end,
+    var(--gen3egg-input-padding, 8px)
+  );
+}
+
+#root .main-content.gen3egg-page .autocomplete-combobox {
+  --gen3egg-input-padding-end: calc(var(--gen3egg-control-height) + 8px);
+}
+
+#root .main-content.gen3egg-page .egg-parent-ivs {
+  --gen3egg-input-padding: 3px;
+}
+
+#root .main-content.gen3egg-page .iv-filter {
+  --gen3egg-input-padding: 4px;
 }
 
 #root
@@ -290,7 +305,7 @@
   .perfect-iv-filter-fields
   .field {
   display: grid;
-  height: var(--gen3egg-control-height);
+  height: auto;
   min-height: var(--gen3egg-control-height);
   grid-template-columns: 72px minmax(0, 1fr);
   align-items: center;
@@ -304,10 +319,9 @@
   .field
   > span {
   min-width: 0;
-  overflow: hidden;
   line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root
@@ -352,9 +366,13 @@
 #root .main-content.gen3egg-page .gen3egg-filter-panel .iv-filter-row input {
   width: 100%;
   min-width: 0;
-  height: 26px;
-  min-height: 26px;
+  height: var(--gen3egg-control-height);
+  min-height: var(--gen3egg-control-height);
   padding: 2px 4px;
+}
+
+#root .main-content.gen3egg-page .gen3egg-filter-panel .iv-filter-row button {
+  min-height: var(--gen3egg-control-height);
 }
 
 #root
@@ -368,12 +386,13 @@
 }
 
 #root .main-content.gen3egg-page .gen3egg-filter-panel .filter-tool-row {
-  grid-column: 2;
+  grid-column: 1 / -1;
   display: flex;
-  height: var(--gen3egg-control-height);
+  height: auto;
   min-height: var(--gen3egg-control-height);
   align-items: center;
   justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 0;
 }
@@ -384,6 +403,8 @@
   .filter-tool-row
   .toggle-field {
   min-width: 0;
+  min-height: var(--gen3egg-control-height);
+  flex: 0 0 auto;
 }
 
 #root
@@ -392,13 +413,14 @@
   .filter-tool-row
   .toggle-field
   span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 #root .main-content.gen3egg-page .gen3egg-filter-panel .filter-tool-row button {
-  width: clamp(112px, 32%, 148px);
+  width: auto;
+  min-width: 112px;
+  max-width: 100%;
+  flex-shrink: 0;
   margin-left: auto;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -437,21 +459,58 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  overflow: hidden;
+  flex-wrap: wrap;
 }
 
 #root .main-content.gen3egg-page .gen3egg-result-alerts .alert {
   min-width: 0;
-  overflow: hidden;
   margin: 0;
   padding: 5px 9px;
   font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root .main-content.gen3egg-page .gen3egg-results-panel .table-shell {
   height: clamp(240px, 42vh, 440px);
+}
+
+@media (min-width: 769px) {
+  #root .app-shell:has(.gen3egg-page:not([hidden])) {
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
+  }
+
+  #root .app-shell:has(.gen3egg-page:not([hidden])) > .workspace {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  #root .main-content.gen3egg-page {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #root .main-content.gen3egg-page > * {
+    flex-shrink: 0;
+  }
+
+  #root .main-content.gen3egg-page .gen3egg-results-panel {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  #root .main-content.gen3egg-page .gen3egg-results-panel > * {
+    flex-shrink: 0;
+  }
+
+  #root .main-content.gen3egg-page .gen3egg-results-panel .table-shell {
+    height: 180px;
+    flex: 1 0 180px;
+  }
 }
 
 #root
@@ -516,7 +575,7 @@ body:has(#root .main-content.gen3egg-page:not([hidden]))
   white-space: nowrap;
 }
 
-@container pokerngkit-content (max-width: 980px) {
+@container pokerngkit-content (max-width: 1080px) {
   #root .main-content.gen3egg-page .gen3egg-control-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -545,6 +604,24 @@ body:has(#root .main-content.gen3egg-page:not([hidden]))
     ) {
     grid-column: 1;
     grid-row: auto;
+  }
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  #root .main-content.gen3egg-page {
+    --control-height: 44px;
+    --gen3egg-control-height: 44px;
+  }
+
+  body:has(#root .main-content.gen3egg-page:not([hidden]))
+    :is(
+      .haku-select-menu[data-menu-portal="true"] button,
+      .autocomplete-combobox-menu[data-menu-portal="true"] button,
+      .multi-check-menu[data-menu-portal="true"] label
+    ) {
+    height: auto;
+    min-height: 44px;
+    padding-block: 10px;
   }
 }
 
