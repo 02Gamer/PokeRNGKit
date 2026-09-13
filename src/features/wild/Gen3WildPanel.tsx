@@ -87,6 +87,7 @@ type RawLocation = {
 };
 
 interface Gen3WildPanelProps {
+  operationTabsTarget?: HTMLElement | null;
   profile: Gen3Profile;
   uiPreviewMode: boolean;
   onOpenIvCalculator(): void;
@@ -256,6 +257,7 @@ function ivLabelKey(key: IvKey) {
 
 export function Gen3WildPanel({
   onOpenIvCalculator,
+  operationTabsTarget,
   profile,
   uiPreviewMode,
 }: Gen3WildPanelProps) {
@@ -277,8 +279,10 @@ export function Gen3WildPanel({
   const [encounter, setEncounter] = useState<Gen3WildEncounter>("land");
   const [locationIndex, setLocationIndex] = useState(0);
   const [locationInput, setLocationInput] = useState({
-    index: 0,
+    index: -1,
     language: i18n.language,
+    version: profile.version,
+    encounter,
     text: "",
   });
   const [selectedSpecies, setSelectedSpecies] = useState(0);
@@ -339,7 +343,8 @@ export function Gen3WildPanel({
       ),
     [encounter, profile.version],
   );
-  const location = locations[locationIndex] ?? locations[0];
+  const selectedLocationIndex = locations[locationIndex] ? locationIndex : 0;
+  const location = locations[selectedLocationIndex];
   const locationOptions = useMemo(
     () =>
       locations.map((entry, index) => ({
@@ -350,11 +355,11 @@ export function Gen3WildPanel({
   );
   const displayedLocation =
     locationInput.language === i18n.language &&
-    locationInput.index === locationIndex
+    locationInput.version === profile.version &&
+    locationInput.encounter === encounter &&
+    locationInput.index === selectedLocationIndex
       ? locationInput.text
-      : (locationOptions[locationIndex]?.label ??
-        locationOptions[0]?.label ??
-        "");
+      : (locationOptions[selectedLocationIndex]?.label ?? "");
   const area = location
     ? buildArea(profile.version, location, encounter, feebasTile)
     : undefined;
@@ -756,11 +761,6 @@ export function Gen3WildPanel({
       ))}
     </div>
   );
-  const operationTabsTarget =
-    typeof document === "undefined"
-      ? null
-      : document.getElementById("gen3-wild-operation-tabs");
-
   return (
     <>
       {operationTabsTarget
@@ -962,14 +962,16 @@ export function Gen3WildPanel({
                 label={t("wildLocation")}
                 onInputChange={(text) =>
                   setLocationInput({
-                    index: locationIndex,
+                    index: selectedLocationIndex,
                     language: i18n.language,
+                    version: profile.version,
+                    encounter,
                     text,
                   })
                 }
                 onValueChange={setLocationIndex}
                 options={locationOptions}
-                value={locationIndex}
+                value={selectedLocationIndex}
               />
             </label>
             <label className="field">

@@ -596,6 +596,8 @@ function App() {
   const threeDsProfiles = useThreeDsProfiles();
   const gen8Profiles = useGen8Profiles();
   const [activeModule, setActiveModule] = useState<ActiveModule>("id");
+  const [wildOperationTabsTarget, setWildOperationTabsTarget] =
+    useState<HTMLDivElement | null>(null);
   const [gen3SeedToolsTab, setGen3SeedToolsTab] =
     useState<Gen3SeedToolTab>("initialseed");
   const [pokerusInitialMode, setPokerusInitialMode] = useState<
@@ -2886,6 +2888,7 @@ function App() {
                   <div
                     className="gen3-wild-operation-tabs"
                     id="gen3-wild-operation-tabs"
+                    ref={setWildOperationTabsTarget}
                   />
                 )}
                 {activeModule === "egg" && (
@@ -3653,6 +3656,7 @@ function App() {
             ) : activeModule === "wild" ? (
               <Gen3WildPanel
                 onOpenIvCalculator={openIvCalculator}
+                operationTabsTarget={wildOperationTabsTarget}
                 profile={gen3StaticProfileOrDefault(profiles.selectedProfile)}
                 uiPreviewMode={uiPreviewMode}
               />

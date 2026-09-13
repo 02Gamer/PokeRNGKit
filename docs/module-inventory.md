@@ -122,7 +122,9 @@ Poke Pelago 生成已按 3DSRNGTool `Stationary7` 的特殊分支纳入 `Station
 1. PokeFinder 4.3.2 产品模块、3DSRNGTool Gen VII、Gen VI Stationary / Pokemon Link / Event / Wild / DexNav / Poke Radar / Egg / ID 与公共 Profile Manager 已实现；3DSTimeFinder TF1-TF8 已完成工程实现。
 2. 3DSRNGTool Gen VI Main Seed Finder 已实现；字段、控件边界和算法以对应 WinForms/Core 源码为准。
 3. Gen VI TinyMT Timeline Tool、公共 KeyBV、Misc. RNG Tool、TSV List 与 IV Range / Template 已实现；随后继续 Gen VI 时间反查与 TinyFinder 缺口；`NTR Helper` 除外。
-4. PokeFinder、3DSRNGTool、TinyFinder 和 3DSTimeFinder 的计划功能已完成；下一步执行全仓验证、Actions 部署和生产页面回归。
+4. PokeFinder、3DSRNGTool、TinyFinder 和 3DSTimeFinder 的主要模块已有实现，但不能据此宣称完整工作流。
+   共享 `src/features/shared/ThreeDsRngInfoCard.tsx` 的 Timeline / Timeline Leap 仍显式禁用；
+   下方 Gen IV Voltorb Flip 与 Gen V 深审也仍有待办。逐项核对后再执行获授权的全仓验证、Actions 部署和生产页面回归。
 5. 生产页面回归前固定执行八项 UI 门槛：实体不透明悬浮窗、Demo 候选控件、图标居中、自适应列宽、定点三栏布局、Wild 筛选对齐、存档工具悬浮收纳、Encounter Lookup 去除遗留有色粗描边。
 
 ## PokemonRNGGuides 最高优先级规划

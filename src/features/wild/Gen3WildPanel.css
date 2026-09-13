@@ -11,7 +11,7 @@
   max-width: none;
   grid-template-columns:
     minmax(236px, 244px) minmax(244px, 252px)
-    minmax(480px, 1fr);
+    minmax(520px, 1fr);
   align-items: stretch;
   gap: 12px;
   margin-bottom: 0;
@@ -108,7 +108,18 @@
   .main-content.gen3wild-page
   .gen3wild-control-grid
   input:not([type="checkbox"]):not([type="radio"]) {
-  padding-inline: 8px;
+  padding-inline: var(--gen3wild-input-padding, 8px);
+  padding-inline-end: var(
+    --gen3wild-input-padding-end,
+    var(--gen3wild-input-padding, 8px)
+  );
+}
+
+#root
+  .main-content.gen3wild-page
+  .gen3wild-control-grid
+  .autocomplete-combobox {
+  --gen3wild-input-padding-end: calc(var(--gen3wild-control-height) + 8px);
 }
 
 #root
@@ -187,7 +198,7 @@
   .perfect-iv-filter-fields
   .field {
   display: grid;
-  height: var(--gen3wild-control-height);
+  height: auto;
   min-height: var(--gen3wild-control-height);
   grid-template-columns: 72px minmax(0, 1fr);
   align-items: center;
@@ -201,10 +212,9 @@
   .field
   > span {
   min-width: 0;
-  overflow: hidden;
   line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root
@@ -219,7 +229,9 @@
 }
 
 #root .main-content.gen3wild-page .gen3wild-filter-panel .wild-level-filter {
+  --gen3wild-input-padding: 4px;
   display: grid;
+  grid-column: 1 / -1;
   height: var(--gen3wild-control-height);
   min-height: var(--gen3wild-control-height);
   grid-template-columns: 76px repeat(2, minmax(0, 1fr));
@@ -263,6 +275,7 @@
   .main-content.gen3wild-page
   .gen3wild-filter-panel
   :is(.iv-filter-header, .iv-filter-row) {
+  --gen3wild-input-padding: 4px;
   min-height: var(--gen3wild-control-height);
   grid-template-columns: minmax(0, 1fr) 48px 48px;
   gap: 4px;
@@ -272,8 +285,8 @@
 #root .main-content.gen3wild-page .gen3wild-filter-panel .iv-filter-row input {
   width: 100%;
   min-width: 0;
-  height: 26px;
-  min-height: 26px;
+  height: var(--gen3wild-control-height);
+  min-height: var(--gen3wild-control-height);
   padding: 2px 4px;
 }
 
@@ -290,12 +303,22 @@
 #root .main-content.gen3wild-page .gen3wild-filter-panel .filter-tool-row {
   grid-column: 2;
   display: flex;
-  height: var(--gen3wild-control-height);
+  flex-wrap: wrap;
+  height: auto;
   min-height: var(--gen3wild-control-height);
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
   margin-top: 0;
+}
+
+#root .main-content.gen3wild-page .gen3wild-filter-panel .filter-tool-row > * {
+  flex-shrink: 0;
+  min-height: var(--gen3wild-control-height);
+}
+
+#root .main-content.gen3wild-page .gen3wild-filter-panel .iv-shortcut {
+  min-height: var(--gen3wild-control-height);
 }
 
 #root
@@ -340,23 +363,60 @@
 #root .main-content.gen3wild-page .gen3wild-result-alerts {
   min-width: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  overflow: hidden;
 }
 
 #root .main-content.gen3wild-page .gen3wild-result-alerts .alert {
   min-width: 0;
-  overflow: hidden;
   margin: 0;
   padding: 5px 9px;
   font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root .main-content.gen3wild-page .gen3wild-results-panel .table-shell {
   height: clamp(240px, 42vh, 440px);
+}
+
+@media (min-width: 769px) {
+  #root .app-shell:has(.gen3wild-page:not([hidden])) {
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
+  }
+
+  #root .app-shell:has(.gen3wild-page:not([hidden])) > .workspace {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  #root .main-content.gen3wild-page {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #root .main-content.gen3wild-page > * {
+    flex-shrink: 0;
+  }
+
+  #root .main-content.gen3wild-page .gen3wild-results-panel {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  #root .main-content.gen3wild-page .gen3wild-results-panel > * {
+    flex-shrink: 0;
+  }
+
+  #root .main-content.gen3wild-page .gen3wild-results-panel .table-shell {
+    height: 180px;
+    flex: 1 0 180px;
+  }
 }
 
 #root .main-content.gen3wild-page .wild-virtual-table,
@@ -414,7 +474,7 @@ body:has(#root .main-content.gen3wild-page:not([hidden]))
   white-space: nowrap;
 }
 
-@container pokerngkit-content (max-width: 980px) {
+@container pokerngkit-content (max-width: 1040px) {
   #root .main-content.gen3wild-page .gen3wild-control-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -444,6 +504,24 @@ body:has(#root .main-content.gen3wild-page:not([hidden]))
     ) {
     grid-column: 1;
     grid-row: auto;
+  }
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  #root .main-content.gen3wild-page {
+    --control-height: 44px;
+    --gen3wild-control-height: 44px;
+  }
+
+  body:has(#root .main-content.gen3wild-page:not([hidden]))
+    :is(
+      .haku-select-menu[data-menu-portal="true"] button,
+      .autocomplete-combobox-menu[data-menu-portal="true"] button,
+      .multi-check-menu[data-menu-portal="true"] label
+    ) {
+    height: auto;
+    min-height: 44px;
+    padding-block: 10px;
   }
 }
 
