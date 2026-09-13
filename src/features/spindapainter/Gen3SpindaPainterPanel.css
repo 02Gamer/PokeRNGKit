@@ -1,0 +1,102 @@
+.spinda-painter-panel {
+  display: grid;
+  min-width: 0;
+  max-width: 768px;
+  gap: 12px;
+}
+.spinda-painter-heading {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+}
+#root
+  .main-content
+  .spinda-painter-heading
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+  height: 30px;
+  min-height: 30px;
+  padding: 3px 9px;
+}
+.spinda-painter-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+.spinda-painter-info div {
+  min-width: 0;
+  padding: 4px 8px;
+}
+.spinda-painter-info dt {
+  color: var(--muted);
+  font-size: 14px;
+}
+.spinda-painter-info dd {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.spinda-painter-canvas {
+  position: relative;
+  width: min(100%, 512px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #ffffff;
+  outline: 1px solid var(--line);
+  border-radius: 12px;
+}
+.spinda-painter-base {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+.spinda-painter-spot {
+  position: absolute;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  touch-action: none;
+  cursor: grab;
+}
+.spinda-painter-spot:active {
+  cursor: grabbing;
+}
+.spinda-painter-spot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+.spinda-painter-spot:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+@container pokerngkit-content (max-width: 600px) {
+  .spinda-painter-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .spinda-painter-info div {
+    padding-inline: 0;
+  }
+}
+@media (max-width: 768px), (pointer: coarse) {
+  #root
+    .main-content
+    .spinda-painter-heading
+    input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+    height: 44px;
+    min-height: 44px;
+  }
+  .spinda-painter-spot::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+    content: "";
+  }
+}

@@ -1,6 +1,7 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeHexInput } from "../../input";
+import "./Gen3SpindaPainterPanel.css";
 import { getGen3AbilityName } from "../shared/gen3Abilities";
 import { getGen3Personal } from "../shared/gen3Personal";
 import spot1 from "./assets/spinda_spot1.png";
@@ -146,7 +147,7 @@ export function Gen3SpindaPainterPanel() {
     <section className="spinda-painter-panel">
       <div className="spinda-painter-heading">
         <label className="field">
-          <span>{t("pid")}</span>
+          <span>{"PID"}</span>
           <input
             inputMode="text"
             maxLength={8}
@@ -157,7 +158,11 @@ export function Gen3SpindaPainterPanel() {
         <dl className="spinda-painter-info">
           <div>
             <dt>{t("nature")}</dt>
-            <dd>{t(natureKeys[pid % 25])}</dd>
+            <dd>
+              {t(
+                `nature${natureKeys[pid % 25][0].toUpperCase()}${natureKeys[pid % 25].slice(1)}`,
+              )}
+            </dd>
           </div>
           <div>
             <dt>{t("gender")}</dt>
@@ -182,7 +187,7 @@ export function Gen3SpindaPainterPanel() {
         />
         {spots.map((spot, index) => (
           <button
-            aria-label={`${t("pid")} ${index + 1}`}
+            aria-label={`${"PID"} ${index + 1}`}
             className="spinda-painter-spot"
             key={spotAssets[index]}
             onKeyDown={(event) => onSpotKeyDown(event, index)}

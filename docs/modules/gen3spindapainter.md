@@ -56,6 +56,17 @@ y = (yNibble + offsetY + 6) * 8
 
 2026-08-13 经项目所有者授权，使用外部 Chrome 在 `https://haku76.github.io/PokeRNGKit/` 回归生产 UI：输入 PID `FEDCBA98` 后四个斑点百分比位置对应上游像素坐标 `(128,120)`、`(336,144)`、`(208,296)`、`(320,320)`；第一个斑点按一次右方向键后 PID 更新为 `FEDCBA99`。鼠标拖动、越界钳制、移动端和项目所有者最终验收仍待完成。
 
+## 0.1.0 界面收口
+
+- 修正 PID 与性格的无效词条引用：PID 保留上游英文标签，性格复用现有 `nature*` 翻译。
+- 模块样式迁回功能目录；手机 PID 输入为 44px，三项属性并排并允许长文本换行。
+- 绘图区最大宽度调整为原始资源的 512px，避免桌面默认放大至 768px 后挤出视口。
+  小斑点通过透明命中区域提供至少 44px 的操作范围，不改变图像尺寸和坐标映射。
+  仅斑点拖动禁止触摸滚动，画布空白处保持页面滚动能力。
+- 外部 Chrome `http://127.0.0.1:5173/` 的 390px 页面已确认 PID `FEDCBA98`
+  显示“勇敢”，拖动第一个斑点更新为 `FEDCBABA`，再按右方向键更新为 `FEDCBABB`。
+  本次为本地 UI 交互证据，不替代生产算法回归或所有者验收。
+
 ## 来源与许可证
 
 - [PokeFinder 4.3.2](https://github.com/Admiral-Fish/PokeFinder)，GPL-3.0-or-later：`Form/Gen3/Tools/SpindaPainter.*`、`Form/Controls/GraphicsPixmapItem.*`、`Form/Controls/TextBox.*`、`Form/Images/spinda*.png`、`Form/i18n/PokeFinder_zh.ts` 与 `Form/i18n/PokeFinder_ja.ts`。
