@@ -346,7 +346,14 @@ export function Gen3IvToPidPanel({ uiPreviewMode }: Gen3IvToPidPanelProps) {
             <button
               className="icon-action"
               disabled={results.length === 0}
-              onClick={() => setResults([])}
+              aria-label={t("clear")}
+              onClick={() => {
+                setResults([]);
+                setProgress(emptyProgress);
+                setSummary(undefined);
+                setError("");
+                setStatus("ready");
+              }}
               title={t("clear")}
               type="button"
             >

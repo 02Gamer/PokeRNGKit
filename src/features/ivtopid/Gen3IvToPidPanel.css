@@ -7,6 +7,7 @@
   display: grid;
   width: min(100%, 920px);
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -132,6 +133,7 @@
   min-width: 0;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 10px;
   color: var(--muted);
   font-size: 13px;
@@ -147,13 +149,12 @@
 }
 
 #root .main-content.ivtopid-page .ivtopid-result-summary .alert {
-  overflow: hidden;
   margin: 0;
   padding: 4px 8px;
   font-size: 13px;
   line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root .main-content.ivtopid-page .ivtopid-results-panel .result-actions {
@@ -225,6 +226,8 @@
 
 #root .main-content.ivtopid-page .ivtopid-table :is(th, td):nth-child(3) {
   width: 150px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 #root .main-content.ivtopid-page .ivtopid-table :is(th, td):nth-child(4) {
@@ -301,5 +304,23 @@ body:has(#root .main-content.ivtopid-page:not([hidden]))
 
   #root .main-content.ivtopid-page .ivtopid-metrics-row {
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  #root .main-content.ivtopid-page {
+    --ivtopid-control-height: 44px;
+  }
+
+  #root .main-content.ivtopid-page .ivtopid-table th {
+    height: 44px;
+  }
+
+  body:has(#root .main-content.ivtopid-page:not([hidden]))
+    .haku-select-menu[data-menu-portal="true"]
+    button {
+    height: auto;
+    min-height: 44px;
+    padding-block: 10px;
   }
 }
