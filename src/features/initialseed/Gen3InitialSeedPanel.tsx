@@ -308,12 +308,6 @@ export function Gen3InitialSeedPanel({
               </button>
             )}
           </div>
-        </section>
-
-        <section className="panel static-panel initial-seed-notes-panel">
-          <div className="panel-heading">
-            <h2>{t("information")}</h2>
-          </div>
           <div className="initial-seed-details">
             <div>
               <span>{t("initialSeed")}</span>

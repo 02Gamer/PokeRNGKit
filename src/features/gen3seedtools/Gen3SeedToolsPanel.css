@@ -181,10 +181,7 @@
 }
 
 #root .main-content .seed-tools-workspace .seed-tools-view-initialseed {
-  grid-template-columns: minmax(220px, 260px) minmax(260px, 340px) minmax(
-      360px,
-      1fr
-    );
+  grid-template-columns: minmax(260px, 320px) minmax(360px, 1fr);
   align-items: stretch;
 }
 
@@ -202,7 +199,7 @@
   .seed-tools-workspace
   .seed-tools-view-initialseed
   > .initial-seed-results-panel {
-  grid-column: 3;
+  grid-column: 2;
   grid-row: 2;
 }
 
@@ -309,7 +306,7 @@
   .seed-tools-workspace
   .initial-seed-input-panel
   .panel-actions {
-  margin-top: auto;
+  margin-top: 12px;
 }
 
 #root .main-content .seed-tools-workspace .initial-seed-details {
@@ -326,10 +323,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-#root .main-content .seed-tools-workspace .initial-seed-notes-panel {
-  min-width: 0;
 }
 
 #root .main-content .seed-tools-workspace .seed-to-time-control-grid,
@@ -349,7 +342,7 @@
 
 #root .main-content .seed-tools-workspace .seed-to-time-form-grid {
   grid-template-columns:
-    minmax(190px, 1fr) minmax(100px, 130px) minmax(120px, 150px)
+    minmax(160px, 1fr) minmax(80px, 110px) minmax(110px, 130px)
     auto;
   align-items: end;
   gap: 8px;
@@ -601,7 +594,7 @@
   padding-inline: 9px;
 }
 
-body:has(#root .main-content .seed-tools-workspace)
+body:has(#root .main-content:not([hidden]) .seed-tools-workspace)
   :is(
     .haku-select-menu[data-menu-portal="true"] button,
     .multi-check-menu[data-menu-portal="true"] label
@@ -613,7 +606,7 @@ body:has(#root .main-content .seed-tools-workspace)
   line-height: 20px;
 }
 
-body:has(#root .main-content .seed-tools-workspace)
+body:has(#root .main-content:not([hidden]) .seed-tools-workspace)
   :is(
     .haku-select-menu[data-menu-portal="true"] button > span,
     .multi-check-menu[data-menu-portal="true"] label > span
@@ -624,7 +617,7 @@ body:has(#root .main-content .seed-tools-workspace)
   white-space: nowrap;
 }
 
-@container pokerngkit-content (max-width: 720px) {
+@container pokerngkit-content (max-width: 960px) {
   #root .main-content .seed-tools-workspace .seed-tools-view-initialseed,
   #root .main-content .seed-tools-workspace .seed-tools-view-seedtotime,
   #root .main-content .seed-tools-workspace .seed-tools-view-ngcseed,
@@ -649,8 +642,14 @@ body:has(#root .main-content .seed-tools-workspace)
     .seed-tools-workspace
     .seed-tools-view-ngcseed
     > .ngc-seed-control-grid
-    > .panel {
-    grid-column: auto;
+    > .panel,
+  #root .main-content .seed-tools-workspace .seed-tools-view > .results-panel,
+  #root
+    .main-content
+    .seed-tools-workspace
+    .seed-tools-view
+    > .gen3-painting-panel {
+    grid-column: 1;
     grid-row: auto;
   }
 
@@ -709,6 +708,15 @@ body:has(#root .main-content .seed-tools-workspace)
 }
 
 @container pokerngkit-content (max-width: 480px) {
+  #root .main-content .seed-tools-workspace > .seed-tools-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #root .main-content .seed-tools-workspace > .seed-tools-tabs button {
+    height: auto;
+    white-space: normal;
+  }
+
   #root .main-content .seed-tools-workspace .operation-tabs button {
     padding-inline: 7px;
   }
@@ -732,5 +740,22 @@ body:has(#root .main-content .seed-tools-workspace)
   #root .main-content .seed-tools-workspace .result-actions {
     width: 100%;
     justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  #root .main-content .seed-tools-workspace {
+    --gen3seedtools-control-height: 44px;
+    --control-height: 44px;
+  }
+
+  body:has(#root .main-content:not([hidden]) .seed-tools-workspace)
+    :is(
+      .haku-select-menu[data-menu-portal="true"] button,
+      .multi-check-menu[data-menu-portal="true"] label
+    ) {
+    height: auto;
+    min-height: 44px;
+    padding-block: 10px;
   }
 }
