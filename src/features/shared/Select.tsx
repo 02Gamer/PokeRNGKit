@@ -42,7 +42,11 @@ function collectOptions(children: ReactNode, group?: string): SelectOption[] {
     }>;
     if (element.type === "option") {
       const label = Children.toArray(element.props.children)
-        .map((part) => (typeof part === "string" ? part : ""))
+        .map((part) =>
+          typeof part === "string" || typeof part === "number"
+            ? String(part)
+            : "",
+        )
         .join("")
         .trim();
       options.push({

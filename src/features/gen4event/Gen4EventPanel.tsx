@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -725,9 +726,11 @@ export function Gen4EventPanel({
                   ? "hgss"
                   : "dppt"
               }`}
-              style={{ height: `${virtualizer.getTotalSize() + 40}px` }}
+              style={{
+                height: `${virtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+              }}
             >
-              <div className="gen4event-table-header">
+              <div className="gen4event-table-header workspace-sortable-heading">
                 {columns.map((column) => (
                   <button
                     key={column.key}
@@ -759,7 +762,9 @@ export function Gen4EventPanel({
                   <div
                     className="gen4event-table-row"
                     key={`${state.advances}-${"seed" in state ? state.seed : row.index}-${row.index}`}
-                    style={{ transform: `translateY(${row.start + 40}px)` }}
+                    style={{
+                      transform: `translateY(${row.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                    }}
                   >
                     {columns.map((column) => (
                       <span key={column.key}>

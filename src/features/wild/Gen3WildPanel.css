@@ -1,8 +1,8 @@
 /* Gen III Wild owns its workspace density and layout. Shared controls remain
    module-agnostic; this page only supplies the compact sizing contract. */
 #root .main-content.gen3wild-page {
-  --control-height: 30px;
-  --gen3wild-control-height: 30px;
+  --control-height: var(--workspace-control-height, 30px);
+  --gen3wild-control-height: var(--workspace-control-height, 30px);
 }
 
 #root .main-content.gen3wild-page .gen3wild-control-grid {
@@ -509,8 +509,8 @@ body:has(#root .main-content.gen3wild-page:not([hidden]))
 
 @media (max-width: 768px), (pointer: coarse) {
   #root .main-content.gen3wild-page {
-    --control-height: 44px;
-    --gen3wild-control-height: 44px;
+    --control-height: var(--workspace-control-height, 44px);
+    --gen3wild-control-height: var(--workspace-control-height, 44px);
   }
 
   body:has(#root .main-content.gen3wild-page:not([hidden]))

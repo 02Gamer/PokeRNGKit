@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -314,7 +315,10 @@ export function Gen7FestivalPlazaPanel({
   return (
     <div className="gen7festivalplaza-panel">
       <div className="gen7festivalplaza-workspace stacked-module-workspace">
-        <form className="panel gen7festivalplaza-controls" onSubmit={generate}>
+        <form
+          className="panel gen7festivalplaza-controls workspace-controls"
+          onSubmit={generate}
+        >
           <div className="gen7festivalplaza-heading">
             <span className="panel-index">01</span>
             <h2>{t("gen7FestivalPlazaSetup")}</h2>
@@ -596,9 +600,11 @@ export function Gen7FestivalPlazaPanel({
             ) : (
               <div
                 className="gen7festivalplaza-virtual-table"
-                style={{ height: `${virtualizer.getTotalSize() + 40}px` }}
+                style={{
+                  height: `${virtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+                }}
               >
-                <div className="gen7festivalplaza-table-header">
+                <div className="gen7festivalplaza-table-header workspace-sortable-heading">
                   <span aria-hidden="true" />
                   {columns.map((column, index) => (
                     <button
@@ -632,7 +638,7 @@ export function Gen7FestivalPlazaPanel({
                       className="gen7festivalplaza-table-row"
                       key={`${result.frame}-${result.random}-${virtualRow.index}`}
                       style={{
-                        transform: `translateY(${virtualRow.start + 40}px)`,
+                        transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                       }}
                     >
                       <button

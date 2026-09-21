@@ -6,6 +6,7 @@ import HakuStyleDemo from "./HakuStyleDemo";
 import { Gen5ProfilesProvider } from "./features/gen5profiles/useGen5Profiles";
 import i18n from "./i18n";
 import "./styles.css";
+import "./workspace-ui.css";
 import { initializeTheme } from "./theme";
 import { registerServiceWorker } from "./registerServiceWorker";
 

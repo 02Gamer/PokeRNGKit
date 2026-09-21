@@ -127,3 +127,12 @@ PokeFinder 已有的简体中文控件词条沿用 `Form/i18n/PokeFinder_zh.ts`�
 - `3DSRNGTool/Util/FuncUtil.cs`
 
 3DSRNGTool 代码按其 MIT 条款记录来源；PokeRNGKit 整体继续按 `GPL-3.0-or-later` 发布，并保留 PokeFinder 版权声明、对应源码提供义务和商标免责声明。PokeRNGKit 不是 Nintendo、Creatures 或 GAME FREAK 的官方产品，也未获其认可。
+
+## 2026-09-21 布局更新
+
+本节替代此前固定表单高度与内部滚动的布局说明。设置区通过 `workspace-controls-grid`
+按容器宽度排列分组，窄屏单列；结果保持下方独立区域，空状态收紧，生成数据后恢复滚动。
+乱数信息卡按所在分组宽度重排，避免右侧字段裁切。输入范围、算法和 Worker 协议未改变。
+本批四种视口复核与剩余交互检查见 [UI 检查记录](../ui-audit-2026-09-21.md)。
+
+2026-09-21 UI 续查：手机参考控件或粘性操作区按共享规则调整，具体覆盖与未完成事项见 [UI 检查记录](../ui-audit-2026-09-21.md)。输入范围与算法未改动。

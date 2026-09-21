@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -389,9 +390,11 @@ export function Gen3InitialSeedPanel({
           ) : (
             <div
               className="initial-seed-virtual-table"
-              style={{ height: `${rowVirtualizer.getTotalSize() + 38}px` }}
+              style={{
+                height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+              }}
             >
-              <div className="initial-seed-table-header">
+              <div className="initial-seed-table-header workspace-sortable-heading">
                 {(["initialSeed", "advances"] as SortKey[]).map((key) => (
                   <button
                     key={key}
@@ -410,7 +413,7 @@ export function Gen3InitialSeedPanel({
                     className="initial-seed-table-row"
                     key={`${state.initialSeed}-${state.advances}-${virtualRow.index}`}
                     style={{
-                      transform: `translateY(${virtualRow.start + 38}px)`,
+                      transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                     }}
                   >
                     <span>{formatHex(state.initialSeed, 4)}</span>

@@ -1,8 +1,8 @@
 /* Gen III Egg owns its dense workspace layout. Shared controls remain
    module-agnostic and inherit only semantic styling from styles.css. */
 #root .main-content.gen3egg-page {
-  --control-height: 30px;
-  --gen3egg-control-height: 30px;
+  --control-height: var(--workspace-control-height, 30px);
+  --gen3egg-control-height: var(--workspace-control-height, 30px);
 }
 
 #root .main-content.gen3egg-page .gen3egg-control-grid {
@@ -609,8 +609,8 @@ body:has(#root .main-content.gen3egg-page:not([hidden]))
 
 @media (max-width: 768px), (pointer: coarse) {
   #root .main-content.gen3egg-page {
-    --control-height: 44px;
-    --gen3egg-control-height: 44px;
+    --control-height: var(--workspace-control-height, 44px);
+    --gen3egg-control-height: var(--workspace-control-height, 44px);
   }
 
   body:has(#root .main-content.gen3egg-page:not([hidden]))

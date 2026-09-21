@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -1523,12 +1524,12 @@ export function Gen5WildPanel({
               className={`gen5wild-table ${mode}`}
               role="grid"
               style={{
-                height: `${rowVirtualizer.getTotalSize() + (sortedResults.length === 0 ? 86 : 44)}px`,
+                height: `${rowVirtualizer.getTotalSize() + (sortedResults.length === 0 ? RESULT_TABLE_HEADER_HEIGHT + 42 : RESULT_TABLE_HEADER_HEIGHT)}px`,
               }}
             >
               <div
                 aria-rowindex={1}
-                className="gen5wild-table-header"
+                className="gen5wild-table-header workspace-sortable-heading"
                 role="row"
               >
                 {columns.map((column) => (
@@ -1622,7 +1623,9 @@ export function Gen5WildPanel({
                       }
                     }}
                     role="row"
-                    style={{ transform: `translateY(${row.start + 44}px)` }}
+                    style={{
+                      transform: `translateY(${row.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                    }}
                     tabIndex={
                       selectedResult === result ||
                       (selectedResult === undefined && row.index === 0)

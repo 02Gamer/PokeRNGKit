@@ -81,3 +81,12 @@ Static / Magnet Pull 的队首随机判定已保留在输入契约中；由于 `
 - `C:\Users\Hakuhiro\Documents\Github\3DSRNGTool_CHN\3DSRNGTool\Gen6\PKMW6.cs`
 
 3DSRNGTool 代码按 MIT 条款记录来源；PokeRNGKit 整体继续按 GPL-3.0-or-later 发布，并保留上游版权与商标免责声明。
+
+## 2026-09-21 布局更新
+
+本节替代此前固定表单高度与内部滚动的布局说明。设置区通过 `workspace-controls-grid`
+按容器宽度排列分组，窄屏单列；结果保持下方独立区域，空状态收紧，生成数据后恢复滚动。
+乱数信息卡按所在分组宽度重排，避免右侧字段裁切。输入范围、算法和 Worker 协议未改变。
+本批四种视口复核与剩余交互检查见 [UI 检查记录](../ui-audit-2026-09-21.md)。
+
+2026-09-21 表格续查：统一排序表头或可点击结果行尺寸，并同步虚拟位置；四种视口证据与文字修复见 [UI 检查记录](../ui-audit-2026-09-21.md)。输入与算法不变。

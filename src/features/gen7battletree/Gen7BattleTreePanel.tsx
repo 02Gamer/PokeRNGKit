@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CornerDownLeft, Download, Play, Square, Trash2 } from "lucide-react";
@@ -243,7 +244,10 @@ export function Gen7BattleTreePanel({
   return (
     <div className="gen7battletree-panel">
       <div className="gen7battletree-workspace stacked-module-workspace">
-        <form className="panel gen7battletree-controls" onSubmit={generate}>
+        <form
+          className="panel gen7battletree-controls workspace-controls"
+          onSubmit={generate}
+        >
           <div className="gen7battletree-heading">
             <span className="panel-index">01</span>
             <h2>{t("gen7BattleTreeSetup")}</h2>
@@ -462,9 +466,11 @@ export function Gen7BattleTreePanel({
             ) : (
               <div
                 className="gen7battletree-virtual-table"
-                style={{ height: `${virtualizer.getTotalSize() + 40}px` }}
+                style={{
+                  height: `${virtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+                }}
               >
-                <div className="gen7battletree-table-header">
+                <div className="gen7battletree-table-header workspace-sortable-heading">
                   <span aria-hidden="true" />
                   {columns.map((column) => (
                     <button
@@ -497,7 +503,7 @@ export function Gen7BattleTreePanel({
                       className="gen7battletree-table-row"
                       key={`${result.frame}-${result.random}-${virtualRow.index}`}
                       style={{
-                        transform: `translateY(${virtualRow.start + 40}px)`,
+                        transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                       }}
                     >
                       <button

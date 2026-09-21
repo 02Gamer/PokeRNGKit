@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -1209,11 +1210,13 @@ export function Gen8EventPanel({
             aria-rowcount={sortedResults.length + 1}
             className="gen8event-virtual-table"
             role="grid"
-            style={{ height: `${rowVirtualizer.getTotalSize() + 42}px` }}
+            style={{
+              height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+            }}
           >
             <div
               aria-rowindex={1}
-              className="gen8event-table-header"
+              className="gen8event-table-header workspace-sortable-heading"
               role="row"
             >
               {COLUMNS.map((column) => (
@@ -1267,7 +1270,9 @@ export function Gen8EventPanel({
                   className="gen8event-table-row"
                   key={`${result.advances}-${result.ec}-${result.pid}-${row.index}`}
                   role="row"
-                  style={{ transform: `translateY(${row.start + 42}px)` }}
+                  style={{
+                    transform: `translateY(${row.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                  }}
                 >
                   {COLUMNS.map((column) => (
                     <span

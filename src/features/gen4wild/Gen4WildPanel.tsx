@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -1733,9 +1734,11 @@ export function Gen4WildPanel({
           ) : (
             <div
               className={`static-virtual-table gen4wild-table ${operation} ${hgss ? "hgss" : "dppt"}`}
-              style={{ height: `${rowVirtualizer.getTotalSize() + 40}px` }}
+              style={{
+                height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+              }}
             >
-              <div className="static-table-header">
+              <div className="static-table-header workspace-sortable-heading">
                 {columns.map((column) => (
                   <button
                     key={column.key}
@@ -1768,7 +1771,7 @@ export function Gen4WildPanel({
                     className="static-table-row"
                     key={`${"seed" in state ? state.seed : state.advances}-${state.pid}-${virtualRow.index}`}
                     style={{
-                      transform: `translateY(${virtualRow.start + 40}px)`,
+                      transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                     }}
                   >
                     {columns.map((column) => (

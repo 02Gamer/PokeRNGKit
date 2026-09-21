@@ -294,31 +294,31 @@
   color: var(--muted);
   font-size: 13px;
 }
-.result-actions {
+.gen8raids-panel .result-actions {
   display: flex;
   align-items: center;
   gap: 6px;
   color: var(--muted);
   font-size: 13px;
 }
-.result-actions button.active {
+.gen8raids-panel .result-actions button.active {
   border-color: var(--brand);
   background: var(--brand-soft);
   color: var(--brand-strong);
 }
-.progress-row {
+.gen8raids-panel .progress-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   padding: 4px 10px;
 }
-.progress-row progress {
+.gen8raids-panel .progress-row progress {
   width: 100%;
   height: 5px;
   accent-color: var(--brand);
 }
-.progress-row span {
+.gen8raids-panel .progress-row span {
   color: var(--muted);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
@@ -329,7 +329,7 @@
   overflow: auto;
   background: var(--table-bg);
 }
-.table-inner {
+.gen8raids-panel .table-inner {
   position: relative;
   min-width: 1500px;
   color: var(--text);
@@ -337,8 +337,8 @@
   line-height: 20px;
   font-variant-numeric: tabular-nums;
 }
-.table-header,
-.table-row {
+.gen8raids-panel .table-header,
+.gen8raids-panel .table-row {
   display: grid;
   grid-template-columns:
     88px 104px 104px 92px 112px 168px repeat(6, 64px) 92px 76px 76px
@@ -346,17 +346,17 @@
   width: 100%;
   min-width: 1500px;
 }
-.table-header {
+.gen8raids-panel .table-header {
   position: sticky;
   z-index: 2;
   top: 0;
-  height: 42px;
+  height: 44px;
   border-bottom: 1px solid var(--line);
   background: var(--surface-2);
 }
-.table-header button,
-.table-header span,
-.table-row span {
+.gen8raids-panel .table-header button,
+.gen8raids-panel .table-header span,
+.gen8raids-panel .table-row span {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -366,16 +366,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.table-header button {
+.gen8raids-panel .table-header button {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   border-width: 0 1px 0 0;
   border-radius: 0;
   color: var(--muted);
   font-size: 13px;
   text-align: left;
 }
-.table-row {
+.gen8raids-panel .table-row {
   position: absolute;
   top: 0;
   left: 0;
@@ -383,10 +383,10 @@
   border-bottom: 1px solid var(--line-soft);
   background: var(--table-bg);
 }
-.table-row:hover {
+.gen8raids-panel .table-row:hover {
   background: var(--teal-soft);
 }
-.empty {
+.gen8raids-panel .empty {
   position: absolute;
   top: 50px;
   right: 0;

@@ -2,6 +2,12 @@
   --gen3id-control-height: 30px;
 }
 
+@media (max-width: 768.98px), (pointer: coarse) {
+  #root .main-content.gen3id-page {
+    --gen3id-control-height: 44px;
+  }
+}
+
 #root main.main-content.gen3id-page .gen3id-workspace {
   display: grid;
   min-width: 0;
@@ -424,5 +430,29 @@ body:has(#root .main-content .gen3id-workspace:not([hidden]))
   .gen3id-rng-panel .advance-row,
   .gen3id-searcher-input-panel .advance-row {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 768.98px), (pointer: coarse) {
+  #root
+    .main-content.gen3id-page
+    :is(.gen3id-operation-tabs, .gen3id-mode-tabs) {
+    height: auto;
+    min-height: 52px;
+  }
+
+  #root
+    .main-content.gen3id-page
+    :is(.gen3id-operation-tabs button, .gen3id-workspace .mode-tabs button) {
+    height: auto;
+    white-space: normal;
+  }
+
+  body:has(#root .main-content.gen3id-page:not([hidden]))
+    .haku-select-menu[data-menu-portal="true"]
+    button {
+    height: auto;
+    min-height: 44px;
+    padding-block: 10px;
   }
 }

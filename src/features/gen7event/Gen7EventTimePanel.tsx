@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Download, FileUp, Play, Square, Trash2 } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -1123,9 +1124,11 @@ export function Gen7EventTimePanel({
             ) : (
               <div
                 className="gen7event-time-table"
-                style={{ height: `${virtualizer.getTotalSize() + 44}px` }}
+                style={{
+                  height: `${virtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+                }}
               >
-                <div className="gen7event-time-table-header">
+                <div className="gen7event-time-table-header workspace-sortable-heading">
                   {columns.map((column) => (
                     <button
                       aria-label={column.label}
@@ -1165,7 +1168,7 @@ export function Gen7EventTimePanel({
                       className="gen7event-time-table-row"
                       key={`${result.epoch}-${result.frame}-${virtualRow.index}`}
                       style={{
-                        transform: `translateY(${virtualRow.start + 44}px)`,
+                        transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                       }}
                     >
                       {cells.map((cell, index) => (

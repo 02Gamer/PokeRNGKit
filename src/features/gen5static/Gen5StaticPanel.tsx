@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -1365,9 +1366,14 @@ export function Gen5StaticPanel({
               aria-rowcount={results.length + 1}
               className={`gen5static-table ${mode}`}
               role="table"
-              style={{ height: `${rowVirtualizer.getTotalSize() + 44}px` }}
+              style={{
+                height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+              }}
             >
-              <div className="gen5static-table-header" role="row">
+              <div
+                className="gen5static-table-header workspace-sortable-heading"
+                role="row"
+              >
                 {columns.map((column) => (
                   <span
                     aria-sort={
@@ -1421,7 +1427,9 @@ export function Gen5StaticPanel({
                       }
                     }}
                     role="row"
-                    style={{ transform: `translateY(${row.start + 44}px)` }}
+                    style={{
+                      transform: `translateY(${row.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                    }}
                     tabIndex={0}
                   >
                     {rowValues(result).map((value, index) => (

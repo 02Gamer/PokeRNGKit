@@ -3,6 +3,19 @@ import i18n from "i18next";
 const resources = {
   en: {
     translation: {
+      // Shared labels used by multiple module workspaces.
+      form: "Form",
+      gen6StationaryFrames: "Frames",
+      gen6StationaryFrame: "Frame",
+      gen6GameVersion: "GameVersion",
+      ignoreFilters: "Disable Filters",
+      clearResults: "Clear results",
+      status: "Status",
+      matches: "Results",
+      gen7WildGenderRatio: "Gender Ratio",
+      location: "Location",
+      slot: "Slot",
+      pid: "PID",
       brand: "PokeRNGKit",
       subtitle: "Generation III RNG workstation",
       subtitleGen4: "Generation IV RNG workstation",
@@ -1796,6 +1809,7 @@ const resources = {
       generator: "Generator",
       searcher: "Searcher",
       search: "Search",
+      find: "Find",
       roamerNotice:
         "This encounter uses the Gen III roamer IV bug. Method 4 is unavailable.",
       nature: "Nature",
@@ -2000,6 +2014,19 @@ const resources = {
   },
   ja: {
     translation: {
+      // Shared labels used by multiple module workspaces.
+      form: "Form",
+      gen6StationaryFrames: "Frames",
+      gen6StationaryFrame: "Frame",
+      gen6GameVersion: "GameVersion",
+      ignoreFilters: "Disable Filters",
+      clearResults: "結果をクリア",
+      status: "Status",
+      matches: "結果",
+      gen7WildGenderRatio: "性別比",
+      location: "Location",
+      slot: "Slot",
+      pid: "PID",
       brand: "PokeRNGKit",
       subtitle: "第3世代 RNG ワークステーション",
       subtitleGen4: "第4世代 RNG ワークステーション",
@@ -3728,6 +3755,7 @@ const resources = {
       generator: "Generator",
       searcher: "Searcher",
       search: "Search",
+      find: "Find",
       roamerNotice:
         "第3世代の徘徊ポケモンの個体値バグを適用します。Method 4 は選択できません。",
       nature: "性格",
@@ -3932,6 +3960,19 @@ const resources = {
   },
   zh: {
     translation: {
+      // Shared labels used by multiple module workspaces.
+      form: "Form",
+      gen6StationaryFrames: "Frames",
+      gen6StationaryFrame: "Frame",
+      gen6GameVersion: "游戏版本",
+      ignoreFilters: "取消筛选",
+      clearResults: "清空结果",
+      status: "状态",
+      matches: "结果",
+      gen7WildGenderRatio: "性别比",
+      location: "地点",
+      slot: "Slot",
+      pid: "PID",
       brand: "PokeRNGKit",
       subtitle: "第三世代 RNG 工作台",
       subtitleGen4: "第四世代 RNG 工作台",
@@ -5714,6 +5755,7 @@ const resources = {
       generator: "生成器",
       searcher: "检索器",
       search: "检索",
+      find: "查找",
       roamerNotice:
         "此目标应用第三世代游走宝可梦个体值缺陷，无法使用 Method 4。",
       nature: "性格",

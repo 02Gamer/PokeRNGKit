@@ -359,7 +359,7 @@ export function Gen7MainPanel({
   return (
     <div className="gen7main-panel">
       <div className="gen7main-workspace stacked-module-workspace">
-        <section className="panel gen7main-controls">
+        <section className="panel gen7main-controls workspace-controls">
           <div className="gen7main-heading">
             <span className="panel-index">01</span>
             <h2>{t("gen7MainInputTool")}</h2>

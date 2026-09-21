@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -1156,9 +1157,11 @@ export function Gen4StaticPanel({
                   ? "hgss"
                   : "dppt"
               }`}
-              style={{ height: `${virtualizer.getTotalSize() + 40}px` }}
+              style={{
+                height: `${virtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+              }}
             >
-              <div className="static-table-header">
+              <div className="static-table-header workspace-sortable-heading">
                 {columns.map((column) => (
                   <button
                     key={column.key}
@@ -1190,7 +1193,9 @@ export function Gen4StaticPanel({
                   <div
                     className="static-table-row"
                     key={`${state.pid}-${stateValue(state, operation === "generator" ? "advances" : "seed")}-${row.index}`}
-                    style={{ transform: `translateY(${row.start + 40}px)` }}
+                    style={{
+                      transform: `translateY(${row.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                    }}
                   >
                     {columns.map((column) => (
                       <span key={column.key}>

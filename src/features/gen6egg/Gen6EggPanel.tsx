@@ -413,7 +413,7 @@ export function Gen6EggPanel({
         </div>
       </header>
       <div className="gen6egg-workspace stacked-module-workspace">
-        <section className="panel gen6egg-controls">
+        <section className="panel gen6egg-controls workspace-controls">
           <div className="gen6egg-heading">
             <h2>{t("gen6EggSetup")}</h2>
             <span>{progress.percent.toFixed(1)}%</span>
@@ -522,7 +522,7 @@ export function Gen6EggPanel({
             </label>
           </div>
           <div
-            className="gen6egg-mode"
+            className="gen6egg-mode workspace-mode-group"
             role="group"
             aria-label={t("gen6EggAcceptMode")}
           >
@@ -787,7 +787,7 @@ export function Gen6EggPanel({
               value={perfectIvValue}
             />
           </details>
-          <div className="gen6egg-actions">
+          <div className="gen6egg-actions workspace-action-row">
             <label className="field">
               <span>{t("gen6EggResultLimit")}</span>
               <input

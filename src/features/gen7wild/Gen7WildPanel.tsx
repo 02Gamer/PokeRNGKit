@@ -647,7 +647,7 @@ export function Gen7WildPanel({
   return (
     <form className="gen7wild-panel" onSubmit={submit}>
       <div className="gen7wild-workspace stacked-module-workspace">
-        <section className="panel gen7wild-controls">
+        <section className="panel gen7wild-controls workspace-controls workspace-controls-grid workspace-controls-four">
           <header className="gen7wild-heading">
             <div>
               <Play aria-hidden="true" size={18} />
@@ -1163,7 +1163,7 @@ export function Gen7WildPanel({
             </label>
           </details>
 
-          <div className="gen7wild-run-actions">
+          <div className="gen7wild-run-actions workspace-sticky-actions">
             {status === "calculating" ? (
               <button
                 className="gen7wild-primary"
@@ -1182,7 +1182,7 @@ export function Gen7WildPanel({
           </div>
         </section>
 
-        <section className="panel gen7wild-results">
+        <section className="panel gen7wild-results workspace-results">
           <header className="gen7wild-heading">
             <div>
               <h2>{t("results")}</h2>
@@ -1232,7 +1232,7 @@ export function Gen7WildPanel({
           )}
           <div className="gen7wild-table" ref={tableRef}>
             <div
-              className="gen7wild-table-head"
+              className="gen7wild-table-head workspace-table-heading workspace-sortable-heading"
               style={{ width: `${columns.length * 104}px` }}
             >
               {columns.map((column) => (
@@ -1260,7 +1260,9 @@ export function Gen7WildPanel({
               ))}
             </div>
             {sortedResults.length === 0 ? (
-              <div className="gen7wild-empty">{t("emptyGen7Wild")}</div>
+              <div className="gen7wild-empty workspace-empty-state">
+                {t("emptyGen7Wild")}
+              </div>
             ) : (
               <div
                 className="gen7wild-table-body"

@@ -1,5 +1,5 @@
 #root .main-content .gen7stationary-panel {
-  --gen7stationary-control-height: 30px;
+  --gen7stationary-control-height: var(--workspace-control-height, 30px);
   min-width: 0;
 }
 

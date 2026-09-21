@@ -1,0 +1,355 @@
+/* Shared compact workspace contract. Gen III ID/Static remain comparison pages.
+   Layout-specific exceptions belong to their feature; input semantics do not change. */
+
+/* Sort targets and virtual row offsets share one 45px header contract. */
+#root .main-content .workspace-sortable-heading {
+  box-sizing: border-box;
+  height: 45px;
+  min-height: 45px;
+  align-items: stretch;
+}
+
+#root .main-content .workspace-sortable-heading button {
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  padding-block: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* Floating utilities retain the standard 44px control density on every screen. */
+#root .floating-tool-panel [role="tablist"] button,
+#root
+  .floating-tool-panel
+  :is(.calculator-actions, .profile-actions, .workflow-tips-list)
+  button {
+  height: auto;
+  min-height: 44px;
+}
+
+#root .main-content[data-workspace-density="compact"] {
+  --workspace-control-height: 30px;
+  --control-height: var(--workspace-control-height);
+  --workspace-gap: 12px;
+  --workspace-field-gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+#root .main-content[data-workspace-density] .field {
+  min-width: 0;
+  gap: 4px;
+}
+
+#root .main-content[data-workspace-density] .field > span {
+  font-size: 14px;
+  line-height: 20px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The arrow belongs inside the input border and must follow the same density. */
+#root .main-content[data-workspace-density] .autocomplete-combobox {
+  --control-height: var(--workspace-control-height);
+}
+
+#root .main-content[data-workspace-density] .autocomplete-combobox-trigger {
+  top: 1px;
+  width: calc(var(--workspace-control-height) - 2px);
+  height: calc(var(--workspace-control-height) - 2px);
+  min-height: 0;
+  padding: 0;
+}
+
+#root
+  .main-content[data-workspace-density]
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+#root
+  .main-content[data-workspace-density]
+  :is(select, .haku-select-trigger, .multi-check-trigger) {
+  box-sizing: border-box;
+  height: var(--workspace-control-height);
+  min-height: var(--workspace-control-height);
+  padding-block: 3px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+#root
+  .main-content[data-workspace-density]
+  :is(.panel-actions, .result-actions, .operation-tabs)
+  button {
+  min-height: var(--workspace-control-height);
+  padding-block: 3px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+#root
+  .main-content[data-workspace-density]
+  :is(.panel-actions, .result-actions) {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#root .main-content[data-workspace-density] .panel-heading h2 {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+/* Explicit semantic opt-in: forms grow with real fields, not a viewport-sized
+   empty box with its own scroll bar. Results retain their own scroll region. */
+#root .main-content[data-workspace-density] .panel.workspace-controls {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  align-self: start;
+}
+
+#root .main-content[data-workspace-density] .stacked-module-workspace {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--workspace-gap);
+}
+
+/* Sections keep their own fields; the form owns the responsive columns. */
+#root .main-content[data-workspace-density] .panel.workspace-controls-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+#root .main-content[data-workspace-density] .workspace-controls-grid > * {
+  min-width: 0;
+  grid-area: auto;
+}
+
+#root
+  .main-content[data-workspace-density]
+  .workspace-controls-grid
+  > :not(:first-child) {
+  container: workspace-form-group / inline-size;
+}
+
+#root
+  .main-content[data-workspace-density]
+  .workspace-controls-grid
+  .three-ds-rng-info-card {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+
+#root
+  .main-content[data-workspace-density]
+  .workspace-controls-grid
+  .three-ds-rng-range {
+  grid-column: 1 / -1;
+}
+
+@container workspace-form-group (max-width: 520px) {
+  #root .main-content[data-workspace-density] [class$="-rng-state-grid"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+#root
+  .main-content[data-workspace-density]
+  .workspace-controls-grid
+  > :first-child,
+#root
+  .main-content[data-workspace-density]
+  .workspace-controls-grid
+  > [class$="-actions"],
+#root
+  .main-content[data-workspace-density]
+  .workspace-controls-grid
+  > .check-row {
+  grid-column: 1 / -1;
+}
+
+@container pokerngkit-content (min-width: 740px) {
+  #root .main-content[data-workspace-density] .panel.workspace-controls-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container pokerngkit-content (min-width: 1100px) {
+  #root .main-content[data-workspace-density] .panel.workspace-controls-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container pokerngkit-content (min-width: 1320px) {
+  #root .main-content[data-workspace-density] .panel.workspace-controls-four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+#root
+  .main-content[data-workspace-density]
+  .workspace-controls-grid
+  > :first-child
+  h2 {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+#root
+  .main-content[data-workspace-density]
+  .workspace-results:has(:is(.empty-state, .workspace-empty-state)) {
+  height: auto;
+  min-height: 240px;
+}
+
+#root
+  .main-content[data-workspace-density]
+  .workspace-results
+  :is(.empty-state, .workspace-empty-state) {
+  height: auto;
+  min-height: 180px;
+}
+
+#root
+  .main-content[data-workspace-density]
+  .workspace-results:has(:is(.empty-state, .workspace-empty-state))
+  > :last-child {
+  height: auto;
+  min-height: 180px;
+  flex: 1 1 auto;
+}
+
+#root .main-content[data-workspace-density] .alert {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+body:has(#root .main-content[data-workspace-density]:not([hidden]))
+  :is(
+    .haku-select-menu,
+    .multi-check-menu,
+    .autocomplete-combobox-menu
+  )[data-menu-portal="true"]
+  :is(button, label) {
+  min-height: 30px;
+  padding-block: 3px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@media (max-width: 768.98px), (pointer: coarse) {
+  #root .main-content[data-workspace-density="compact"] {
+    --workspace-control-height: 44px;
+  }
+
+  #root .main-content[data-workspace-density] [role="tablist"] button,
+  #root .main-content[data-workspace-density] .workspace-mode-group button,
+  #root .main-content[data-workspace-density] .workspace-action-row button,
+  #root .main-content[data-workspace-density] .filter-tool-row button,
+  #root .main-content[data-workspace-density] .workspace-table-heading button,
+  #root
+    .main-content[data-workspace-density]
+    :is(
+      .iv-shortcut,
+      .primary-button,
+      .secondary-button,
+      .secondary-action,
+      .three-ds-rng-calculate
+    ) {
+    height: auto;
+    min-height: 44px;
+  }
+
+  #root .main-content[data-workspace-density] .workspace-icon-action {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  #root .main-content[data-workspace-density] .workspace-action-row {
+    height: auto;
+    flex-wrap: wrap;
+  }
+
+  #root .main-content[data-workspace-density] [role="tablist"] {
+    min-height: 44px;
+    height: auto;
+  }
+
+  body:has(#root .main-content[data-workspace-density]:not([hidden]))
+    :is(
+      .haku-select-menu,
+      .multi-check-menu,
+      .autocomplete-combobox-menu
+    )[data-menu-portal="true"]
+    :is(button, label) {
+    height: auto;
+    min-height: 44px;
+    padding-block: 10px;
+  }
+}
+
+@media (max-width: 768.98px), (pointer: coarse) {
+  #root .main-content[data-workspace-density] .workspace-sticky-actions {
+    padding-inline-end: max(90px, calc(env(safe-area-inset-right) + 72px));
+  }
+
+  #root .main-content[data-workspace-density] .workspace-sticky-actions button {
+    min-height: 44px;
+  }
+}
+
+#root .main-content[data-workspace-density] .workspace-parent-fields {
+  container: workspace-parent / inline-size;
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+#root .main-content[data-workspace-density] .workspace-parent-fields legend {
+  padding-inline: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+#root .main-content[data-workspace-density] .workspace-parent-ivs {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#root .main-content[data-workspace-density] .workspace-parent-ivs input {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+}
+
+@container workspace-parent (min-width: 420px) {
+  #root .main-content[data-workspace-density] .workspace-parent-ivs {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+#root .main-content[data-workspace-density] .workspace-action-row {
+  height: auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#root
+  .main-content[data-workspace-density]
+  .gen3static-control-grid
+  .static-filter-panel
+  .filter-tool-row.workspace-action-row {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  width: auto;
+  margin: 0;
+}

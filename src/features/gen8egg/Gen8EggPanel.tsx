@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Download, Play, Settings2, Square, Trash2 } from "lucide-react";
@@ -1132,9 +1133,15 @@ export function Gen8EggPanel({
             aria-rowcount={sortedResults.length + 1}
             className="gen8egg-virtual-table"
             role="grid"
-            style={{ height: `${rowVirtualizer.getTotalSize() + 42}px` }}
+            style={{
+              height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+            }}
           >
-            <div aria-rowindex={1} className="gen8egg-table-header" role="row">
+            <div
+              aria-rowindex={1}
+              className="gen8egg-table-header workspace-sortable-heading"
+              role="row"
+            >
               {COLUMNS.map((column) => (
                 <span
                   aria-sort={
@@ -1182,7 +1189,9 @@ export function Gen8EggPanel({
                   className="gen8egg-table-row"
                   key={`${result.advances}-${result.seed}-${result.pid}-${row.index}`}
                   role="row"
-                  style={{ transform: `translateY(${row.start + 42}px)` }}
+                  style={{
+                    transform: `translateY(${row.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                  }}
                 >
                   {COLUMNS.map((column) => (
                     <span

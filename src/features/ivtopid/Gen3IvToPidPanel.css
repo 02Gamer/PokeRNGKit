@@ -1,6 +1,6 @@
 /* IVs to PID keeps its dense workspace local so shared controls stay module-neutral. */
 #root .main-content.ivtopid-page {
-  --ivtopid-control-height: 30px;
+  --ivtopid-control-height: var(--workspace-control-height, 30px);
 }
 
 #root .main-content.ivtopid-page .ivtopid-workspace {
@@ -309,7 +309,7 @@ body:has(#root .main-content.ivtopid-page:not([hidden]))
 
 @media (max-width: 768px), (pointer: coarse) {
   #root .main-content.ivtopid-page {
-    --ivtopid-control-height: 44px;
+    --ivtopid-control-height: var(--workspace-control-height, 44px);
   }
 
   #root .main-content.ivtopid-page .ivtopid-table th {

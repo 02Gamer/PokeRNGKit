@@ -1,6 +1,6 @@
 /* GameCube owns its compact form geometry. Shared controls remain module-neutral. */
 #root .main-content.gen3gamecube-page {
-  --gen3gamecube-control-height: 30px;
+  --gen3gamecube-control-height: var(--workspace-control-height, 30px);
 }
 
 #root .main-content.gen3gamecube-page .gen3gamecube-panel {
@@ -40,7 +40,7 @@
   width: 100%;
   max-width: none;
   grid-template-columns: minmax(228px, 250px) minmax(248px, 280px) minmax(
-      430px,
+      480px,
       1fr
     );
   align-items: stretch;
@@ -173,8 +173,8 @@
   font-weight: 500;
   line-height: calc(var(--gen3gamecube-control-height) - 2px);
   padding-inline: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root .main-content.gen3gamecube-page .gen3gamecube-encounter-meta span {
@@ -182,8 +182,8 @@
   color: var(--muted);
   font-size: 14px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root
@@ -221,7 +221,7 @@
   .gen3gamecube-filter-panel
   :is(.gen3gamecube-filter-selects .field, .perfect-iv-filter-fields .field) {
   display: grid;
-  height: var(--gen3gamecube-control-height);
+  height: auto;
   min-height: var(--gen3gamecube-control-height);
   grid-template-columns: 72px minmax(0, 1fr);
   align-items: center;
@@ -237,8 +237,8 @@
   min-width: 0;
   overflow: hidden;
   line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root
@@ -287,15 +287,15 @@
   input {
   width: 100%;
   min-width: 0;
-  height: 26px;
-  min-height: 26px;
+  height: var(--gen3gamecube-control-height);
+  min-height: var(--gen3gamecube-control-height);
   padding: 2px 4px;
 }
 
 #root .main-content.gen3gamecube-page .gen3gamecube-filter-bottom-row {
-  display: grid;
-  grid-column: 2;
-  grid-template-columns: minmax(0, 1fr) minmax(116px, 148px);
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   margin-top: 6px;
@@ -306,10 +306,11 @@
   .gen3gamecube-filter-bottom-row
   .filter-tool-row {
   display: flex;
-  height: var(--gen3gamecube-control-height);
+  height: auto;
   min-height: var(--gen3gamecube-control-height);
   align-items: center;
   justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 10px;
   margin: 0;
 }
@@ -327,15 +328,15 @@
   .toggle-field
   span {
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root
   .main-content.gen3gamecube-page
   .gen3gamecube-filter-bottom-row
   .iv-calculator-action {
-  width: 100%;
+  width: auto;
   margin: 0;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -380,6 +381,7 @@
   display: flex;
   min-width: 0;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   overflow: hidden;
 }
@@ -390,8 +392,8 @@
   overflow: hidden;
   padding: 5px 9px;
   font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 #root .main-content.gen3gamecube-page .gen3gamecube-results-panel .table-shell {
@@ -596,5 +598,83 @@ body:has(#root .main-content.gen3gamecube-page:not([hidden]))
 
   #root .main-content.gen3gamecube-page .gen3gamecube-results-heading {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+#root .main-content.gen3gamecube-page .gen3gamecube-panel .field > span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#root
+  .main-content.gen3gamecube-page
+  .gen3gamecube-control-grid
+  input:not([type="checkbox"]):not([type="radio"]) {
+  padding-inline: var(--gamecube-input-padding, 9px);
+}
+
+#root .main-content.gen3gamecube-page .iv-filter-row input {
+  --gamecube-input-padding: 4px;
+}
+
+#root .main-content.gen3gamecube-page .iv-filter-row > button,
+#root .main-content.gen3gamecube-page .toggle-field {
+  min-height: var(--gen3gamecube-control-height);
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  #root .main-content.gen3gamecube-page {
+    --gen3gamecube-control-height: var(--workspace-control-height, 44px);
+  }
+
+  body:has(#root .main-content.gen3gamecube-page:not([hidden]))
+    :is(
+      .haku-select-menu[data-menu-portal="true"] button,
+      .multi-check-menu[data-menu-portal="true"] label
+    ) {
+    height: auto;
+    min-height: 44px;
+    padding-block: 10px;
+  }
+}
+
+@media (min-width: 769px) {
+  #root .app-shell:has(.gen3gamecube-page:not([hidden])) {
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
+  }
+
+  #root .app-shell:has(.gen3gamecube-page:not([hidden])) > .workspace {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  #root .main-content.gen3gamecube-page {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #root .main-content.gen3gamecube-page > * {
+    flex-shrink: 0;
+  }
+
+  #root .main-content.gen3gamecube-page .gen3gamecube-results-panel {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  #root .main-content.gen3gamecube-page .gen3gamecube-results-panel > * {
+    flex-shrink: 0;
+  }
+
+  #root
+    .main-content.gen3gamecube-page
+    .gen3gamecube-results-panel
+    .table-shell {
+    height: 180px;
+    flex: 1 0 180px;
   }
 }

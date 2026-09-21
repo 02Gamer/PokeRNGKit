@@ -4784,6 +4784,8 @@ textarea:disabled {
 
 .unified-profile-panel {
   display: grid;
+  grid-template-rows: max-content max-content;
+  align-content: start;
   min-width: 0;
   max-height: calc(100vh - 98px);
   overflow: auto;

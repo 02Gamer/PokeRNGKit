@@ -182,3 +182,41 @@ body:has(#root .main-content.gen3static-page:not([hidden]))
     grid-column: 1;
   }
 }
+
+@media (max-width: 768.98px), (pointer: coarse) {
+  #root .main-content.gen3static-page {
+    --gen3static-control-height: 44px;
+  }
+
+  #root
+    .main-content.gen3static-page
+    .gen3static-control-grid
+    .filter-bottom-row,
+  #root
+    .main-content.gen3static-page
+    .gen3static-control-grid
+    .filter-tool-row {
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    gap: 8px;
+  }
+
+  #root
+    .main-content.gen3static-page
+    .gen3static-control-grid
+    :is(.iv-shortcut, .toggle-field) {
+    min-height: 44px;
+  }
+
+  body:has(#root .main-content.gen3static-page:not([hidden]))
+    :is(
+      .haku-select-menu[data-menu-portal="true"] button,
+      .multi-check-menu[data-menu-portal="true"] label
+    ) {
+    height: auto;
+    min-height: 44px;
+    padding-block: 10px;
+  }
+}

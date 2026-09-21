@@ -2,7 +2,7 @@
    confirmed Gen III ID and Static panels. Keep these rules local so other
    modules can migrate independently. */
 #root .main-content .seed-tools-workspace {
-  --gen3seedtools-control-height: 30px;
+  --gen3seedtools-control-height: var(--workspace-control-height, 30px);
   --gen3seedtools-panel-gap: 12px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -745,8 +745,8 @@ body:has(#root .main-content:not([hidden]) .seed-tools-workspace)
 
 @media (max-width: 768px), (pointer: coarse) {
   #root .main-content .seed-tools-workspace {
-    --gen3seedtools-control-height: 44px;
-    --control-height: 44px;
+    --gen3seedtools-control-height: var(--workspace-control-height, 44px);
+    --control-height: var(--workspace-control-height, 44px);
   }
 
   body:has(#root .main-content:not([hidden]) .seed-tools-workspace)

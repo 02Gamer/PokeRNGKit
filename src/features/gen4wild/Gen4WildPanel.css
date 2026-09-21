@@ -1,8 +1,8 @@
 /* Gen IV Wild owns its dense workspace layout. Shared controls remain
    module-agnostic; this page supplies the compact sizing contract. */
 #root .main-content.gen4wild-page {
-  --control-height: 30px;
-  --gen4wild-control-height: 30px;
+  --control-height: var(--workspace-control-height, 30px);
+  --gen4wild-control-height: var(--workspace-control-height, 30px);
 }
 
 #root .main-content.gen4wild-page .gen4wild-settings-stack {
@@ -310,8 +310,8 @@
 #root .main-content.gen4wild-page .gen4wild-filter-panel .iv-filter-row input {
   width: 100%;
   min-width: 0;
-  height: 26px;
-  min-height: 26px;
+  height: var(--workspace-control-height, 26px);
+  min-height: var(--workspace-control-height, 26px);
   padding: 2px 4px;
 }
 

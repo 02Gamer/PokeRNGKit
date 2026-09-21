@@ -88,3 +88,14 @@ Below `1120px`, the virtualized `.gen7sos-table` keeps a fixed `520px` height an
 The source and UI files are formatted and `git diff --check` is clean. Native, Wasm, TypeScript, browser and algorithm regression checks remain owner-authorized acceptance work and have not been run in this session.
 
 On 2026-08-18, the Gen 8 Static freeze audit identified and fixed the same responsive auto-height risk in this module. External Chrome at `1120x900` confirmed a `620px` results panel and a `520px`, `flex: 0 0 auto`, `overflow: auto` virtualized table; the console had no warning or error.
+
+## 2026-09-21 布局更新
+
+本节替代此前固定表单高度与内部滚动的布局说明。设置区通过 `workspace-controls-grid`
+按容器宽度排列分组，窄屏单列；结果保持下方独立区域，空状态收紧，生成数据后恢复滚动。
+乱数信息卡按所在分组宽度重排，避免右侧字段裁切。输入范围、算法和 Worker 协议未改变。
+本批四种视口复核与剩余交互检查见 [UI 检查记录](../ui-audit-2026-09-21.md)。
+
+2026-09-21 UI 续查：手机参考控件或粘性操作区按共享规则调整，具体覆盖与未完成事项见 [UI 检查记录](../ui-audit-2026-09-21.md)。输入范围与算法未改动。
+
+2026-09-21 表格续查：统一排序表头或可点击结果行尺寸，并同步虚拟位置；四种视口证据与文字修复见 [UI 检查记录](../ui-audit-2026-09-21.md)。输入与算法不变。

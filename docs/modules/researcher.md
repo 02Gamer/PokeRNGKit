@@ -86,3 +86,9 @@ floating tool menu rather than the generation sidebar.
 - 模块独立 CMake/CTest：`researcher_native_parity` 通过，覆盖 14 种 RNG
   首值、跨行 Custom、批次上限与 `u32` 帧边界。根 `wasm/CMakeLists.txt`
   接入后，统一 `wasm:test:native` 才会发现此测试。
+
+## 2026-09-21 UI 续查
+
+自定义表达式在窄容器内改为可重排的网格，避免 1030px 固定宽度使手机操作区横向溢出。
+四宽度及 128 条 UI 样例结果的滚动验证见 [UI 检查记录](../ui-audit-2026-09-21.md)。
+表达式顺序、输入限制与 Worker 计算未改变。

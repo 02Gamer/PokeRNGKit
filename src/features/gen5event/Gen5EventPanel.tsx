@@ -1356,7 +1356,7 @@ export function Gen5EventPanel({
           <div className={`gen5event-table ${mode}`} role="presentation">
             <div
               aria-rowindex={1}
-              className="gen5event-table-header"
+              className="gen5event-table-header workspace-sortable-heading"
               role="row"
             >
               {columns.map((column) => (

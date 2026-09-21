@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "./features/shared/tableLayout";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   cloneElement,
@@ -2591,6 +2592,11 @@ function App() {
           }
         >
           <main
+            data-workspace-density={
+              activeModule === "id" || activeModule === "static"
+                ? undefined
+                : "compact"
+            }
             className={`main-content${
               activeModule === "id"
                 ? " gen3id-page"
@@ -3546,10 +3552,10 @@ function App() {
                       <div
                         className={`virtual-table id-generator-table gen3id-generator-table${gen3IdTargetContext ? " has-static-target" : ""}`}
                         style={{
-                          height: `${rowVirtualizer.getTotalSize() + 40}px`,
+                          height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
                         }}
                       >
-                        <div className="table-header">
+                        <div className="table-header workspace-sortable-heading">
                           {(
                             [
                               "advances",
@@ -3583,7 +3589,7 @@ function App() {
                               className="table-row"
                               key={`${state.advances}-${virtualRow.index}`}
                               style={{
-                                transform: `translateY(${virtualRow.start + 40}px)`,
+                                transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                               }}
                             >
                               <span>{String(state.advances)}</span>

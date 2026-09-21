@@ -71,3 +71,12 @@ Bank 目标在当前宝可梦生成前调用 `Stationary6.Generate_Once`：Johto
 - `C:\Users\Hakuhiro\Documents\Github\3DSRNGTool_CHN\3DSRNGTool\MainForm.Designer.cs`
 
 3DSRNGTool 代码按 MIT 条款记录来源；PokeRNGKit 整体继续按 GPL-3.0-or-later 发布，并保留上游版权与商标免责声明。MT19937 的上游文件包含其原始 Artistic/BSD 许可说明，桥接文件保留 PokeRNGKit GPL 头部和适配来源说明。
+
+## 2026-09-21 布局更新
+
+本节替代此前固定表单高度与内部滚动的布局说明。设置区通过 `workspace-controls-grid`
+按容器宽度排列分组，窄屏单列；结果保持下方独立区域，空状态收紧，生成数据后恢复滚动。
+乱数信息卡按所在分组宽度重排，避免右侧字段裁切。输入范围、算法和 Worker 协议未改变。
+本批四种视口复核与剩余交互检查见 [UI 检查记录](../ui-audit-2026-09-21.md)。
+
+2026-09-21 UI 续查：手机参考控件或粘性操作区按共享规则调整，具体覆盖与未完成事项见 [UI 检查记录](../ui-audit-2026-09-21.md)。输入范围与算法未改动。

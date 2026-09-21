@@ -96,7 +96,7 @@ Selecting a Gen VII 3DSRNGTool profile synchronizes the four TinyMT Seed words i
 
 `Gen7EggPanel` uses Frame Range / Egg Number / Shortest Path segmented modes, compact current-state and parent controls, filter disclosure, virtualized results, sorting, CSV export, cancellation, clear/reset actions and explicit progress, empty, error and result-limit states. Result rows can set either the row's TinyMT state or its post-egg state as the new current status while reducing the target frame with the upstream semantics.
 
-Below `900px`, the virtualized `.gen7egg-table-shell` keeps a fixed `520px` height and does not flex with its contents. This preserves a bounded TanStack Virtual viewport while the surrounding single-column results panel uses automatic page height.
+The virtualized `.gen7egg-table-shell` uses `height: clamp(280px, 52vh, 520px)` and `flex: none` at every viewport width. The stacked form can grow naturally without allowing result rows to expand their own scroll viewport. The sortable header and first-row offset share `RESULT_TABLE_HEADER_HEIGHT` (`45px`), including a `44px` sort target and border.
 
 ## Verification Status
 
@@ -112,3 +112,7 @@ The following local checks passed on 2026-08-15:
 The production Web build transformed 2102 modules, then the restricted Windows environment returned `EPERM` while Vite copied the existing `public/wasm/gen3egg.mjs` into `dist/wasm`. A requested non-restricted rerun did not start because the approval service returned `502 Bad Gateway`. This is recorded as an environment limitation, not a successful build. The `gen7egg` Emscripten artifact, external-browser interaction and production-page algorithm regression remain unverified.
 
 On 2026-08-18, the Gen 8 Static freeze audit identified and fixed the same responsive auto-height risk in this module. External Chrome at `900x900` confirmed a `520px`, `flex: 0 0 auto`, `overflow: auto` virtualized table; the console had no warning or error.
+
+2026-09-21 UI 续查：手机参考控件或粘性操作区按共享规则调整，具体覆盖与未完成事项见 [UI 检查记录](../ui-audit-2026-09-21.md)。输入范围与算法未改动。
+
+同日有结果状态复查发现桌面结果容器随 5,000 条预览样例撑高至约 210,060px。将原先仅在窄屏生效的高度约束移至所有宽度后，1280×900 下容器约 468px、渲染 24 行；390/768/1280/1920px 均未发生页面横向溢出。样例仅用于 UI，不作为算法验收。

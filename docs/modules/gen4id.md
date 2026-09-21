@@ -6,6 +6,10 @@
 
 ## 功能
 
+2026-09-21 UI 批次：可排序结果表头与虚拟行偏移接入共享 45px 契约；
+补齐 `find` 文字键，中文使用上游 `Form/i18n/PokeFinder_zh.ts` 中 `IDs4` 的“查找”。
+本地 Chrome 已确认中英文按钮显示，有结果表头未取得本批浏览器证据。
+
 - Generator：按日期、时间、Delay 和筛选条件生成第四世代 TID、SID、TSV。
 - Searcher：按年份、Delay 区间和筛选条件反查候选 Seed。
 - 筛选模式：TID、SID、TID/SID、PID、TID/PID、TSV。

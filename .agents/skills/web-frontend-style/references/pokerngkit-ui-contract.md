@@ -39,9 +39,10 @@ Motion: 160-220ms control feedback and 220-300ms drawer/panel transitions; reduc
   them a dominant brand family.
 - Treat Gen III Static as the compact RNG workspace reference. Its inputs,
   selectors, multi-select triggers, tabs, and inline action buttons use one `30px`
-  height token with compact vertical padding and gaps. Migrate other RNG panels
-  one at a time after visual verification; do not change unrelated modules through
-  one global override.
+  height token with compact vertical padding and gaps. On 2026-09-21 the owner
+  replaced one-module-at-a-time migration with shared rules and structural batches.
+  Use the explicit workspace density marker and semantic layout classes; verify
+  representative layouts and remaining entry points before claiming completion.
 - `haku-select` and `multi-check-control` must share trigger geometry, text
   truncation, focus/disabled states, and a menu width equal to the visible trigger.
   Long option text truncates or wraps inside that width instead of widening the

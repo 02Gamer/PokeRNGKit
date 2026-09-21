@@ -228,7 +228,7 @@ export function Gen6DexNavPanel({
         </div>
       </header>
       <div className="gen6dexnav-workspace stacked-module-workspace">
-        <section className="panel gen6dexnav-controls">
+        <section className="panel gen6dexnav-controls workspace-controls workspace-controls-grid">
           <div className="gen6dexnav-heading">
             <h2>{t("gen6DexNavSetup")}</h2>
             <small>{progress.percent.toFixed(1)}%</small>
@@ -465,7 +465,7 @@ export function Gen6DexNavPanel({
             </p>
           )}
         </section>
-        <section className="panel gen6dexnav-results-panel">
+        <section className="panel gen6dexnav-results-panel workspace-results">
           <div className="gen6dexnav-heading">
             <h2>{t("gen6DexNavModule")}</h2>
             <span>{results.length.toLocaleString()}</span>
@@ -500,7 +500,7 @@ export function Gen6DexNavPanel({
               })}
             </div>
             {results.length === 0 && (
-              <div className="gen6dexnav-empty">
+              <div className="gen6dexnav-empty workspace-empty-state">
                 {error ? t("invalidGen6DexNavInput") : t("emptyGen6DexNav")}
               </div>
             )}

@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -640,7 +641,7 @@ export function Gen4EggPanel({
     parent: typeof parentA,
     setParent: typeof setParentA,
   ) => (
-    <fieldset className="egg-parent-fields">
+    <fieldset className="egg-parent-fields workspace-parent-fields">
       <legend>{t(id === "a" ? "eggParentA" : "eggParentB")}</legend>
       <label className="field">
         <span>{t("gender")}</span>
@@ -659,7 +660,7 @@ export function Gen4EggPanel({
           <option value="ditto">{t("gen4EggDitto")}</option>
         </Select>
       </label>
-      <div className="egg-parent-ivs">
+      <div className="egg-parent-ivs workspace-parent-ivs">
         {ivKeys.map((key, index) => (
           <label className="field" key={key}>
             <span>{t(ivLabelKey(key))}</span>
@@ -1058,7 +1059,7 @@ export function Gen4EggPanel({
                 </div>
               ))}
             </div>
-            <div className="filter-tool-row">
+            <div className="filter-tool-row workspace-action-row">
               <label className="toggle-field">
                 <input
                   checked={showInheritance}
@@ -1173,12 +1174,12 @@ export function Gen4EggPanel({
             <div
               className="static-virtual-table"
               style={{
-                height: `${virtualizer.getTotalSize() + 40}px`,
+                height: `${virtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
                 minWidth: `${columns.length * 96}px`,
               }}
             >
               <div
-                className="static-table-header"
+                className="static-table-header workspace-sortable-heading"
                 style={{
                   gridTemplateColumns: `repeat(${columns.length}, minmax(88px, 1fr))`,
                   minWidth: `${columns.length * 96}px`,
@@ -1245,7 +1246,7 @@ export function Gen4EggPanel({
                           : "transparent",
                       gridTemplateColumns: `repeat(${columns.length}, minmax(88px, 1fr))`,
                       minWidth: `${columns.length * 96}px`,
-                      transform: `translateY(${virtualRow.start + 40}px)`,
+                      transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                     }}
                     tabIndex={
                       !hgss && operation === "generator" ? 0 : undefined

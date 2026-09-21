@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { PerfectIvFilterFields } from "../shared/PerfectIvFilterFields";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -1216,10 +1217,10 @@ export function Gen8WildPanel({
           <div
             className="gen8wild-table-inner"
             style={{
-              height: `${Math.max(122, rowVirtualizer.getTotalSize() + 42)}px`,
+              height: `${Math.max(122, rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT)}px`,
             }}
           >
-            <div className="gen8wild-table-header">
+            <div className="gen8wild-table-header workspace-sortable-heading">
               {COLUMNS.map((column) => (
                 <button
                   key={column.key}
@@ -1243,7 +1244,7 @@ export function Gen8WildPanel({
                     className="gen8wild-table-row"
                     key={`${result.advances}-${result.species}-${result.ec}-${virtualRow.index}`}
                     style={{
-                      transform: `translateY(${virtualRow.start + 42}px)`,
+                      transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                     }}
                   >
                     {COLUMNS.map((column) => (

@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import "./Gen3StaticPanel.css";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -1312,9 +1313,11 @@ export function Gen3StaticPanel({
           ) : (
             <div
               className={`static-virtual-table${emeraldCandidateMode ? " emerald-targets" : ""}`}
-              style={{ height: `${rowVirtualizer.getTotalSize() + 38}px` }}
+              style={{
+                height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+              }}
             >
-              <div className="static-table-header">
+              <div className="static-table-header workspace-sortable-heading">
                 {columns.map((column) => (
                   <button
                     key={column.key}
@@ -1347,7 +1350,7 @@ export function Gen3StaticPanel({
                     className="static-table-row"
                     key={`${stateValue(state, operation === "generator" ? "advances" : "seed")}-${state.pid}-${virtualRow.index}`}
                     style={{
-                      transform: `translateY(${virtualRow.start + 38}px)`,
+                      transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                     }}
                   >
                     {columns.map((column) => {

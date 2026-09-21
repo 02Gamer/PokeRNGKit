@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Download, Play, Square, Trash2 } from "lucide-react";
@@ -465,7 +466,7 @@ export function Gen6WildPanel({
   return (
     <form className="gen6wild-panel" onSubmit={submit}>
       <div className="gen6wild-workspace stacked-module-workspace">
-        <section className="panel gen6wild-controls">
+        <section className="panel gen6wild-controls workspace-controls workspace-controls-grid workspace-controls-four">
           <header className="gen6wild-heading">
             <div>
               <Play aria-hidden="true" size={18} />
@@ -975,7 +976,7 @@ export function Gen6WildPanel({
             </p>
           )}
         </section>
-        <section className="panel gen6wild-results-panel">
+        <section className="panel gen6wild-results-panel workspace-results">
           <header className="gen6wild-heading">
             <div>
               <h2>{t("gen6WildModule")}</h2>
@@ -986,9 +987,15 @@ export function Gen6WildPanel({
           <div className="gen6wild-results" ref={tableRef}>
             <div
               className="gen6wild-table"
-              style={{ height: rowVirtualizer.getTotalSize() + 42 }}
+              style={{
+                height:
+                  rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT,
+              }}
             >
-              <div className="gen6wild-table-head">
+              <div
+                className="gen6wild-table-head workspace-sortable-heading"
+                style={{ height: RESULT_TABLE_HEADER_HEIGHT }}
+              >
                 {fields.map(([key, label]) => (
                   <button
                     key={key}
@@ -1010,7 +1017,9 @@ export function Gen6WildPanel({
                   <div
                     className="gen6wild-table-row"
                     key={`${result.frame}-${result.slot}-${item.index}`}
-                    style={{ transform: `translateY(${item.start + 42}px)` }}
+                    style={{
+                      transform: `translateY(${item.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                    }}
                   >
                     {fields.map(([key]) => (
                       <span key={key}>
@@ -1028,7 +1037,7 @@ export function Gen6WildPanel({
               })}
             </div>
             {results.length === 0 && (
-              <div className="gen6wild-empty">
+              <div className="gen6wild-empty workspace-empty-state">
                 {status === "failed"
                   ? t("invalidGen6WildInput")
                   : t("emptyGen6Wild")}

@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -1507,9 +1508,14 @@ export function Gen5HiddenGrottoPanel({
                 aria-rowcount={sortedResults.length + 1}
                 className={`gen5hiddengrotto-table ${operation}`}
                 role="grid"
-                style={{ height: `${rowVirtualizer.getTotalSize() + 44}px` }}
+                style={{
+                  height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+                }}
               >
-                <div className="gen5hiddengrotto-table-header" role="row">
+                <div
+                  className="gen5hiddengrotto-table-header workspace-sortable-heading"
+                  role="row"
+                >
                   {columns.map((column) => (
                     <span
                       aria-sort={
@@ -1564,7 +1570,7 @@ export function Gen5HiddenGrottoPanel({
                       }
                       role="row"
                       style={{
-                        transform: `translateY(${virtualRow.start + 44}px)`,
+                        transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                       }}
                       tabIndex={
                         selectedResult === result ||

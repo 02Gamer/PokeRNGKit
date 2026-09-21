@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Download, FileUp, RotateCcw, Square, Trash2 } from "lucide-react";
@@ -89,7 +90,7 @@ interface ResultColumn {
   label: string;
 }
 
-const TABLE_HEADER_HEIGHT = 44;
+const TABLE_HEADER_HEIGHT = RESULT_TABLE_HEADER_HEIGHT;
 const IV_KEYS = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"] as const;
 const IV_SORT_KEYS = [
   "hp",
@@ -561,7 +562,10 @@ export function Gen7EventPanel({
   return (
     <div className="gen7event-panel">
       <div className="gen7event-workspace stacked-module-workspace">
-        <form className="panel gen7event-controls" onSubmit={run}>
+        <form
+          className="panel gen7event-controls workspace-controls workspace-controls-grid"
+          onSubmit={run}
+        >
           <div className="gen7event-control-heading">
             <div>
               <span className="panel-index">01</span>
@@ -575,7 +579,7 @@ export function Gen7EventPanel({
               <h3>{t("rngInfo")}</h3>
               <button
                 aria-label={t("gen7RngReset")}
-                className="gen7event-rng-reset"
+                className="gen7event-rng-reset workspace-icon-action"
                 disabled={status === "calculating"}
                 onClick={resetRngInfo}
                 title={t("gen7RngReset")}
@@ -704,402 +708,415 @@ export function Gen7EventPanel({
             />
           </section>
 
-          <section className="gen7event-control-section">
-            <div className="gen7event-section-title">
-              <h3>{t("gen7EventSetup")}</h3>
-              <input
-                accept=".wc7,.wc7full"
-                hidden
-                onChange={(event) =>
-                  void importWonderCard(event.target.files?.[0])
-                }
-                ref={fileRef}
-                type="file"
-              />
-              <button
-                className="gen7event-import-button"
-                disabled={status === "calculating"}
-                onClick={() => fileRef.current?.click()}
-                type="button"
-              >
-                <FileUp aria-hidden="true" size={16} />
-                {t("gen7EventImport")}
-              </button>
-            </div>
-            {cardName && <div className="gen7event-card-name">{cardName}</div>}
-            <div className="gen7event-field-grid">
-              <label className="field gen7event-span-two">
-                <span>{t("species")}</span>
-                <Select
-                  disabled={status === "calculating"}
+          <div className="workspace-settings-group">
+            <section className="gen7event-control-section">
+              <div className="gen7event-section-title">
+                <h3>{t("gen7EventSetup")}</h3>
+                <input
+                  accept=".wc7,.wc7full"
+                  hidden
                   onChange={(event) =>
-                    changeSpecies(Number(event.target.value))
+                    void importWonderCard(event.target.files?.[0])
                   }
-                  value={settings.species}
+                  ref={fileRef}
+                  type="file"
+                />
+                <button
+                  className="gen7event-import-button"
+                  disabled={status === "calculating"}
+                  onClick={() => fileRef.current?.click()}
+                  type="button"
                 >
-                  {GEN7_EVENT_SPECIES[language]
-                    .slice(0, maximumSpecies + 1)
-                    .map((label, species) => (
-                      <option key={species} value={species}>
-                        {species === 0
-                          ? "-"
-                          : `${species.toString().padStart(3, "0")} ${label}`}
+                  <FileUp aria-hidden="true" size={16} />
+                  {t("gen7EventImport")}
+                </button>
+              </div>
+              {cardName && (
+                <div className="gen7event-card-name">{cardName}</div>
+              )}
+              <div className="gen7event-field-grid">
+                <label className="field gen7event-span-two">
+                  <span>{t("species")}</span>
+                  <Select
+                    disabled={status === "calculating"}
+                    onChange={(event) =>
+                      changeSpecies(Number(event.target.value))
+                    }
+                    value={settings.species}
+                  >
+                    {GEN7_EVENT_SPECIES[language]
+                      .slice(0, maximumSpecies + 1)
+                      .map((label, species) => (
+                        <option key={species} value={species}>
+                          {species === 0
+                            ? "-"
+                            : `${species.toString().padStart(3, "0")} ${label}`}
+                        </option>
+                      ))}
+                  </Select>
+                </label>
+                <label className="field">
+                  <span>{t("form")}</span>
+                  <Select
+                    disabled={status === "calculating" || formCount <= 1}
+                    onChange={(event) => {
+                      const next = {
+                        ...settings,
+                        form: Number(event.target.value),
+                      };
+                      setSettings(next);
+                      setRandomPerfectIvCount(
+                        String(
+                          gen7EventDefaultSettings(
+                            version,
+                            next.species,
+                            next.form,
+                          ).randomPerfectIvCount,
+                        ),
+                      );
+                    }}
+                    value={settings.form}
+                  >
+                    {Array.from({ length: formCount }, (_, index) => (
+                      <option key={index} value={index}>
+                        {index}
                       </option>
                     ))}
-                </Select>
-              </label>
-              <label className="field">
-                <span>{t("form")}</span>
-                <Select
-                  disabled={status === "calculating" || formCount <= 1}
-                  onChange={(event) => {
-                    const next = {
-                      ...settings,
-                      form: Number(event.target.value),
-                    };
-                    setSettings(next);
-                    setRandomPerfectIvCount(
-                      String(
-                        gen7EventDefaultSettings(
-                          version,
-                          next.species,
-                          next.form,
-                        ).randomPerfectIvCount,
-                      ),
-                    );
-                  }}
-                  value={settings.form}
-                >
-                  {Array.from({ length: formCount }, (_, index) => (
-                    <option key={index} value={index}>
-                      {index}
+                  </Select>
+                </label>
+                <label className="field">
+                  <span>{t("level")}</span>
+                  <input
+                    disabled={status === "calculating"}
+                    inputMode="numeric"
+                    max={100}
+                    onChange={(event) =>
+                      setLevel(
+                        normalizeDecimalInput(event.target.value, 100, 3),
+                      )
+                    }
+                    value={level}
+                  />
+                </label>
+                <label className="field">
+                  <span>{t("gen7EventPidType")}</span>
+                  <Select
+                    disabled={status === "calculating"}
+                    onChange={(event) => {
+                      const pidType = event.target.value as Gen7EventPidType;
+                      setSettings((current) => ({
+                        ...current,
+                        pidType,
+                      }));
+                      if (!settings.otherInfo)
+                        setEc(pidType === "specified" ? "12" : "0");
+                    }}
+                    value={settings.pidType}
+                  >
+                    <option value="random">{t("gen7EventPidRandom")}</option>
+                    <option value="nonshiny">
+                      {t("gen7EventPidNonshiny")}
                     </option>
-                  ))}
-                </Select>
-              </label>
-              <label className="field">
-                <span>{t("level")}</span>
-                <input
-                  disabled={status === "calculating"}
-                  inputMode="numeric"
-                  max={100}
-                  onChange={(event) =>
-                    setLevel(normalizeDecimalInput(event.target.value, 100, 3))
-                  }
-                  value={level}
-                />
-              </label>
-              <label className="field">
-                <span>{t("gen7EventPidType")}</span>
-                <Select
-                  disabled={status === "calculating"}
-                  onChange={(event) => {
-                    const pidType = event.target.value as Gen7EventPidType;
-                    setSettings((current) => ({
-                      ...current,
-                      pidType,
-                    }));
-                    if (!settings.otherInfo)
-                      setEc(pidType === "specified" ? "12" : "0");
-                  }}
-                  value={settings.pidType}
-                >
-                  <option value="random">{t("gen7EventPidRandom")}</option>
-                  <option value="nonshiny">{t("gen7EventPidNonshiny")}</option>
-                  <option value="shiny">{t("gen7EventPidShiny")}</option>
-                  <option value="specified">
-                    {t("gen7EventPidSpecified")}
-                  </option>
-                </Select>
-              </label>
-              <label className="field">
-                <span>{t("gen7EventRandomPerfectIvs")}</span>
-                <input
-                  disabled={status === "calculating"}
-                  inputMode="numeric"
-                  max={5}
-                  onChange={(event) =>
-                    setRandomPerfectIvCount(
-                      normalizeDecimalInput(event.target.value, 5, 1),
-                    )
-                  }
-                  value={randomPerfectIvCount}
-                />
-              </label>
-            </div>
-
-            <div className="gen7event-lock-grid">
-              <label className="gen7event-lock-field">
-                <span className="checkbox-field">
-                  <input
-                    checked={settings.abilityLocked}
-                    disabled={status === "calculating"}
-                    onChange={(event) =>
-                      setSettings((current) => ({
-                        ...current,
-                        abilityLocked: event.target.checked,
-                        ability: 0,
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  <span>{t("gen7EventAbilityLocked")}</span>
-                </span>
-                <Select
-                  disabled={status === "calculating"}
-                  onChange={(event) =>
-                    setSettings((current) => ({
-                      ...current,
-                      ability: Number(event.target.value),
-                    }))
-                  }
-                  value={settings.ability}
-                >
-                  {settings.abilityLocked ? (
-                    <>
-                      <option value={0}>-</option>
-                      <option value={1}>{t("abilityFirst")}</option>
-                      <option value={2}>{t("abilitySecond")}</option>
-                      <option value={3}>
-                        {t("gen7StationaryHiddenAbility")}
-                      </option>
-                    </>
-                  ) : (
-                    <>
-                      <option value={0}>1/2</option>
-                      <option value={1}>1/2/H</option>
-                    </>
-                  )}
-                </Select>
-              </label>
-              <label className="gen7event-lock-field">
-                <span className="checkbox-field">
-                  <input
-                    checked={settings.natureLocked}
-                    disabled={status === "calculating"}
-                    onChange={(event) =>
-                      setSettings((current) => ({
-                        ...current,
-                        natureLocked: event.target.checked,
-                        nature: event.target.checked ? current.nature : 0,
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  <span>{t("gen7EventNatureLocked")}</span>
-                </span>
-                <Select
-                  disabled={status === "calculating" || !settings.natureLocked}
-                  onChange={(event) =>
-                    setSettings((current) => ({
-                      ...current,
-                      nature: Number(event.target.value),
-                    }))
-                  }
-                  value={settings.nature}
-                >
-                  {natureOptions.map((entry) => (
-                    <option key={entry.value} value={entry.value}>
-                      {entry.label}
+                    <option value="shiny">{t("gen7EventPidShiny")}</option>
+                    <option value="specified">
+                      {t("gen7EventPidSpecified")}
                     </option>
-                  ))}
-                </Select>
-              </label>
-              <label className="gen7event-lock-field">
-                <span className="checkbox-field">
+                  </Select>
+                </label>
+                <label className="field">
+                  <span>{t("gen7EventRandomPerfectIvs")}</span>
                   <input
-                    checked={settings.genderLocked}
                     disabled={status === "calculating"}
+                    inputMode="numeric"
+                    max={5}
                     onChange={(event) =>
-                      setSettings((current) => ({
-                        ...current,
-                        genderLocked: event.target.checked,
-                        gender: event.target.checked ? current.gender : 0,
-                      }))
+                      setRandomPerfectIvCount(
+                        normalizeDecimalInput(event.target.value, 5, 1),
+                      )
                     }
-                    type="checkbox"
+                    value={randomPerfectIvCount}
                   />
-                  <span>{t("gen7EventGenderLocked")}</span>
-                </span>
-                <Select
-                  disabled={status === "calculating" || !settings.genderLocked}
-                  onChange={(event) =>
-                    setSettings((current) => ({
-                      ...current,
-                      gender: Number(event.target.value),
-                    }))
-                  }
-                  value={settings.gender}
-                >
-                  <option value={0}>{t("genderless")}</option>
-                  <option value={1}>{t("male")}</option>
-                  <option value={2}>{t("female")}</option>
-                </Select>
-              </label>
-            </div>
+                </label>
+              </div>
 
-            <div className="gen7event-toggle-grid">
-              <label className="checkbox-field">
-                <input
-                  checked={settings.yourId}
-                  disabled={status === "calculating"}
-                  onChange={(event) =>
-                    changeEventFlag("yourId", event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                <span>{t("gen7EventYourId")}</span>
-              </label>
-              <label className="checkbox-field">
-                <input
-                  checked={settings.isEgg}
-                  disabled={status === "calculating"}
-                  onChange={(event) =>
-                    changeEventFlag("isEgg", event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                <span>{t("gen7EventEgg")}</span>
-              </label>
-              <label className="checkbox-field">
-                <input
-                  checked={settings.noDexEntry}
-                  disabled={status === "calculating" || !noDexAvailable}
-                  onChange={(event) =>
-                    changeEventFlag("noDexEntry", event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                <span>{t("gen7EventNoDex")}</span>
-              </label>
-              <label className="checkbox-field">
-                <input
-                  checked={settings.otherInfo}
-                  disabled={status === "calculating"}
-                  onChange={(event) =>
-                    setSettings((current) => ({
-                      ...current,
-                      otherInfo: event.target.checked,
-                    }))
-                  }
-                  type="checkbox"
-                />
-                <span>{t("gen7EventOtherInfo")}</span>
-              </label>
-            </div>
-          </section>
-
-          <details className="gen7event-disclosure" open>
-            <summary>{t("gen7EventFixedIvs")}</summary>
-            <div className="gen7event-fixed-iv-grid">
-              {IV_KEYS.map((key, index) => (
-                <label key={key}>
+              <div className="gen7event-lock-grid">
+                <label className="gen7event-lock-field">
                   <span className="checkbox-field">
                     <input
-                      checked={fixedIvLocked[index]}
+                      checked={settings.abilityLocked}
                       disabled={status === "calculating"}
                       onChange={(event) =>
-                        setFixedIvLocked(
-                          (current) =>
-                            current.map((entry, itemIndex) =>
-                              itemIndex === index
-                                ? event.target.checked
-                                : entry,
-                            ) as IvLocked,
-                        )
+                        setSettings((current) => ({
+                          ...current,
+                          abilityLocked: event.target.checked,
+                          ability: 0,
+                        }))
                       }
                       type="checkbox"
                     />
-                    <span>{key}</span>
+                    <span>{t("gen7EventAbilityLocked")}</span>
                   </span>
-                  <input
-                    aria-label={`${key} ${t("gen7EventFixedIvs")}`}
-                    disabled={status === "calculating" || !fixedIvLocked[index]}
-                    inputMode="numeric"
-                    max={31}
+                  <Select
+                    disabled={status === "calculating"}
                     onChange={(event) =>
-                      updateIvText(
-                        setFixedIvs,
-                        index,
-                        normalizeDecimalInput(event.target.value, 31, 2),
-                      )
+                      setSettings((current) => ({
+                        ...current,
+                        ability: Number(event.target.value),
+                      }))
                     }
-                    value={fixedIvs[index]}
-                  />
+                    value={settings.ability}
+                  >
+                    {settings.abilityLocked ? (
+                      <>
+                        <option value={0}>-</option>
+                        <option value={1}>{t("abilityFirst")}</option>
+                        <option value={2}>{t("abilitySecond")}</option>
+                        <option value={3}>
+                          {t("gen7StationaryHiddenAbility")}
+                        </option>
+                      </>
+                    ) : (
+                      <>
+                        <option value={0}>1/2</option>
+                        <option value={1}>1/2/H</option>
+                      </>
+                    )}
+                  </Select>
                 </label>
-              ))}
-            </div>
-          </details>
-
-          <details className="gen7event-disclosure">
-            <summary>{t("gen7EventOtherInfo")}</summary>
-            <fieldset
-              disabled={!settings.otherInfo || status === "calculating"}
-            >
-              <div className="gen7event-field-grid disclosure-content">
-                <label className="field">
-                  <span>TID</span>
-                  <input
-                    disabled={settings.yourId}
-                    inputMode="numeric"
-                    max={65535}
-                    onChange={(event) =>
-                      setTid(
-                        normalizeDecimalInput(event.target.value, 65535, 5),
-                      )
-                    }
-                    value={tid}
-                  />
-                </label>
-                <label className="field">
-                  <span>SID</span>
-                  <input
-                    disabled={settings.yourId}
-                    inputMode="numeric"
-                    max={65535}
-                    onChange={(event) =>
-                      setSid(
-                        normalizeDecimalInput(event.target.value, 65535, 5),
-                      )
-                    }
-                    value={sid}
-                  />
-                </label>
-                <label className="field">
-                  <span>EC</span>
-                  <div className="prefixed-input">
-                    <span>0x</span>
+                <label className="gen7event-lock-field">
+                  <span className="checkbox-field">
                     <input
-                      inputMode="text"
-                      maxLength={8}
+                      checked={settings.natureLocked}
+                      disabled={status === "calculating"}
                       onChange={(event) =>
-                        setEc(normalizeHexInput(event.target.value, 8))
+                        setSettings((current) => ({
+                          ...current,
+                          natureLocked: event.target.checked,
+                          nature: event.target.checked ? current.nature : 0,
+                        }))
                       }
-                      value={ec}
+                      type="checkbox"
                     />
-                  </div>
+                    <span>{t("gen7EventNatureLocked")}</span>
+                  </span>
+                  <Select
+                    disabled={
+                      status === "calculating" || !settings.natureLocked
+                    }
+                    onChange={(event) =>
+                      setSettings((current) => ({
+                        ...current,
+                        nature: Number(event.target.value),
+                      }))
+                    }
+                    value={settings.nature}
+                  >
+                    {natureOptions.map((entry) => (
+                      <option key={entry.value} value={entry.value}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </Select>
                 </label>
-                <label className="field">
-                  <span>PID</span>
-                  <div className="prefixed-input">
-                    <span>0x</span>
+                <label className="gen7event-lock-field">
+                  <span className="checkbox-field">
                     <input
-                      disabled={
-                        settings.yourId || settings.pidType !== "specified"
-                      }
-                      inputMode="text"
-                      maxLength={8}
+                      checked={settings.genderLocked}
+                      disabled={status === "calculating"}
                       onChange={(event) =>
-                        setPid(normalizeHexInput(event.target.value, 8))
+                        setSettings((current) => ({
+                          ...current,
+                          genderLocked: event.target.checked,
+                          gender: event.target.checked ? current.gender : 0,
+                        }))
                       }
-                      value={pid}
+                      type="checkbox"
                     />
-                  </div>
+                    <span>{t("gen7EventGenderLocked")}</span>
+                  </span>
+                  <Select
+                    disabled={
+                      status === "calculating" || !settings.genderLocked
+                    }
+                    onChange={(event) =>
+                      setSettings((current) => ({
+                        ...current,
+                        gender: Number(event.target.value),
+                      }))
+                    }
+                    value={settings.gender}
+                  >
+                    <option value={0}>{t("genderless")}</option>
+                    <option value={1}>{t("male")}</option>
+                    <option value={2}>{t("female")}</option>
+                  </Select>
                 </label>
               </div>
-            </fieldset>
-          </details>
 
+              <div className="gen7event-toggle-grid">
+                <label className="checkbox-field">
+                  <input
+                    checked={settings.yourId}
+                    disabled={status === "calculating"}
+                    onChange={(event) =>
+                      changeEventFlag("yourId", event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span>{t("gen7EventYourId")}</span>
+                </label>
+                <label className="checkbox-field">
+                  <input
+                    checked={settings.isEgg}
+                    disabled={status === "calculating"}
+                    onChange={(event) =>
+                      changeEventFlag("isEgg", event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span>{t("gen7EventEgg")}</span>
+                </label>
+                <label className="checkbox-field">
+                  <input
+                    checked={settings.noDexEntry}
+                    disabled={status === "calculating" || !noDexAvailable}
+                    onChange={(event) =>
+                      changeEventFlag("noDexEntry", event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span>{t("gen7EventNoDex")}</span>
+                </label>
+                <label className="checkbox-field">
+                  <input
+                    checked={settings.otherInfo}
+                    disabled={status === "calculating"}
+                    onChange={(event) =>
+                      setSettings((current) => ({
+                        ...current,
+                        otherInfo: event.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  <span>{t("gen7EventOtherInfo")}</span>
+                </label>
+              </div>
+            </section>
+
+            <details className="gen7event-disclosure" open>
+              <summary>{t("gen7EventFixedIvs")}</summary>
+              <div className="gen7event-fixed-iv-grid">
+                {IV_KEYS.map((key, index) => (
+                  <label key={key}>
+                    <span className="checkbox-field">
+                      <input
+                        checked={fixedIvLocked[index]}
+                        disabled={status === "calculating"}
+                        onChange={(event) =>
+                          setFixedIvLocked(
+                            (current) =>
+                              current.map((entry, itemIndex) =>
+                                itemIndex === index
+                                  ? event.target.checked
+                                  : entry,
+                              ) as IvLocked,
+                          )
+                        }
+                        type="checkbox"
+                      />
+                      <span>{key}</span>
+                    </span>
+                    <input
+                      aria-label={`${key} ${t("gen7EventFixedIvs")}`}
+                      disabled={
+                        status === "calculating" || !fixedIvLocked[index]
+                      }
+                      inputMode="numeric"
+                      max={31}
+                      onChange={(event) =>
+                        updateIvText(
+                          setFixedIvs,
+                          index,
+                          normalizeDecimalInput(event.target.value, 31, 2),
+                        )
+                      }
+                      value={fixedIvs[index]}
+                    />
+                  </label>
+                ))}
+              </div>
+            </details>
+
+            <details className="gen7event-disclosure">
+              <summary>{t("gen7EventOtherInfo")}</summary>
+              <fieldset
+                disabled={!settings.otherInfo || status === "calculating"}
+              >
+                <div className="gen7event-field-grid disclosure-content">
+                  <label className="field">
+                    <span>TID</span>
+                    <input
+                      disabled={settings.yourId}
+                      inputMode="numeric"
+                      max={65535}
+                      onChange={(event) =>
+                        setTid(
+                          normalizeDecimalInput(event.target.value, 65535, 5),
+                        )
+                      }
+                      value={tid}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>SID</span>
+                    <input
+                      disabled={settings.yourId}
+                      inputMode="numeric"
+                      max={65535}
+                      onChange={(event) =>
+                        setSid(
+                          normalizeDecimalInput(event.target.value, 65535, 5),
+                        )
+                      }
+                      value={sid}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>EC</span>
+                    <div className="prefixed-input">
+                      <span>0x</span>
+                      <input
+                        inputMode="text"
+                        maxLength={8}
+                        onChange={(event) =>
+                          setEc(normalizeHexInput(event.target.value, 8))
+                        }
+                        value={ec}
+                      />
+                    </div>
+                  </label>
+                  <label className="field">
+                    <span>PID</span>
+                    <div className="prefixed-input">
+                      <span>0x</span>
+                      <input
+                        disabled={
+                          settings.yourId || settings.pidType !== "specified"
+                        }
+                        inputMode="text"
+                        maxLength={8}
+                        onChange={(event) =>
+                          setPid(normalizeHexInput(event.target.value, 8))
+                        }
+                        value={pid}
+                      />
+                    </div>
+                  </label>
+                </div>
+              </fieldset>
+            </details>
+          </div>
           <details className="gen7event-disclosure" open>
             <summary>{t("filters")}</summary>
             <fieldset
@@ -1264,7 +1281,7 @@ export function Gen7EventPanel({
           </details>
 
           {status === "calculating" && (
-            <div className="gen7event-run-actions">
+            <div className="gen7event-run-actions workspace-sticky-actions">
               <button
                 aria-label={t("cancel")}
                 className="gen7event-icon-button"
@@ -1278,7 +1295,7 @@ export function Gen7EventPanel({
           )}
         </form>
 
-        <section className="panel gen7event-results">
+        <section className="panel gen7event-results workspace-results">
           <div className="gen7event-results-heading">
             <div>
               <span className="panel-index">02</span>
@@ -1344,7 +1361,7 @@ export function Gen7EventPanel({
                   height: `${virtualizer.getTotalSize() + TABLE_HEADER_HEIGHT}px`,
                 }}
               >
-                <div className="gen7event-table-header">
+                <div className="gen7event-table-header workspace-sortable-heading">
                   {columns.map((column) => (
                     <button
                       aria-label={`${column.label} ${sort.key === column.key ? sort.direction : ""}`}

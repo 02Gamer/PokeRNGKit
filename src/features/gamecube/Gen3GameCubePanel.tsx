@@ -138,6 +138,7 @@ export function Gen3GameCubePanel({
   const [perfectIvValue, setPerfectIvValue] = useState("31");
   const [perfectIvCount, setPerfectIvCount] = useState("0");
   const [states, setStates] = useState<GameCubeState[]>([]);
+  const [resultSpecies, setResultSpecies] = useState<number>();
   const [summary, setSummary] = useState<GameCubeSummary>();
   const [progress, setProgress] = useState<GameCubeProgress>({
     processedStates: 0,
@@ -281,6 +282,7 @@ export function Gen3GameCubePanel({
       return;
     }
     setStates([]);
+    setResultSpecies(template.species);
     setSummary(undefined);
     setProgress({
       processedStates: 0,
@@ -314,8 +316,22 @@ export function Gen3GameCubePanel({
         <button
           aria-selected={operation === entry}
           className={operation === entry ? "active" : ""}
+          disabled={status === "calculating"}
           key={entry}
-          onClick={() => setOperation(entry)}
+          onClick={() => {
+            if (entry === operation) return;
+            setOperation(entry);
+            setStates([]);
+            setSummary(undefined);
+            setProgress({
+              processedStates: 0,
+              totalStates: 0,
+              resultCount: 0,
+              percent: 0,
+            });
+            setError("");
+            setStatus("ready");
+          }}
           role="tab"
           type="button"
         >
@@ -705,7 +721,9 @@ export function Gen3GameCubePanel({
               <tbody>
                 {states.map((state, index) => {
                   const hiddenPower = gen3HiddenPower(state.ivs);
-                  const personal = getGen3Personal(template.species);
+                  const personal = getGen3Personal(
+                    resultSpecies ?? template.species,
+                  );
                   const values = showStats
                     ? computeGen3Stats(
                         personal.stats,

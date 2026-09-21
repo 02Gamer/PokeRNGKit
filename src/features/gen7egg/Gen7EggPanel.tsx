@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -686,7 +687,10 @@ export function Gen7EggPanel({
         ))}
       </div>
       <div className="gen7egg-workspace stacked-module-workspace">
-        <form className="panel gen7egg-controls" onSubmit={run}>
+        <form
+          className="panel gen7egg-controls workspace-controls"
+          onSubmit={run}
+        >
           <div className="gen7egg-heading">
             <h2>{t("gen7EggEngine")}</h2>
             <strong>EGG API 1</strong>
@@ -901,6 +905,8 @@ export function Gen7EggPanel({
               <h3>{t("gen7EggParents")}</h3>
               <div>
                 <button
+                  className="workspace-icon-action"
+                  aria-label={t("gen7EggReset")}
                   onClick={resetParents}
                   title={t("gen7EggReset")}
                   type="button"
@@ -908,6 +914,8 @@ export function Gen7EggPanel({
                   <RotateCcw aria-hidden="true" size={15} />
                 </button>
                 <button
+                  className="workspace-icon-action"
+                  aria-label={t("gen7EggFastMode")}
                   onClick={applyFastMode}
                   title={t("gen7EggFastMode")}
                   type="button"
@@ -1153,7 +1161,7 @@ export function Gen7EggPanel({
             />
             <span>{t("gen7EggDisableFilters")}</span>
           </label>
-          <div className="gen7egg-run-actions">
+          <div className="gen7egg-run-actions workspace-sticky-actions">
             <button
               className="gen7egg-primary"
               disabled={status === "calculating"}
@@ -1226,9 +1234,12 @@ export function Gen7EggPanel({
             ) : (
               <div
                 className="gen7egg-table"
-                style={{ height: rowVirtualizer.getTotalSize() + 42 }}
+                style={{
+                  height:
+                    rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT,
+                }}
               >
-                <div className="gen7egg-table-head">
+                <div className="gen7egg-table-head workspace-sortable-heading">
                   <span>{t("gen7EggState")}</span>
                   {(
                     [
@@ -1304,7 +1315,7 @@ export function Gen7EggPanel({
                       className={`gen7egg-table-row ${result.action}`}
                       key={`${result.frame}-${result.eggNumber}-${virtualRow.index}`}
                       style={{
-                        transform: `translateY(${virtualRow.start + 42}px)`,
+                        transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                       }}
                     >
                       <span className="mono">

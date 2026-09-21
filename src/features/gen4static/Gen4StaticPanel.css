@@ -1,8 +1,8 @@
 /* Gen IV Static owns its dense workspace layout. Shared controls remain
    module-agnostic and only provide semantic states and geometry. */
 #root .main-content.gen4static-page {
-  --gen4static-control-height: 30px;
-  --control-height: 30px;
+  --gen4static-control-height: var(--workspace-control-height, 30px);
+  --control-height: var(--workspace-control-height, 30px);
 }
 
 #root .main-content.gen4static-page .gen4static-control-grid {
@@ -246,8 +246,8 @@
   input {
   width: 100%;
   min-width: 0;
-  height: 26px;
-  min-height: 26px;
+  height: var(--workspace-control-height, 26px);
+  min-height: var(--workspace-control-height, 26px);
   padding: 2px 4px;
 }
 

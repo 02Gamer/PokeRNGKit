@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -410,9 +411,11 @@ export function Gen4IdPanel({ uiPreviewMode }: { uiPreviewMode: boolean }) {
           ) : (
             <div
               className={`static-virtual-table gen4id-table ${operation}`}
-              style={{ height: `${rowVirtualizer.getTotalSize() + 40}px` }}
+              style={{
+                height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+              }}
             >
-              <div className="static-table-header">
+              <div className="static-table-header workspace-sortable-heading">
                 {columns.map(({ key, label }) => (
                   <button
                     key={key}
@@ -430,7 +433,9 @@ export function Gen4IdPanel({ uiPreviewMode }: { uiPreviewMode: boolean }) {
                   <div
                     className="static-table-row"
                     key={`${item.seed}-${item.delay}-${item.tid}-${row.index}`}
-                    style={{ transform: `translateY(${row.start + 40}px)` }}
+                    style={{
+                      transform: `translateY(${row.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                    }}
                   >
                     <span>{formatGen4IdSeed(item.seed)}</span>
                     <span>{item.tid}</span>

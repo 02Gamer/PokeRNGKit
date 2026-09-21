@@ -394,7 +394,8 @@
 
 .gen7egg-table-shell {
   min-height: 0;
-  flex: 1 1 auto;
+  height: clamp(280px, 52vh, 520px);
+  flex: none;
   overflow: auto;
   background: var(--surface);
 }
@@ -534,11 +535,6 @@
 
   .gen7egg-results {
     min-height: 0;
-  }
-
-  .gen7egg-table-shell {
-    height: clamp(280px, 52vh, 520px);
-    flex: none;
   }
 
   .gen7egg-run-actions {

@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Download, Play, Square, Trash2 } from "lucide-react";
@@ -628,7 +629,10 @@ export function Gen7StationaryPanel({
   return (
     <div className="gen7stationary-panel">
       <div className="gen7stationary-workspace stacked-module-workspace">
-        <form className="panel gen7stationary-controls" onSubmit={run}>
+        <form
+          className="panel gen7stationary-controls workspace-controls workspace-controls-grid"
+          onSubmit={run}
+        >
           <div className="gen7stationary-control-heading">
             <div>
               <span className="panel-index">01</span>
@@ -1289,7 +1293,7 @@ export function Gen7StationaryPanel({
             </label>
           </details>
 
-          <div className="gen7stationary-run-actions">
+          <div className="gen7stationary-run-actions workspace-sticky-actions">
             <button
               className="gen7stationary-primary-action"
               disabled={status === "calculating"}
@@ -1311,7 +1315,7 @@ export function Gen7StationaryPanel({
           </div>
         </form>
 
-        <section className="panel gen7stationary-results">
+        <section className="panel gen7stationary-results workspace-results">
           <div className="gen7stationary-results-heading">
             <div>
               <span className="panel-index">02</span>
@@ -1378,9 +1382,11 @@ export function Gen7StationaryPanel({
                 className={`gen7stationary-virtual-table${
                   timeFinderMode ? " time-mode" : ""
                 }`}
-                style={{ height: `${virtualizer.getTotalSize() + 40}px` }}
+                style={{
+                  height: `${virtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+                }}
               >
-                <div className="gen7stationary-table-header">
+                <div className="gen7stationary-table-header workspace-sortable-heading">
                   {columns.map((column) => (
                     <button
                       aria-label={`${column.label} ${
@@ -1412,7 +1418,7 @@ export function Gen7StationaryPanel({
                       className="gen7stationary-table-row"
                       key={`${result.frame}-${result.pid}-${virtualRow.index}`}
                       style={{
-                        transform: `translateY(${virtualRow.start + 40}px)`,
+                        transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                       }}
                     >
                       {timeFinderMode && (

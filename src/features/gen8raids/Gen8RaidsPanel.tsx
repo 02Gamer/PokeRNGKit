@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { PerfectIvFilterFields } from "../shared/PerfectIvFilterFields";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -604,7 +605,7 @@ export function Gen8RaidsPanel({
         </fieldset>
         <fieldset>
           <legend>{t("gen8RaidsLocation")}</legend>
-          <div className="gen8raids-location-tabs">
+          <div className="gen8raids-location-tabs workspace-mode-group">
             {([0, 1, 2, 3] as LocationMode[]).map((value) => (
               <button
                 className={location === value ? "active" : ""}
@@ -942,9 +943,14 @@ export function Gen8RaidsPanel({
         <div className="gen8raids-table" ref={tableRef}>
           <div
             className="table-inner"
-            style={{ height: `${rowVirtualizer.getTotalSize() + 42}px` }}
+            style={{
+              height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+            }}
           >
-            <div className="table-header">
+            <div
+              className="table-header workspace-sortable-heading"
+              style={{ height: RESULT_TABLE_HEADER_HEIGHT }}
+            >
               {COLUMNS.map((column) => (
                 <button
                   key={column.key}
@@ -963,7 +969,7 @@ export function Gen8RaidsPanel({
                   className="table-row"
                   key={`${result.advances}-${result.pid}`}
                   style={{
-                    transform: `translateY(${virtualRow.start + 42}px)`,
+                    transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                   }}
                 >
                   {COLUMNS.map((column) => (

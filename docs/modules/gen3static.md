@@ -300,3 +300,5 @@ npm test
 ```
 
 2026-08-25 已通过：`npm run verify`（178 个测试文件、619 项测试、TypeScript 检查和生产 PWA 构建）、`$env:POKERNGKIT_WASM_MODULES='gen3static,gen3wild,gen4static,gen4wild'; npm run wasm:test:native`（4/4 native 夹具）。Lint 保留 `Gen3StaticPanel.tsx:296` 的既有 Hook 依赖 warning；外部浏览器和生产页面回归仍待项目所有者验收。
+
+2026-09-21 UI 续查：手机参考控件或粘性操作区按共享规则调整，具体覆盖与未完成事项见 [UI 检查记录](../ui-audit-2026-09-21.md)。输入范围与算法未改动。

@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -1382,9 +1383,15 @@ export function Gen5EggPanel({
             className="gen5egg-virtual-table"
             data-mode={mode}
             role="grid"
-            style={{ height: `${rowVirtualizer.getTotalSize() + 44}px` }}
+            style={{
+              height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+            }}
           >
-            <div aria-rowindex={1} className="gen5egg-table-header" role="row">
+            <div
+              aria-rowindex={1}
+              className="gen5egg-table-header workspace-sortable-heading"
+              role="row"
+            >
               {columns.map((column) => (
                 <span
                   aria-sort={
@@ -1467,7 +1474,9 @@ export function Gen5EggPanel({
                     }
                   }}
                   role="row"
-                  style={{ transform: `translateY(${row.start + 44}px)` }}
+                  style={{
+                    transform: `translateY(${row.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
+                  }}
                   tabIndex={
                     selectedResult === result ||
                     (selectedResult === undefined && row.index === 0)

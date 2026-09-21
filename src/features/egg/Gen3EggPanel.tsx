@@ -1,3 +1,4 @@
+import { RESULT_TABLE_HEADER_HEIGHT } from "../shared/tableLayout";
 import { Select } from "../shared/Select";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -1115,9 +1116,11 @@ export function Gen3EggPanel({
           ) : (
             <div
               className={`static-virtual-table egg-virtual-table egg-table-layout-${game}`}
-              style={{ height: `${rowVirtualizer.getTotalSize() + 40}px` }}
+              style={{
+                height: `${rowVirtualizer.getTotalSize() + RESULT_TABLE_HEADER_HEIGHT}px`,
+              }}
             >
-              <div className="static-table-header egg-table-header">
+              <div className="static-table-header egg-table-header workspace-sortable-heading">
                 {columns.map((column) => (
                   <button
                     key={column.key}
@@ -1150,7 +1153,7 @@ export function Gen3EggPanel({
                     className="static-table-row egg-table-row"
                     key={`${state.advances}-${state.pickupAdvances}-${state.pid}-${virtualRow.index}`}
                     style={{
-                      transform: `translateY(${virtualRow.start + 40}px)`,
+                      transform: `translateY(${virtualRow.start + RESULT_TABLE_HEADER_HEIGHT}px)`,
                     }}
                   >
                     {columns.map((column) => (

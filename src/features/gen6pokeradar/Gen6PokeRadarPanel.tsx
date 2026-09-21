@@ -150,7 +150,7 @@ export function Gen6PokeRadarPanel({
         </div>
       </header>
       <div className="gen6pokeradar-workspace stacked-module-workspace">
-        <section className="panel gen6pokeradar-controls">
+        <section className="panel gen6pokeradar-controls workspace-controls">
           <div className="gen6pokeradar-heading">
             <h2>{t("gen6PokeRadarSetup")}</h2>
             <span>{progress.percent.toFixed(1)}%</span>

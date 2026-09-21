@@ -127,3 +127,12 @@ gen7event_last_error()
 `npm run verify` 的最后一个 `build:web` 在受限环境复制既有 `public/wasm/gen3egg.mjs` 时返回 `EPERM`，因此完整命令本身没有以 0 退出；独立非受限 Web 构建随后通过。
 
 原生 `gen7event` C++ 夹具在受限环境无法读取 WinLibs GCC；Emscripten 激活在受限环境无法写入 `C:\Users\Hakuhiro\emsdk\emsdk_set_env.ps1`。两次非受限重跑均被自动审批服务的 `502 Bad Gateway` 阻止，命令未启动，因此原生夹具和真实 `gen7event.mjs` / `.wasm` 产物仍为未验证。生产页面算法回归必须等待 GitHub Actions 部署后，由项目所有者提供实际 URL 并明确授权。
+
+## 2026-09-21 布局更新
+
+本节替代此前固定表单高度与内部滚动的布局说明。设置区通过 `workspace-controls-grid`
+按容器宽度排列分组，窄屏单列；结果保持下方独立区域，空状态收紧，生成数据后恢复滚动。
+乱数信息卡按所在分组宽度重排，避免右侧字段裁切。输入范围、算法和 Worker 协议未改变。
+本批四种视口复核与剩余交互检查见 [UI 检查记录](../ui-audit-2026-09-21.md)。
+
+2026-09-21 UI 续查：手机参考控件或粘性操作区按共享规则调整，具体覆盖与未完成事项见 [UI 检查记录](../ui-audit-2026-09-21.md)。输入范围与算法未改动。

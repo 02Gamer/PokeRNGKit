@@ -311,7 +311,7 @@ export function Gen7SosPanel({
   const rowVirtualizer = useVirtualizer({
     count: sortedResults.length,
     getScrollElement: () => tableRef.current,
-    estimateSize: () => 38,
+    estimateSize: () => 44,
     overscan: 12,
   });
   const columns = useMemo<ResultColumn[]>(() => {
@@ -724,7 +724,7 @@ export function Gen7SosPanel({
         </button>
       </div>
       <div className="gen7sos-workspace stacked-module-workspace">
-        <section className="panel gen7sos-controls">
+        <section className="panel gen7sos-controls workspace-controls workspace-controls-grid workspace-controls-four">
           <header className="gen7sos-heading">
             <div>
               <Play aria-hidden="true" size={18} />
@@ -1480,7 +1480,7 @@ export function Gen7SosPanel({
             />
             <span>{t("disableFilters")}</span>
           </label>
-          <div className="gen7sos-run-actions">
+          <div className="gen7sos-run-actions workspace-sticky-actions">
             {status === "calculating" ? (
               <button
                 className="gen7sos-primary"
@@ -1499,7 +1499,7 @@ export function Gen7SosPanel({
           </div>
         </section>
 
-        <section className="panel gen7sos-results">
+        <section className="panel gen7sos-results workspace-results">
           <header className="gen7sos-heading">
             <div>
               <h2>{t("results")}</h2>
@@ -1575,7 +1575,7 @@ export function Gen7SosPanel({
           )}
           <div className="gen7sos-table" ref={tableRef}>
             <div
-              className="gen7sos-table-head"
+              className="gen7sos-table-head workspace-table-heading workspace-sortable-heading"
               style={{ width: `${columns.length * 112}px` }}
             >
               {columns.map((column) => (
@@ -1603,7 +1603,9 @@ export function Gen7SosPanel({
               ))}
             </div>
             {sortedResults.length === 0 ? (
-              <div className="gen7sos-empty">{t("emptyGen7Sos")}</div>
+              <div className="gen7sos-empty workspace-empty-state">
+                {t("emptyGen7Sos")}
+              </div>
             ) : (
               <div
                 className="gen7sos-table-body"
@@ -1626,6 +1628,7 @@ export function Gen7SosPanel({
                       style={{
                         transform: `translateY(${virtualRow.start}px)`,
                         width: `${columns.length * 112}px`,
+                        height: virtualRow.size,
                       }}
                       type="button"
                     >

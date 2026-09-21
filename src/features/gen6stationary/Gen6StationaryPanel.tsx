@@ -490,7 +490,10 @@ export function Gen6StationaryPanel({
       className={`gen6stationary-panel${timeFinderMode ? " gen6stationary-time-mode" : ""}`}
     >
       <div className="gen6stationary-workspace stacked-module-workspace">
-        <form className="panel gen6stationary-controls" onSubmit={run}>
+        <form
+          className="panel gen6stationary-controls workspace-controls workspace-controls-grid"
+          onSubmit={run}
+        >
           <div className="gen6stationary-heading">
             <div>
               <span className="panel-index">01</span>
@@ -1071,7 +1074,7 @@ export function Gen6StationaryPanel({
             </label>
           </details>
 
-          <div className="gen6stationary-actions">
+          <div className="gen6stationary-actions workspace-sticky-actions">
             <button
               className="gen6stationary-primary"
               disabled={disabled}
@@ -1093,7 +1096,7 @@ export function Gen6StationaryPanel({
           </div>
         </form>
 
-        <section className="panel gen6stationary-results">
+        <section className="panel gen6stationary-results workspace-results">
           <div className="gen6stationary-heading">
             <div>
               <span className="panel-index">02</span>
