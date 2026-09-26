@@ -18,6 +18,7 @@ export class SaveEditorClient {
     kind:
       | "trainer"
       | "inventory"
+      | "inventoryEdit"
       | "pokemon"
       | "pokemonRaw"
       | "legality"

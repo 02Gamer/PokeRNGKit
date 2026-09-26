@@ -270,9 +270,16 @@ export function SaveEditorPanel(
       | PokemonEdit
       | PokemonRawEdit
       | BoxEdit
+      | import("./domain").BagEdit
       | StorageEdit
       | (() => Promise<PokemonImport>),
-    kind: "pokemon" | "pokemonRaw" | "box" | "storage" | "pokemonImport",
+    kind:
+      | "pokemon"
+      | "pokemonRaw"
+      | "box"
+      | "storage"
+      | "pokemonImport"
+      | "inventoryEdit",
   ) =>
     perform(async (id) => {
       if (!working.current) return;
@@ -478,6 +485,8 @@ export function SaveEditorPanel(
               key={workingRevision}
               busy={busy}
               onRead={readInventory}
+              canEdit={report.canEdit}
+              onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
             />
           ) : section === "pokemon" ? (
             <SavePokemonBrowser

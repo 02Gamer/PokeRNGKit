@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
-import type { BagReport } from "./domain";
+import type { BagEdit, BagReport } from "./domain";
+import { SaveInventoryEditor } from "./SaveInventoryEditor";
 import type { saveEditorResources } from "./locales";
 
 export function SaveInventoryBrowser({
   busy,
   onRead,
+  canEdit,
+  onApply,
 }: {
   busy: boolean;
   onRead(): Promise<BagReport | undefined>;
+  canEdit: boolean;
+  onApply(edit: BagEdit): Promise<void>;
 }) {
   const { t, i18n } = useTranslation();
   const words = t("saveEditor", {
@@ -25,6 +30,7 @@ export function SaveInventoryBrowser({
   const [search, setSearch] = useState("");
   const [showEmpty, setShowEmpty] = useState(false);
   const [page, setPage] = useState(0);
+  const [selectedSlot, setSelectedSlot] = useState<number>();
   const request = useRef(0);
   useEffect(() => {
     const lifecycle = request;
@@ -75,6 +81,7 @@ export function SaveInventoryBrowser({
                 onChange={(e) => {
                   setPouchIndex(Number(e.target.value));
                   setPage(0);
+                  setSelectedSlot(undefined);
                 }}
               >
                 {report.pouches.map((p) => (
@@ -148,7 +155,15 @@ export function SaveInventoryBrowser({
                       <tr key={item.slot}>
                         <td>{item.slot + 1}</td>
                         <td>
-                          {item.name[lang]}
+                          <button
+                            className="save-inventory-select"
+                            type="button"
+                            aria-pressed={selectedSlot === item.slot}
+                            disabled={busy}
+                            onClick={() => setSelectedSlot(item.slot)}
+                          >
+                            {item.name[lang]}
+                          </button>
                           <span className="save-inventory-meta">
                             #{item.id}
                           </span>
@@ -172,6 +187,15 @@ export function SaveInventoryBrowser({
             </table>
           </div>
           {items.length === 0 && <p>{words.noInventoryResults}</p>}
+          {pouch && selectedSlot !== undefined && pouch.items[selectedSlot] && (
+            <SaveInventoryEditor
+              key={`${pouchIndex}:${selectedSlot}`}
+              item={pouch.items[selectedSlot]}
+              pouch={pouch}
+              disabled={busy || !canEdit}
+              onApply={onApply}
+            />
+          )}
           <div className="save-editor-toolbar">
             <button
               type="button"

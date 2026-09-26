@@ -24,6 +24,9 @@ public static partial class Program
     public static string ReadInventory(byte[] data) => SaveService.ReadInventory(data);
 
     [JSExport]
+    public static byte[] EditInventory(byte[] data, string json) => SaveService.EditInventory(data, json);
+
+    [JSExport]
     public static byte[] Export(byte[] data, string json) => SaveService.Export(data, json);
 
     [JSExport]
@@ -69,6 +72,20 @@ public static class SaveService
 
     public static string ReadInventory(byte[] data) =>
         JsonSerializer.Serialize(InventoryReader.Read(Open(data)), SaveJsonContext.Default.BagReport);
+
+    public static byte[] EditInventory(byte[] data, string json)
+    {
+        var save = Open(data);
+        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+            throw new ArgumentException("Editing requires a supported save with valid checksums.");
+        var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BagEdit) ?? throw new ArgumentException("Missing inventory edit.");
+        var expected = InventoryEditing.Apply(save, edit);
+        var output = save.Write().ToArray();
+        var check = Open(output);
+        if (!check.ChecksumsValid || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
+            throw new InvalidOperationException("Inventory export verification failed.");
+        return output;
+    }
 
     private static SaveFile Open(byte[] data)
     {
@@ -154,7 +171,7 @@ public static class SaveService
         var save = Open(data);
         var valid = save.ChecksumsValid;
         var report = new SaveReport(
-            29, save.GetType().Name, save.Generation, save.Version.ToString(),
+            30, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
@@ -286,6 +303,7 @@ public sealed record SaveReport(
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
 [JsonSerializable(typeof(BagReport))]
+[JsonSerializable(typeof(BagEdit))]
 [JsonSerializable(typeof(RibbonCatalog))]
 [JsonSerializable(typeof(MemoryQuery))]
 [JsonSerializable(typeof(MemoryCatalog))]

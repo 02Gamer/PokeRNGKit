@@ -4,7 +4,11 @@ export const saveEditorResources = {
   zh: {
     inventory: "背包",
     inventoryReadNote:
-      "查看工作副本中的背包。当前支持读取；编辑、排序和批量操作尚未接入。异常值原样显示，不会自动清理。",
+      "选择道具编辑种类、数量和标记，应用后更新工作副本，可撤销或导出。异常值不会自动清理；排序、批量操作和道具图片尚未接入。",
+    editBagItem: "编辑道具",
+    revertBagItem: "还原道具草稿",
+    clearBagItem: "清空此格位",
+    applyBagItem: "应用道具修改",
     loadInventory: "读取背包",
     noInventory: "此存档未提供背包数据。",
     bagPouch: "口袋",
@@ -349,7 +353,11 @@ export const saveEditorResources = {
   en: {
     inventory: "Inventory",
     inventoryReadNote:
-      "View the working copy's inventory. Reading is available; editing, sorting and bulk actions are not connected yet. Unusual values are displayed without automatic cleanup.",
+      "Select an item to edit its identity, quantity and flags. Apply to the working copy, then undo or export. Unusual values are not cleaned automatically. Sorting, bulk actions and item images are not connected yet.",
+    editBagItem: "Edit item",
+    revertBagItem: "Revert item draft",
+    clearBagItem: "Clear this slot",
+    applyBagItem: "Apply item changes",
     loadInventory: "Read inventory",
     noInventory: "This save does not provide inventory data.",
     bagPouch: "Pouch",
@@ -702,7 +710,11 @@ export const saveEditorResources = {
   ja: {
     inventory: "バッグ",
     inventoryReadNote:
-      "作業コピーのバッグを表示します。現在は読み取りのみで、編集・並べ替え・一括操作は未対応です。異常値も自動削除せず表示します。",
+      "道具を選択して種類・個数・フラグを編集します。作業コピーに適用後、元に戻すか出力できます。異常値は自動削除しません。並べ替え・一括操作・道具画像は未対応です。",
+    editBagItem: "道具を編集",
+    revertBagItem: "道具の変更を戻す",
+    clearBagItem: "このスロットを空にする",
+    applyBagItem: "道具の変更を適用",
     loadInventory: "バッグを読み込む",
     noInventory: "このセーブにはバッグデータがありません。",
     bagPouch: "ポケット",
