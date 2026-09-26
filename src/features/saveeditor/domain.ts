@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 24;
+  apiVersion: 25;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -250,9 +250,11 @@ export interface PokemonRawEdit extends PokemonPosition {
     | "shiny"
     | "relearn"
     | "ribbons"
+    | "care"
     | "memory";
   relearn?: { moves: number[] };
   memory?: MemoryEdit;
+  care?: { values: { key: CareField["key"]; value: number }[] };
   ribbons?: {
     mode?: "values" | "suggest" | "minimal";
     values: { key: string; value: number }[];
@@ -304,7 +306,23 @@ export interface MemoryQuery extends PokemonPosition {
   handler: 0 | 1;
   memory?: number;
 }
+export interface CareField {
+  key:
+    | "originalFriendship"
+    | "handlingFriendship"
+    | "originalAffection"
+    | "handlingAffection"
+    | "fullness"
+    | "enjoyment"
+    | "sociability";
+  value: number;
+  max: number;
+  canEdit: boolean;
+}
+
 export interface MemoryCatalog {
+  care: CareField[];
+  isEgg: boolean;
   current: MemoryEdit;
   canEdit: boolean;
   nickname: string;

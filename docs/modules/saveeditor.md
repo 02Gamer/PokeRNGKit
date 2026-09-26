@@ -6,7 +6,7 @@
 ## 完整接入扩展
 
 2026-09-26 所有者要求完整接入；范围追踪见 [PKHeX 清单](../pkhex-inventory.md)。
-首批新增可视化仓储，API 3（当前已扩展为 24）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
+首批新增可视化仓储，API 3（当前已扩展为 25）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
 IBoxDetailWallpaper 的壁纸编号及上游 SpriteName 生成的图片键。
 UI 按原始格位保留空位，按上游 BoxEditor.InitializeGrid 使用每盒格数 / 5 的列数；队伍显示 6 格。选择空位不显示上一只宝可梦。
 图片来源为上游 Drawing 资源，按需同源加载；壁纸选择对应 WallpaperUtil.cs，
@@ -568,3 +568,22 @@ Memories.GetMemoryArgType 与 ITrainerMemories。原训练家的参数按来源�
 X、OR、SN、US、BD 五种存档的队伍/盒子双训练家记忆、全部参数类别、清空、边界及完整载荷保持检查通过。
 原生套件、648 前端测试、类型、lint、核心及最终前端构建通过，保留既有警告。
 浏览器仍待新版页面核验，完整记忆窗口与 PKHeX 清单继续推进。
+
+## 亲密度与互动数值（API 25）
+
+记忆与互动面板新增原训练家/接手训练家亲密度、好感度、饱食度、愉悦度和社交度。
+依据上游 `MemoryAmie.LoadFields/SaveFields`、Designer 的三位数字 Mask 与 `Update255_MTB`，
+以及 `IAffection`、`IFullnessEnjoyment`、`ISociability` 和 `G8PKM.Sociability` 的实际存储。
+全部编辑使用十进制整数 0–255；空值或小数草稿不能提交。好感度仅在实现对应接口的第六/七世代显示，
+饱食/愉悦按接口显示；社交度按桌面保存路径仅允许 G8PKM 写入。
+社交度底层为 uint，读取保留完整原值，不因上游显示上限而截断；只写入明确修改项。
+
+接手训练家亲密度/好感度沿用上游组禁用条件；旧来源的原训练家好感度仍允许编辑。
+蛋的原训练家亲密度字节显示为剩余孵化周期，并说明与孵化进度的关系。
+编辑先进入草稿，应用进入可撤销工作副本；不改变记忆、当前持有者身份、健康状态、其他格位或原文件。
+居住记录和当前持有者切换仍待完成，不将整个 MemoryAmie 窗口标为完成。
+五种存档队伍/盒子的逐字段边界写入、完整载荷、原文件、健康状态和其他格位保持通过。
+补充不支持字段、禁用训练家、重复项、越界、蛋周期和较大社交度原值保持检查。
+原生套件、186 文件 / 648 前端测试、类型、lint、核心与前端构建通过，保留既有警告。
+Chrome 重试读取后仍加载 index-BbDn0w3C.js，
+新界面仍待浏览器核验。

@@ -24,6 +24,11 @@
 
 ## 当前工程证据
 
+API 25 新增双训练家亲密度/好感度及格式支持的饱食、愉悦、社交度。
+使用桌面 0–255 编辑范围并保留未修改的较大社交度原值；只写入变更项，明确蛋周期语义。
+五种存档字段往返及数据保持、原生套件、648 前端测试、类型、lint 及两阶段构建通过。
+保留既有警告，浏览器新版待核验；居住记录与当前持有者切换仍待实现。
+
 API 24 新增双训练家记忆目录、内容/参数/程度/感受编辑及本地化预览，采用上游世代规则。
 工作副本修订号使摘要外面板的旧草稿失效。五种存档的双训练家记忆、边界及完整载荷保持通过；
 原生套件、648 前端测试、类型、lint 和两阶段构建通过，保留既有警告。
@@ -134,7 +139,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Misc/PropertyComparer.cs`                                           | 待核对                                                   |
 | `Subforms/Misc/SortableBindingList.cs`                                        | 待核对                                                   |
 | `Subforms/PKM Editors/BatchEditor.cs`                                         | 待核对                                                   |
-| `Subforms/PKM Editors/MemoryAmie.cs`                                          | 双训练家记忆已接入；居住/好感等其余区域待完成            |
+| `Subforms/PKM Editors/MemoryAmie.cs`                                          | 记忆、亲密度/好感及互动数值已接入；居住/持有者切换待完成 |
 | `Subforms/PKM Editors/MoveShopEditor.cs`                                      | 待核对                                                   |
 | `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | 待核对                                                   |
 | `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查 |

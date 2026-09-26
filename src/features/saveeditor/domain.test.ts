@@ -9,7 +9,7 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 24,
+  apiVersion: 25,
   attributeChoices: { natures: [], items: [], species: [] },
   boxSlotCount: 30,
   boxes: [],

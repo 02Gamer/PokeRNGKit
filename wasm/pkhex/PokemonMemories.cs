@@ -5,7 +5,7 @@ namespace PokeRNGKit.SaveEditor;
 public sealed record MemoryQuery(int Box, int Slot, int Handler, int? Memory = null);
 public sealed record MemoryEdit(int Handler, int Memory, int Variable, int Intensity, int Feeling);
 public sealed record MemoryCatalog(MemoryEdit Current, bool CanEdit, string Nickname, string Trainer,
-    OriginChoice[] Memories, OriginChoice[] Variables, OriginChoice[] Intensities, OriginChoice[] Feelings, string ArgumentType);
+    OriginChoice[] Memories, OriginChoice[] Variables, OriginChoice[] Intensities, OriginChoice[] Feelings, string ArgumentType, CareField[] Care, bool IsEgg);
 
 internal static class PokemonMemories
 {
@@ -39,7 +39,7 @@ internal static class PokemonMemories
         return new(new(handler, id, value.Variable, value.Intensity, value.Feeling), editable,
             p.Nickname, handler == 0 ? p.OriginalTrainerName : p.HandlingTrainerName,
             memories, variables, intensities,
-            Texts(s => s.GetMemoryFeelings(handler == 0 ? p.Generation : p.Format).ToArray()), argumentType.ToString());
+            Texts(s => s.GetMemoryFeelings(handler == 0 ? p.Generation : p.Format).ToArray()), argumentType.ToString(), PokemonCare.Read(p), p.IsEgg);
     }
     public static void Apply(PKM p, MemoryEdit edit)
     {

@@ -3,7 +3,22 @@ import { saveEditorCopy } from "./copy";
 export const saveEditorResources = {
   zh: {
     clearMemory: "清空记忆",
-    memoryTitle: "训练家记忆",
+    memoryTitle: "记忆与互动",
+    careTitle: "亲密度与互动数值",
+    applyCare: "应用互动数值",
+    careNote:
+      "仅显示此格式保存的字段；数值范围为 0–255。接手训练家字段按训练家经历启用。",
+    careEggNote:
+      "蛋的原训练家亲密度字节记录剩余孵化周期，修改它会改变孵化进度。",
+    careNames: {
+      originalFriendship: "原训练家亲密度",
+      handlingFriendship: "接手训练家亲密度",
+      originalAffection: "原训练家好感度",
+      handlingAffection: "接手训练家好感度",
+      fullness: "饱食度",
+      enjoyment: "愉悦度",
+      sociability: "社交度",
+    },
     loadMemory: "读取训练家记忆",
     memoryTrainer: "记忆所属训练家",
     handlingTrainer: "接手训练家",
@@ -263,7 +278,22 @@ export const saveEditorResources = {
   },
   en: {
     clearMemory: "Clear memory",
-    memoryTitle: "Trainer memories",
+    memoryTitle: "Memories and interaction",
+    careTitle: "Friendship and interaction values",
+    applyCare: "Apply interaction values",
+    careNote:
+      "Only fields stored by this format are shown. Values range from 0 to 255. Handling trainer fields follow the trainer history rules.",
+    careEggNote:
+      "For an Egg, the original trainer friendship byte stores remaining hatch cycles. Changing it changes hatch progress.",
+    careNames: {
+      originalFriendship: "Original trainer friendship",
+      handlingFriendship: "Handling trainer friendship",
+      originalAffection: "Original trainer affection",
+      handlingAffection: "Handling trainer affection",
+      fullness: "Fullness",
+      enjoyment: "Enjoyment",
+      sociability: "Sociability",
+    },
     loadMemory: "Load trainer memories",
     memoryTrainer: "Trainer",
     handlingTrainer: "Handling trainer",
@@ -531,7 +561,22 @@ export const saveEditorResources = {
   },
   ja: {
     clearMemory: "思い出を空にする",
-    memoryTitle: "トレーナーの思い出",
+    memoryTitle: "思い出とふれあい",
+    careTitle: "なつき度とふれあいの値",
+    applyCare: "ふれあいの値を適用",
+    careNote:
+      "この形式で保存される項目のみ表示します。範囲は 0～255 です。受け取り側の項目はトレーナーの履歴に従って有効になります。",
+    careEggNote:
+      "タマゴの最初の親のなつき度は、残りの孵化サイクルを記録しています。変更すると孵化の進行も変わります。",
+    careNames: {
+      originalFriendship: "最初の親のなつき度",
+      handlingFriendship: "受け取り側のなつき度",
+      originalAffection: "最初の親のなかよし度",
+      handlingAffection: "受け取り側のなかよし度",
+      fullness: "満腹度",
+      enjoyment: "満足度",
+      sociability: "社交性",
+    },
     loadMemory: "思い出を読み込む",
     memoryTrainer: "思い出のトレーナー",
     handlingTrainer: "引き取ったトレーナー",

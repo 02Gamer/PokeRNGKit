@@ -1,3 +1,4 @@
+import { PokemonCareEditor } from "./PokemonCareEditor";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
@@ -113,6 +114,13 @@ export function PokemonMemoryEditor({
         </div>
       ) : (
         <>
+          <PokemonCareEditor
+            fields={catalog.care}
+            isEgg={catalog.isEgg}
+            position={position}
+            disabled={disabled}
+            onApply={onApply}
+          />
           <fieldset disabled={disabled} className="save-editor-fields">
             <legend>{words.memoryTitle}</legend>
             <label className="field">
