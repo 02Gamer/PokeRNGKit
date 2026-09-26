@@ -10,11 +10,15 @@ export function SaveInventoryEditor({
   pouch,
   disabled,
   onApply,
+  advanced,
+  advancedChoices,
 }: {
   item: BagItem;
   pouch: BagReport["pouches"][number];
   disabled: boolean;
   onApply(edit: BagEdit): Promise<void>;
+  advanced: boolean;
+  advancedChoices: BagReport["advancedChoices"];
 }) {
   const { t, i18n } = useTranslation();
   const words = t("saveEditor", {
@@ -37,7 +41,8 @@ export function SaveInventoryEditor({
     held: item.held,
   };
   const [draft, setDraft] = useState(initial);
-  const choice = pouch.choices.find((c) => c.id === draft.id);
+  const choices = advanced ? advancedChoices : pouch.choices;
+  const choice = choices.find((c) => c.id === draft.id);
   const count = Number(draft.count);
   const order =
     draft.freeSpaceIndex === null ? null : Number(draft.freeSpaceIndex);
@@ -46,7 +51,7 @@ export function SaveInventoryEditor({
     /^\d+$/.test(draft.count) &&
     Number.isSafeInteger(count) &&
     count <= choice.maxCount &&
-    (draft.id === 0 || item.isNew !== null || count > 0) &&
+    (advanced || draft.id === 0 || item.isNew !== null || count > 0) &&
     (order === null ||
       (/^\d+$/.test(draft.freeSpaceIndex!) &&
         Number.isSafeInteger(order) &&
@@ -66,7 +71,7 @@ export function SaveInventoryEditor({
           value={draft.id}
           onChange={(e) => {
             const id = Number(e.target.value);
-            const next = pouch.choices.find((c) => c.id === id)!;
+            const next = choices.find((c) => c.id === id)!;
             setDraft({
               ...draft,
               id,
@@ -77,7 +82,7 @@ export function SaveInventoryEditor({
           }}
         >
           {!choice && <option value={draft.id}>#{draft.id}</option>}
-          {pouch.choices.map((c) => (
+          {choices.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name[lang]}
             </option>
@@ -161,6 +166,7 @@ export function SaveInventoryEditor({
           onClick={() =>
             void onApply({
               ...draft,
+              advanced,
               pouch: pouch.index,
               slot: item.slot,
               count,

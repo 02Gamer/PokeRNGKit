@@ -24,6 +24,11 @@
 
 ## 当前工程证据
 
+API 33 接入背包高级编辑（HaX）：完整版本目录、单格高级数量范围及 PC/自由空间批量入口。
+普通模式和批量规则保持；高级写入额外核对请求值，拒绝截断/丢弃。
+11 种存档及原生套件、BDSP 清空重排与空白项数量差异、7 项前端测试、类型、变更文件 lint、最终核心与网页构建通过。
+保留既有构建警告；本地 Chrome 仍加载旧版，浏览器待核验。
+
 API 32 接入背包列表及单格草稿的本地道具图片，包含 606 张未修改 PNG 与来源哈希。
 按 Core 世代编号转换和 TM/TR 图像规则配图；空格无图，未知编号使用回退图。
 编号映射、11 种存档图像序列化及原生套件、606 张图片哈希、7 项前端测试、类型、变更文件 lint、核心与网页构建通过。
@@ -288,7 +293,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | 待核对                                                    |
 | `Subforms/Save Editors/SAV_EventWork.cs`                                      | 待核对                                                    |
 | `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 待核对                                                    |
-| `Subforms/Save Editors/SAV_Inventory.cs`                                      | 普通模式读取/编辑/整理与本地图片已实现；HaX 模式待接入    |
+| `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                   |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                    |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                    |
 | `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 待核对                                                    |

@@ -5,7 +5,7 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 public sealed record BagEdit(int Pouch, int Slot, int Id, int Count, bool? Favorite = null,
-    bool? IsNew = null, bool? FreeSpace = null, uint? FreeSpaceIndex = null, bool? NewShop = null, bool? Held = null);
+    bool? IsNew = null, bool? FreeSpace = null, uint? FreeSpaceIndex = null, bool? NewShop = null, bool? Held = null, bool Advanced = false);
 
 internal static class InventoryEditing
 {
@@ -28,10 +28,11 @@ internal static class InventoryEditing
         if ((uint)edit.Slot >= pouch.Items.Length) throw new ArgumentException("Inventory slot is out of range.");
         var item = pouch.Items[edit.Slot];
         var removeSlot = item.Index != 0 && edit.Id == 0 && item is not IItemNewFlag;
-        if (edit.Id < 0 || edit.Id > ushort.MaxValue || (edit.Id != 0 && !pouch.CanContain((ushort)edit.Id)))
+        var nameCount = GameInfo.GetStrings("en").GetItemStrings(save.Context,save.Version).Length;
+        if (edit.Id < 0 || edit.Id > ushort.MaxValue || (edit.Advanced ? edit.Id >= nameCount : edit.Id != 0 && !pouch.CanContain((ushort)edit.Id)))
             throw new ArgumentException("Item is not available in this pouch.");
-        if (edit.Count < 0 || edit.Count > bag.GetMaxCount(pouch.Type,edit.Id) || (edit.Id == 0 && edit.Count != 0) ||
-            (edit.Id != 0 && edit.Count == 0 && item is not IItemNewFlag))
+        if (edit.Count < 0 || edit.Count > (edit.Advanced ? bag.MaxQuantityHaX : bag.GetMaxCount(pouch.Type,edit.Id)) ||
+            (!edit.Advanced && ((edit.Id == 0 && edit.Count != 0) || (edit.Id != 0 && edit.Count == 0 && item is not IItemNewFlag))))
             throw new ArgumentException("Inventory quantity is out of range.");
         // Indexed BDSP records cannot represent two independently editable copies of one ID.
         if (save is SAV8BS && edit.Id != 0 && pouch.Items.Where((_,i) => i != edit.Slot).Any(i => i.Index == edit.Id))
@@ -42,9 +43,11 @@ internal static class InventoryEditing
             throw new ArgumentException("Inventory flag is unsupported.");
         if (edit.FreeSpaceIndex > 1023) throw new ArgumentException("Free space order must be between 0 and 1023.");
 
-        return Transform(save, bag, () =>
+        // Desktop SetBag skips empty IDs in formats without the remembered-new flag.
+        int requestedCount = edit.Id == 0 && item is not IItemNewFlag ? 0 : edit.Count;
+        var snapshot = Transform(save, bag, () =>
         {
-            item.Index = edit.Id; item.Count = edit.Count;
+            item.Index = edit.Id; item.Count = requestedCount;
             if (item is IItemFavorite favorite && edit.Favorite is bool f) favorite.IsFavorite = f;
             if (item is IItemNewFlag fresh && edit.IsNew is bool n) fresh.IsNew = n;
             if (item is IItemFreeSpace free && edit.FreeSpace is bool fs) free.IsFreeSpace = fs;
@@ -57,6 +60,15 @@ internal static class InventoryEditing
                 pouch.Items[^1] = pouch.GetEmpty();
             }
         });
+        bool removeIndexed = save is SAV8BS && edit.Id == 0 && requestedCount == 0;
+        if (edit.Advanced && !removeSlot && !removeIndexed)
+        {
+            var stored = save.Inventory.Pouches[edit.Pouch].Items;
+            var actual = save is SAV8BS && edit.Id != 0 ? stored.FirstOrDefault(i => i.Index == edit.Id) : stored[edit.Slot];
+            if (actual is null || actual.Index != edit.Id || actual.Count != requestedCount)
+                throw new ArgumentException("This save format cannot retain the requested item and quantity in this pouch.");
+        }
+        return snapshot;
     }
 
     internal static string Transform(SaveFile save, PlayerBag bag, Action mutate)

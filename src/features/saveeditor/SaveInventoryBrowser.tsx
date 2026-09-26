@@ -30,6 +30,7 @@ export function SaveInventoryBrowser({
       ? "ja"
       : "en";
   const [report, setReport] = useState<BagReport>();
+  const [advanced, setAdvanced] = useState(false);
   const [pouchIndex, setPouchIndex] = useState(0);
   const [search, setSearch] = useState("");
   const [showEmpty, setShowEmpty] = useState(false);
@@ -108,9 +109,24 @@ export function SaveInventoryBrowser({
             </label>
           </div>
           {pouch && (
+            <label className="save-inventory-empty">
+              <input
+                type="checkbox"
+                checked={advanced}
+                disabled={busy}
+                onChange={(e) => setAdvanced(e.target.checked)}
+              />
+              {words.bagAdvanced}
+            </label>
+          )}
+          {advanced && (
+            <p className="save-editor-note">{words.bagAdvancedNote}</p>
+          )}
+          {pouch && (
             <SaveInventoryBatch
-              key={pouch.index}
+              key={`${pouch.index}:${advanced}`}
               pouch={pouch}
+              advanced={advanced}
               disabled={busy || !canEdit}
               onApply={onBatch}
             />
@@ -202,9 +218,11 @@ export function SaveInventoryBrowser({
           {items.length === 0 && <p>{words.noInventoryResults}</p>}
           {pouch && selectedSlot !== undefined && pouch.items[selectedSlot] && (
             <SaveInventoryEditor
-              key={`${pouchIndex}:${selectedSlot}`}
+              key={`${pouchIndex}:${selectedSlot}:${advanced}`}
               item={pouch.items[selectedSlot]}
               pouch={pouch}
+              advanced={advanced}
+              advancedChoices={report.advancedChoices}
               disabled={busy || !canEdit}
               onApply={onApply}
             />

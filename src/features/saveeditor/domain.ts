@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 32;
+  apiVersion: 33;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -402,6 +402,12 @@ export interface BagItem {
   held: boolean | null;
 }
 export interface BagReport {
+  advancedChoices: {
+    id: number;
+    name: LocalizedText;
+    maxCount: number;
+    sprite: string;
+  }[];
   pouches: {
     index: number;
     type: string;
@@ -419,6 +425,7 @@ export interface BagReport {
 }
 
 export interface BagEdit {
+  advanced?: boolean;
   pouch: number;
   slot: number;
   id: number;
@@ -431,6 +438,7 @@ export interface BagEdit {
   held?: boolean | null;
 }
 export interface BagOperation {
+  advanced?: boolean;
   pouch: number;
   action:
     | "sortName"

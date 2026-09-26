@@ -3,6 +3,9 @@ import { saveEditorCopy } from "./copy";
 export const saveEditorResources = {
   zh: {
     inventory: "背包",
+    bagAdvanced: "高级编辑（HaX）",
+    bagAdvancedNote:
+      "显示该版本完整道具目录并放宽单格数量限制。错口袋道具或超常数量可能无法在游戏中使用；格式不能原样保存时会拒绝修改。批量操作仍使用常规道具与数量规则。切换模式会放弃未应用的编辑草稿。",
     bagBatchTitle: "整理当前口袋",
     bagBatchNote:
       "仅处理当前口袋已应用的数据，不包含未应用的单格草稿。排序使用当前语言名称；数量会按每种道具上限截取。所有操作均可撤销。",
@@ -373,6 +376,9 @@ export const saveEditorResources = {
   },
   en: {
     inventory: "Inventory",
+    bagAdvanced: "Advanced editing (HaX)",
+    bagAdvancedNote:
+      "Show the full item catalog for this version and relax individual quantity limits. Items in the wrong pouch or unusual counts may not work in-game; edits are rejected if the format cannot retain them exactly. Bulk operations still use normal item and quantity rules. Switching modes discards unapplied drafts.",
     bagBatchTitle: "Organize current pouch",
     bagBatchNote:
       "Uses applied data in this pouch, excluding unsaved single-slot drafts. Name sorting uses the current language. Quantities are clamped per item. Every operation can be undone.",
@@ -753,6 +759,9 @@ export const saveEditorResources = {
   },
   ja: {
     inventory: "バッグ",
+    bagAdvanced: "高度な編集（HaX）",
+    bagAdvancedNote:
+      "このバージョンの全道具を表示し、個別の数量制限を緩和します。異なるポケットの道具や通常範囲外の数量はゲーム内で使えない場合があります。形式が値をそのまま保存できなければ変更を拒否します。一括操作は通常の道具と数量の規則に従います。モード切替で未適用の編集内容は破棄されます。",
     bagBatchTitle: "現在のポケットを整理",
     bagBatchNote:
       "現在のポケットの適用済みデータを対象とし、未適用の個別編集は含みません。名前順は現在の言語を使い、個数は道具別の上限に収めます。すべて元に戻せます。",

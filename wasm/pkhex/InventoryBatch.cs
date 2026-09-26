@@ -3,7 +3,7 @@ using PKHeX.Core;
 
 namespace PokeRNGKit.SaveEditor;
 
-public sealed record BagOperation(int Pouch, string Action, int? Count = null, string Language = "en", bool Shuffle = false);
+public sealed record BagOperation(int Pouch, string Action, int? Count = null, string Language = "en", bool Shuffle = false, bool Advanced = false);
 
 internal static class InventoryBatch
 {
@@ -16,7 +16,7 @@ internal static class InventoryBatch
         var pouch = bag.Pouches[edit.Pouch];
         if (edit.Language is not ("zh-Hans" or "en" or "ja")) throw new ArgumentException("Inventory sort language is unsupported.");
         bool quantity = edit.Action is "giveAll" or "setCount";
-        if (quantity && (!CanGive(save,pouch) || edit.Count is null or < 1 || edit.Count > pouch.MaxCount))
+        if (quantity && ((!edit.Advanced && !CanGive(save,pouch)) || edit.Count is null or < 1 || edit.Count > pouch.MaxCount))
             throw new ArgumentException("Inventory bulk quantity is out of range or unsupported in this pouch.");
         if (!quantity && edit.Count.HasValue) throw new ArgumentException("This inventory action does not accept a quantity.");
         if (edit.Shuffle && (edit.Action != "giveAll" || !pouch.IsCramped))

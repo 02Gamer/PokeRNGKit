@@ -8,10 +8,12 @@ export function SaveInventoryBatch({
   pouch,
   disabled,
   onApply,
+  advanced,
 }: {
   pouch: BagReport["pouches"][number];
   disabled: boolean;
   onApply(edit: BagOperation): Promise<void>;
+  advanced: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const words = t("saveEditor", {
@@ -23,7 +25,7 @@ export function SaveInventoryBatch({
   const quantity = action === "giveAll" || action === "setCount";
   const valid =
     !quantity ||
-    (pouch.canGive &&
+    ((pouch.canGive || advanced) &&
       /^\d+$/.test(count) &&
       Number.isSafeInteger(Number(count)) &&
       Number(count) >= 1 &&
@@ -35,7 +37,7 @@ export function SaveInventoryBatch({
     ["sortCountReverse", words.bagSortCountReverse],
     ["sortId", words.bagSortId],
     ["sortIdReverse", words.bagSortIdReverse],
-    ...(pouch.canGive
+    ...(pouch.canGive || advanced
       ? ([
           ["setCount", words.bagSetCount],
           ["giveAll", words.bagGiveAll],
@@ -97,6 +99,7 @@ export function SaveInventoryBatch({
             onClick={() =>
               void onApply({
                 pouch: pouch.index,
+                advanced,
                 action,
                 count: quantity ? Number(count) : undefined,
                 language: i18n.language.startsWith("zh")
