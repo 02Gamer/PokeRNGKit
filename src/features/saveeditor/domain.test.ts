@@ -4,14 +4,16 @@ import {
   saveGameChoices,
   trainerDraft,
   rebaseTrainerDraft,
+  changeTrainerCountry,
   validateTrainer,
   parsePokemonHex,
   type SaveReport,
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 35,
+  apiVersion: 36,
   trainer: {
+    geography: null,
     languages: [],
     canGender: true,
     canPlayTime: true,
@@ -197,6 +199,92 @@ describe("save editor boundaries", () => {
     expect(
       rebaseTrainerDraft(trainerDraft(changed), changed, report).language,
     ).toBe("2");
+  });
+  it("validates trainer geography and preserves coupled drafts on undo", () => {
+    const choice = (id: number) => ({
+      id,
+      name: { zh: `Z${id}`, en: `E${id}`, ja: `J${id}` },
+    });
+    const report: SaveReport = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        geography: {
+          value: { country: 1, region: 2, consoleRegion: 0 },
+          countries: [0, 1, 2].map(choice),
+          regions: [
+            { country: 1, choices: [0, 2].map(choice) },
+            { country: 2, choices: [0, 7].map(choice) },
+          ],
+          consoles: [0, 1, 2, 4, 5, 6].map(choice),
+        },
+      },
+    };
+    const draft = trainerDraft(report);
+    const changed = changeTrainerCountry(draft, report, "2");
+    expect(changed).toMatchObject({ country: "2", region: "7" });
+    expect(validateTrainer(changed, report)).toMatchObject({
+      country: 2,
+      region: 7,
+    });
+    expect(changeTrainerCountry(draft, report, "0")).toMatchObject({
+      country: "0",
+      region: "2",
+    });
+    for (const patch of [
+      { country: "" },
+      { country: "255" },
+      { region: "7" },
+      { region: "256" },
+      { consoleRegion: "3" },
+      { consoleRegion: "1.5" },
+    ])
+      expect(() => validateTrainer({ ...draft, ...patch }, report)).toThrow(
+        /geography/,
+      );
+    const unusual: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        geography: {
+          ...report.trainer.geography!,
+          value: { country: 255, region: 255, consoleRegion: 255 },
+        },
+      },
+    };
+    expect(validateTrainer(trainerDraft(unusual), unusual)).not.toHaveProperty(
+      "country",
+    );
+    expect(
+      validateTrainer(
+        { ...trainerDraft(unusual), consoleRegion: "0" },
+        unusual,
+      ),
+    ).toMatchObject({ consoleRegion: 0 });
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(emeraldReport), country: "1" },
+        emeraldReport,
+      ),
+    ).toThrow(/geography/);
+    const after: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        geography: {
+          ...report.trainer.geography!,
+          value: { country: 2, region: 7, consoleRegion: 1 },
+        },
+      },
+    };
+    expect(rebaseTrainerDraft(draft, report, after)).toMatchObject({
+      country: "2",
+      region: "7",
+      consoleRegion: "1",
+    });
+    expect(
+      rebaseTrainerDraft({ ...draft, region: "0" }, report, after),
+    ).toMatchObject({ country: "1", region: "0", consoleRegion: "1" });
   });
   it("always exports a distinct filename", () => {
     expect(exportSaveName("main")).toBe("edited-main");

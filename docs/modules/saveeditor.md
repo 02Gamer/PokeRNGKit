@@ -6,7 +6,7 @@
 ## 完整接入扩展
 
 2026-09-26 所有者要求完整接入；范围追踪见 [PKHeX 清单](../pkhex-inventory.md)。
-首批新增可视化仓储，API 3（当前已扩展为 35）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
+首批新增可视化仓储，API 3（当前已扩展为 36）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
 IBoxDetailWallpaper 的壁纸编号及上游 SpriteName 生成的图片键。
 UI 按原始格位保留空位，按上游 BoxEditor.InitializeGrid 使用每盒格数 / 5 的列数；队伍显示 6 格。选择空位不显示上一只宝可梦。
 图片来源为上游 Drawing 资源，按需同源加载；壁纸选择对应 WallpaperUtil.cs，
@@ -812,3 +812,25 @@ X、OR、SN、US、BD 覆盖每个支持语言、日/韩/中文姓名、完整�
 剑／盾测试仅使用 Core 创建对象，并显式初始化空模板运行时语言块类型；不代表真实存档往返验收。
 上述检查与原生套件、10 项前端测试、类型、变更文件 lint、核心及网页构建通过。
 保留既有裁剪与文件体积警告；浏览器仍待核验，工程证据不代替所有者验收。
+
+## 训练家国家、地区与 3DS 区域（API 36）
+
+XY、ORAS、SM、USUM 的训练家面板增加国家、地区及 3DS 区域下拉项，复用本地三语地名目录。
+对应上游 Gen6/SAV_Trainer、Gen7/SAV_Trainer7 的 CB_Country、CB_Region、CB_3DSReg；
+国家及地区取 Util.GetCountryRegionList 的 countries / sr_NNN，主机区域取 GameDataSource.Regions 和 Locale3DS.DefinedLocales。
+所有值为 byte，范围 0–255；主机区域仅提供 0、1、2、4、5、6，国家与地区必须属于对应目录。
+空白、小数、越界及其他国家的地区请求拒绝；未改的异常原值以 #编号显示并保留。
+
+切换非零国家时沿用 Main.SetCountrySubRegion 的索引规则：旧索引大于 0 且未超出新列表则保持，否则选第一项。
+共享目录保持既有中文目录顺序，名称按应用语言切换；不把不同语言排序后的行号当作地区编号。
+国家为 0 时沿用上游不改写地区的行为，页面暂时禁用地区选择，不自动清零原值。
+主机区域独立编辑，不自动修正国家、地区、语言或已有宝可梦的产地与居住记录。
+
+存储依据：MyStatus6 的 Region/Country/ConsoleRegion 为 0x26/0x27/0x2C 字节，
+MyStatus7 对应 0x2E/0x2F/0x34。适配层只调用变更字段的 IRegionOrigin setter；导出回读加入三项快照。
+应用、导出、撤销及还原继续使用既有流程；撤销遇到独立未应用的国家或地区草稿时保留整组，避免跨国家错配。
+其他格式不开放这组编辑；训练家其他字段与专有窗口继续按完整清单推进。
+
+X、OR、SN、US 的全部国家/地区目录及三语名称、主机区域、代表地区完整输出、回读校验、无效请求与异常原值保持通过。
+旧格式请求拒绝、原生套件、11 项前端测试、类型、变更文件 lint、核心及网页构建通过。
+保留既有裁剪与文件体积警告；浏览器仍待核验，工程检查不代替所有者验收。

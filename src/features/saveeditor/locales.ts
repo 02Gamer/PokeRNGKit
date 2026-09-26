@@ -298,6 +298,8 @@ export const saveEditorResources = {
       "剑／盾更改性别时，会沿用当前肤色并重置角色外观与穿着；可通过撤销恢复。",
     applyTrainer: "应用训练家修改",
     trainerLanguage: "存档语言",
+    trainerConsoleRegion: "3DS 区域",
+    trainerGeographyError: "请选择有效的国家、对应地区和 3DS 区域。",
     trainerLanguageNote:
       "修改游戏存档的语言，不切换本工具的界面语言，也不批量翻译现有宝可梦名字。",
     trainerLanguageError:
@@ -696,6 +698,9 @@ export const saveEditorResources = {
       "In Sword/Shield, changing gender resets appearance and clothing using the current skin tone. Undo restores the previous state.",
     applyTrainer: "Apply trainer changes",
     trainerLanguage: "Save language",
+    trainerConsoleRegion: "3DS region",
+    trainerGeographyError:
+      "Choose a supported country, its region, and a 3DS region.",
     trainerLanguageNote:
       "Changes the game's saved language. It does not change this tool's interface language or translate existing Pokémon names.",
     trainerLanguageError:
@@ -1098,6 +1103,8 @@ export const saveEditorResources = {
       "ソード・シールドで性別を変更すると、現在の肌色に合わせて外見と服装をリセットします。取り消しで元に戻せます。",
     applyTrainer: "トレーナーの変更を適用",
     trainerLanguage: "セーブの言語",
+    trainerConsoleRegion: "3DSの地域",
+    trainerGeographyError: "対応する国と地方、3DSの地域を選んでください。",
     trainerLanguageNote:
       "ゲームのセーブ言語を変更します。このツールの表示言語や既存のポケモンの名前は変更しません。",
     trainerLanguageError:
@@ -1213,6 +1220,7 @@ export function localizeSaveError(
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
   if (/Trainer language/.test(message)) return words.trainerLanguageError;
+  if (/Trainer geography/.test(message)) return words.trainerGeographyError;
   if (/unrecognized skin color/.test(message)) return words.trainerSkinError;
   if (
     /Trainer gender|Trainer play time|^(Gender|Hours|Minutes|Seconds):/.test(

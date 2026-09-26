@@ -4,15 +4,23 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 public sealed record TrainerEdit(string Ot, ushort Tid, ushort Sid, uint Money,
-    int? Gender = null, int? Hours = null, int? Minutes = null, int? Seconds = null, int? Language = null);
-public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages);
-internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance, int Language, uint? RuntimeLanguage);
+    int? Gender = null, int? Hours = null, int? Minutes = null, int? Seconds = null, int? Language = null,
+    int? Country = null, int? Region = null, int? ConsoleRegion = null);
+public sealed record TrainerLocation(int Country, int Region, int ConsoleRegion);
+public sealed record TrainerGeography(TrainerLocation Value, OriginChoice[] Countries, GeoRegions[] Regions, OriginChoice[] Consoles);
+public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages, TrainerGeography? Geography);
+internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance, int Language, uint? RuntimeLanguage, TrainerLocation? Location);
 
 internal static class TrainerEditing
 {
     public static TrainerOptions Options(SaveFile save) => new(save.Generation > 1,
         save is SAV3 or SAV4 or SAV5 or SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS,
-        save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds, Languages(save));
+        save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds, Languages(save), Geography(save));
+    private static readonly Lazy<OriginChoice[]> Consoles = new(() => Locale3DS.DefinedLocales.ToArray().Select(id =>
+        new OriginChoice(id,new(GameInfo.GetStrings("zh-Hans").console3ds[id],GameInfo.GetStrings("en").console3ds[id],GameInfo.GetStrings("ja").console3ds[id]))).ToArray());
+    private static TrainerLocation? Location(SaveFile save) => save is IRegionOrigin g ? new(g.Country,g.Region,g.ConsoleRegion) : null;
+    private static TrainerGeography? Geography(SaveFile save) => save is SAV6XY or SAV6AO or SAV7SM or SAV7USUM
+        ? new(Location(save)!,GeographicCatalog.Countries.Value,GeographicCatalog.Regions.Value,Consoles.Value) : null;
     internal static OriginChoice[] Languages(SaveFile save)
     {
         if (save is not (SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS)) return [];
@@ -24,7 +32,7 @@ internal static class TrainerEditing
     }
     internal static TrainerSnapshot Snapshot(SaveFile save) => new(save.OT,save.TID16,save.SID16,save.Money,save.Gender,save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds,
         save is SAV8SWSH swsh ? Convert.ToHexString(swsh.MyStatus.Data) : null,
-        save.Language, save is SAV8SWSH runtime ? runtime.GetValue<uint>(SaveBlockAccessor8SWSH.KGameLanguage) : null);
+        save.Language, save is SAV8SWSH runtime ? runtime.GetValue<uint>(SaveBlockAccessor8SWSH.KGameLanguage) : null, Location(save));
 
     public static void Apply(SaveFile save, TrainerEdit edit)
     {
@@ -40,6 +48,20 @@ internal static class TrainerEditing
             throw new ArgumentException("Trainer play time is out of range or unsupported.");
         if (edit.Language is int language && !options.Languages.Any(x => x.Id == language))
             throw new ArgumentException("Trainer language is unsupported for this save.");
+        if (edit.Country.HasValue || edit.Region.HasValue || edit.ConsoleRegion.HasValue)
+        {
+            if (options.Geography is not { } geo || edit.Country is < 0 or > 255 || edit.Region is < 0 or > 255 || edit.ConsoleRegion is < 0 or > 255)
+                throw new ArgumentException("Trainer geography is unsupported or out of range.");
+            int country = edit.Country ?? geo.Value.Country, region = edit.Region ?? geo.Value.Region;
+            bool pairChanged = country != geo.Value.Country || region != geo.Value.Region;
+            if ((pairChanged && (!geo.Countries.Any(c => c.Id == country) || (country != 0 && !geo.Regions.Any(r => r.Country == country && r.Choices.Any(c => c.Id == region))))) ||
+                (edit.ConsoleRegion is int console && console != geo.Value.ConsoleRegion && !geo.Consoles.Any(c => c.Id == console)))
+                throw new ArgumentException("Trainer geography is outside the supported catalog.");
+            var origin = (IRegionOrigin)save;
+            if (edit.Country is int nextCountry && nextCountry != origin.Country) origin.Country = (byte)nextCountry;
+            if (edit.Region is int nextRegion && nextRegion != origin.Region) origin.Region = (byte)nextRegion;
+            if (edit.ConsoleRegion is int nextConsole && nextConsole != origin.ConsoleRegion) origin.ConsoleRegion = (byte)nextConsole;
+        }
         bool nameChanged = save.OT != edit.Ot;
         // Encode an explicitly changed name using the requested language. Unchanged bytes stay intact.
         if (edit.Language is int targetLanguage && targetLanguage != save.Language) save.Language = targetLanguage;

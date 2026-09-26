@@ -10,15 +10,18 @@ public sealed record HolderState(int Current, string Original, string Handling);
 public sealed record HistoryCatalog(HolderState Holder, GeoCatalog? Geo);
 public sealed record HistoryEdit(int? Handler = null, GeoValue[]? Locations = null);
 
-internal static class PokemonHistory
+internal static class GeographicCatalog
 {
     private static OriginChoice[] Choices(string resource)
     {
         var lists = new[] { "zh-Hans", "en", "ja" }.Select(l => Util.GetCountryRegionList(resource, l).ToDictionary(c => c.Value, c => c.Text)).ToArray();
         return lists[0].Keys.Select(id => new OriginChoice(id, new(lists[0][id], lists[1][id], lists[2][id]))).ToArray();
     }
-    private static readonly Lazy<OriginChoice[]> Countries = new(() => Choices("countries"));
-    private static readonly Lazy<GeoRegions[]> Regions = new(() => Countries.Value.Select(c => new GeoRegions(c.Id, c.Id == 0 ? [new(0, new("—", "—", "—"))] : Choices($"sr_{c.Id:000}"))).ToArray());
+    internal static readonly Lazy<OriginChoice[]> Countries = new(() => Choices("countries"));
+    internal static readonly Lazy<GeoRegions[]> Regions = new(() => Countries.Value.Select(c => new GeoRegions(c.Id, c.Id == 0 ? [new(0, new("—", "—", "—"))] : Choices($"sr_{c.Id:000}"))).ToArray());
+}
+internal static class PokemonHistory
+{
     public static HistoryCatalog Read(PKM p)
     {
         if (p.Format < 6) throw new ArgumentException("Pokemon trainer history is unavailable for this format.");
@@ -27,7 +30,7 @@ internal static class PokemonHistory
         {
             var pairs = new[] { (g.Geo1_Country, g.Geo1_Region), (g.Geo2_Country, g.Geo2_Region), (g.Geo3_Country, g.Geo3_Region), (g.Geo4_Country, g.Geo4_Region), (g.Geo5_Country, g.Geo5_Region) };
             bool handling = p.IsEgg || p.Generation < 6 || p.HandlingTrainerName.Length != 0;
-            geo = new(pairs.Select((v, i) => new GeoEntry(i, v.Item1, v.Item2, i == 0 || handling)).ToArray(), Countries.Value, Regions.Value);
+            geo = new(pairs.Select((v, i) => new GeoEntry(i, v.Item1, v.Item2, i == 0 || handling)).ToArray(), GeographicCatalog.Countries.Value, GeographicCatalog.Regions.Value);
         }
         return new(new(p.CurrentHandler, p.OriginalTrainerName, p.HandlingTrainerName), geo);
     }

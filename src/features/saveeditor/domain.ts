@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 35;
+  apiVersion: 36;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -24,6 +24,12 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    geography: {
+      value: { country: number; region: number; consoleRegion: number };
+      countries: OriginChoice[];
+      regions: { country: number; choices: OriginChoice[] }[];
+      consoles: OriginChoice[];
+    } | null;
     languages: OriginChoice[];
     canGender: boolean;
     canPlayTime: boolean;
@@ -156,6 +162,9 @@ export interface PokemonEntry {
 }
 
 export interface TrainerDraft {
+  country: string;
+  region: string;
+  consoleRegion: string;
   language: string;
   ot: string;
   tid: string;
@@ -169,6 +178,9 @@ export interface TrainerDraft {
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
+    country: String(report.trainer.geography?.value.country ?? ""),
+    region: String(report.trainer.geography?.value.region ?? ""),
+    consoleRegion: String(report.trainer.geography?.value.consoleRegion ?? ""),
     language: String(report.language),
     ot: report.ot,
     tid: String(report.tid),
@@ -192,6 +204,10 @@ export function rebaseTrainerDraft(
   const result = { ...draft };
   for (const key of Object.keys(next) as (keyof TrainerDraft)[])
     if (draft[key] === old[key]) result[key] = next[key];
+  if (draft.country !== old.country || draft.region !== old.region) {
+    result.country = draft.country;
+    result.region = draft.region;
+  }
   return result;
 }
 
@@ -224,6 +240,7 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
     throw new Error("Trainer language is unsupported for this save.");
   return {
     language,
+    ...validateTrainerGeography(draft, report),
     ot: draft.ot,
     tid: integer(draft.tid, 65535, "TID16"),
     sid: integer(draft.sid, 65535, "SID16"),
@@ -246,6 +263,67 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
       draft.seconds !== String(report.trainer.seconds)
         ? integer(draft.seconds, 99, "Seconds")
         : undefined,
+  };
+}
+
+function validateTrainerGeography(draft: TrainerDraft, report: SaveReport) {
+  const old = trainerDraft(report),
+    geo = report.trainer.geography;
+  const changed = draft.country !== old.country || draft.region !== old.region;
+  const consoleChanged = draft.consoleRegion !== old.consoleRegion;
+  if (!changed && !consoleChanged) return {};
+  const fail = () => {
+    throw new Error("Trainer geography is outside the supported catalog.");
+  };
+  if (!geo) return fail();
+  const byte = (text: string) => /^\d+$/.test(text) && Number(text) <= 255;
+  const country = Number(draft.country),
+    region = Number(draft.region),
+    consoleRegion = Number(draft.consoleRegion);
+  if (
+    changed &&
+    (!byte(draft.country) ||
+      !byte(draft.region) ||
+      !geo.countries.some((c) => c.id === country) ||
+      (country !== 0 &&
+        !geo.regions.some(
+          (r) =>
+            r.country === country && r.choices.some((c) => c.id === region),
+        )))
+  )
+    return fail();
+  if (
+    consoleChanged &&
+    (!byte(draft.consoleRegion) ||
+      !geo.consoles.some((c) => c.id === consoleRegion))
+  )
+    return fail();
+  return {
+    country: changed ? country : undefined,
+    region: changed ? region : undefined,
+    consoleRegion: consoleChanged ? consoleRegion : undefined,
+  };
+}
+
+export function changeTrainerCountry(
+  draft: TrainerDraft,
+  report: SaveReport,
+  country: string,
+): TrainerDraft {
+  const geo = report.trainer.geography;
+  if (!geo || country === draft.country) return draft;
+  // Upstream keeps the previous selected index when rebuilding a positive country's list.
+  // Country zero does not rebuild the list or rewrite its region.
+  if (country === "0") return { ...draft, country };
+  const old =
+    geo.regions.find((r) => String(r.country) === draft.country)?.choices ?? [];
+  const next =
+    geo.regions.find((r) => String(r.country) === country)?.choices ?? [];
+  const index = old.findIndex((c) => String(c.id) === draft.region);
+  return {
+    ...draft,
+    country,
+    region: String(next[index > 0 && index < next.length ? index : 0]?.id ?? 0),
   };
 }
 

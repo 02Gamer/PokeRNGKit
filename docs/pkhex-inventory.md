@@ -24,6 +24,11 @@
 
 ## 当前工程证据
 
+API 36 接入 XY、ORAS、SM、USUM 的训练家国家、地区和 3DS 区域，复用三语本地目录。
+保留未改异常值，撤销时维持未应用国家/地区草稿的配对；其余格式不开放这组字段。
+四种存档完整输出、目录/边界与异常值保持、原生套件、11 项前端测试、变更文件 lint 通过。
+类型、核心与网页构建通过，保留既有构建警告，浏览器仍待核验；其他训练家字段及完整清单继续推进。
+
 API 35 接入第六至第八世代已开放格式的训练家存档语言，按版本目录选择，与界面语言独立。
 姓名未改保留原字节，改名使用目标语言编码；剑／盾沿用 Core 同步运行时语言。
 五种存档全部语言与 Unicode 改名、旧格式拒绝、剑／盾 Core 对象及原生套件通过。
@@ -257,14 +262,14 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | 待核对                                                    |
 | `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | 待核对                                                    |
 | `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | 基础/性别/时间/语言已接入；其他字段待接入                 |
+| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | 基础/性别/时间/语言/地区已接入；其他字段待接入            |
 | `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | 基础/性别/时间/语言已接入；其他字段待接入                 |
+| `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | 基础/性别/时间/语言/地区已接入；其他字段待接入            |
 | `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | 待核对                                                    |
 | `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                    |

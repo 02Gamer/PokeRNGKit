@@ -27,6 +27,7 @@ import { saveEditorResources, localizeSaveError } from "./locales";
 import type { PokemonEdit } from "./PokemonEditor";
 import { SavePokemonBrowser } from "./SavePokemonBrowser";
 import { SaveInventoryBrowser } from "./SaveInventoryBrowser";
+import { TrainerGeographyFields } from "./TrainerGeographyFields";
 
 export function SaveEditorPanel(
   controllers: Omit<SaveProfileControllers, "gen5">,
@@ -53,6 +54,9 @@ export function SaveEditorPanel(
     "pokemon",
   );
   const [draft, setDraft] = useState<TrainerDraft>({
+    country: "",
+    region: "",
+    consoleRegion: "",
     language: "",
     ot: "",
     tid: "",
@@ -631,6 +635,11 @@ export function SaveEditorPanel(
                     </Select>
                   </label>
                 )}
+                <TrainerGeographyFields
+                  report={report}
+                  draft={draft}
+                  onChange={setDraft}
+                />
                 {report.trainer.canGender && (
                   <label className="field">
                     <span>{words.gender}</span>

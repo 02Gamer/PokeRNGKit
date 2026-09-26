@@ -187,7 +187,7 @@ public static class SaveService
         var save = Open(data);
         var valid = save.ChecksumsValid;
         var report = new SaveReport(
-            35, save.GetType().Name, save.Generation, save.Version.ToString(),
+            36, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
