@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 36;
+  apiVersion: 37;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -24,6 +24,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    badges: { count: number; value: number } | null;
     geography: {
       value: { country: number; region: number; consoleRegion: number };
       countries: OriginChoice[];
@@ -162,6 +163,7 @@ export interface PokemonEntry {
 }
 
 export interface TrainerDraft {
+  badges: string;
   country: string;
   region: string;
   consoleRegion: string;
@@ -178,6 +180,7 @@ export interface TrainerDraft {
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
+    badges: String(report.trainer.badges?.value ?? ""),
     country: String(report.trainer.geography?.value.country ?? ""),
     region: String(report.trainer.geography?.value.region ?? ""),
     consoleRegion: String(report.trainer.geography?.value.consoleRegion ?? ""),
@@ -238,8 +241,20 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
       !report.trainer.languages.some((choice) => choice.id === language))
   )
     throw new Error("Trainer language is unsupported for this save.");
+  const badges =
+    draft.badges !== String(report.trainer.badges?.value ?? "")
+      ? Number(draft.badges)
+      : undefined;
+  if (
+    badges !== undefined &&
+    (!report.trainer.badges ||
+      !/^\d+$/.test(draft.badges) ||
+      badges >= 2 ** report.trainer.badges.count)
+  )
+    throw new Error("Trainer badges are unsupported or out of range.");
   return {
     language,
+    badges,
     ...validateTrainerGeography(draft, report),
     ot: draft.ot,
     tid: integer(draft.tid, 65535, "TID16"),

@@ -130,6 +130,10 @@
 .save-editor-fields .save-editor-note {
   grid-column: 1 / -1;
 }
+.save-editor-fields.save-trainer-badges {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 4px 12px;
+}
 .save-editor-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -298,6 +298,10 @@ export const saveEditorResources = {
       "剑／盾更改性别时，会沿用当前肤色并重置角色外观与穿着；可通过撤销恢复。",
     applyTrainer: "应用训练家修改",
     trainerLanguage: "存档语言",
+    trainerBadges: "徽章",
+    trainerBadge: "徽章 {n}",
+    trainerBadgesNote: "仅修改所选徽章，不自动完成道馆剧情或解锁地图。",
+    trainerBadgesError: "此存档不支持该徽章设置。",
     trainerConsoleRegion: "3DS 区域",
     trainerGeographyError: "请选择有效的国家、对应地区和 3DS 区域。",
     trainerLanguageNote:
@@ -698,6 +702,11 @@ export const saveEditorResources = {
       "In Sword/Shield, changing gender resets appearance and clothing using the current skin tone. Undo restores the previous state.",
     applyTrainer: "Apply trainer changes",
     trainerLanguage: "Save language",
+    trainerBadges: "Badges",
+    trainerBadge: "Badge {n}",
+    trainerBadgesNote:
+      "Changes the selected badges without completing gym story events or unlocking maps.",
+    trainerBadgesError: "This badge selection is unavailable for the save.",
     trainerConsoleRegion: "3DS region",
     trainerGeographyError:
       "Choose a supported country, its region, and a 3DS region.",
@@ -1103,6 +1112,11 @@ export const saveEditorResources = {
       "ソード・シールドで性別を変更すると、現在の肌色に合わせて外見と服装をリセットします。取り消しで元に戻せます。",
     applyTrainer: "トレーナーの変更を適用",
     trainerLanguage: "セーブの言語",
+    trainerBadges: "バッジ",
+    trainerBadge: "バッジ {n}",
+    trainerBadgesNote:
+      "選択したバッジのみ変更します。ジムのイベント完了やマップ解放は行いません。",
+    trainerBadgesError: "このセーブではそのバッジ設定を使用できません。",
     trainerConsoleRegion: "3DSの地域",
     trainerGeographyError: "対応する国と地方、3DSの地域を選んでください。",
     trainerLanguageNote:
@@ -1220,6 +1234,7 @@ export function localizeSaveError(
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
   if (/Trainer language/.test(message)) return words.trainerLanguageError;
+  if (/Trainer badges/.test(message)) return words.trainerBadgesError;
   if (/Trainer geography/.test(message)) return words.trainerGeographyError;
   if (/unrecognized skin color/.test(message)) return words.trainerSkinError;
   if (

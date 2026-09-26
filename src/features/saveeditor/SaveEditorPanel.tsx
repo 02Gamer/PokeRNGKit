@@ -54,6 +54,7 @@ export function SaveEditorPanel(
     "pokemon",
   );
   const [draft, setDraft] = useState<TrainerDraft>({
+    badges: "",
     country: "",
     region: "",
     consoleRegion: "",
@@ -680,6 +681,39 @@ export function SaveEditorPanel(
                     </label>
                   ))}
               </fieldset>
+              {report.trainer.badges && (
+                <fieldset
+                  className="save-editor-fields save-trainer-badges"
+                  disabled={busy || !report.canEdit}
+                >
+                  <legend>{words.trainerBadges}</legend>
+                  {Array.from(
+                    { length: report.trainer.badges.count },
+                    (_, index) => (
+                      <label className="save-editor-checkbox" key={index}>
+                        <input
+                          type="checkbox"
+                          checked={(Number(draft.badges) & (1 << index)) !== 0}
+                          onChange={(e) =>
+                            setDraft({
+                              ...draft,
+                              badges: String(
+                                e.target.checked
+                                  ? Number(draft.badges) | (1 << index)
+                                  : Number(draft.badges) & ~(1 << index),
+                              ),
+                            })
+                          }
+                        />
+                        <span>
+                          {words.trainerBadge.replace("{n}", String(index + 1))}
+                        </span>
+                      </label>
+                    ),
+                  )}
+                  <p className="save-editor-note">{words.trainerBadgesNote}</p>
+                </fieldset>
+              )}
               <p className="save-editor-note">{words.ids}</p>
               {report.trainer.languages.length > 0 && (
                 <p className="save-editor-note">{words.trainerLanguageNote}</p>

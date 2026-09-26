@@ -11,8 +11,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 36,
+  apiVersion: 37,
   trainer: {
+    badges: { count: 8, value: 0 },
     geography: null,
     languages: [],
     canGender: true,
@@ -285,6 +286,51 @@ describe("save editor boundaries", () => {
     expect(
       rebaseTrainerDraft({ ...draft, region: "0" }, report, after),
     ).toMatchObject({ country: "1", region: "0", consoleRegion: "1" });
+  });
+  it("validates badge masks by save format and rebases applied selections", () => {
+    const draft = trainerDraft(emeraldReport);
+    for (const badges of ["0", "1", "128", "255"])
+      expect(() =>
+        validateTrainer({ ...draft, badges }, emeraldReport),
+      ).not.toThrow();
+    for (const badges of ["", "-1", "1.5", "256"])
+      expect(() =>
+        validateTrainer({ ...draft, badges }, emeraldReport),
+      ).toThrow(/badges/);
+    const hg: SaveReport = {
+      ...emeraldReport,
+      trainer: { ...emeraldReport.trainer, badges: { count: 16, value: 0 } },
+    };
+    expect(
+      validateTrainer({ ...trainerDraft(hg), badges: "65535" }, hg).badges,
+    ).toBe(65535);
+    expect(() =>
+      validateTrainer({ ...trainerDraft(hg), badges: "65536" }, hg),
+    ).toThrow(/badges/);
+    const unsupported: SaveReport = {
+      ...emeraldReport,
+      trainer: { ...emeraldReport.trainer, badges: null },
+    };
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(unsupported), badges: "0" },
+        unsupported,
+      ),
+    ).toThrow(/badges/);
+    const changed: SaveReport = {
+      ...emeraldReport,
+      trainer: { ...emeraldReport.trainer, badges: { count: 8, value: 128 } },
+    };
+    expect(
+      rebaseTrainerDraft(trainerDraft(changed), changed, emeraldReport).badges,
+    ).toBe("0");
+    expect(
+      rebaseTrainerDraft(
+        { ...trainerDraft(changed), badges: "255" },
+        changed,
+        emeraldReport,
+      ).badges,
+    ).toBe("255");
   });
   it("always exports a distinct filename", () => {
     expect(exportSaveName("main")).toBe("edited-main");

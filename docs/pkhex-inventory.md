@@ -24,6 +24,11 @@
 
 ## 当前工程证据
 
+API 37 接入已开放格式的逐枚徽章编辑，普通格式 8 项、HGSS 16 项，支持训练家草稿、应用与撤销。
+BDSP 仅重写实际改变的系统标记，未改异常值保持；不自动完成道馆事件或解锁地图。
+九种存档逐枚设置/清除、完整输出、边界及原生套件、12 项前端测试与变更文件 lint 通过。
+类型、核心与网页构建通过，保留既有构建警告，浏览器仍待核验；其他训练家进度与完整清单继续推进。
+
 API 36 接入 XY、ORAS、SM、USUM 的训练家国家、地区和 3DS 区域，复用三语本地目录。
 保留未改异常值，撤销时维持未应用国家/地区草稿的配对；其余格式不开放这组字段。
 四种存档完整输出、目录/边界与异常值保持、原生套件、11 项前端测试、变更文件 lint 通过。
@@ -262,7 +267,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | 待核对                                                    |
 | `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | 待核对                                                    |
 | `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | 基础/性别/时间/语言/地区已接入；其他字段待接入            |
+| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | 基础/性别/时间/语言/地区/徽章已接入；其他字段待接入       |
 | `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | 待核对                                                    |
@@ -285,7 +290,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | 待核对                                                    |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | 基础/性别/时间/语言已接入；其他字段待接入                 |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | 基础/性别/时间/语言已接入；其他字段待接入                 |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | 基础/性别/时间/语言/徽章已接入；其他字段待接入            |
 | `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | 待核对                                                    |
 | `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | 待核对                                                    |
 | `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | 待核对                                                    |
@@ -312,7 +317,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                   |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                    |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/性别/时间已接入；其他字段待接入                      |
+| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/性别/时间/徽章已接入；其他字段待接入                 |
 | `Subforms/Save Editors/SAV_Wondercard.cs`                                     | 待核对                                                    |
 | `Subforms/Save Editors/TrainerStat.cs`                                        | 待核对                                                    |
 | `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                    |

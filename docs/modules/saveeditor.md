@@ -6,7 +6,7 @@
 ## 完整接入扩展
 
 2026-09-26 所有者要求完整接入；范围追踪见 [PKHeX 清单](../pkhex-inventory.md)。
-首批新增可视化仓储，API 3（当前已扩展为 36）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
+首批新增可视化仓储，API 3（当前已扩展为 37）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
 IBoxDetailWallpaper 的壁纸编号及上游 SpriteName 生成的图片键。
 UI 按原始格位保留空位，按上游 BoxEditor.InitializeGrid 使用每盒格数 / 5 的列数；队伍显示 6 格。选择空位不显示上一只宝可梦。
 图片来源为上游 Drawing 资源，按需同源加载；壁纸选择对应 WallpaperUtil.cs，
@@ -834,3 +834,23 @@ MyStatus7 对应 0x2E/0x2F/0x34。适配层只调用变更字段的 IRegionOrigi
 X、OR、SN、US 的全部国家/地区目录及三语名称、主机区域、代表地区完整输出、回读校验、无效请求与异常原值保持通过。
 旧格式请求拒绝、原生套件、11 项前端测试、类型、变更文件 lint、核心及网页构建通过。
 保留既有裁剪与文件体积警告；浏览器仍待核验，工程检查不代替所有者验收。
+
+## 训练家徽章（API 37）
+
+GBA、第四/第五世代、XY/ORAS 与 BDSP 的训练家面板增加逐枚徽章勾选，使用三语名称与自适应网格。
+普通格式 8 项，HGSS 16 项；勾选进入训练家草稿，应用、撤销、还原与导出均沿用既有流程。
+来源为 SAV_SimpleTrainer 的 cba / CHK_H1–8、Gen6/SAV_Trainer 的 CHK_Badge1–8，
+以及 Gen8/SAV_Trainer8b 的 CHK_Badge1–8。GC、第七世代与剑／盾不显示这组逐枚控件。
+界面说明不自动完成道馆剧情或解锁地图，避免把徽章标记等同于完整事件进度。
+
+输入为布尔复选框，接口使用整数组合值：8 项为 0–255，16 项为 0–65535；空白、负数、小数、越界及不支持格式拒绝。
+GBA 调用 SAV3.Badges，沿 LargeBlock.BadgeFlagStart 修改连续 8 个事件位：RS 为 0x807、E 为 0x867、FRLG 为 0x820。
+第四世代为 Trainer1+0x1A 的 byte，HGSS 另含 Trainer1+0x1F 的 byte，界面 9–16 项对应这第二组。
+第五世代 Misc5 为偏移 0x4 的 byte，XY/ORAS Misc6 为偏移 0xC 的 byte。
+BDSP 沿 SAV_Trainer8b 对应 FlagWork8b 系统标记 124–131，每项位于 OFS_SYSTEM+index×4，保存为 0/1 的 int32。
+适配层仅重写改变的 BDSP 项，未改异常标记值保持；其他存档也不在草稿未变时重写徽章。
+导出回读快照包含徽章数量与组合值，并核对校验。
+
+E、D、Pt、HG、B、B2、X、OR、BD 的逐枚/全部/清空、完整输出、范围拒绝、原文件与校验保持通过。
+另验证 BDSP 未改异常系统标记保持，以及不支持格式拒绝；原生套件、12 项前端测试、类型、变更文件 lint、核心与网页构建通过。
+保留既有裁剪与文件体积警告；浏览器仍待核验，其他进度和完整 PKHeX 清单继续推进。
