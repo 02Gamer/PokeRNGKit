@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 25;
+  apiVersion: 26;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -250,10 +250,12 @@ export interface PokemonRawEdit extends PokemonPosition {
     | "shiny"
     | "relearn"
     | "ribbons"
+    | "history"
     | "care"
     | "memory";
   relearn?: { moves: number[] };
   memory?: MemoryEdit;
+  history?: HistoryEdit;
   care?: { values: { key: CareField["key"]; value: number }[] };
   ribbons?: {
     mode?: "values" | "suggest" | "minimal";
@@ -306,6 +308,24 @@ export interface MemoryQuery extends PokemonPosition {
   handler: 0 | 1;
   memory?: number;
 }
+export interface GeoValue {
+  index: number;
+  country: number;
+  region: number;
+}
+export interface HistoryEdit {
+  handler?: number;
+  locations?: GeoValue[];
+}
+export interface HistoryCatalog {
+  holder: { current: number; original: string; handling: string };
+  geo: {
+    entries: (GeoValue & { canEdit: boolean })[];
+    countries: OriginChoice[];
+    regions: { country: number; choices: OriginChoice[] }[];
+  } | null;
+}
+
 export interface CareField {
   key:
     | "originalFriendship"
@@ -348,6 +368,7 @@ export interface RibbonCatalog {
 }
 export interface SaveEditorResult {
   memoryCatalog?: MemoryCatalog;
+  historyCatalog?: HistoryCatalog;
   ribbons?: RibbonCatalog;
   relearnSuggestion?: number[];
   originCatalog?: OriginCatalog;

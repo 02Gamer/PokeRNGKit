@@ -14,6 +14,7 @@ interface SaveExports {
         EditStorage(data: Uint8Array, json: string): Uint8Array;
         ImportPokemon(data: Uint8Array, json: string): Uint8Array;
         ExportPokemon(data: Uint8Array, json: string): string;
+        ReadHistory(data: Uint8Array, json: string): string;
         ReadMemory(data: Uint8Array, json: string): string;
         ReadRibbons(data: Uint8Array, json: string): string;
         SuggestRelearn(data: Uint8Array, json: string): string;
@@ -55,6 +56,7 @@ self.addEventListener(
         | "box"
         | "storage"
         | "pokemonImport"
+        | "historyCatalog"
         | "memoryCatalog"
         | "ribbons"
         | "relearnSuggestion"
@@ -74,6 +76,7 @@ self.addEventListener(
         kind === "legality" ||
         kind === "pokemonExport" ||
         kind === "originCatalog" ||
+        kind === "historyCatalog" ||
         kind === "memoryCatalog" ||
         kind === "ribbons" ||
         kind === "relearnSuggestion"
@@ -92,7 +95,7 @@ self.addEventListener(
                         : api.Export(bytes, edit),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 25)
+      if (report.apiVersion !== 26)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined
@@ -114,6 +117,10 @@ self.addEventListener(
         kind === "ribbons" && edit !== undefined
           ? JSON.parse(api.ReadRibbons(bytes, edit))
           : undefined;
+      const historyCatalog =
+        kind === "historyCatalog" && edit !== undefined
+          ? JSON.parse(api.ReadHistory(bytes, edit))
+          : undefined;
       const memoryCatalog =
         kind === "memoryCatalog" && edit !== undefined
           ? JSON.parse(api.ReadMemory(bytes, edit))
@@ -129,6 +136,7 @@ self.addEventListener(
           relearnSuggestion,
           ribbons,
           memoryCatalog,
+          historyCatalog,
         },
         output ? [output.buffer] : [],
       );

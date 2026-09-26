@@ -15,11 +15,13 @@ import type { saveEditorResources } from "./locales";
 export function PokemonMemoryEditor({
   position,
   disabled,
+  readDisabled,
   onRead,
   onApply,
 }: {
   position: PokemonPosition;
   disabled: boolean;
+  readDisabled: boolean;
   onRead(query: MemoryQuery): Promise<MemoryCatalog | undefined>;
   onApply(edit: PokemonRawEdit): Promise<void>;
 }) {
@@ -106,7 +108,7 @@ export function PokemonMemoryEditor({
         <div className="save-editor-toolbar">
           <button
             type="button"
-            disabled={disabled}
+            disabled={readDisabled}
             onClick={() => void load(0)}
           >
             {words.loadMemory}
@@ -121,12 +123,12 @@ export function PokemonMemoryEditor({
             disabled={disabled}
             onApply={onApply}
           />
-          <fieldset disabled={disabled} className="save-editor-fields">
+          <fieldset disabled={readDisabled} className="save-editor-fields">
             <legend>{words.memoryTitle}</legend>
             <label className="field">
               <span>{words.memoryTrainer}</span>
               <Select
-                disabled={disabled || changed}
+                disabled={readDisabled || changed}
                 value={draft.handler}
                 onChange={(e) => void load(Number(e.target.value) as 0 | 1)}
               >

@@ -42,6 +42,9 @@ public static partial class Program
     public static string ExportPokemon(byte[] data, string json) => SaveService.ExportPokemon(data, json);
 
     [JSExport]
+    public static string ReadHistory(byte[] data, string json) => SaveService.ReadHistory(data, json);
+
+    [JSExport]
     public static string ReadMemory(byte[] data, string json) => SaveService.ReadMemory(data, json);
 
     [JSExport]
@@ -76,6 +79,13 @@ public static class SaveService
         SAV3RS or SAV3E or SAV3FRLG or SAV3Colosseum or SAV3XD or
         SAV4DP or SAV4Pt or SAV4HGSS or SAV5BW or SAV5B2W2 or
         SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS;
+
+    public static string ReadHistory(byte[] data, string json)
+    {
+        var save = Open(data);
+        var query = JsonSerializer.Deserialize(json, SaveJsonContext.Default.PokemonPosition) ?? throw new ArgumentException("Missing history query.");
+        return JsonSerializer.Serialize(PokemonHistory.Read(PokemonEditing.Read(save, query.Box, query.Slot)), SaveJsonContext.Default.HistoryCatalog);
+    }
 
     public static string ReadMemory(byte[] data, string json)
     {
@@ -138,7 +148,7 @@ public static class SaveService
         var save = Open(data);
         var valid = save.ChecksumsValid;
         var report = new SaveReport(
-            25, save.GetType().Name, save.Generation, save.Version.ToString(),
+            26, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
@@ -272,6 +282,7 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(RibbonCatalog))]
 [JsonSerializable(typeof(MemoryQuery))]
 [JsonSerializable(typeof(MemoryCatalog))]
+[JsonSerializable(typeof(HistoryCatalog))]
 [JsonSerializable(typeof(ushort[]))]
 [JsonSerializable(typeof(OriginQuery))]
 [JsonSerializable(typeof(OriginCatalog))]

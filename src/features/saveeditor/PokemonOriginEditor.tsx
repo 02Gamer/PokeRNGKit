@@ -14,12 +14,14 @@ export function PokemonOriginEditor({
   origin,
   position,
   disabled,
+  readDisabled,
   onRead,
   onApply,
 }: {
   origin: PokemonEntry["origin"];
   position: PokemonPosition;
   disabled: boolean;
+  readDisabled: boolean;
   onRead(
     position: PokemonPosition,
     version?: number,
@@ -101,7 +103,11 @@ export function PokemonOriginEditor({
       <p className="save-editor-note">{words.originDetailsNote}</p>
       {!catalog ? (
         <div className="save-editor-toolbar">
-          <button type="button" disabled={disabled} onClick={() => void load()}>
+          <button
+            type="button"
+            disabled={readDisabled}
+            onClick={() => void load()}
+          >
             {words.loadOriginChoices}
           </button>
         </div>

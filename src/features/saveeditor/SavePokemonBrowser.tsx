@@ -1,3 +1,4 @@
+import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
 import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
@@ -38,6 +39,7 @@ export function SavePokemonBrowser({
   onReadOrigin,
   onSuggestRelearn,
   onReadRibbons,
+  onReadHistory,
   onReadMemory,
   onAnalyze,
   onApplyBox,
@@ -56,6 +58,9 @@ export function SavePokemonBrowser({
   onExport(position: PokemonPosition): Promise<void>;
   legality?: PokemonLegalityReport;
   onSuggestRelearn(position: PokemonPosition): Promise<number[] | undefined>;
+  onReadHistory(
+    position: PokemonPosition,
+  ): Promise<import("./domain").HistoryCatalog | undefined>;
   onReadMemory(
     query: import("./domain").MemoryQuery,
   ): Promise<import("./domain").MemoryCatalog | undefined>;
@@ -301,6 +306,7 @@ export function SavePokemonBrowser({
                 onApply={onApplyRaw}
               />
               <PokemonOriginEditor
+                readDisabled={busy || !selected.valid}
                 key={`origin-${JSON.stringify(selected)}`}
                 origin={selected.origin}
                 position={{ box: selected.box, slot: selected.slot }}
@@ -317,6 +323,7 @@ export function SavePokemonBrowser({
               />
               {report.generation >= 6 && (
                 <PokemonMemoryEditor
+                  readDisabled={busy || !selected.valid}
                   key={`memory-${revision}-${JSON.stringify(selected)}`}
                   position={{ box: selected.box, slot: selected.slot }}
                   disabled={busy || !report.canEdit || !selected.valid}
@@ -324,7 +331,18 @@ export function SavePokemonBrowser({
                   onRead={onReadMemory}
                 />
               )}
+              {report.generation >= 6 && (
+                <PokemonHistoryEditor
+                  readDisabled={busy || !selected.valid}
+                  key={`history-${revision}-${JSON.stringify(selected)}`}
+                  position={{ box: selected.box, slot: selected.slot }}
+                  disabled={busy || !report.canEdit || !selected.valid}
+                  onRead={onReadHistory}
+                  onApply={onApplyRaw}
+                />
+              )}
               <PokemonRibbonEditor
+                readDisabled={busy || !selected.valid}
                 key={`ribbons-${revision}-${JSON.stringify(selected)}`}
                 position={{ box: selected.box, slot: selected.slot }}
                 disabled={busy || !report.canEdit || !selected.valid}

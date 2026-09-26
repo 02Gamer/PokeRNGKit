@@ -2,6 +2,18 @@ import { saveEditorCopy } from "./copy";
 
 export const saveEditorResources = {
   zh: {
+    historyTitle: "持有者与居住记录",
+    loadHistory: "读取训练家记录",
+    currentHolder: "当前持有者",
+    residenceHistory: "居住记录",
+    historyCountry: "国家或地区",
+    historyRegion: "省或州",
+    clearResidence: "清空此记录",
+    clearAllResidences: "清空全部居住记录",
+    revertHistory: "还原记录草稿",
+    applyHistory: "应用训练家记录",
+    historyNote:
+      "持有者切换需要已有接手训练家姓名，只改变当前持有者标记。居住记录保留原顺序；更换国家会重置地区，清空记录不会自动移动其他记录。所有修改先进入草稿。",
     clearMemory: "清空记忆",
     memoryTitle: "记忆与互动",
     careTitle: "亲密度与互动数值",
@@ -277,6 +289,18 @@ export const saveEditorResources = {
     },
   },
   en: {
+    historyTitle: "Handler and residence history",
+    loadHistory: "Read trainer history",
+    currentHolder: "Current handler",
+    residenceHistory: "Residence history",
+    historyCountry: "Country",
+    historyRegion: "Region",
+    clearResidence: "Clear this entry",
+    clearAllResidences: "Clear all residences",
+    revertHistory: "Revert history draft",
+    applyHistory: "Apply trainer history",
+    historyNote:
+      "Switching handlers requires an existing handling trainer name and only changes the current handler flag. Residence order is preserved. Changing a country resets its region; clearing an entry does not shift other entries. Changes remain drafts until applied.",
     clearMemory: "Clear memory",
     memoryTitle: "Memories and interaction",
     careTitle: "Friendship and interaction values",
@@ -560,6 +584,18 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    historyTitle: "現在の持ち主と居住履歴",
+    loadHistory: "トレーナー履歴を読み込む",
+    currentHolder: "現在の持ち主",
+    residenceHistory: "居住履歴",
+    historyCountry: "国・地域",
+    historyRegion: "地方",
+    clearResidence: "この記録を消去",
+    clearAllResidences: "すべての居住履歴を消去",
+    revertHistory: "履歴の下書きを戻す",
+    applyHistory: "トレーナー履歴を適用",
+    historyNote:
+      "持ち主の切り替えには受け取り側の名前が必要です。現在の持ち主のフラグだけを変更します。居住履歴の順序は維持されます。国を変更すると地方が初期化され、記録を消去しても他の記録は移動しません。適用するまでは下書きです。",
     clearMemory: "思い出を空にする",
     memoryTitle: "思い出とふれあい",
     careTitle: "なつき度とふれあいの値",

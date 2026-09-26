@@ -23,6 +23,7 @@ export class SaveEditorClient {
       | "box"
       | "storage"
       | "pokemonImport"
+      | "historyCatalog"
       | "memoryCatalog"
       | "ribbons"
       | "relearnSuggestion"

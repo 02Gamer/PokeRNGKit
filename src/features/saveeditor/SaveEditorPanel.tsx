@@ -144,6 +144,23 @@ export function SaveEditorPanel(
       setStatus("exported");
     });
 
+  const readHistory = async (query: import("./domain").PokemonPosition) => {
+    let catalog: import("./domain").HistoryCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(query),
+        "historyCatalog",
+      );
+      if (id !== operation.current) return;
+      if (!result.historyCatalog)
+        throw new Error("No history catalog was returned.");
+      catalog = result.historyCatalog;
+    });
+    return catalog;
+  };
+
   const readMemory = async (query: import("./domain").MemoryQuery) => {
     let catalog: import("./domain").MemoryCatalog | undefined;
     await perform(async (id) => {
@@ -446,6 +463,7 @@ export function SaveEditorPanel(
               onReadOrigin={readOrigin}
               onSuggestRelearn={suggestRelearn}
               onReadRibbons={readRibbons}
+              onReadHistory={readHistory}
               onReadMemory={readMemory}
               onAnalyze={analyzePokemon}
             />

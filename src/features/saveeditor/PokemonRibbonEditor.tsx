@@ -9,12 +9,14 @@ export function PokemonRibbonEditor({
   position,
   generation,
   disabled,
+  readDisabled,
   onRead,
   onApply,
 }: {
   position: PokemonPosition;
   generation: number;
   disabled: boolean;
+  readDisabled: boolean;
   onRead(position: PokemonPosition): Promise<RibbonCatalog | undefined>;
   onApply(edit: PokemonRawEdit): Promise<void>;
 }) {
@@ -70,13 +72,17 @@ export function PokemonRibbonEditor({
       <p className="save-editor-note">{words.ribbonNote}</p>
       {!draft ? (
         <div className="save-editor-toolbar">
-          <button type="button" disabled={disabled} onClick={() => void load()}>
+          <button
+            type="button"
+            disabled={readDisabled}
+            onClick={() => void load()}
+          >
             {words.loadRibbons}
           </button>
         </div>
       ) : (
         <>
-          <fieldset disabled={disabled} className="save-editor-fields">
+          <fieldset disabled={readDisabled} className="save-editor-fields">
             <legend>{words.ribbonTitle}</legend>
             <label className="field">
               <span>{words.searchRibbons}</span>
