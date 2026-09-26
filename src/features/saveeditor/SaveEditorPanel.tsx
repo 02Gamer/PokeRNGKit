@@ -29,6 +29,7 @@ import { SavePokemonBrowser } from "./SavePokemonBrowser";
 import { SaveInventoryBrowser } from "./SaveInventoryBrowser";
 import { TrainerGeographyFields } from "./TrainerGeographyFields";
 import { SaveRecordEditor } from "./SaveRecordEditor";
+import { TrainerGameOptionFields } from "./TrainerGameOptionFields";
 
 export function SaveEditorPanel(
   controllers: Omit<SaveProfileControllers, "gen5">,
@@ -55,6 +56,10 @@ export function SaveEditorPanel(
     "pokemon" | "trainer" | "inventory" | "records"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
+    textSpeed: "",
+    battleStyle: "",
+    sound: "",
+    battleEffects: "",
     bp: "",
     pokeMiles: "",
     festivalCoins: "",
@@ -781,6 +786,12 @@ export function SaveEditorPanel(
                   <p className="save-editor-note">{words.trainerBadgesNote}</p>
                 </fieldset>
               )}
+              <TrainerGameOptionFields
+                report={report}
+                draft={draft}
+                disabled={busy || !report.canEdit}
+                onChange={setDraft}
+              />
               <p className="save-editor-note">{words.ids}</p>
               {report.trainer.languages.length > 0 && (
                 <p className="save-editor-note">{words.trainerLanguageNote}</p>

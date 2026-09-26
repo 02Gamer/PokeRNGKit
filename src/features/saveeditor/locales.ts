@@ -326,6 +326,24 @@ export const saveEditorResources = {
     },
     trainerCurrencyError: "请按当前存档支持的范围填写整数，不能留空。",
     trainerBadges: "徽章",
+    trainerGameOptions: "游戏设置",
+    trainerGameOptionNames: {
+      textSpeed: "文字速度",
+      battleStyle: "战斗方式",
+      sound: "声音",
+      battleEffects: "战斗动画",
+    },
+    trainerGameOptionChoices: {
+      textSpeed: ["0 · 慢", "1 · 中", "2 · 快", "3", "4", "5", "6", "7"],
+      battleStyle: ["切换", "连战"],
+      sound: ["单声道", "立体声"],
+      battleEffects: ["关闭", "开启"],
+    },
+    trainerGameOptionsNote:
+      "随训练家信息一起应用。原文字速度 4–7 可保留，当前核心无法原样写入这些值，因此不能新选。",
+    trainerGameOptionsError: "此存档不支持该游戏设置或数值超出范围。",
+    trainerTextSpeedError:
+      "当前核心无法原样写入该文字速度。原值会保留，请选择 0–3。",
     trainerBadge: "徽章 {n}",
     trainerBadgesNote: "仅修改所选徽章，不自动完成道馆剧情或解锁地图。",
     trainerBadgesError: "此存档不支持该徽章设置。",
@@ -764,6 +782,25 @@ export const saveEditorResources = {
     trainerCurrencyError:
       "Enter a whole number within this save's supported range. Do not leave it blank.",
     trainerBadges: "Badges",
+    trainerGameOptions: "Game options",
+    trainerGameOptionNames: {
+      textSpeed: "Text speed",
+      battleStyle: "Battle style",
+      sound: "Sound",
+      battleEffects: "Battle effects",
+    },
+    trainerGameOptionChoices: {
+      textSpeed: ["0 · Slow", "1 · Mid", "2 · Fast", "3", "4", "5", "6", "7"],
+      battleStyle: ["Shift", "Set"],
+      sound: ["Mono", "Stereo"],
+      battleEffects: ["Off", "On"],
+    },
+    trainerGameOptionsNote:
+      "Applied with the trainer details. Existing text speeds 4–7 are preserved; this core cannot write those values unchanged, so new selections are unavailable.",
+    trainerGameOptionsError:
+      "These game options are unsupported or out of range.",
+    trainerTextSpeedError:
+      "This core cannot preserve the requested text speed. The original remains unchanged; choose 0–3.",
     trainerBadge: "Badge {n}",
     trainerBadgesNote:
       "Changes the selected badges without completing gym story events or unlocking maps.",
@@ -1204,6 +1241,34 @@ export const saveEditorResources = {
     trainerCurrencyError:
       "このセーブの対応範囲内の整数を入力してください。空欄にはできません。",
     trainerBadges: "バッジ",
+    trainerGameOptions: "ゲーム設定",
+    trainerGameOptionNames: {
+      textSpeed: "文字の速さ",
+      battleStyle: "試合のルール",
+      sound: "サウンド",
+      battleEffects: "戦闘アニメ",
+    },
+    trainerGameOptionChoices: {
+      textSpeed: [
+        "0 · おそい",
+        "1 · ふつう",
+        "2 · はやい",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+      ],
+      battleStyle: ["いれかえ", "かちぬき"],
+      sound: ["モノラル", "ステレオ"],
+      battleEffects: ["みない", "みる"],
+    },
+    trainerGameOptionsNote:
+      "トレーナー情報と一緒に適用します。元の文字速度4～7は保持できますが、現在のコアではそのまま書き込めないため新たに選択できません。",
+    trainerGameOptionsError:
+      "このセーブに対応していない設定、または範囲外の値です。",
+    trainerTextSpeedError:
+      "指定の文字速度をこのコアでは保持できません。元の値は変更せず、0～3を選んでください。",
     trainerBadge: "バッジ {n}",
     trainerBadgesNote:
       "選択したバッジのみ変更します。ジムのイベント完了やマップ解放は行いません。",
@@ -1330,6 +1395,9 @@ export function localizeSaveError(
   if (/Game record|game record/.test(message)) return words.recordsError;
   if (/Trainer currency/.test(message)) return words.trainerCurrencyError;
   if (/Trainer badges/.test(message)) return words.trainerBadgesError;
+  if (/Trainer game options/.test(message))
+    return words.trainerGameOptionsError;
+  if (/Trainer text speed/.test(message)) return words.trainerTextSpeedError;
   if (/Trainer geography/.test(message)) return words.trainerGeographyError;
   if (/unrecognized skin color/.test(message)) return words.trainerSkinError;
   if (

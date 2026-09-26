@@ -24,6 +24,10 @@
 
 ## 当前工程证据
 
+API 40 增加 GBA 训练家游戏设置：文字速度、战斗方式、声音和战斗动画，三语折叠入口与草稿/撤销联动。
+只改实际变动字段，保留其他设置位；Core 对文字速度 4–7 的写入会截断，因此仅保留未改原值，拒绝新的不可回读请求。
+三种 GBA 格式的组合与完整输出、异常值保持、原生套件、18 项前端测试、类型、变更文件 lint 与两阶段构建通过；浏览器待核验。
+
 API 39 接入 TrainerStat 对应的游戏记录选择与编辑，支持动态上限、偏移详情、时间解释及工作副本/撤销。
 五种存档的全部 200/30 项完整输出、边界与异常原值保持、原生套件、剑／盾 Core 对象、14 项前端测试通过。
 最终类型、变更文件 lint、核心与网页构建通过，保留既有构建警告。
@@ -327,7 +331,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                      |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                       |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                       |
-| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/性别/时间/徽章/对应点数已接入；其他字段待接入           |
+| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础字段及 GBA 游戏设置已接入；地图/日期等字段待接入         |
 | `Subforms/Save Editors/SAV_Wondercard.cs`                                     | 待核对                                                       |
 | `Subforms/Save Editors/TrainerStat.cs`                                        | 读写与三语名称已接入；浏览器待核验                           |
 | `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                       |

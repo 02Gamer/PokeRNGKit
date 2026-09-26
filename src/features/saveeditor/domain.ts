@@ -6,9 +6,16 @@ export const TRAINER_CURRENCY_KEYS = [
   "watts",
 ] as const;
 export type TrainerCurrencyKey = (typeof TRAINER_CURRENCY_KEYS)[number];
+export const TRAINER_GAME_OPTION_KEYS = [
+  "textSpeed",
+  "battleStyle",
+  "sound",
+  "battleEffects",
+] as const;
+export type TrainerGameOptionKey = (typeof TRAINER_GAME_OPTION_KEYS)[number];
 
 export interface SaveReport {
-  apiVersion: 39;
+  apiVersion: 40;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -31,6 +38,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    gameOptions: Record<TrainerGameOptionKey, number> | null;
     canRecords: boolean;
     currencies: { key: TrainerCurrencyKey; value: number; max: number }[];
     badges: { count: number; value: number } | null;
@@ -171,7 +179,10 @@ export interface PokemonEntry {
   evs: number[];
 }
 
-export interface TrainerDraft extends Record<TrainerCurrencyKey, string> {
+export interface TrainerDraft extends Record<
+  TrainerCurrencyKey | TrainerGameOptionKey,
+  string
+> {
   badges: string;
   country: string;
   region: string;
@@ -189,6 +200,12 @@ export interface TrainerDraft extends Record<TrainerCurrencyKey, string> {
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
+    ...(Object.fromEntries(
+      TRAINER_GAME_OPTION_KEYS.map((key) => [
+        key,
+        String(report.trainer.gameOptions?.[key] ?? ""),
+      ]),
+    ) as Record<TrainerGameOptionKey, string>),
     ...(Object.fromEntries(
       TRAINER_CURRENCY_KEYS.map((key) => [
         key,
@@ -277,7 +294,24 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
       throw new Error("Trainer currency is unsupported or out of range.");
     currencies[key] = Number(draft[key]);
   }
+  const gameOptions: Partial<Record<TrainerGameOptionKey, number>> = {};
+  for (const key of TRAINER_GAME_OPTION_KEYS) {
+    const original = report.trainer.gameOptions?.[key];
+    if (draft[key] === String(original ?? "")) continue;
+    if (
+      original === undefined ||
+      !/^\d+$/.test(draft[key]) ||
+      Number(draft[key]) > (key === "textSpeed" ? 7 : 1)
+    )
+      throw new Error("Trainer game options are unsupported or out of range.");
+    if (key === "textSpeed" && Number(draft[key]) > 3)
+      throw new Error(
+        "Trainer text speed cannot be preserved by this core version.",
+      );
+    gameOptions[key] = Number(draft[key]);
+  }
   return {
+    gameOptions: Object.keys(gameOptions).length ? gameOptions : undefined,
     currencies: Object.keys(currencies).length ? currencies : undefined,
     language,
     badges,

@@ -12,8 +12,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 39,
+  apiVersion: 40,
   trainer: {
+    gameOptions: { textSpeed: 1, battleStyle: 0, sound: 1, battleEffects: 1 },
     canRecords: false,
     currencies: [],
     badges: { count: 8, value: 0 },
@@ -397,6 +398,68 @@ describe("save editor boundaries", () => {
     expect(validateSaveRecord(entry, "0").value).toBe(0);
     for (const text of ["", "-1", "1.5", "15001", "9007199254740993"])
       expect(() => validateSaveRecord(entry, text)).toThrow();
+  });
+  it("preserves original game settings and rebases applied options without losing drafts", () => {
+    const draft = trainerDraft(emeraldReport);
+    expect(validateTrainer(draft, emeraldReport).gameOptions).toBeUndefined();
+    expect(
+      validateTrainer(
+        {
+          ...draft,
+          textSpeed: "2",
+          battleStyle: "1",
+          sound: "0",
+          battleEffects: "0",
+        },
+        emeraldReport,
+      ).gameOptions,
+    ).toEqual({ textSpeed: 2, battleStyle: 1, sound: 0, battleEffects: 0 });
+    const unusual: SaveReport = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        gameOptions: { ...emeraldReport.trainer.gameOptions!, textSpeed: 7 },
+      },
+    };
+    expect(
+      validateTrainer(trainerDraft(unusual), unusual).gameOptions,
+    ).toBeUndefined();
+    expect(
+      validateTrainer({ ...trainerDraft(unusual), sound: "0" }, unusual)
+        .gameOptions,
+    ).toEqual({ sound: 0 });
+    const pending = { ...trainerDraft(unusual), battleStyle: "1" };
+    const rebased = rebaseTrainerDraft(pending, unusual, emeraldReport);
+    expect(rebased.textSpeed).toBe("1");
+    expect(rebased.battleStyle).toBe("1");
+    expect(validateTrainer(rebased, emeraldReport).gameOptions).toEqual({
+      battleStyle: 1,
+    });
+  });
+  it("rejects unavailable or truncated game option edits", () => {
+    const draft = trainerDraft(emeraldReport);
+    for (const textSpeed of ["", "-1", "4", "5", "6", "7", "8", "1.5", "1e0"])
+      expect(() =>
+        validateTrainer({ ...draft, textSpeed }, emeraldReport),
+      ).toThrow();
+    for (const key of ["battleStyle", "sound", "battleEffects"] as const)
+      for (const value of ["", "-1", "2", "0.5", "1e0"])
+        expect(() =>
+          validateTrainer({ ...draft, [key]: value }, emeraldReport),
+        ).toThrow();
+    const unsupported: SaveReport = {
+      ...emeraldReport,
+      trainer: { ...emeraldReport.trainer, gameOptions: null },
+    };
+    expect(
+      validateTrainer(trainerDraft(unsupported), unsupported).gameOptions,
+    ).toBeUndefined();
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(unsupported), sound: "0" },
+        unsupported,
+      ),
+    ).toThrow();
   });
   it("always exports a distinct filename", () => {
     expect(exportSaveName("main")).toBe("edited-main");
