@@ -66,7 +66,7 @@ internal static class TrainerGeographyTests
             Require(((IRegionOrigin)consoleOnly).Country==255 && ((IRegionOrigin)consoleOnly).Region==255,"Console edit preserves unmodified abnormal pair");
             Console.WriteLine($"PASS {version}: trainer country/region catalogs, console choices, full output, invalid requests and unchanged unusual values");
         }
-        foreach(var version in new[]{"E","D","Pt","HG","B","B2","BD"})
+        foreach(var version in new[]{"E","BD"})
         {
             var data=File.ReadAllBytes($".tmp/pkhex-fixtures/{version}.sav"); var save=SaveUtil.GetSaveFile(data.ToArray())!;
             Require(TrainerEditing.Options(save).Geography is null,"No region editor on unsupported formats");

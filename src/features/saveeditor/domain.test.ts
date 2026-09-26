@@ -12,7 +12,7 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 40,
+  apiVersion: 41,
   trainer: {
     gameOptions: { textSpeed: 1, battleStyle: 0, sound: 1, battleEffects: 1 },
     canRecords: false,
@@ -215,6 +215,7 @@ describe("save editor boundaries", () => {
       trainer: {
         ...emeraldReport.trainer,
         geography: {
+          keepRegionWhenCountryZero: true,
           value: { country: 1, region: 2, consoleRegion: 0 },
           countries: [0, 1, 2].map(choice),
           regions: [
@@ -290,6 +291,98 @@ describe("save editor boundaries", () => {
     expect(
       rebaseTrainerDraft({ ...draft, region: "0" }, report, after),
     ).toMatchObject({ country: "1", region: "0", consoleRegion: "1" });
+  });
+  it("uses the DS default region list and omits a nonexistent console region", () => {
+    const choice = (id: number) => ({
+      id,
+      name: { zh: `Z${id}`, en: `E${id}`, ja: `J${id}` },
+    });
+    const report: SaveReport = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        geography: {
+          keepRegionWhenCountryZero: false,
+          value: { country: 103, region: 2, consoleRegion: null },
+          countries: [0, 1, 103, 220].map(choice),
+          regions: [
+            { country: 0, choices: [choice(0)] },
+            { country: 1, choices: [choice(0)] },
+            { country: 103, choices: [0, 2].map(choice) },
+            { country: 220, choices: [0, 7].map(choice) },
+          ],
+          consoles: [],
+        },
+      },
+    };
+    const draft = trainerDraft(report);
+    expect(draft.consoleRegion).toBe("");
+    const cleared = changeTrainerCountry(draft, report, "0");
+    expect(cleared).toMatchObject({
+      country: "0",
+      region: "0",
+      consoleRegion: "",
+    });
+    expect(validateTrainer(cleared, report)).toMatchObject({
+      country: 0,
+      region: 0,
+    });
+    expect(validateTrainer(cleared, report).consoleRegion).toBeUndefined();
+    expect(changeTrainerCountry(draft, report, "1")).toMatchObject({
+      country: "1",
+      region: "0",
+    });
+    expect(changeTrainerCountry(draft, report, "220")).toMatchObject({
+      country: "220",
+      region: "7",
+    });
+    for (const patch of [
+      { country: "0", region: "2" },
+      { country: "1", region: "2" },
+      { consoleRegion: "0" },
+      { country: "255" },
+    ])
+      expect(() => validateTrainer({ ...draft, ...patch }, report)).toThrow(
+        /geography/,
+      );
+    const after: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        geography: {
+          ...report.trainer.geography!,
+          value: { country: 0, region: 0, consoleRegion: null },
+        },
+      },
+    };
+    expect(rebaseTrainerDraft(draft, report, after)).toMatchObject({
+      country: "0",
+      region: "0",
+      consoleRegion: "",
+    });
+    expect(
+      rebaseTrainerDraft(
+        { ...draft, country: "220", region: "7" },
+        report,
+        after,
+      ),
+    ).toMatchObject({ country: "220", region: "7" });
+    const unusual: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        geography: {
+          ...report.trainer.geography!,
+          value: { country: 0, region: 255, consoleRegion: null },
+        },
+      },
+    };
+    expect(
+      validateTrainer(trainerDraft(unusual), unusual).country,
+    ).toBeUndefined();
+    expect(
+      validateTrainer({ ...trainerDraft(unusual), region: "0" }, unusual),
+    ).toMatchObject({ country: 0, region: 0 });
   });
   it("validates badge masks by save format and rebases applied selections", () => {
     const draft = trainerDraft(emeraldReport);

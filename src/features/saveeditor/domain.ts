@@ -15,7 +15,7 @@ export const TRAINER_GAME_OPTION_KEYS = [
 export type TrainerGameOptionKey = (typeof TRAINER_GAME_OPTION_KEYS)[number];
 
 export interface SaveReport {
-  apiVersion: 40;
+  apiVersion: 41;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -43,7 +43,8 @@ export interface SaveReport {
     currencies: { key: TrainerCurrencyKey; value: number; max: number }[];
     badges: { count: number; value: number } | null;
     geography: {
-      value: { country: number; region: number; consoleRegion: number };
+      value: { country: number; region: number; consoleRegion: number | null };
+      keepRegionWhenCountryZero: boolean;
       countries: OriginChoice[];
       regions: { country: number; choices: OriginChoice[] }[];
       consoles: OriginChoice[];
@@ -360,7 +361,7 @@ function validateTrainerGeography(draft: TrainerDraft, report: SaveReport) {
     (!byte(draft.country) ||
       !byte(draft.region) ||
       !geo.countries.some((c) => c.id === country) ||
-      (country !== 0 &&
+      ((country !== 0 || !geo.keepRegionWhenCountryZero) &&
         !geo.regions.some(
           (r) =>
             r.country === country && r.choices.some((c) => c.id === region),
@@ -388,8 +389,9 @@ export function changeTrainerCountry(
   const geo = report.trainer.geography;
   if (!geo || country === draft.country) return draft;
   // Upstream keeps the previous selected index when rebuilding a positive country's list.
-  // Country zero does not rebuild the list or rewrite its region.
-  if (country === "0") return { ...draft, country };
+  // 3DS country zero preserves the region; NDS rebuilds its default list instead.
+  if (country === "0" && geo.keepRegionWhenCountryZero)
+    return { ...draft, country };
   const old =
     geo.regions.find((r) => String(r.country) === draft.country)?.choices ?? [];
   const next =

@@ -19,6 +19,16 @@ internal static class GeographicCatalog
     }
     internal static readonly Lazy<OriginChoice[]> Countries = new(() => Choices("countries"));
     internal static readonly Lazy<GeoRegions[]> Regions = new(() => Countries.Value.Select(c => new GeoRegions(c.Id, c.Id == 0 ? [new(0, new("—", "—", "—"))] : Choices($"sr_{c.Id:000}"))).ToArray());
+    internal static readonly Lazy<OriginChoice[]> Gen4Countries = new(() => Choices("gen4_countries"));
+    internal static readonly Lazy<OriginChoice[]> Gen5Countries = new(() => Choices("gen5_countries"));
+    internal static readonly Lazy<GeoRegions[]> Gen4Regions = new(() => NdsRegions(4, Gen4Countries.Value));
+    internal static readonly Lazy<GeoRegions[]> Gen5Regions = new(() => NdsRegions(5, Gen5Countries.Value));
+    private static GeoRegions[] NdsRegions(int generation, OriginChoice[] countries) => countries.Select(country =>
+    {
+        var choices = Choices($"gen{generation}_sr_{country.Id:000}");
+        // SAV_SimpleTrainer.UpdateCountry uses the default list if a country has no dedicated resource.
+        return new GeoRegions(country.Id, choices.Length == 0 ? Choices($"gen{generation}_sr_default") : choices);
+    }).ToArray();
 }
 internal static class PokemonHistory
 {

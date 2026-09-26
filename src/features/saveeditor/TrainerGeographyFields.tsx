@@ -59,23 +59,28 @@ export function TrainerGeographyFields({
         <span>{words.historyRegion}</span>
         <Select
           value={draft.region}
-          disabled={draft.country === "0" || regions.length === 0}
+          disabled={
+            (draft.country === "0" && geo.keepRegionWhenCountryZero) ||
+            regions.length === 0
+          }
           onChange={(e) => onChange({ ...draft, region: e.target.value })}
         >
           {options(regions, draft.region)}
         </Select>
       </label>
-      <label className="field">
-        <span>{words.trainerConsoleRegion}</span>
-        <Select
-          value={draft.consoleRegion}
-          onChange={(e) =>
-            onChange({ ...draft, consoleRegion: e.target.value })
-          }
-        >
-          {options(geo.consoles, draft.consoleRegion)}
-        </Select>
-      </label>
+      {geo.consoles.length > 0 && (
+        <label className="field">
+          <span>{words.trainerConsoleRegion}</span>
+          <Select
+            value={draft.consoleRegion}
+            onChange={(e) =>
+              onChange({ ...draft, consoleRegion: e.target.value })
+            }
+          >
+            {options(geo.consoles, draft.consoleRegion)}
+          </Select>
+        </label>
+      )}
     </>
   );
 }

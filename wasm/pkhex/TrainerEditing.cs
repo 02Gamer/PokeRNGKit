@@ -6,8 +6,8 @@ namespace PokeRNGKit.SaveEditor;
 public sealed record TrainerEdit(string Ot, ushort Tid, ushort Sid, uint Money,
     int? Gender = null, int? Hours = null, int? Minutes = null, int? Seconds = null, int? Language = null,
     int? Country = null, int? Region = null, int? ConsoleRegion = null, int? Badges = null, TrainerCurrencyEdit? Currencies = null, TrainerGameOptionEdit? GameOptions = null);
-public sealed record TrainerLocation(int Country, int Region, int ConsoleRegion);
-public sealed record TrainerGeography(TrainerLocation Value, OriginChoice[] Countries, GeoRegions[] Regions, OriginChoice[] Consoles);
+public sealed record TrainerLocation(int Country, int Region, int? ConsoleRegion);
+public sealed record TrainerGeography(TrainerLocation Value, OriginChoice[] Countries, GeoRegions[] Regions, OriginChoice[] Consoles, bool KeepRegionWhenCountryZero);
 public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages, TrainerGeography? Geography, TrainerBadgeState? Badges, TrainerCurrencyField[] Currencies, bool CanRecords, TrainerGameOptionState? GameOptions);
 internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance, int Language, uint? RuntimeLanguage, TrainerLocation? Location, TrainerBadgeState? Badges, string Currencies, TrainerGameOptionState? GameOptions);
 
@@ -18,9 +18,20 @@ internal static class TrainerEditing
         save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds, Languages(save), Geography(save), TrainerBadges.Read(save), TrainerCurrencies.Read(save), SaveRecords.Supports(save), TrainerGameOptions.Read(save));
     private static readonly Lazy<OriginChoice[]> Consoles = new(() => Locale3DS.DefinedLocales.ToArray().Select(id =>
         new OriginChoice(id,new(GameInfo.GetStrings("zh-Hans").console3ds[id],GameInfo.GetStrings("en").console3ds[id],GameInfo.GetStrings("ja").console3ds[id]))).ToArray());
-    private static TrainerLocation? Location(SaveFile save) => save is IRegionOrigin g ? new(g.Country,g.Region,g.ConsoleRegion) : null;
-    private static TrainerGeography? Geography(SaveFile save) => save is SAV6XY or SAV6AO or SAV7SM or SAV7USUM
-        ? new(Location(save)!,GeographicCatalog.Countries.Value,GeographicCatalog.Regions.Value,Consoles.Value) : null;
+    private static TrainerLocation? Location(SaveFile save) => save switch
+    {
+        SAV4 s => new(s.Country, s.Region, null),
+        SAV5 s => new(s.Country, s.Region, null),
+        IRegionOrigin g => new(g.Country, g.Region, g.ConsoleRegion),
+        _ => null,
+    };
+    private static TrainerGeography? Geography(SaveFile save) => save switch
+    {
+        SAV4 => new(Location(save)!, GeographicCatalog.Gen4Countries.Value, GeographicCatalog.Gen4Regions.Value, [], false),
+        SAV5 => new(Location(save)!, GeographicCatalog.Gen5Countries.Value, GeographicCatalog.Gen5Regions.Value, [], false),
+        SAV6XY or SAV6AO or SAV7SM or SAV7USUM => new(Location(save)!, GeographicCatalog.Countries.Value, GeographicCatalog.Regions.Value, Consoles.Value, true),
+        _ => null,
+    };
     internal static OriginChoice[] Languages(SaveFile save)
     {
         if (save is not (SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS)) return [];
@@ -54,13 +65,25 @@ internal static class TrainerEditing
                 throw new ArgumentException("Trainer geography is unsupported or out of range.");
             int country = edit.Country ?? geo.Value.Country, region = edit.Region ?? geo.Value.Region;
             bool pairChanged = country != geo.Value.Country || region != geo.Value.Region;
-            if ((pairChanged && (!geo.Countries.Any(c => c.Id == country) || (country != 0 && !geo.Regions.Any(r => r.Country == country && r.Choices.Any(c => c.Id == region))))) ||
+            if ((pairChanged && (!geo.Countries.Any(c => c.Id == country) || ((country != 0 || !geo.KeepRegionWhenCountryZero) && !geo.Regions.Any(r => r.Country == country && r.Choices.Any(c => c.Id == region))))) ||
                 (edit.ConsoleRegion is int console && console != geo.Value.ConsoleRegion && !geo.Consoles.Any(c => c.Id == console)))
                 throw new ArgumentException("Trainer geography is outside the supported catalog.");
-            var origin = (IRegionOrigin)save;
-            if (edit.Country is int nextCountry && nextCountry != origin.Country) origin.Country = (byte)nextCountry;
-            if (edit.Region is int nextRegion && nextRegion != origin.Region) origin.Region = (byte)nextRegion;
-            if (edit.ConsoleRegion is int nextConsole && nextConsole != origin.ConsoleRegion) origin.ConsoleRegion = (byte)nextConsole;
+            switch(save)
+            {
+                case SAV4 s:
+                    if (country != s.Country) s.Country = country;
+                    if (region != s.Region) s.Region = region;
+                    break;
+                case SAV5 s:
+                    if (country != s.Country) s.Country = country;
+                    if (region != s.Region) s.Region = region;
+                    break;
+                case IRegionOrigin origin:
+                    if (country != origin.Country) origin.Country = (byte)country;
+                    if (region != origin.Region) origin.Region = (byte)region;
+                    if (edit.ConsoleRegion is int nextConsole && nextConsole != origin.ConsoleRegion) origin.ConsoleRegion = (byte)nextConsole;
+                    break;
+            }
         }
         if(edit.Badges is int badges) TrainerBadges.Apply(save,badges);
         if(edit.Currencies is { } currencies) TrainerCurrencies.Apply(save,currencies);
