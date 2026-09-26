@@ -15,6 +15,30 @@ export default defineConfig(({ mode }) => ({
       async closeBundle() {
         await mkdir(`${outputDirectory}/legal`, { recursive: true });
         await Promise.all([
+          copyFile(
+            "node_modules/@noble/ciphers/LICENSE",
+            `${outputDirectory}/legal/Noble-Ciphers-LICENSE.txt`,
+          ),
+          copyFile(
+            "node_modules/@noble/hashes/LICENSE",
+            `${outputDirectory}/legal/Noble-Hashes-LICENSE.txt`,
+          ),
+          copyFile(
+            "third_party/pkhex/dotnet-notices/LICENSE.txt",
+            `${outputDirectory}/legal/DotNet-LICENSE.txt`,
+          ),
+          copyFile(
+            "third_party/pkhex/dotnet-notices/ThirdPartyNotices.txt",
+            `${outputDirectory}/legal/DotNet-ThirdPartyNotices.txt`,
+          ),
+          copyFile(
+            "third_party/pkhex/LICENSE",
+            `${outputDirectory}/legal/PKHeX-LICENSE.txt`,
+          ),
+          copyFile(
+            "third_party/pkhex/UPSTREAM.md",
+            `${outputDirectory}/legal/PKHeX-UPSTREAM.md`,
+          ),
           copyFile("LICENSE", `${outputDirectory}/legal/LICENSE.txt`),
           copyFile(
             "third_party/pokefinder/UPSTREAM.md",
@@ -66,11 +90,49 @@ export default defineConfig(({ mode }) => ({
               importScripts: ["sw-update.js"],
               navigateFallback: "index.html",
               globPatterns: ["**/*.{js,css,html,ico,mjs,wasm,txt,md,png,jpg}"],
+              globIgnores: ["pkhex/**"],
               maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
+              runtimeCaching: [
+                {
+                  urlPattern: ({ url, sameOrigin }) =>
+                    sameOrigin &&
+                    url.pathname.endsWith("/pkhex/_framework/dotnet.js"),
+                  handler: "NetworkFirst",
+                  options: {
+                    cacheName: "pokerngkit-pkhex-launcher-v1",
+                    networkTimeoutSeconds: 3,
+                    cacheableResponse: { statuses: [200] },
+                  },
+                },
+                {
+                  urlPattern: ({ url, sameOrigin }) =>
+                    sameOrigin &&
+                    /\/pkhex\/_framework\/[^/]+\.(?:js|wasm|dat|dll|json)$/.test(
+                      url.pathname,
+                    ),
+                  handler: "CacheFirst",
+                  options: {
+                    cacheName: "pokerngkit-pkhex-assets-v1",
+                    cacheableResponse: { statuses: [200] },
+                    expiration: { maxEntries: 128 },
+                  },
+                },
+              ],
             },
           }),
         ]),
   ],
+  server: {
+    watch: {
+      ignored: [
+        "**/third_party/pkhex/**/bin/**",
+        "**/third_party/pkhex/**/obj/**",
+        "**/wasm/pkhex/**/bin/**",
+        "**/wasm/pkhex/**/obj/**",
+        "**/.tools/**",
+      ],
+    },
+  },
   build: {
     outDir: outputDirectory,
   },

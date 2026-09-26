@@ -9,6 +9,11 @@
 
 ## 1. 技术结论
 
+2026-09-22 存档 I/O 扩展采用原版 `PKHeX.Core` C# 库，通过 .NET 10 WebAssembly 在独立
+Worker 中运行。它与原有 C++ RNG Worker 并存，不替换 RNG 实现。运行时由静态站点同源提供，
+不使用 CDN、服务端文件处理或共享内存。源码锁定与构建入口见
+[存档编辑模块](modules/saveeditor.md)和 [PKHeX 来源](../third_party/pkhex/UPSTREAM.md)。
+
 PokeRNGKit 使用 TypeScript 构建产品层，使用 WebAssembly 承载 RNG Core：
 
 - React + TypeScript 负责界面、输入校验、任务状态、结果展示、CSV 和国际化。

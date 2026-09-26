@@ -1,1 +1,5 @@
 * text=auto eol=lf
+third_party/pkhex/PKHeX.Core/** -text -whitespace
+third_party/pkhex/Directory.Build.props -text -whitespace
+third_party/pkhex/LICENSE -text -whitespace
+third_party/pkhex/dotnet-notices/** -text -whitespace

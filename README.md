@@ -544,6 +544,10 @@ npm run verify
 
 ## 构建与测试
 
+PKHeX 存档工具另需 .NET SDK 10.0.401 和 `wasm-tools` 工作负载（`dotnet workload install wasm-tools --skip-manifest-update`）。
+`npm run pkhex:build` 生成同源浏览器核心，`npm run pkhex:test` 检查合成存档读写；范围和未验证项见
+[存档编辑模块](docs/modules/saveeditor.md)。完整 `npm run build` 会先生成 PKHeX 核心，再执行下述 RNG 和前端构建。
+
 `npm run build` 先生成 release 模式的 60 个独立 MJS/Wasm 模块，包括 `gen3id`、`gen4static`、`gen5event`、`gen6mainseed`、`gen6tinytimeline`、`gen7festivalplaza`、`gen8id`、`gen8egg`、`gen8event`、`gen8raids`、`gen8static`、`gen8underground`、`pokerusfinder` 与 `researcher`，再由 Vite 将带内容哈希的 JS、CSS、Worker、PWA 和 Wasm 资源输出到 `dist/`。完整默认清单以 `wasm/CMakeLists.txt` 为准；这些目录都是生成物，不提交到 Git。
 
 测试规划分为五层：
@@ -577,6 +581,8 @@ CI/CD 使用 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)：
 本地编译保留为开发和应急能力。如果 Actions 暂时不可用，可在符合锁定版本的 Windows PowerShell 环境中运行：
 
 ```powershell
+npm run pkhex:test
+npm run pkhex:build
 npm run verify:full
 $env:BASE_PATH = "./"
 npm run build:web

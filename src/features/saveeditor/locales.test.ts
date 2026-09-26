@@ -1,0 +1,38 @@
+import { describe, expect, it } from "vitest";
+import { createInstance } from "i18next";
+import { saveEditorResources, localizeSaveError } from "./locales";
+
+describe("save editor localization", () => {
+  it("resolves all supported languages and game names without key fallbacks", async () => {
+    const i18n = createInstance();
+    await i18n.init({
+      resources: Object.fromEntries(
+        Object.entries(saveEditorResources).map(([language, values]) => [
+          language,
+          { translation: { saveEditor: values } },
+        ]),
+      ),
+      lng: "zh",
+    });
+    for (const lang of ["zh", "en", "ja"] as const) {
+      await i18n.changeLanguage(lang);
+      const words = i18n.t("saveEditor", {
+        returnObjects: true,
+      }) as typeof saveEditorResources.en;
+      expect(Object.keys(words).sort()).toEqual(
+        Object.keys(saveEditorResources.en).sort(),
+      );
+      expect(words.games["ultra-sun"]).toBe(
+        saveEditorResources[lang].games["ultra-sun"],
+      );
+      expect(words.trainerName).toBe(saveEditorResources[lang].trainerName);
+      expect(localizeSaveError("Unrecognized save file.", words)).toBe(
+        words.fileError,
+      );
+      expect(localizeSaveError("OT: 1–7 characters.", words)).toBe(
+        words.nameError,
+      );
+    }
+    expect(saveEditorResources.zh.title).toContain("存档编辑器");
+  });
+});

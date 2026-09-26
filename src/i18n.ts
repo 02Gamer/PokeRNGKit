@@ -1,8 +1,10 @@
 import i18n from "i18next";
+import { saveEditorResources } from "./features/saveeditor/locales";
 
 const resources = {
   en: {
     translation: {
+      saveEditor: saveEditorResources.en,
       // Shared labels used by multiple module workspaces.
       form: "Form",
       gen6StationaryFrames: "Frames",
@@ -2014,6 +2016,7 @@ const resources = {
   },
   ja: {
     translation: {
+      saveEditor: saveEditorResources.ja,
       // Shared labels used by multiple module workspaces.
       form: "Form",
       gen6StationaryFrames: "Frames",
@@ -2173,7 +2176,7 @@ const resources = {
       ivJudgePrettyGood: "かなりいい",
       ivJudgeDecent: "まあまあ",
       ivJudgeNoGood: "ダメかも",
-      tools: "Tools",
+      tools: "ツール",
       gen4StaticModule: "Gen 4 Static",
       gen4WildModule: "Gen 4 Wild",
       gen4EggModule: "Gen 4 Eggs",
@@ -3960,6 +3963,7 @@ const resources = {
   },
   zh: {
     translation: {
+      saveEditor: saveEditorResources.zh,
       // Shared labels used by multiple module workspaces.
       form: "Form",
       gen6StationaryFrames: "Frames",
@@ -4116,7 +4120,7 @@ const resources = {
       ivJudgePrettyGood: "相当好",
       ivJudgeDecent: "一般般",
       ivJudgeNoGood: "也许不行",
-      tools: "Tools",
+      tools: "工具",
       gen4StaticModule: "第四世代定点乱数",
       gen4WildModule: "第四世代野生乱数",
       gen4EggModule: "第四世代孵化乱数",

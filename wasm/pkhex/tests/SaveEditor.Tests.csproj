@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StartupObject>SaveEditorTests</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Program.cs" Link="SaveService.cs" />
+    <Compile Include="../PokemonReader.cs" Link="PokemonReader.cs" />
+    <Compile Include="../BrowserCryptography.cs" Link="BrowserCryptography.cs" />
+    <ProjectReference Include="../../../third_party/pkhex/PKHeX.Core/PKHeX.Core.csproj" />
+  </ItemGroup>
+</Project>

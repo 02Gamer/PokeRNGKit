@@ -7,6 +7,11 @@
 
 ## 1. 产品定义
 
+2026-09-22 新增所有者确认范围：在悬浮工具中接入 PKHeX 本地存档读取与编辑，并联动已有 RNG
+存档信息。2026-09-26 明确补充队伍与盒子内宝可梦信息读取，入口及界面按当前语言展示；
+当前实现训练家字段编辑与副本导出、宝可梦只读浏览，具体白名单、校验和后续边界见
+[存档编辑模块](modules/saveeditor.md)。不上传用户存档，不增加后端。
+
 PokeRNGKit 是面向宝可梦 RNG 研究与检索的本地优先 Web 工具集。项目参考 [Admiral-Fish/PokeFinder](https://github.com/Admiral-Fish/PokeFinder) 4.3.2，将经过验证的 C++ Core 编译为 WebAssembly，并在 Web Worker 中完成计算。
 
 应用必须保持纯静态、无后端。用户输入、计算结果、档案和设置留在浏览器本地；站点可部署到 GitHub Pages、Cloudflare Pages 或等价静态托管，并在资源缓存完成后离线使用。

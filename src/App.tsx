@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Dices,
   FlaskConical,
+  FilePenLine,
   KeyRound,
   ListChecks,
   Menu,
@@ -146,6 +147,7 @@ import { MiscRngPanel } from "./features/miscrng/MiscRngPanel";
 import { TsvListPanel } from "./features/tsvlist/TsvListPanel";
 import { IvToolsPanel } from "./features/ivtools/IvToolsPanel";
 import { FloatingToolPanel } from "./features/shared/FloatingToolPanel";
+import { SaveEditorPanel } from "./features/saveeditor/SaveEditorPanel";
 import { Select } from "./features/shared/Select";
 import { Gen3WorkflowTipsPanel } from "./features/gen3workflow/Gen3WorkflowTipsPanel";
 import { ProfileSelector } from "./features/shared/ProfileSelector";
@@ -624,6 +626,7 @@ function App() {
   const [ivToolsExpanded, setIvToolsExpanded] = useState(false);
   const [gen3WorkflowExpanded, setGen3WorkflowExpanded] = useState(false);
   const [floatingToolsExpanded, setFloatingToolsExpanded] = useState(false);
+  const [saveEditorExpanded, setSaveEditorExpanded] = useState(false);
   const [gen5AdjacentSeedsContext, setGen5AdjacentSeedsContext] =
     useState<Gen5AdjacentSeedsInitialContext>();
   const gen5AdjacentSeedsRequestId = useRef(0);
@@ -1121,31 +1124,34 @@ function App() {
       setSponsorshipExpanded(false);
     }
   };
-  const activeFloatingTool = sponsorshipExpanded
-    ? "sponsorship"
-    : contributionsExpanded
-      ? "contributions"
-      : ivCalculatorExpanded
-        ? "iv"
-        : encounterLookupExpanded
-          ? "encounter"
-          : researcherExpanded
-            ? "researcher"
-            : keyBvExpanded
-              ? "keybv"
-              : miscRngExpanded
-                ? "miscRng"
-                : tsvListExpanded
-                  ? "tsvList"
-                  : ivToolsExpanded
-                    ? "ivTools"
-                    : gen3WorkflowExpanded
-                      ? "gen3Workflow"
-                      : profileTools && unifiedProfileExpanded
-                        ? "profile"
-                        : undefined;
+  const activeFloatingTool = saveEditorExpanded
+    ? "saveEditor"
+    : sponsorshipExpanded
+      ? "sponsorship"
+      : contributionsExpanded
+        ? "contributions"
+        : ivCalculatorExpanded
+          ? "iv"
+          : encounterLookupExpanded
+            ? "encounter"
+            : researcherExpanded
+              ? "researcher"
+              : keyBvExpanded
+                ? "keybv"
+                : miscRngExpanded
+                  ? "miscRng"
+                  : tsvListExpanded
+                    ? "tsvList"
+                    : ivToolsExpanded
+                      ? "ivTools"
+                      : gen3WorkflowExpanded
+                        ? "gen3Workflow"
+                        : profileTools && unifiedProfileExpanded
+                          ? "profile"
+                          : undefined;
 
   const closeFloatingTools = () => {
+    setSaveEditorExpanded(false);
     setEncounterLookupExpanded(false);
     setIvCalculatorExpanded(false);
     setContributionsExpanded(false);
@@ -1188,6 +1194,7 @@ function App() {
 
   const toggleFloatingTool = (
     tool:
+      | "saveEditor"
       | "contributions"
       | "encounter"
       | "iv"
@@ -1204,7 +1211,8 @@ function App() {
     setModuleRailOpen(false);
     closeFloatingTools();
     if (!expanded) return;
-    if (tool === "sponsorship") setSponsorshipExpanded(true);
+    if (tool === "saveEditor") setSaveEditorExpanded(true);
+    else if (tool === "sponsorship") setSponsorshipExpanded(true);
     else if (tool === "contributions") setContributionsExpanded(true);
     else if (tool === "encounter") setEncounterLookupExpanded(true);
     else if (tool === "iv") setIvCalculatorExpanded(true);
@@ -4150,6 +4158,26 @@ function App() {
           }}
         />
         <FloatingToolPanel
+          className="save-editor-float-panel"
+          closeLabel={t("collapse")}
+          expanded={activeFloatingTool === "saveEditor"}
+          id="save-editor-panel"
+          label={t("saveEditor.title")}
+          onExpandedChange={(expanded) => {
+            closeFloatingTools();
+            setSaveEditorExpanded(expanded);
+          }}
+          tone="brand"
+          triggerId="save-editor-trigger"
+        >
+          <SaveEditorPanel
+            gen3={profiles}
+            gen4={gen4Profiles}
+            gen8={gen8Profiles}
+            threeDs={threeDsProfiles}
+          />
+        </FloatingToolPanel>
+        <FloatingToolPanel
           className="unified-profile-float-panel"
           closeLabel={t("collapse")}
           expanded={activeFloatingTool === "profile"}
@@ -4182,6 +4210,27 @@ function App() {
             className="floating-tool-actions"
             id="floating-tool-actions"
           >
+            <button
+              aria-controls="save-editor-panel"
+              aria-expanded={activeFloatingTool === "saveEditor"}
+              aria-haspopup="dialog"
+              aria-label={t("saveEditor.title")}
+              className={
+                activeFloatingTool === "saveEditor" ? "active" : undefined
+              }
+              id="save-editor-trigger"
+              onClick={() => {
+                if (!toolRailUsesHover()) setFloatingToolsExpanded(true);
+                toggleFloatingTool("saveEditor");
+              }}
+              title={t("saveEditor.title")}
+              type="button"
+            >
+              <FilePenLine aria-hidden="true" size={20} />
+              <span className="floating-tool-label">
+                {t("saveEditor.shortTitle")}
+              </span>
+            </button>
             <button
               aria-controls="gen3-workflow-tips-panel"
               aria-expanded={activeFloatingTool === "gen3Workflow"}

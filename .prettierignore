@@ -14,3 +14,12 @@ wasm/modules/gen8wild/bridge/wild_data.inc
 wasm/modules/gen6event/bridge/gen6_event_personal.inc
 ui-audit-*/
 .tools/
+third_party/pkhex/PKHeX.Core/
+third_party/pkhex/Directory.Build.props
+third_party/pkhex/LICENSE
+third_party/pkhex/dotnet-notices/
+public/pkhex/
+wasm/pkhex/bin/
+wasm/pkhex/obj/
+wasm/pkhex/tests/bin/
+wasm/pkhex/tests/obj/
