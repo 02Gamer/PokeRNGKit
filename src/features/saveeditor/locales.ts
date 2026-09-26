@@ -287,6 +287,20 @@ export const saveEditorResources = {
     checksums: "数据校验",
     displayIds: "游戏显示 ID",
     playTime: "游戏时间",
+    trainerMale: "男性",
+    trainerFemale: "女性",
+    trainerHours: "游戏时间：小时",
+    trainerMinutes: "游戏时间：分钟",
+    trainerSeconds: "游戏时间：秒",
+    trainerTimeNote:
+      "分钟与秒沿用 PKHeX 的两位输入，保存时对 60 取余（例如 75 保存为 15）。未修改的原值保持不变。",
+    trainerAppearanceNote:
+      "剑／盾更改性别时，会沿用当前肤色并重置角色外观与穿着；可通过撤销恢复。",
+    applyTrainer: "应用训练家修改",
+    trainerValueError:
+      "请检查训练家性别和游戏时间：小时为 0–65535，分钟与秒为 0–99。",
+    trainerSkinError:
+      "无法识别此存档的角色肤色，暂不能自动重置外观并更改性别。原文件未修改。",
     partyBoxes: "队伍数量 / 盒子数量",
     generation: "世代",
     profileName: "存档名称",
@@ -666,6 +680,20 @@ export const saveEditorResources = {
     checksums: "Checksums",
     displayIds: "In-game display IDs",
     playTime: "Play time",
+    trainerMale: "Male",
+    trainerFemale: "Female",
+    trainerHours: "Play time: hours",
+    trainerMinutes: "Play time: minutes",
+    trainerSeconds: "Play time: seconds",
+    trainerTimeNote:
+      "Minutes and seconds use PKHeX's two-digit input and are saved modulo 60 (75 becomes 15). Unchanged original values are preserved.",
+    trainerAppearanceNote:
+      "In Sword/Shield, changing gender resets appearance and clothing using the current skin tone. Undo restores the previous state.",
+    applyTrainer: "Apply trainer changes",
+    trainerValueError:
+      "Check trainer gender and play time: hours 0–65535, minutes and seconds 0–99.",
+    trainerSkinError:
+      "The saved skin tone is unrecognized, so appearance cannot be reset for a gender change. The original file is unchanged.",
     partyBoxes: "Party / Boxes",
     generation: "Generation",
     profileName: "Profile name",
@@ -1049,6 +1077,20 @@ export const saveEditorResources = {
     checksums: "チェックサム",
     displayIds: "ゲーム内表示 ID",
     playTime: "プレイ時間",
+    trainerMale: "男性",
+    trainerFemale: "女性",
+    trainerHours: "プレイ時間：時間",
+    trainerMinutes: "プレイ時間：分",
+    trainerSeconds: "プレイ時間：秒",
+    trainerTimeNote:
+      "分と秒は PKHeX と同じ2桁入力で、保存時に60で割った余りになります（75は15）。変更していない元の値は保持します。",
+    trainerAppearanceNote:
+      "ソード・シールドで性別を変更すると、現在の肌色に合わせて外見と服装をリセットします。取り消しで元に戻せます。",
+    applyTrainer: "トレーナーの変更を適用",
+    trainerValueError:
+      "性別とプレイ時間を確認してください。時間は0～65535、分と秒は0～99です。",
+    trainerSkinError:
+      "保存された肌色を認識できないため、外見をリセットして性別を変更できません。元のファイルは変更していません。",
     partyBoxes: "手持ち / ボックス数",
     generation: "世代",
     profileName: "プロファイル名",
@@ -1155,6 +1197,13 @@ export function localizeSaveError(
   if (/Unrecognized/.test(message)) return words.fileError;
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
+  if (/unrecognized skin color/.test(message)) return words.trainerSkinError;
+  if (
+    /Trainer gender|Trainer play time|^(Gender|Hours|Minutes|Seconds):/.test(
+      message,
+    )
+  )
+    return words.trainerValueError;
   if (/TID16:|SID16:|Money|money/.test(message)) return words.valueError;
   if (/read-only|valid checksums/.test(message)) return words.invalid;
   if (/timed out/.test(message)) return words.timeoutError;

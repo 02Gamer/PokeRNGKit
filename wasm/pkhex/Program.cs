@@ -187,14 +187,14 @@ public static class SaveService
         var save = Open(data);
         var valid = save.ChecksumsValid;
         var report = new SaveReport(
-            33, save.GetType().Name, save.Generation, save.Version.ToString(),
+            34, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
             save.BoxCount, save.PartyCount, save.PlayTimeString, valid,
             valid && CanEdit(save) && save.State.Exportable,
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
-            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save));
+            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save));
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -284,37 +284,23 @@ public static class SaveService
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.TrainerEdit)
             ?? throw new ArgumentException("Missing trainer values.");
-        var maxName = save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer;
-        if (edit.Ot.Length == 0 || edit.Ot.Length > maxName || edit.Ot.Any(char.IsControl))
-            throw new ArgumentException($"Trainer name must contain 1–{maxName} supported characters.");
-        if (edit.Money > save.MaxMoney)
-            throw new ArgumentException($"Money must be between 0 and {save.MaxMoney}.");
-
-        save.OT = edit.Ot;
-        save.TID16 = edit.Tid;
-        save.SID16 = edit.Sid;
-        save.Money = edit.Money;
-        // A name can be the right length but unrepresentable in an older game's charset.
-        if (save.OT != edit.Ot)
-            throw new ArgumentException("This game cannot represent the requested trainer name.");
-
+        TrainerEditing.Apply(save,edit);
+        var expected = TrainerEditing.Snapshot(save);
         var output = save.Write().ToArray();
         var check = Open(output);
         if (!check.ChecksumsValid || check.GetType() != save.GetType() ||
-            check.OT != edit.Ot || check.TID16 != edit.Tid ||
-            check.SID16 != edit.Sid || check.Money != edit.Money)
+            TrainerEditing.Snapshot(check) != expected)
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         return output;
     }
 }
 
-public sealed record TrainerEdit(string Ot, ushort Tid, ushort Sid, uint Money);
 public sealed record SaveReport(
     int ApiVersion, string Format, byte Generation, string Version, string Ot,
     ushort Tid, ushort Sid, uint DisplayTid, uint DisplaySid, int Language,
     byte Gender, uint Money, int MaxMoney, int MaxNameLength, int BoxCount,
     int PartyCount, string PlayTime, bool ChecksumsValid, bool CanEdit,
-    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices);
+    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]

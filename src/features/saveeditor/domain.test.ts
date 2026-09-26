@@ -3,13 +3,21 @@ import {
   exportSaveName,
   saveGameChoices,
   trainerDraft,
+  rebaseTrainerDraft,
   validateTrainer,
   parsePokemonHex,
   type SaveReport,
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 33,
+  apiVersion: 34,
+  trainer: {
+    canGender: true,
+    canPlayTime: true,
+    hours: 1,
+    minutes: 2,
+    seconds: 3,
+  },
   attributeChoices: { natures: [], items: [], species: [] },
   boxSlotCount: 30,
   boxes: [],
@@ -97,6 +105,63 @@ describe("save editor boundaries", () => {
       saveGameChoices({ ...emeraldReport, format: "SAV3XD", version: "CXD" }),
     ).toEqual(["xd"]);
     expect(saveGameChoices({ ...emeraldReport, version: "SL" })).toEqual([]);
+  });
+  it("validates changed time fields without rewriting unusual original values", () => {
+    const unusual = {
+      ...emeraldReport,
+      gender: 2,
+      trainer: { ...emeraldReport.trainer, minutes: 255 },
+    };
+    expect(validateTrainer(trainerDraft(unusual), unusual)).toMatchObject({
+      gender: undefined,
+      minutes: undefined,
+    });
+    const edit = validateTrainer(
+      {
+        ...trainerDraft(emeraldReport),
+        gender: "1",
+        hours: "65535",
+        minutes: "99",
+        seconds: "60",
+      },
+      emeraldReport,
+    );
+    expect(edit).toMatchObject({
+      gender: 1,
+      hours: 65535,
+      minutes: 99,
+      seconds: 60,
+    });
+    for (const [key, value] of [
+      ["gender", "2"],
+      ["hours", "65536"],
+      ["minutes", "100"],
+      ["seconds", "-1"],
+      ["hours", ""],
+    ])
+      expect(() =>
+        validateTrainer(
+          { ...trainerDraft(emeraldReport), [key]: value },
+          emeraldReport,
+        ),
+      ).toThrow();
+  });
+  it("rebases applied trainer values on undo and retains independent drafts", () => {
+    const changed = {
+      ...emeraldReport,
+      ot: "NEW",
+      gender: 1,
+      trainer: { ...emeraldReport.trainer, hours: 20 },
+    };
+    expect(
+      rebaseTrainerDraft(trainerDraft(changed), changed, emeraldReport),
+    ).toEqual(trainerDraft(emeraldReport));
+    const pending = { ...trainerDraft(changed), money: "999", seconds: "45" };
+    expect(rebaseTrainerDraft(pending, changed, emeraldReport)).toEqual({
+      ...trainerDraft(emeraldReport),
+      money: "999",
+      seconds: "45",
+    });
   });
   it("always exports a distinct filename", () => {
     expect(exportSaveName("main")).toBe("edited-main");

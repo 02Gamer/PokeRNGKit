@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 33;
+  apiVersion: 34;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -23,6 +23,13 @@ export interface SaveReport {
   boxCount: number;
   partyCount: number;
   playTime: string;
+  trainer: {
+    canGender: boolean;
+    canPlayTime: boolean;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  };
   checksumsValid: boolean;
   canEdit: boolean;
   extension: string;
@@ -152,6 +159,10 @@ export interface TrainerDraft {
   tid: string;
   sid: string;
   money: string;
+  gender: string;
+  hours: string;
+  minutes: string;
+  seconds: string;
 }
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
@@ -160,7 +171,25 @@ export function trainerDraft(report: SaveReport): TrainerDraft {
     tid: String(report.tid),
     sid: String(report.sid),
     money: String(report.money),
+    gender: String(report.gender),
+    hours: String(report.trainer.hours),
+    minutes: String(report.trainer.minutes),
+    seconds: String(report.trainer.seconds),
   };
+}
+
+// Rebase applied values on undo without discarding a separate, unapplied draft.
+export function rebaseTrainerDraft(
+  draft: TrainerDraft,
+  before: SaveReport,
+  after: SaveReport,
+): TrainerDraft {
+  const old = trainerDraft(before),
+    next = trainerDraft(after);
+  const result = { ...draft };
+  for (const key of Object.keys(next) as (keyof TrainerDraft)[])
+    if (draft[key] === old[key]) result[key] = next[key];
+  return result;
 }
 
 export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
@@ -185,6 +214,24 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
     tid: integer(draft.tid, 65535, "TID16"),
     sid: integer(draft.sid, 65535, "SID16"),
     money: integer(draft.money, report.maxMoney, "Money"),
+    gender:
+      report.trainer.canGender && draft.gender !== String(report.gender)
+        ? integer(draft.gender, 1, "Gender")
+        : undefined,
+    hours:
+      report.trainer.canPlayTime && draft.hours !== String(report.trainer.hours)
+        ? integer(draft.hours, 65535, "Hours")
+        : undefined,
+    minutes:
+      report.trainer.canPlayTime &&
+      draft.minutes !== String(report.trainer.minutes)
+        ? integer(draft.minutes, 99, "Minutes")
+        : undefined,
+    seconds:
+      report.trainer.canPlayTime &&
+      draft.seconds !== String(report.trainer.seconds)
+        ? integer(draft.seconds, 99, "Seconds")
+        : undefined,
   };
 }
 

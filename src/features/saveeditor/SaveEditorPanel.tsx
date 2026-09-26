@@ -9,6 +9,7 @@ import {
   MAX_SAVE_BYTES,
   saveGameChoices,
   trainerDraft,
+  rebaseTrainerDraft,
   validateTrainer,
   type OriginCatalog,
   type SaveReport,
@@ -56,6 +57,10 @@ export function SaveEditorPanel(
     tid: "",
     sid: "",
     money: "",
+    gender: "",
+    hours: "",
+    minutes: "",
+    seconds: "",
   });
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
@@ -272,8 +277,9 @@ export function SaveEditorPanel(
       | BoxEdit
       | import("./domain").BagEdit
       | import("./domain").BagOperation
+      | ReturnType<typeof validateTrainer>
       | StorageEdit
-      | (() => Promise<PokemonImport>),
+      | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
       | "pokemon"
       | "pokemonRaw"
@@ -281,7 +287,8 @@ export function SaveEditorPanel(
       | "storage"
       | "pokemonImport"
       | "inventoryEdit"
-      | "inventoryBatch",
+      | "inventoryBatch"
+      | "trainer",
   ) =>
     perform(async (id) => {
       if (!working.current) return;
@@ -308,6 +315,11 @@ export function SaveEditorPanel(
       });
       working.current = result.output;
       setReport(result.report);
+      setDraft((previous) =>
+        kind === "trainer" || !report
+          ? trainerDraft(result.report)
+          : rebaseTrainerDraft(previous, report, result.report),
+      );
       setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setStatus("pokemonSaved");
@@ -356,7 +368,11 @@ export function SaveEditorPanel(
       setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setHistory((previous) => (originalSave ? [] : previous.slice(0, -1)));
-      if (originalSave) setDraft(trainerDraft(result.report));
+      setDraft((previous) =>
+        originalSave || !report
+          ? trainerDraft(result.report)
+          : rebaseTrainerDraft(previous, report, result.report),
+      );
     });
 
   return (
@@ -582,9 +598,74 @@ export function SaveEditorPanel(
                     />
                   </label>
                 ))}
+                {report.trainer.canGender && (
+                  <label className="field">
+                    <span>{words.gender}</span>
+                    <Select
+                      value={draft.gender}
+                      onChange={(e) =>
+                        setDraft({ ...draft, gender: e.target.value })
+                      }
+                    >
+                      {!["0", "1"].includes(draft.gender) && (
+                        <option value={draft.gender}>#{draft.gender}</option>
+                      )}
+                      <option value="0">{words.trainerMale}</option>
+                      <option value="1">{words.trainerFemale}</option>
+                    </Select>
+                  </label>
+                )}
+                {report.trainer.canPlayTime &&
+                  (
+                    [
+                      ["hours", words.trainerHours, 65535],
+                      ["minutes", words.trainerMinutes, 99],
+                      ["seconds", words.trainerSeconds, 99],
+                    ] as const
+                  ).map(([key, label, max]) => (
+                    <label className="field" key={key}>
+                      <span>
+                        {label} · 0–{max}
+                      </span>
+                      <input
+                        inputMode="numeric"
+                        maxLength={String(max).length}
+                        value={draft[key]}
+                        onChange={(e) =>
+                          setDraft({ ...draft, [key]: e.target.value })
+                        }
+                      />
+                    </label>
+                  ))}
               </fieldset>
               <p className="save-editor-note">{words.ids}</p>
+              {report.trainer.canPlayTime && (
+                <p className="save-editor-note">{words.trainerTimeNote}</p>
+              )}
+              {report.format === "SAV8SWSH" && (
+                <p className="save-editor-note">
+                  {words.trainerAppearanceNote}
+                </p>
+              )}
               <div className="save-editor-toolbar">
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={
+                    busy ||
+                    !report.canEdit ||
+                    JSON.stringify(draft) ===
+                      JSON.stringify(trainerDraft(report))
+                  }
+                  onClick={() =>
+                    void applyWorkingEdit(
+                      async () => validateTrainer(draft, report),
+                      "trainer",
+                    )
+                  }
+                >
+                  {words.applyTrainer}
+                </button>
                 <button
                   type="button"
                   disabled={busy || !report.canEdit}
