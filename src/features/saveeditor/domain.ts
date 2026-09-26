@@ -13,9 +13,15 @@ export const TRAINER_GAME_OPTION_KEYS = [
   "battleEffects",
 ] as const;
 export type TrainerGameOptionKey = (typeof TRAINER_GAME_OPTION_KEYS)[number];
+export const TRAINER_POSITION_KEYS = ["map", "x", "z", "y"] as const;
+export type TrainerPositionKey = (typeof TRAINER_POSITION_KEYS)[number];
+export const trainerPositionRange = (key: TrainerPositionKey) => ({
+  min: key === "z" ? -65535 : 0,
+  max: key === "map" ? 1000 : 65535,
+});
 
 export interface SaveReport {
-  apiVersion: 41;
+  apiVersion: 42;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -38,6 +44,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    position: Record<TrainerPositionKey, number> | null;
     gameOptions: Record<TrainerGameOptionKey, number> | null;
     canRecords: boolean;
     currencies: { key: TrainerCurrencyKey; value: number; max: number }[];
@@ -181,7 +188,7 @@ export interface PokemonEntry {
 }
 
 export interface TrainerDraft extends Record<
-  TrainerCurrencyKey | TrainerGameOptionKey,
+  TrainerCurrencyKey | TrainerGameOptionKey | TrainerPositionKey,
   string
 > {
   badges: string;
@@ -201,6 +208,12 @@ export interface TrainerDraft extends Record<
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
+    ...(Object.fromEntries(
+      TRAINER_POSITION_KEYS.map((key) => [
+        key,
+        String(report.trainer.position?.[key] ?? ""),
+      ]),
+    ) as Record<TrainerPositionKey, string>),
     ...(Object.fromEntries(
       TRAINER_GAME_OPTION_KEYS.map((key) => [
         key,
@@ -246,6 +259,8 @@ export function rebaseTrainerDraft(
     result.country = draft.country;
     result.region = draft.region;
   }
+  if (TRAINER_POSITION_KEYS.some((key) => draft[key] !== old[key]))
+    for (const key of TRAINER_POSITION_KEYS) result[key] = draft[key];
   return result;
 }
 
@@ -311,7 +326,24 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
       );
     gameOptions[key] = Number(draft[key]);
   }
+  const position: Partial<Record<TrainerPositionKey, number>> = {};
+  for (const key of TRAINER_POSITION_KEYS) {
+    const original = report.trainer.position?.[key];
+    if (draft[key] === String(original ?? "")) continue;
+    const { min, max } = trainerPositionRange(key),
+      value = Number(draft[key]);
+    if (
+      original === undefined ||
+      !(key === "z" ? /^-?\d+$/ : /^\d+$/).test(draft[key]) ||
+      !Number.isSafeInteger(value) ||
+      value < min ||
+      value > max
+    )
+      throw new Error("Trainer position is unsupported or out of range.");
+    position[key] = value;
+  }
   return {
+    position: Object.keys(position).length ? position : undefined,
     gameOptions: Object.keys(gameOptions).length ? gameOptions : undefined,
     currencies: Object.keys(currencies).length ? currencies : undefined,
     language,

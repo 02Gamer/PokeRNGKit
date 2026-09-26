@@ -327,6 +327,20 @@ export const saveEditorResources = {
     trainerCurrencyError: "请按当前存档支持的范围填写整数，不能留空。",
     trainerBadges: "徽章",
     trainerGameOptions: "游戏设置",
+    trainerPosition: "地图与坐标",
+    trainerPositionNames: {
+      map: "地图编号",
+      x: "X 坐标",
+      z: "Z 坐标",
+      y: "Y 坐标",
+    },
+    trainerPositionNote: "随训练家信息一起应用，仅修改填写的位置字段。",
+    trainerPositionMirror:
+      "随训练家信息一起应用。修改 X/Y 时同步更新对应的关联坐标，其他位置字段保持。",
+    trainerPositionWrap: "按上游保存规则，此 Z 负值应用后将显示为 {value}。",
+    trainerPositionError: "此存档不支持地图位置编辑或坐标超出范围。",
+    trainerPositionRepresentError:
+      "无法在保留其他位置数据的前提下保存这个值，修改已取消。",
     trainerGameOptionNames: {
       textSpeed: "文字速度",
       battleStyle: "战斗方式",
@@ -783,6 +797,23 @@ export const saveEditorResources = {
       "Enter a whole number within this save's supported range. Do not leave it blank.",
     trainerBadges: "Badges",
     trainerGameOptions: "Game options",
+    trainerPosition: "Map position",
+    trainerPositionNames: {
+      map: "Map ID",
+      x: "X coordinate",
+      z: "Z coordinate",
+      y: "Y coordinate",
+    },
+    trainerPositionNote:
+      "Applied with trainer details. Only changed position fields are written.",
+    trainerPositionMirror:
+      "Applied with trainer details. Changing X/Y also updates its linked coordinate; other position fields are preserved.",
+    trainerPositionWrap:
+      "Following upstream storage rules, this negative Z value will display as {value} after applying.",
+    trainerPositionError:
+      "Map position editing is unsupported or the coordinates are out of range.",
+    trainerPositionRepresentError:
+      "This value cannot be saved while preserving other position data. The edit was cancelled.",
     trainerGameOptionNames: {
       textSpeed: "Text speed",
       battleStyle: "Battle style",
@@ -1242,6 +1273,23 @@ export const saveEditorResources = {
       "このセーブの対応範囲内の整数を入力してください。空欄にはできません。",
     trainerBadges: "バッジ",
     trainerGameOptions: "ゲーム設定",
+    trainerPosition: "マップと座標",
+    trainerPositionNames: {
+      map: "マップ番号",
+      x: "X 座標",
+      z: "Z 座標",
+      y: "Y 座標",
+    },
+    trainerPositionNote:
+      "トレーナー情報と一緒に適用し、変更した位置項目だけを書き込みます。",
+    trainerPositionMirror:
+      "トレーナー情報と一緒に適用します。X/Y の変更時は対応する関連座標も更新し、他の位置項目は保持します。",
+    trainerPositionWrap:
+      "上流の保存規則に従い、この負の Z 値は適用後に {value} と表示されます。",
+    trainerPositionError:
+      "位置編集に対応していないセーブ、または範囲外の座標です。",
+    trainerPositionRepresentError:
+      "他の位置データを保持したまま保存できない値です。変更を取り消しました。",
     trainerGameOptionNames: {
       textSpeed: "文字の速さ",
       battleStyle: "試合のルール",
@@ -1398,6 +1446,9 @@ export function localizeSaveError(
   if (/Trainer game options/.test(message))
     return words.trainerGameOptionsError;
   if (/Trainer text speed/.test(message)) return words.trainerTextSpeedError;
+  if (/Trainer position cannot be represented/.test(message))
+    return words.trainerPositionRepresentError;
+  if (/Trainer position/.test(message)) return words.trainerPositionError;
   if (/Trainer geography/.test(message)) return words.trainerGeographyError;
   if (/unrecognized skin color/.test(message)) return words.trainerSkinError;
   if (

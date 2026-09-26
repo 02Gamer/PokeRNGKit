@@ -30,6 +30,7 @@ import { SaveInventoryBrowser } from "./SaveInventoryBrowser";
 import { TrainerGeographyFields } from "./TrainerGeographyFields";
 import { SaveRecordEditor } from "./SaveRecordEditor";
 import { TrainerGameOptionFields } from "./TrainerGameOptionFields";
+import { TrainerPositionFields } from "./TrainerPositionFields";
 
 export function SaveEditorPanel(
   controllers: Omit<SaveProfileControllers, "gen5">,
@@ -56,6 +57,10 @@ export function SaveEditorPanel(
     "pokemon" | "trainer" | "inventory" | "records"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
+    map: "",
+    x: "",
+    z: "",
+    y: "",
     textSpeed: "",
     battleStyle: "",
     sound: "",
@@ -787,6 +792,12 @@ export function SaveEditorPanel(
                 </fieldset>
               )}
               <TrainerGameOptionFields
+                report={report}
+                draft={draft}
+                disabled={busy || !report.canEdit}
+                onChange={setDraft}
+              />
+              <TrainerPositionFields
                 report={report}
                 draft={draft}
                 disabled={busy || !report.canEdit}

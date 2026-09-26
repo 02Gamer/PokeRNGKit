@@ -24,6 +24,10 @@
 
 ## 当前工程证据
 
+API 42 增加 DS 训练家地图与坐标，三语折叠入口、位置草稿成组撤销、第四世代关联坐标同步及负 Z 保存结果提示。
+未改位置及异常地图值保持，无法完整回读的地图修改拒绝；其他世代位置布局继续按清单实现。
+五种 DS 存档边界/完整输出、负 Z 编码、关联坐标及异常值保持、原生套件、20 项前端测试、类型、变更文件 lint 与两阶段构建通过；浏览器待核验。
+
 API 41 扩展第四/第五世代训练家国家和地区，使用各世代目录及默认地区资源；DS 隐藏不存在的主机区域。
 国家零值按世代处理，原异常值未改时保持，修改时验证配对并沿用工作副本/撤销与导出回读。
 五种 DS 存档的目录/配对、各国家首尾地区完整输出、异常值保持、原生套件、19 项前端测试、类型、变更文件 lint 与两阶段构建通过；浏览器待核验。
@@ -335,7 +339,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                      |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                       |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                       |
-| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/GBA 设置/DS 地区已接入；地图/日期等字段待接入           |
+| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/GBA 设置/DS 地区及坐标已接入；日期等字段待接入          |
 | `Subforms/Save Editors/SAV_Wondercard.cs`                                     | 待核对                                                       |
 | `Subforms/Save Editors/TrainerStat.cs`                                        | 读写与三语名称已接入；浏览器待核验                           |
 | `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                       |

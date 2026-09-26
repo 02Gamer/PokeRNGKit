@@ -12,8 +12,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 41,
+  apiVersion: 42,
   trainer: {
+    position: null,
     gameOptions: { textSpeed: 1, battleStyle: 0, sound: 1, battleEffects: 1 },
     canRecords: false,
     currencies: [],
@@ -553,6 +554,74 @@ describe("save editor boundaries", () => {
         unsupported,
       ),
     ).toThrow();
+  });
+  it("validates DS map coordinates and retains an unapplied position as one group", () => {
+    const report: SaveReport = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        position: { map: 123, x: 11, z: 33, y: 22 },
+      },
+    };
+    const draft = trainerDraft(report);
+    expect(validateTrainer(draft, report).position).toBeUndefined();
+    expect(
+      validateTrainer(
+        { ...draft, map: "1000", x: "65535", z: "-65535", y: "0" },
+        report,
+      ).position,
+    ).toEqual({ map: 1000, x: 65535, z: -65535, y: 0 });
+    for (const patch of [
+      { map: "1001" },
+      { map: "-1" },
+      { x: "-0" },
+      { x: "65536" },
+      { y: "-1" },
+      { z: "-65536" },
+      { z: "65536" },
+      { z: "" },
+      { z: "1.5" },
+      { z: "1e2" },
+      { map: "9007199254740993" },
+    ])
+      expect(() => validateTrainer({ ...draft, ...patch }, report)).toThrow(
+        /position/,
+      );
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(emeraldReport), x: "0" },
+        emeraldReport,
+      ),
+    ).toThrow(/position/);
+    const after: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        position: { map: 456, x: 44, z: 55, y: 66 },
+      },
+    };
+    expect(rebaseTrainerDraft(draft, report, after)).toMatchObject({
+      map: "456",
+      x: "44",
+      z: "55",
+      y: "66",
+    });
+    expect(
+      rebaseTrainerDraft({ ...draft, x: "77" }, report, after),
+    ).toMatchObject({ map: "123", x: "77", z: "33", y: "22" });
+    const unusual: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        position: { map: -889323519, x: 11, z: 33, y: 22 },
+      },
+    };
+    expect(
+      validateTrainer(trainerDraft(unusual), unusual).position,
+    ).toBeUndefined();
+    expect(
+      validateTrainer({ ...trainerDraft(unusual), x: "12" }, unusual).position,
+    ).toEqual({ x: 12 });
   });
   it("always exports a distinct filename", () => {
     expect(exportSaveName("main")).toBe("edited-main");
