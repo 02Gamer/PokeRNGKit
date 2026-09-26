@@ -415,6 +415,9 @@
   color: var(--warning-text);
 }
 .save-inventory-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-height: 44px;
   padding: 4px 8px;
   border: 0;
@@ -428,4 +431,15 @@
 .save-inventory-select:hover,
 .save-inventory-select[aria-pressed="true"] {
   background: var(--surface-hover);
+}
+.save-inventory-image {
+  flex: 0 0 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.save-inventory-item-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
 }

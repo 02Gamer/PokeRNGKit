@@ -723,3 +723,20 @@ E、D、Pt、HG、B、B2、X、OR、SN、US、BD 共 11 种存档的六种排序
 另验证秘传学习器等道具在统一数量时使用低于口袋上限的独立上限，并比较完整输出。
 原生套件、648 前端测试、类型、变更文件 lint、核心与网页构建通过，保留既有构建警告。
 浏览器待核验；工程证据不代替所有者验收。道具图片和 HaX 模式仍待接入。
+
+## 背包道具图片（API 32）
+
+背包列表与单格编辑草稿加入本地道具图片，沿用三语名称、编号和原有字号，不以图片替代文字。
+统一使用 PKHeX 经典 bitem 图像，固定 32×32 容器、按需加载；空格不显示图片，未收录编号显示上游未知道具图。
+选择道具时草稿图片同步更新，清空时移除。图片不参与存档写入。
+
+依据为 SAV_Inventory.UpdateSprite、SpriteBuilder.GetItemSprite、SpriteBuilder5668.GetItemResourceName。
+编号由 Core.ItemConverter.GetItemDisplay 按存档 Context 转换，再由 HeldItemLumpUtil 选择 TM/TR；
+不把第二/第三世代原始编号直接当作现代图像编号。异常负数、超出 ushort 或旧一/二世代超出 byte 范围的编号显示未知图，避免截断配错图。
+不改变输入控件范围与上游核心。接口添加格位及选项 Sprite，握手提升为 API 32。
+
+606 张 PNG 共 303,893 字节，按上游 Resources.resx 引用原样复制，记录来源路径及 SHA-256；无运行时 CDN。
+导入脚本为 scripts/import-pkhex-item-art.mjs，传入所有者提供的 PKHeX 26.08.26 源码目录即可重建该批图像与清单。
+旧世代编号转换、TM/TR、异常编号回退、11 种存档的格位/目录图像序列化及原生套件通过。
+606 张图片原始哈希检查、7 项前端测试、类型、变更文件 lint、核心与网页构建通过，保留既有构建警告。
+已授权 localhost Chrome 本轮刷新后仍加载旧 index-BbDn0w3C.js，不能作为新版 UI 证据；工程检查不代替所有者验收。

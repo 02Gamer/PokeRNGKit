@@ -7,6 +7,13 @@ const assets: Readonly<Record<string, string>> = manifest;
 const url = (key: string) =>
   `${import.meta.env.BASE_URL}save-art/26.08.26/${assets[key]}`;
 
+export function itemImage(sprite: string) {
+  if (!sprite) return undefined;
+  return url(
+    sprite.startsWith("bitem_") && assets[sprite] ? sprite : "bitem_unk",
+  );
+}
+
 // PKHeX.Drawing.Misc RibbonSpriteUtil and RibbonEditor numeric sprite rules.
 export function ribbonImage(
   key: string,

@@ -8,6 +8,14 @@ internal static class InventoryReaderTests
     private static void Require(bool value, string message) { if (!value) throw new Exception(message); }
     public static void Run()
     {
+        Require(InventoryReader.Sprite(0,EntityContext.Gen3) == "", "Empty slots have no item image");
+        Require(InventoryReader.Sprite(3,EntityContext.Gen2) == "bitem_213", "Gen2 Bright Powder uses converted image ID");
+        Require(InventoryReader.Sprite(13,EntityContext.Gen3) == "bitem_17", "Gen3 Potion uses converted image ID");
+        Require(InventoryReader.Sprite(289,EntityContext.Gen3) == "bitem_tm", "Gen3 TM conversion precedes lump selection");
+        Require(InventoryReader.Sprite(2160,EntityContext.Gen9) == "bitem_tm", "Modern TM image");
+        Require(InventoryReader.Sprite(1130,EntityContext.Gen8) == "bitem_tr", "TR image");
+        Require(InventoryReader.Sprite(65535,EntityContext.Gen9) == "bitem_65535", "Unknown modern ID falls back in local manifest lookup");
+        Require(InventoryReader.Sprite(259,EntityContext.Gen2) == "bitem_unk", "Invalid old ID must not wrap into a real item");
         foreach (var version in new[] { "E", "D", "Pt", "HG", "B", "B2", "X", "OR", "SN", "US", "BD" })
         {
             var save = SaveUtil.GetSaveFile(File.ReadAllBytes($".tmp/pkhex-fixtures/{version}.sav"))!;
@@ -38,6 +46,7 @@ internal static class InventoryReaderTests
                 {
                     var a = actual.Items[slot]; var s = source.Items[slot];
                     Require(a.Slot == slot && a.Id == s.Index && a.Count == s.Count && a.MaxCount == expected.GetMaxCount(source.Type,s.Index), "Item identity, count and limit");
+                    Require(a.Sprite == InventoryReader.Sprite(s.Index,reopened.Context), "Serialized slot image uses save context");
                     Require(a.Favorite == (s is IItemFavorite f ? f.IsFavorite : null) && a.IsNew == (s is IItemNewFlag n ? n.IsNew : null), "Favorite/new flag capabilities");
                     Require(a.FreeSpace == (s is IItemFreeSpace fs ? fs.IsFreeSpace : null) && a.FreeSpaceIndex == (s is IItemFreeSpaceIndex fi ? fi.FreeSpaceIndex : null), "Free space capabilities");
                     Require(a.NewShop == (s is IItemNewShopFlag ns ? ns.IsNewShop : null) && a.Held == (s is IItemHeldFlag h ? h.IsHeld : null), "Shop/held capabilities");
@@ -48,6 +57,8 @@ internal static class InventoryReaderTests
                         Require(name == names[s.Index], "Context-specific localized item name");
                     }
                 }
+                foreach (var choice in actual.Choices)
+                    Require(choice.Sprite == InventoryReader.Sprite(choice.Id,reopened.Context), "Choice preview uses same image mapping");
             }
             Require(data.SequenceEqual(original), "Read leaves input unchanged");
             Console.WriteLine($"PASS {version}: inventory pouches, all slots, counts, localized names, capabilities and original data preservation");

@@ -4,6 +4,7 @@ import { Select } from "../shared/Select";
 import type { BagEdit, BagOperation, BagReport } from "./domain";
 import { SaveInventoryBatch } from "./SaveInventoryBatch";
 import { SaveInventoryEditor } from "./SaveInventoryEditor";
+import { ItemImage } from "./ItemImage";
 import type { saveEditorResources } from "./locales";
 
 export function SaveInventoryBrowser({
@@ -173,7 +174,8 @@ export function SaveInventoryBrowser({
                             disabled={busy}
                             onClick={() => setSelectedSlot(item.slot)}
                           >
-                            {item.name[lang]}
+                            <ItemImage sprite={item.sprite} />
+                            <span>{item.name[lang]}</span>
                           </button>
                           <span className="save-inventory-meta">
                             #{item.id}

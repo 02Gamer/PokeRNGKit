@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
 import type { BagEdit, BagItem, BagReport } from "./domain";
 import type { saveEditorResources } from "./locales";
+import { ItemImage } from "./ItemImage";
 
 export function SaveInventoryEditor({
   item,
@@ -57,7 +58,10 @@ export function SaveInventoryEditor({
         {words.editBagItem} · {words.slot} {item.slot + 1}
       </legend>
       <label className="field">
-        <span>{words.bagItem}</span>
+        <span className="save-inventory-item-label">
+          <ItemImage sprite={choice?.sprite ?? item.sprite} />
+          {words.bagItem}
+        </span>
         <Select
           value={draft.id}
           onChange={(e) => {

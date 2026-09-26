@@ -30,3 +30,7 @@ into the distribution legal folder. This adaptation does not modify the upstream
 ## Ribbon and mark resources (2026-09-27)
 
 161 unmodified ribbon/mark PNGs from `PKHeX.Drawing.Misc/Resources/img/ribbons/` are now included in the same local artwork directory. Resource keys follow the upstream `Properties/Resources.resx`; source paths and SHA-256 values extend `art-manifest.json`. Selection follows `RibbonSpriteUtil.cs` and the generation-specific numeric threshold in `RibbonEditor.cs`, under the same upstream GPL terms and artwork attribution above.
+
+## Item resources (2026-09-27)
+
+606 unmodified classic item PNGs (303,893 bytes) from `PKHeX.Drawing.PokeSprite/Resources/img/Big Items/` are included locally. `scripts/import-pkhex-item-art.mjs` imports the `bitem_` file references from the same archive's `Properties/Resources.resx`, extending both artwork manifests with resource keys and SHA-256 values. The inventory adapter follows `SAV_Inventory.UpdateSprite` and `SpriteBuilder.GetItemSprite`, calling Core's `ItemConverter.GetItemDisplay` and `HeldItemLumpUtil` for generation conversion and TM/TR selection. All formats use the classic sprite collection; the optional artwork-style collection is not included. Empty slots have no image, and missing keys use the upstream unknown-item sprite. The same GPL terms and artwork attribution above apply.
