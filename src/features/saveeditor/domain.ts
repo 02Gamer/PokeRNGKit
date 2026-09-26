@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 30;
+  apiVersion: 31;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -407,6 +407,8 @@ export interface BagReport {
     maxCount: number;
     items: BagItem[];
     choices: { id: number; name: LocalizedText; maxCount: number }[];
+    canGive: boolean;
+    isCramped: boolean;
   }[];
 }
 
@@ -421,6 +423,22 @@ export interface BagEdit {
   freeSpaceIndex?: number | null;
   newShop?: boolean | null;
   held?: boolean | null;
+}
+export interface BagOperation {
+  pouch: number;
+  action:
+    | "sortName"
+    | "sortNameReverse"
+    | "sortCount"
+    | "sortCountReverse"
+    | "sortId"
+    | "sortIdReverse"
+    | "giveAll"
+    | "setCount"
+    | "clear";
+  count?: number;
+  language: "zh-Hans" | "en" | "ja";
+  shuffle: boolean;
 }
 
 export interface BoxEdit {

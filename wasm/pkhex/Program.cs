@@ -27,6 +27,9 @@ public static partial class Program
     public static byte[] EditInventory(byte[] data, string json) => SaveService.EditInventory(data, json);
 
     [JSExport]
+    public static byte[] EditInventoryBatch(byte[] data, string json) => SaveService.EditInventoryBatch(data, json);
+
+    [JSExport]
     public static byte[] Export(byte[] data, string json) => SaveService.Export(data, json);
 
     [JSExport]
@@ -82,6 +85,19 @@ public static class SaveService
         var expected = InventoryEditing.Apply(save, edit);
         var output = save.Write().ToArray();
         var check = Open(output);
+        if (!check.ChecksumsValid || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
+            throw new InvalidOperationException("Inventory export verification failed.");
+        return output;
+    }
+
+    public static byte[] EditInventoryBatch(byte[] data, string json)
+    {
+        var save = Open(data);
+        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+            throw new ArgumentException("Editing requires a supported save with valid checksums.");
+        var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BagOperation) ?? throw new ArgumentException("Missing inventory action.");
+        var expected = InventoryBatch.Apply(save,edit);
+        var output = save.Write().ToArray(); var check = Open(output);
         if (!check.ChecksumsValid || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
             throw new InvalidOperationException("Inventory export verification failed.");
         return output;
@@ -171,7 +187,7 @@ public static class SaveService
         var save = Open(data);
         var valid = save.ChecksumsValid;
         var report = new SaveReport(
-            30, save.GetType().Name, save.Generation, save.Version.ToString(),
+            31, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
@@ -304,6 +320,7 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(SaveReport))]
 [JsonSerializable(typeof(BagReport))]
 [JsonSerializable(typeof(BagEdit))]
+[JsonSerializable(typeof(BagOperation))]
 [JsonSerializable(typeof(RibbonCatalog))]
 [JsonSerializable(typeof(MemoryQuery))]
 [JsonSerializable(typeof(MemoryCatalog))]

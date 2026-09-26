@@ -42,23 +42,31 @@ internal static class InventoryEditing
             throw new ArgumentException("Inventory flag is unsupported.");
         if (edit.FreeSpaceIndex > 1023) throw new ArgumentException("Free space order must be between 0 and 1023.");
 
+        return Transform(save, bag, () =>
+        {
+            item.Index = edit.Id; item.Count = edit.Count;
+            if (item is IItemFavorite favorite && edit.Favorite is bool f) favorite.IsFavorite = f;
+            if (item is IItemNewFlag fresh && edit.IsNew is bool n) fresh.IsNew = n;
+            if (item is IItemFreeSpace free && edit.FreeSpace is bool fs) free.IsFreeSpace = fs;
+            if (item is IItemFreeSpaceIndex order && edit.FreeSpaceIndex is uint fi) order.FreeSpaceIndex = fi;
+            if (item is IItemNewShopFlag shop && edit.NewShop is bool ns) shop.IsNewShop = ns;
+            if (item is IItemHeldFlag held && edit.Held is bool h) held.IsHeld = h;
+            if (removeSlot)
+            {
+                for (int i = edit.Slot; i < pouch.Items.Length - 1; i++) pouch.Items[i] = pouch.Items[i + 1];
+                pouch.Items[^1] = pouch.GetEmpty();
+            }
+        });
+    }
+
+    internal static string Transform(SaveFile save, PlayerBag bag, Action mutate)
+    {
         var buffer = Buffer(save);
         var original = buffer.ToArray();
         bag.CopyTo(save);
         var baseline = buffer.ToArray();
         original.CopyTo(buffer);
-        item.Index = edit.Id; item.Count = edit.Count;
-        if (item is IItemFavorite favorite && edit.Favorite is bool f) favorite.IsFavorite = f;
-        if (item is IItemNewFlag fresh && edit.IsNew is bool n) fresh.IsNew = n;
-        if (item is IItemFreeSpace free && edit.FreeSpace is bool fs) free.IsFreeSpace = fs;
-        if (item is IItemFreeSpaceIndex order && edit.FreeSpaceIndex is uint fi) order.FreeSpaceIndex = fi;
-        if (item is IItemNewShopFlag shop && edit.NewShop is bool ns) shop.IsNewShop = ns;
-        if (item is IItemHeldFlag held && edit.Held is bool h) held.IsHeld = h;
-        if (removeSlot)
-        {
-            for (int i = edit.Slot; i < pouch.Items.Length - 1; i++) pouch.Items[i] = pouch.Items[i + 1];
-            pouch.Items[^1] = pouch.GetEmpty();
-        }
+        mutate();
         bag.CopyTo(save);
         var expected = Snapshot(save);
         // Apply only bits changed by the requested edit, excluding Core's unchanged normalization.

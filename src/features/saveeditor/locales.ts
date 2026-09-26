@@ -3,8 +3,29 @@ import { saveEditorCopy } from "./copy";
 export const saveEditorResources = {
   zh: {
     inventory: "背包",
+    bagBatchTitle: "整理当前口袋",
+    bagBatchNote:
+      "仅处理当前口袋已应用的数据，不包含未应用的单格草稿。排序使用当前语言名称；数量会按每种道具上限截取。所有操作均可撤销。",
+    bagAction: "操作",
+    bagSortName: "名称",
+    bagSortNameReverse: "名称(反向)",
+    bagSortCount: "数量",
+    bagSortCountReverse: "数量(反向)",
+    bagSortId: "序号",
+    bagSortIdReverse: "序号(反向)",
+    bagSetCount: "统一已有道具数量",
+    bagGiveAll: "获得全部",
+    bagClearAll: "清空当前口袋",
+    bagApplyBatch: "应用口袋操作",
+    bagCapacityOrder: "容量不足时的选择方式",
+    bagOrdered: "按目录顺序",
+    bagRandom: "随机选择",
+    bagGiveAllNote:
+      "这会替换当前口袋的内容和标记，仅添加核心规则允许获得的道具。",
+    bagCrampedNote: "口袋容量小于道具目录，将按所选方式填满可用格位。",
+    bagClearAllNote: "这会清空当前口袋的全部道具及标记，其他口袋保持不变。",
     inventoryReadNote:
-      "选择道具编辑种类、数量和标记，应用后更新工作副本，可撤销或导出。异常值不会自动清理；排序、批量操作和道具图片尚未接入。",
+      "选择道具编辑种类、数量和标记，或展开口袋整理。应用后更新工作副本，可撤销或导出。读取不会自动清理异常值。道具图片尚未接入。",
     editBagItem: "编辑道具",
     revertBagItem: "还原道具草稿",
     clearBagItem: "清空此格位",
@@ -352,8 +373,31 @@ export const saveEditorResources = {
   },
   en: {
     inventory: "Inventory",
+    bagBatchTitle: "Organize current pouch",
+    bagBatchNote:
+      "Uses applied data in this pouch, excluding unsaved single-slot drafts. Name sorting uses the current language. Quantities are clamped per item. Every operation can be undone.",
+    bagAction: "Action",
+    bagSortName: "Name",
+    bagSortNameReverse: "Name (Reverse)",
+    bagSortCount: "Count",
+    bagSortCountReverse: "Count (Reverse)",
+    bagSortId: "Index",
+    bagSortIdReverse: "Index (Reverse)",
+    bagSetCount: "Set existing item counts",
+    bagGiveAll: "Give all",
+    bagClearAll: "Clear current pouch",
+    bagApplyBatch: "Apply pouch action",
+    bagCapacityOrder: "Selection when capacity is limited",
+    bagOrdered: "Catalog order",
+    bagRandom: "Random selection",
+    bagGiveAllNote:
+      "Replaces this pouch's contents and flags with items permitted by the core's give rules.",
+    bagCrampedNote:
+      "The catalog exceeds pouch capacity. Available slots will be filled using the selected method.",
+    bagClearAllNote:
+      "Clears every item and flag in this pouch. Other pouches are preserved.",
     inventoryReadNote:
-      "Select an item to edit its identity, quantity and flags. Apply to the working copy, then undo or export. Unusual values are not cleaned automatically. Sorting, bulk actions and item images are not connected yet.",
+      "Select an item to edit its identity, quantity and flags, or expand pouch actions. Apply to the working copy, then undo or export. Reading does not clean unusual values. Item images are not connected yet.",
     editBagItem: "Edit item",
     revertBagItem: "Revert item draft",
     clearBagItem: "Clear this slot",
@@ -709,8 +753,31 @@ export const saveEditorResources = {
   },
   ja: {
     inventory: "バッグ",
+    bagBatchTitle: "現在のポケットを整理",
+    bagBatchNote:
+      "現在のポケットの適用済みデータを対象とし、未適用の個別編集は含みません。名前順は現在の言語を使い、個数は道具別の上限に収めます。すべて元に戻せます。",
+    bagAction: "操作",
+    bagSortName: "名前順(昇順)",
+    bagSortNameReverse: "名前順(降順)",
+    bagSortCount: "個数順(昇順)",
+    bagSortCountReverse: "個数順(降順)",
+    bagSortId: "種類順(昇順)",
+    bagSortIdReverse: "種類順(降順)",
+    bagSetCount: "既存の道具の個数を統一",
+    bagGiveAll: "すべて入手",
+    bagClearAll: "現在のポケットを空にする",
+    bagApplyBatch: "ポケット操作を適用",
+    bagCapacityOrder: "容量不足時の選択方法",
+    bagOrdered: "リスト順",
+    bagRandom: "ランダム",
+    bagGiveAllNote:
+      "現在のポケットの内容とフラグを置き換え、コアの入手ルールで許可された道具のみ追加します。",
+    bagCrampedNote:
+      "リストがポケット容量を超えるため、選択した方法で空きスロットを埋めます。",
+    bagClearAllNote:
+      "現在のポケットの道具とフラグをすべて消去します。他のポケットは保持します。",
     inventoryReadNote:
-      "道具を選択して種類・個数・フラグを編集します。作業コピーに適用後、元に戻すか出力できます。異常値は自動削除しません。並べ替え・一括操作・道具画像は未対応です。",
+      "道具の種類・個数・フラグを編集するか、ポケットの整理を開きます。作業コピーに適用後、元に戻すか出力できます。読み取り時は異常値を自動削除しません。道具画像は未対応です。",
     editBagItem: "道具を編集",
     revertBagItem: "道具の変更を戻す",
     clearBagItem: "このスロットを空にする",

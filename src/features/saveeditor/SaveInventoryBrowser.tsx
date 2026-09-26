@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
-import type { BagEdit, BagReport } from "./domain";
+import type { BagEdit, BagOperation, BagReport } from "./domain";
+import { SaveInventoryBatch } from "./SaveInventoryBatch";
 import { SaveInventoryEditor } from "./SaveInventoryEditor";
 import type { saveEditorResources } from "./locales";
 
@@ -10,11 +11,13 @@ export function SaveInventoryBrowser({
   onRead,
   canEdit,
   onApply,
+  onBatch,
 }: {
   busy: boolean;
   onRead(): Promise<BagReport | undefined>;
   canEdit: boolean;
   onApply(edit: BagEdit): Promise<void>;
+  onBatch(edit: BagOperation): Promise<void>;
 }) {
   const { t, i18n } = useTranslation();
   const words = t("saveEditor", {
@@ -103,6 +106,14 @@ export function SaveInventoryBrowser({
               />
             </label>
           </div>
+          {pouch && (
+            <SaveInventoryBatch
+              key={pouch.index}
+              pouch={pouch}
+              disabled={busy || !canEdit}
+              onApply={onBatch}
+            />
+          )}
           <label className="save-inventory-empty">
             <input
               type="checkbox"

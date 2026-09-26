@@ -19,6 +19,7 @@ export class SaveEditorClient {
       | "trainer"
       | "inventory"
       | "inventoryEdit"
+      | "inventoryBatch"
       | "pokemon"
       | "pokemonRaw"
       | "legality"

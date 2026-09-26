@@ -9,6 +9,7 @@ interface SaveExports {
         Inspect(data: Uint8Array): string;
         ReadInventory(data: Uint8Array): string;
         EditInventory(data: Uint8Array, json: string): Uint8Array;
+        EditInventoryBatch(data: Uint8Array, json: string): Uint8Array;
         Export(data: Uint8Array, json: string): Uint8Array;
         EditPokemon(data: Uint8Array, json: string): Uint8Array;
         EditPokemonRaw(data: Uint8Array, json: string): Uint8Array;
@@ -54,6 +55,7 @@ self.addEventListener(
         | "trainer"
         | "inventory"
         | "inventoryEdit"
+        | "inventoryBatch"
         | "pokemon"
         | "pokemonRaw"
         | "legality"
@@ -87,22 +89,24 @@ self.addEventListener(
         kind === "relearnSuggestion"
           ? undefined
           : new Uint8Array(
-              kind === "inventoryEdit"
-                ? api.EditInventory(bytes, edit)
-                : kind === "pokemonRaw"
-                  ? api.EditPokemonRaw(bytes, edit)
-                  : kind === "pokemon"
-                    ? api.EditPokemon(bytes, edit)
-                    : kind === "box"
-                      ? api.EditBox(bytes, edit)
-                      : kind === "storage"
-                        ? api.EditStorage(bytes, edit)
-                        : kind === "pokemonImport"
-                          ? api.ImportPokemon(bytes, edit)
-                          : api.Export(bytes, edit),
+              kind === "inventoryBatch"
+                ? api.EditInventoryBatch(bytes, edit)
+                : kind === "inventoryEdit"
+                  ? api.EditInventory(bytes, edit)
+                  : kind === "pokemonRaw"
+                    ? api.EditPokemonRaw(bytes, edit)
+                    : kind === "pokemon"
+                      ? api.EditPokemon(bytes, edit)
+                      : kind === "box"
+                        ? api.EditBox(bytes, edit)
+                        : kind === "storage"
+                          ? api.EditStorage(bytes, edit)
+                          : kind === "pokemonImport"
+                            ? api.ImportPokemon(bytes, edit)
+                            : api.Export(bytes, edit),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 30)
+      if (report.apiVersion !== 31)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined

@@ -12,6 +12,7 @@
     <Compile Include="../Program.cs" Link="SaveService.cs" />
     <Compile Include="../InventoryReader.cs" Link="InventoryReader.cs" />
     <Compile Include="../InventoryEditing.cs" Link="InventoryEditing.cs" />
+    <Compile Include="../InventoryBatch.cs" Link="InventoryBatch.cs" />
     <Compile Include="../PokemonLegality.cs" Link="PokemonLegality.cs" />
     <Compile Include="../BoxEditing.cs" Link="BoxEditing.cs" />
     <Compile Include="../StorageEditing.cs" Link="StorageEditing.cs" />

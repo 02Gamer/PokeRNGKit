@@ -24,6 +24,10 @@
 
 ## 当前工程证据
 
+API 31 接入口袋六种排序、统一数量、获得全部、清空和容量不足时的随机选择，沿用上游核心方法与输入限制。
+单格/批量共用编码差异合入、工作副本及撤销流程；11 种存档排序/批量完整输出、随机容量/范围、输入边界、原生套件、648 前端测试与变更文件 lint 通过。
+特殊道具独立数量上限、类型、核心与网页构建通过，保留既有构建警告；浏览器待核验。道具图片和 HaX 模式仍待接入。
+
 API 30 接入单格道具种类、数量及支持标记编辑、清空草稿与撤销联动。
 按口袋/道具限定输入，合入核心编码差异并核对完整背包；早期格式清空时前移后续格位。
 11 种存档完整输出、标记往返、顺序/保留位、原生套件、648 前端测试、类型及变更文件 lint 通过。
@@ -279,7 +283,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | 待核对                                                    |
 | `Subforms/Save Editors/SAV_EventWork.cs`                                      | 待核对                                                    |
 | `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 待核对                                                    |
-| `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取与单格编辑已实现；排序、批量操作及图片待接入          |
+| `Subforms/Save Editors/SAV_Inventory.cs`                                      | 普通模式读取/编辑/整理已实现；图片与 HaX 模式待接入       |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                    |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                    |
 | `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 待核对                                                    |

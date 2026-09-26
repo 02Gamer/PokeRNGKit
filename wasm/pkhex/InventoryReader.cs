@@ -6,7 +6,7 @@ namespace PokeRNGKit.SaveEditor;
 public sealed record BagItem(int Slot, int Id, LocalizedText Name, int Count, int MaxCount, bool Allowed,
     bool? Favorite, bool? IsNew, bool? FreeSpace, uint? FreeSpaceIndex, bool? NewShop, bool? Held);
 public sealed record BagChoice(int Id, LocalizedText Name, int MaxCount);
-public sealed record BagPouch(int Index, string Type, int MaxCount, BagItem[] Items, BagChoice[] Choices);
+public sealed record BagPouch(int Index, string Type, int MaxCount, BagItem[] Items, BagChoice[] Choices, bool CanGive, bool IsCramped);
 public sealed record BagReport(BagPouch[] Pouches);
 
 internal static class InventoryReader
@@ -32,6 +32,7 @@ internal static class InventoryReader
                 item is IItemNewShopFlag shop ? shop.IsNewShop : null,
                 item is IItemHeldFlag held ? held.IsHeld : null)).ToArray(),
             new ushort[] { 0 }.Concat(pouch.GetAllItems().ToArray()).Distinct().Select(id =>
-                new BagChoice(id, new(Name(zh,id),Name(en,id),Name(ja,id)), id == 0 ? 0 : bag.GetMaxCount(pouch.Type,id))).ToArray())).ToArray());
+                new BagChoice(id, new(Name(zh,id),Name(en,id),Name(ja,id)), id == 0 ? 0 : bag.GetMaxCount(pouch.Type,id))).ToArray(),
+            InventoryBatch.CanGive(save,pouch),pouch.IsCramped)).ToArray());
     }
 }
