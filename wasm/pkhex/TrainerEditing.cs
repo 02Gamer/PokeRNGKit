@@ -8,14 +8,14 @@ public sealed record TrainerEdit(string Ot, ushort Tid, ushort Sid, uint Money,
     int? Country = null, int? Region = null, int? ConsoleRegion = null, int? Badges = null, TrainerCurrencyEdit? Currencies = null);
 public sealed record TrainerLocation(int Country, int Region, int ConsoleRegion);
 public sealed record TrainerGeography(TrainerLocation Value, OriginChoice[] Countries, GeoRegions[] Regions, OriginChoice[] Consoles);
-public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages, TrainerGeography? Geography, TrainerBadgeState? Badges, TrainerCurrencyField[] Currencies);
+public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages, TrainerGeography? Geography, TrainerBadgeState? Badges, TrainerCurrencyField[] Currencies, bool CanRecords);
 internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance, int Language, uint? RuntimeLanguage, TrainerLocation? Location, TrainerBadgeState? Badges, string Currencies);
 
 internal static class TrainerEditing
 {
     public static TrainerOptions Options(SaveFile save) => new(save.Generation > 1,
         save is SAV3 or SAV4 or SAV5 or SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS,
-        save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds, Languages(save), Geography(save), TrainerBadges.Read(save), TrainerCurrencies.Read(save));
+        save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds, Languages(save), Geography(save), TrainerBadges.Read(save), TrainerCurrencies.Read(save), SaveRecords.Supports(save));
     private static readonly Lazy<OriginChoice[]> Consoles = new(() => Locale3DS.DefinedLocales.ToArray().Select(id =>
         new OriginChoice(id,new(GameInfo.GetStrings("zh-Hans").console3ds[id],GameInfo.GetStrings("en").console3ds[id],GameInfo.GetStrings("ja").console3ds[id]))).ToArray());
     private static TrainerLocation? Location(SaveFile save) => save is IRegionOrigin g ? new(g.Country,g.Region,g.ConsoleRegion) : null;

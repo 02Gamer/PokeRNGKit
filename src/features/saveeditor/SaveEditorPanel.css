@@ -134,6 +134,16 @@
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 4px 12px;
 }
+.save-record-editor {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.save-record-editor input {
+  min-height: 44px;
+  font-size: 15px;
+  width: 100%;
+}
 .save-editor-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

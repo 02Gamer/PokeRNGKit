@@ -28,6 +28,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 import { SavePokemonBrowser } from "./SavePokemonBrowser";
 import { SaveInventoryBrowser } from "./SaveInventoryBrowser";
 import { TrainerGeographyFields } from "./TrainerGeographyFields";
+import { SaveRecordEditor } from "./SaveRecordEditor";
 
 export function SaveEditorPanel(
   controllers: Omit<SaveProfileControllers, "gen5">,
@@ -50,9 +51,9 @@ export function SaveEditorPanel(
   const [report, setReport] = useState<SaveReport>();
   const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
-  const [section, setSection] = useState<"pokemon" | "trainer" | "inventory">(
-    "pokemon",
-  );
+  const [section, setSection] = useState<
+    "pokemon" | "trainer" | "inventory" | "records"
+  >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
     bp: "",
     pokeMiles: "",
@@ -128,6 +129,11 @@ export function SaveEditorPanel(
       working.current = bytes;
       setHistory([]);
       setReport(result.report);
+      setSection((previous) =>
+        previous === "records" && !result.report.trainer.canRecords
+          ? "trainer"
+          : previous,
+      );
       setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setDraft(trainerDraft(result.report));
@@ -176,6 +182,22 @@ export function SaveEditorPanel(
       inventory = result.inventory;
     });
     return inventory;
+  };
+
+  const readRecords = async () => {
+    let catalog: import("./domain").SaveRecordCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "records",
+      );
+      if (id !== operation.current) return;
+      if (!result.records) throw new Error("No game records were returned.");
+      catalog = result.records;
+    });
+    return catalog;
   };
 
   const readHistory = async (query: import("./domain").PokemonPosition) => {
@@ -287,6 +309,7 @@ export function SaveEditorPanel(
       | BoxEdit
       | import("./domain").BagEdit
       | import("./domain").BagOperation
+      | import("./domain").SaveRecordEdit
       | ReturnType<typeof validateTrainer>
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
@@ -298,6 +321,7 @@ export function SaveEditorPanel(
       | "pokemonImport"
       | "inventoryEdit"
       | "inventoryBatch"
+      | "recordEdit"
       | "trainer",
   ) =>
     perform(async (id) => {
@@ -507,8 +531,26 @@ export function SaveEditorPanel(
             >
               {words.inventory}
             </button>
+            {report.trainer.canRecords && (
+              <button
+                type="button"
+                aria-pressed={section === "records"}
+                onClick={() => setSection("records")}
+              >
+                {words.recordsTitle}
+              </button>
+            )}
           </div>
-          {section === "inventory" ? (
+          {section === "records" && report.trainer.canRecords ? (
+            <SaveRecordEditor
+              key={`${name}:${fileRevision}`}
+              revision={workingRevision}
+              busy={busy}
+              canEdit={report.canEdit}
+              onRead={readRecords}
+              onApply={(edit) => applyWorkingEdit(edit, "recordEdit")}
+            />
+          ) : section === "inventory" ? (
             <SaveInventoryBrowser
               key={workingRevision}
               busy={busy}

@@ -298,6 +298,19 @@ export const saveEditorResources = {
       "剑／盾更改性别时，会沿用当前肤色并重置角色外观与穿着；可通过撤销恢复。",
     applyTrainer: "应用训练家修改",
     trainerLanguage: "存档语言",
+    recordsTitle: "游戏记录",
+    recordsRead: "读取游戏记录",
+    recordsChoose: "记录名称或编号",
+    recordsValue: "记录数值",
+    recordsApply: "应用记录修改",
+    recordsClamp:
+      "此记录的正常上限是 {max}。修改超限原值后，将按正常上限保存。",
+    recordsNegative: "原记录是负数，未修改时会保持；新数值须为非负整数。",
+    recordsTime: "时间说明",
+    recordsDetails: "记录详情",
+    recordsOffset: "记录区偏移",
+    recordsError: "无法修改此记录，请检查编号和数值范围。",
+    recordsRepresentError: "此格式无法完整回读请求的记录数值，修改已取消。",
     trainerCurrencyNames: {
       bp: "对战点数（BP）",
       pokeMiles: "宝可里程",
@@ -715,6 +728,22 @@ export const saveEditorResources = {
       "In Sword/Shield, changing gender resets appearance and clothing using the current skin tone. Undo restores the previous state.",
     applyTrainer: "Apply trainer changes",
     trainerLanguage: "Save language",
+    recordsTitle: "Game records",
+    recordsRead: "Read game records",
+    recordsChoose: "Record name or index",
+    recordsValue: "Record value",
+    recordsApply: "Apply record change",
+    recordsClamp:
+      "The normal maximum is {max}. Editing an existing over-limit value clamps it to the normal maximum.",
+    recordsNegative:
+      "The original record is negative and remains unchanged until edited. New values must be nonnegative integers.",
+    recordsTime: "Time interpretation",
+    recordsDetails: "Record details",
+    recordsOffset: "Record block offset",
+    recordsError:
+      "Unable to edit this record. Check its index and value range.",
+    recordsRepresentError:
+      "This format cannot read back the requested record value. The change was cancelled.",
     trainerCurrencyNames: {
       bp: "Battle Points (BP)",
       pokeMiles: "Poké Miles",
@@ -1142,6 +1171,21 @@ export const saveEditorResources = {
       "ソード・シールドで性別を変更すると、現在の肌色に合わせて外見と服装をリセットします。取り消しで元に戻せます。",
     applyTrainer: "トレーナーの変更を適用",
     trainerLanguage: "セーブの言語",
+    recordsTitle: "ゲームの記録",
+    recordsRead: "ゲームの記録を読み込む",
+    recordsChoose: "記録名または番号",
+    recordsValue: "記録値",
+    recordsApply: "記録の変更を適用",
+    recordsClamp:
+      "通常の上限は{max}です。上限を超える元の値を変更すると通常の上限で保存されます。",
+    recordsNegative:
+      "元の値は負数です。変更しなければ保持されます。新しい値は0以上の整数にしてください。",
+    recordsTime: "時間の解釈",
+    recordsDetails: "記録の詳細",
+    recordsOffset: "記録ブロック内の位置",
+    recordsError: "記録を変更できません。番号と値の範囲を確認してください。",
+    recordsRepresentError:
+      "この形式では指定した記録値を読み戻せないため、変更を取り消しました。",
     trainerCurrencyNames: {
       bp: "バトルポイント（BP）",
       pokeMiles: "ポケマイル",
@@ -1278,6 +1322,9 @@ export function localizeSaveError(
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
   if (/Trainer language/.test(message)) return words.trainerLanguageError;
+  if (/Game record value cannot/.test(message))
+    return words.recordsRepresentError;
+  if (/Game record|game record/.test(message)) return words.recordsError;
   if (/Trainer currency/.test(message)) return words.trainerCurrencyError;
   if (/Trainer badges/.test(message)) return words.trainerBadgesError;
   if (/Trainer geography/.test(message)) return words.trainerGeographyError;

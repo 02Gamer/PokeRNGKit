@@ -6,13 +6,15 @@ import {
   rebaseTrainerDraft,
   changeTrainerCountry,
   validateTrainer,
+  validateSaveRecord,
   parsePokemonHex,
   type SaveReport,
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 38,
+  apiVersion: 39,
   trainer: {
+    canRecords: false,
     currencies: [],
     badges: { count: 8, value: 0 },
     geography: null,
@@ -377,6 +379,24 @@ describe("save editor boundaries", () => {
         report,
       ).bp,
     ).toBe("123");
+  });
+  it("validates game record input using its dynamic upper boundary", () => {
+    const entry = {
+      index: 100,
+      name: "100",
+      value: 15000,
+      max: 15000,
+      normalMax: 9999,
+      offset: 400,
+      timeHint: null,
+    };
+    expect(validateSaveRecord(entry, "14000")).toEqual({
+      index: 100,
+      value: 14000,
+    });
+    expect(validateSaveRecord(entry, "0").value).toBe(0);
+    for (const text of ["", "-1", "1.5", "15001", "9007199254740993"])
+      expect(() => validateSaveRecord(entry, text)).toThrow();
   });
   it("always exports a distinct filename", () => {
     expect(exportSaveName("main")).toBe("edited-main");

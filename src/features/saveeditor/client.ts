@@ -18,6 +18,8 @@ export class SaveEditorClient {
     kind:
       | "trainer"
       | "inventory"
+      | "records"
+      | "recordEdit"
       | "inventoryEdit"
       | "inventoryBatch"
       | "pokemon"

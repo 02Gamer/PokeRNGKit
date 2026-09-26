@@ -8,7 +8,7 @@ export const TRAINER_CURRENCY_KEYS = [
 export type TrainerCurrencyKey = (typeof TRAINER_CURRENCY_KEYS)[number];
 
 export interface SaveReport {
-  apiVersion: 38;
+  apiVersion: 39;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -31,6 +31,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    canRecords: boolean;
     currencies: { key: TrainerCurrencyKey; value: number; max: number }[];
     badges: { count: number; value: number } | null;
     geography: {
@@ -553,6 +554,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  records?: SaveRecordCatalog;
   inventory?: BagReport;
   memoryCatalog?: MemoryCatalog;
   historyCatalog?: HistoryCatalog;
@@ -563,6 +565,35 @@ export interface SaveEditorResult {
   output?: Uint8Array;
   legality?: PokemonLegalityReport;
   pokemonFile?: { fileName: string; data: string };
+}
+
+export interface SaveRecordEntry {
+  index: number;
+  name: string;
+  value: number;
+  max: number;
+  normalMax: number;
+  offset: number;
+  timeHint: string | null;
+}
+export interface SaveRecordCatalog {
+  entries: SaveRecordEntry[];
+}
+export interface SaveRecordEdit {
+  index: number;
+  value: number;
+}
+export function validateSaveRecord(
+  entry: SaveRecordEntry,
+  text: string,
+): SaveRecordEdit {
+  if (
+    !/^\d+$/.test(text) ||
+    !Number.isSafeInteger(Number(text)) ||
+    Number(text) > entry.max
+  )
+    throw new Error("Game record value is out of range.");
+  return { index: entry.index, value: Number(text) };
 }
 
 export interface BagItem {

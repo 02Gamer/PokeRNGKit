@@ -13,6 +13,7 @@
     <Compile Include="../TrainerEditing.cs" Link="TrainerEditing.cs" />
     <Compile Include="../TrainerBadges.cs" Link="TrainerBadges.cs" />
     <Compile Include="../TrainerCurrencies.cs" Link="TrainerCurrencies.cs" />
+    <Compile Include="../SaveRecords.cs" Link="SaveRecords.cs" />
     <Compile Include="../InventoryReader.cs" Link="InventoryReader.cs" />
     <Compile Include="../InventoryEditing.cs" Link="InventoryEditing.cs" />
     <Compile Include="../InventoryBatch.cs" Link="InventoryBatch.cs" />

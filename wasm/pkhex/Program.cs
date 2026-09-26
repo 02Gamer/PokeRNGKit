@@ -24,6 +24,12 @@ public static partial class Program
     public static string ReadInventory(byte[] data) => SaveService.ReadInventory(data);
 
     [JSExport]
+    public static string ReadRecords(byte[] data) => SaveService.ReadRecords(data);
+
+    [JSExport]
+    public static byte[] EditRecord(byte[] data,string json) => SaveService.EditRecord(data,json);
+
+    [JSExport]
     public static byte[] EditInventory(byte[] data, string json) => SaveService.EditInventory(data, json);
 
     [JSExport]
@@ -72,6 +78,20 @@ public static partial class Program
 public static class SaveService
 {
     public const int MaximumSize = 32 * 1024 * 1024;
+
+    public static string ReadRecords(byte[] data) => JsonSerializer.Serialize(SaveRecords.Read(Open(data)),SaveJsonContext.Default.SaveRecordCatalog);
+    public static byte[] EditRecord(byte[] data,string json)
+    {
+        var save=Open(data);
+        if(!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+            throw new ArgumentException("Editing requires a supported save with valid checksums.");
+        var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.SaveRecordEdit) ?? throw new ArgumentException("Missing game record edit.");
+        var expected=SaveRecords.Apply(save,edit);
+        var output=save.Write().ToArray(); var check=Open(output);
+        if(!check.ChecksumsValid || check.GetType()!=save.GetType() || SaveRecords.Snapshot(check)!=expected)
+            throw new InvalidOperationException("Game record export verification failed.");
+        return output;
+    }
 
     public static string ReadInventory(byte[] data) =>
         JsonSerializer.Serialize(InventoryReader.Read(Open(data)), SaveJsonContext.Default.BagReport);
@@ -187,7 +207,7 @@ public static class SaveService
         var save = Open(data);
         var valid = save.ChecksumsValid;
         var report = new SaveReport(
-            38, save.GetType().Name, save.Generation, save.Version.ToString(),
+            39, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
@@ -304,6 +324,8 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(SaveRecordCatalog))]
+[JsonSerializable(typeof(SaveRecordEdit))]
 [JsonSerializable(typeof(BagReport))]
 [JsonSerializable(typeof(BagEdit))]
 [JsonSerializable(typeof(BagOperation))]
