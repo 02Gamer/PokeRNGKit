@@ -21,6 +21,9 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadInventory(byte[] data) => SaveService.ReadInventory(data);
+
+    [JSExport]
     public static byte[] Export(byte[] data, string json) => SaveService.Export(data, json);
 
     [JSExport]
@@ -63,6 +66,9 @@ public static partial class Program
 public static class SaveService
 {
     public const int MaximumSize = 32 * 1024 * 1024;
+
+    public static string ReadInventory(byte[] data) =>
+        JsonSerializer.Serialize(InventoryReader.Read(Open(data)), SaveJsonContext.Default.BagReport);
 
     private static SaveFile Open(byte[] data)
     {
@@ -148,7 +154,7 @@ public static class SaveService
         var save = Open(data);
         var valid = save.ChecksumsValid;
         var report = new SaveReport(
-            28, save.GetType().Name, save.Generation, save.Version.ToString(),
+            29, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
@@ -279,6 +285,7 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(BagReport))]
 [JsonSerializable(typeof(RibbonCatalog))]
 [JsonSerializable(typeof(MemoryQuery))]
 [JsonSerializable(typeof(MemoryCatalog))]

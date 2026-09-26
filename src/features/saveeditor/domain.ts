@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 28;
+  apiVersion: 29;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -374,6 +374,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  inventory?: BagReport;
   memoryCatalog?: MemoryCatalog;
   historyCatalog?: HistoryCatalog;
   ribbons?: RibbonCatalog;
@@ -383,6 +384,29 @@ export interface SaveEditorResult {
   output?: Uint8Array;
   legality?: PokemonLegalityReport;
   pokemonFile?: { fileName: string; data: string };
+}
+
+export interface BagItem {
+  slot: number;
+  id: number;
+  name: LocalizedText;
+  count: number;
+  maxCount: number;
+  allowed: boolean;
+  favorite: boolean | null;
+  isNew: boolean | null;
+  freeSpace: boolean | null;
+  freeSpaceIndex: number | null;
+  newShop: boolean | null;
+  held: boolean | null;
+}
+export interface BagReport {
+  pouches: {
+    index: number;
+    type: string;
+    maxCount: number;
+    items: BagItem[];
+  }[];
 }
 
 export interface BoxEdit {

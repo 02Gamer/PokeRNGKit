@@ -17,6 +17,7 @@ export class SaveEditorClient {
     edit?: string,
     kind:
       | "trainer"
+      | "inventory"
       | "pokemon"
       | "pokemonRaw"
       | "legality"

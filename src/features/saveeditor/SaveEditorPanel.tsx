@@ -25,6 +25,7 @@ import "./SaveEditorPanel.css";
 import { saveEditorResources, localizeSaveError } from "./locales";
 import type { PokemonEdit } from "./PokemonEditor";
 import { SavePokemonBrowser } from "./SavePokemonBrowser";
+import { SaveInventoryBrowser } from "./SaveInventoryBrowser";
 
 export function SaveEditorPanel(
   controllers: Omit<SaveProfileControllers, "gen5">,
@@ -47,7 +48,9 @@ export function SaveEditorPanel(
   const [report, setReport] = useState<SaveReport>();
   const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
-  const [section, setSection] = useState<"pokemon" | "trainer">("pokemon");
+  const [section, setSection] = useState<"pokemon" | "trainer" | "inventory">(
+    "pokemon",
+  );
   const [draft, setDraft] = useState<TrainerDraft>({
     ot: "",
     tid: "",
@@ -143,6 +146,22 @@ export function SaveEditorPanel(
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
       setStatus("exported");
     });
+
+  const readInventory = async () => {
+    let inventory: import("./domain").BagReport | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "inventory",
+      );
+      if (id !== operation.current) return;
+      if (!result.inventory) throw new Error("No inventory was returned.");
+      inventory = result.inventory;
+    });
+    return inventory;
+  };
 
   const readHistory = async (query: import("./domain").PokemonPosition) => {
     let catalog: import("./domain").HistoryCatalog | undefined;
@@ -446,8 +465,21 @@ export function SaveEditorPanel(
             >
               {words.trainer}
             </button>
+            <button
+              type="button"
+              aria-pressed={section === "inventory"}
+              onClick={() => setSection("inventory")}
+            >
+              {words.inventory}
+            </button>
           </div>
-          {section === "pokemon" ? (
+          {section === "inventory" ? (
+            <SaveInventoryBrowser
+              key={workingRevision}
+              busy={busy}
+              onRead={readInventory}
+            />
+          ) : section === "pokemon" ? (
             <SavePokemonBrowser
               key={`${name}:${fileRevision}`}
               report={report}

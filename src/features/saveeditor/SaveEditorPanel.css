@@ -358,3 +358,59 @@
 .save-ribbon-status[data-status="missing"] {
   color: var(--warning-text);
 }
+
+.save-inventory {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.save-inventory-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.save-inventory-table {
+  max-height: 420px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.save-inventory-table:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.save-inventory-table table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 440px;
+}
+.save-inventory-table th,
+.save-inventory-table td {
+  text-align: start;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.save-inventory-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+.save-inventory-table caption {
+  text-align: start;
+  padding: 8px 12px;
+}
+.save-inventory-meta,
+.save-inventory-warning {
+  display: block;
+  font-size: 13px;
+  line-height: 20px;
+}
+.save-inventory-meta {
+  color: var(--muted);
+}
+.save-inventory-warning {
+  color: var(--warning-text);
+}

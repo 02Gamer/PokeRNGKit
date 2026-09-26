@@ -7,6 +7,7 @@ interface SaveExports {
       Program: {
         ConfigureBrowserCrypto(): void;
         Inspect(data: Uint8Array): string;
+        ReadInventory(data: Uint8Array): string;
         Export(data: Uint8Array, json: string): Uint8Array;
         EditPokemon(data: Uint8Array, json: string): Uint8Array;
         EditPokemonRaw(data: Uint8Array, json: string): Uint8Array;
@@ -50,6 +51,7 @@ self.addEventListener(
       edit?: string;
       kind?:
         | "trainer"
+        | "inventory"
         | "pokemon"
         | "pokemonRaw"
         | "legality"
@@ -73,6 +75,7 @@ self.addEventListener(
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
       const output =
         edit === undefined ||
+        kind === "inventory" ||
         kind === "legality" ||
         kind === "pokemonExport" ||
         kind === "originCatalog" ||
@@ -95,7 +98,7 @@ self.addEventListener(
                         : api.Export(bytes, edit),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 28)
+      if (report.apiVersion !== 29)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined
@@ -129,6 +132,10 @@ self.addEventListener(
         {
           id,
           report,
+          inventory:
+            kind === "inventory"
+              ? JSON.parse(api.ReadInventory(bytes))
+              : undefined,
           output,
           legality,
           pokemonFile,
