@@ -308,6 +308,7 @@ export const saveEditorResources = {
     recordsNegative: "原记录是负数，未修改时会保持；新数值须为非负整数。",
     recordsTime: "时间说明",
     recordsDetails: "记录详情",
+    recordsSourceName: "上游原名",
     recordsOffset: "记录区偏移",
     recordsError: "无法修改此记录，请检查编号和数值范围。",
     recordsRepresentError: "此格式无法完整回读请求的记录数值，修改已取消。",
@@ -739,6 +740,7 @@ export const saveEditorResources = {
       "The original record is negative and remains unchanged until edited. New values must be nonnegative integers.",
     recordsTime: "Time interpretation",
     recordsDetails: "Record details",
+    recordsSourceName: "Upstream name",
     recordsOffset: "Record block offset",
     recordsError:
       "Unable to edit this record. Check its index and value range.",
@@ -1182,6 +1184,7 @@ export const saveEditorResources = {
       "元の値は負数です。変更しなければ保持されます。新しい値は0以上の整数にしてください。",
     recordsTime: "時間の解釈",
     recordsDetails: "記録の詳細",
+    recordsSourceName: "上流の原名",
     recordsOffset: "記録ブロック内の位置",
     recordsError: "記録を変更できません。番号と値の範囲を確認してください。",
     recordsRepresentError:

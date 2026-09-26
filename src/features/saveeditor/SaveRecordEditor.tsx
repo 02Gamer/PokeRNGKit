@@ -8,6 +8,7 @@ import {
   type SaveRecordEntry,
 } from "./domain";
 import { localizeSaveError, type saveEditorResources } from "./locales";
+import { saveRecordName } from "./recordNames";
 
 export function SaveRecordEditor({
   revision,
@@ -22,7 +23,7 @@ export function SaveRecordEditor({
   onRead(): Promise<SaveRecordCatalog | undefined>;
   onApply(edit: SaveRecordEdit): Promise<void>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const words = t("saveEditor", {
     returnObjects: true,
   }) as typeof saveEditorResources.en;
@@ -69,7 +70,8 @@ export function SaveRecordEditor({
             >
               {catalog.entries.map((item) => (
                 <option key={item.index} value={item.index}>
-                  {String(item.index).padStart(3, "0")} · {item.name}
+                  {String(item.index).padStart(3, "0")} ·{" "}
+                  {saveRecordName(item.name, i18n.language)}
                 </option>
               ))}
             </Select>
@@ -143,6 +145,9 @@ function RecordForm({
       )}
       <details>
         <summary>{words.recordsDetails}</summary>
+        <p className="save-editor-note">
+          {words.recordsSourceName}: {entry.name}
+        </p>
         <p className="save-editor-note">
           {words.recordsOffset}: 0x{entry.offset.toString(16).toUpperCase()}
         </p>

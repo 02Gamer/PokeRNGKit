@@ -26,7 +26,8 @@
 
 API 39 接入 TrainerStat 对应的游戏记录选择与编辑，支持动态上限、偏移详情、时间解释及工作副本/撤销。
 五种存档的全部 200/30 项完整输出、边界与异常原值保持、原生套件、剑／盾 Core 对象、14 项前端测试通过。
-最终类型、变更文件 lint、核心与网页构建通过，保留既有构建警告；界面操作三语，记录专用名称词表与浏览器仍待完善。
+最终类型、变更文件 lint、核心与网页构建通过，保留既有构建警告。
+后续补齐记录三语名称，按上游字符串匹配并保留原名详情，未知含义明确标注；浏览器仍待核验。
 
 API 38 接入训练家 BP、宝可里程、圆庆币和瓦特，按格式控制范围并联动对应累计记录。
 七种存档完整输出、边界/未改异常值、累计记录及剑／盾 Core 对象、原生套件通过。
@@ -328,6 +329,6 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                       |
 | `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/性别/时间/徽章/对应点数已接入；其他字段待接入           |
 | `Subforms/Save Editors/SAV_Wondercard.cs`                                     | 待核对                                                       |
-| `Subforms/Save Editors/TrainerStat.cs`                                        | 读写已接入；专名翻译与浏览器待核验                           |
+| `Subforms/Save Editors/TrainerStat.cs`                                        | 读写与三语名称已接入；浏览器待核验                           |
 | `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                       |
 | `Subforms/SettingsEditor.cs`                                                  | 待核对                                                       |
