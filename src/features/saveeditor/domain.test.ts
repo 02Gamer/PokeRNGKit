@@ -10,8 +10,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 34,
+  apiVersion: 35,
   trainer: {
+    languages: [],
     canGender: true,
     canPlayTime: true,
     hours: 1,
@@ -162,6 +163,40 @@ describe("save editor boundaries", () => {
       money: "999",
       seconds: "45",
     });
+  });
+  it("uses the save-specific language catalog and rebases language on undo", () => {
+    const report = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        languages: [
+          { id: 2, name: { zh: "英语", en: "English", ja: "英語" } },
+          { id: 9, name: { zh: "简体中文", en: "Chinese", ja: "中国語" } },
+        ],
+      },
+    };
+    expect(
+      validateTrainer({ ...trainerDraft(report), language: "9" }, report)
+        .language,
+    ).toBe(9);
+    for (const language of ["", "6", "11", "2.5"])
+      expect(() =>
+        validateTrainer({ ...trainerDraft(report), language }, report),
+      ).toThrow();
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(emeraldReport), language: "9" },
+        emeraldReport,
+      ),
+    ).toThrow();
+    const unusual = { ...report, language: 0 };
+    expect(
+      validateTrainer(trainerDraft(unusual), unusual).language,
+    ).toBeUndefined();
+    const changed = { ...report, language: 9 };
+    expect(
+      rebaseTrainerDraft(trainerDraft(changed), changed, report).language,
+    ).toBe("2");
   });
   it("always exports a distinct filename", () => {
     expect(exportSaveName("main")).toBe("edited-main");

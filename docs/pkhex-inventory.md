@@ -17,12 +17,18 @@
 | 宝可梦编辑   | 基础身份、属性/能力值、招式、初训家/相遇、蛋、缎带、记忆、世代特有字段 | 基础字段已实现，其余待实现                                 |
 | 仓储操作     | 导入/导出单只、移动/交换/复制/删除、箱名/壁纸、批量编辑、撤销          | 单只文件、队伍/盒子整理、箱名/壁纸及撤销已实现；批量待实现 |
 | 合法性工具   | 分析报告、遇敌来源、数据转换、实体/礼物数据库                          | 单只报告已实现，浏览器待检查                               |
-| 通用存档     | 完整训练家、背包、图鉴、神秘礼物、事件标记/常量                        | 训练家基础/性别/时间与背包已实现，其余待接入               |
+| 通用存档     | 完整训练家、背包、图鉴、神秘礼物、事件标记/常量                        | 训练家基础/性别/时间/部分语言与背包已实现，其余待接入      |
 | 世代专属     | 以下每个上游子窗口对应功能及特殊槽位                                   | 待逐项实现                                                 |
 | 本地文件流程 | 存档识别、备份副本、单体/批量文件和目录导入导出                        | 存档副本、单只文件已实现；批量与目录待实现                 |
 | 平台差异     | WinForms 外壳、桌面插件、任意本机文件监控与原始设备访问                | 评估浏览器等效路径；无后端                                 |
 
 ## 当前工程证据
+
+API 35 接入第六至第八世代已开放格式的训练家存档语言，按版本目录选择，与界面语言独立。
+姓名未改保留原字节，改名使用目标语言编码；剑／盾沿用 Core 同步运行时语言。
+五种存档全部语言与 Unicode 改名、旧格式拒绝、剑／盾 Core 对象及原生套件通过。
+10 项前端测试、类型、变更文件 lint、核心及网页构建通过，保留既有构建警告；浏览器仍待核验。
+其他训练家字段及更多格式仍待接入，不把语言选择视为完整训练家窗口完成。
 
 API 34 接入训练家性别/时间和工作副本应用/撤销，保持未改姓名字节与异常时间原值。
 11 种存档完整输出、剑／盾 Core 对象外观联动、原生套件、9 项前端测试、变更文件 lint、最终类型、核心与网页构建通过。
@@ -251,14 +257,14 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | 待核对                                                    |
 | `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | 待核对                                                    |
 | `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | 基础/性别/时间已接入；其他字段待接入                      |
+| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | 基础/性别/时间/语言已接入；其他字段待接入                 |
 | `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | 基础/性别/时间已接入；其他字段待接入                      |
+| `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | 基础/性别/时间/语言已接入；其他字段待接入                 |
 | `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | 待核对                                                    |
 | `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | 待核对                                                    |
 | `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                    |
@@ -272,9 +278,9 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | 待核对                                                    |
 | `Subforms/Save Editors/Gen8/SAV_Raid8.cs`                                     | 待核对                                                    |
 | `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | 基础/性别/时间已接入；其他字段待接入                      |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | 基础/性别/时间/语言已接入；其他字段待接入                 |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | 基础/性别/时间已接入；其他字段待接入                      |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | 基础/性别/时间/语言已接入；其他字段待接入                 |
 | `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | 待核对                                                    |
 | `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | 待核对                                                    |
 | `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | 待核对                                                    |

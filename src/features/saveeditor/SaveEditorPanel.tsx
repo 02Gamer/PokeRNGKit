@@ -31,7 +31,7 @@ import { SaveInventoryBrowser } from "./SaveInventoryBrowser";
 export function SaveEditorPanel(
   controllers: Omit<SaveProfileControllers, "gen5">,
 ) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const words = t("saveEditor", {
     returnObjects: true,
   }) as typeof saveEditorResources.en;
@@ -53,6 +53,7 @@ export function SaveEditorPanel(
     "pokemon",
   );
   const [draft, setDraft] = useState<TrainerDraft>({
+    language: "",
     ot: "",
     tid: "",
     sid: "",
@@ -598,6 +599,38 @@ export function SaveEditorPanel(
                     />
                   </label>
                 ))}
+                {report.trainer.languages.length > 0 && (
+                  <label className="field">
+                    <span>{words.trainerLanguage}</span>
+                    <Select
+                      value={draft.language}
+                      onChange={(e) =>
+                        setDraft({ ...draft, language: e.target.value })
+                      }
+                    >
+                      {!report.trainer.languages.some(
+                        (choice) => String(choice.id) === draft.language,
+                      ) && (
+                        <option value={draft.language}>
+                          #{draft.language}
+                        </option>
+                      )}
+                      {report.trainer.languages.map((choice) => (
+                        <option key={choice.id} value={choice.id}>
+                          {
+                            choice.name[
+                              i18n.language.startsWith("zh")
+                                ? "zh"
+                                : i18n.language.startsWith("ja")
+                                  ? "ja"
+                                  : "en"
+                            ]
+                          }
+                        </option>
+                      ))}
+                    </Select>
+                  </label>
+                )}
                 {report.trainer.canGender && (
                   <label className="field">
                     <span>{words.gender}</span>
@@ -639,6 +672,9 @@ export function SaveEditorPanel(
                   ))}
               </fieldset>
               <p className="save-editor-note">{words.ids}</p>
+              {report.trainer.languages.length > 0 && (
+                <p className="save-editor-note">{words.trainerLanguageNote}</p>
+              )}
               {report.trainer.canPlayTime && (
                 <p className="save-editor-note">{words.trainerTimeNote}</p>
               )}

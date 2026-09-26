@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 34;
+  apiVersion: 35;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -24,6 +24,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    languages: OriginChoice[];
     canGender: boolean;
     canPlayTime: boolean;
     hours: number;
@@ -155,6 +156,7 @@ export interface PokemonEntry {
 }
 
 export interface TrainerDraft {
+  language: string;
   ot: string;
   tid: string;
   sid: string;
@@ -167,6 +169,7 @@ export interface TrainerDraft {
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
+    language: String(report.language),
     ot: report.ot,
     tid: String(report.tid),
     sid: String(report.sid),
@@ -209,7 +212,18 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
       throw new Error(`${label}: 0–${max}.`);
     return Number(text);
   };
+  const language =
+    draft.language !== String(report.language)
+      ? Number(draft.language)
+      : undefined;
+  if (
+    language !== undefined &&
+    (!/^\d+$/.test(draft.language) ||
+      !report.trainer.languages.some((choice) => choice.id === language))
+  )
+    throw new Error("Trainer language is unsupported for this save.");
   return {
+    language,
     ot: draft.ot,
     tid: integer(draft.tid, 65535, "TID16"),
     sid: integer(draft.sid, 65535, "SID16"),

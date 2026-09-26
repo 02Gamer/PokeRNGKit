@@ -297,6 +297,11 @@ export const saveEditorResources = {
     trainerAppearanceNote:
       "剑／盾更改性别时，会沿用当前肤色并重置角色外观与穿着；可通过撤销恢复。",
     applyTrainer: "应用训练家修改",
+    trainerLanguage: "存档语言",
+    trainerLanguageNote:
+      "修改游戏存档的语言，不切换本工具的界面语言，也不批量翻译现有宝可梦名字。",
+    trainerLanguageError:
+      "请选择此存档支持的语言；当前格式可能不提供语言编辑。",
     trainerValueError:
       "请检查训练家性别和游戏时间：小时为 0–65535，分钟与秒为 0–99。",
     trainerSkinError:
@@ -690,6 +695,11 @@ export const saveEditorResources = {
     trainerAppearanceNote:
       "In Sword/Shield, changing gender resets appearance and clothing using the current skin tone. Undo restores the previous state.",
     applyTrainer: "Apply trainer changes",
+    trainerLanguage: "Save language",
+    trainerLanguageNote:
+      "Changes the game's saved language. It does not change this tool's interface language or translate existing Pokémon names.",
+    trainerLanguageError:
+      "Choose a language supported by this save. Language editing may be unavailable for this format.",
     trainerValueError:
       "Check trainer gender and play time: hours 0–65535, minutes and seconds 0–99.",
     trainerSkinError:
@@ -1087,6 +1097,11 @@ export const saveEditorResources = {
     trainerAppearanceNote:
       "ソード・シールドで性別を変更すると、現在の肌色に合わせて外見と服装をリセットします。取り消しで元に戻せます。",
     applyTrainer: "トレーナーの変更を適用",
+    trainerLanguage: "セーブの言語",
+    trainerLanguageNote:
+      "ゲームのセーブ言語を変更します。このツールの表示言語や既存のポケモンの名前は変更しません。",
+    trainerLanguageError:
+      "このセーブに対応する言語を選んでください。形式によっては言語を編集できません。",
     trainerValueError:
       "性別とプレイ時間を確認してください。時間は0～65535、分と秒は0～99です。",
     trainerSkinError:
@@ -1197,6 +1212,7 @@ export function localizeSaveError(
   if (/Unrecognized/.test(message)) return words.fileError;
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
+  if (/Trainer language/.test(message)) return words.trainerLanguageError;
   if (/unrecognized skin color/.test(message)) return words.trainerSkinError;
   if (
     /Trainer gender|Trainer play time|^(Gender|Hours|Minutes|Seconds):/.test(

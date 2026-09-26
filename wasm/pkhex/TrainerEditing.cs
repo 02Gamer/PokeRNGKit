@@ -4,17 +4,27 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 public sealed record TrainerEdit(string Ot, ushort Tid, ushort Sid, uint Money,
-    int? Gender = null, int? Hours = null, int? Minutes = null, int? Seconds = null);
-public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds);
-internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance);
+    int? Gender = null, int? Hours = null, int? Minutes = null, int? Seconds = null, int? Language = null);
+public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages);
+internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance, int Language, uint? RuntimeLanguage);
 
 internal static class TrainerEditing
 {
     public static TrainerOptions Options(SaveFile save) => new(save.Generation > 1,
         save is SAV3 or SAV4 or SAV5 or SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS,
-        save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds);
+        save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds, Languages(save));
+    internal static OriginChoice[] Languages(SaveFile save)
+    {
+        if (save is not (SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS)) return [];
+        var zh = GameInfo.GetStrings("zh-Hans").languageNames;
+        var en = GameInfo.GetStrings("en").languageNames;
+        var ja = GameInfo.GetStrings("ja").languageNames;
+        return GameInfo.LanguageDataSource(save.Generation,save.Context).Select(x =>
+            new OriginChoice(x.Value,new(zh[x.Value],en[x.Value],ja[x.Value]))).ToArray();
+    }
     internal static TrainerSnapshot Snapshot(SaveFile save) => new(save.OT,save.TID16,save.SID16,save.Money,save.Gender,save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds,
-        save is SAV8SWSH swsh ? Convert.ToHexString(swsh.MyStatus.Data) : null);
+        save is SAV8SWSH swsh ? Convert.ToHexString(swsh.MyStatus.Data) : null,
+        save.Language, save is SAV8SWSH runtime ? runtime.GetValue<uint>(SaveBlockAccessor8SWSH.KGameLanguage) : null);
 
     public static void Apply(SaveFile save, TrainerEdit edit)
     {
@@ -28,8 +38,13 @@ internal static class TrainerEditing
         if ((!options.CanPlayTime && (edit.Hours.HasValue || edit.Minutes.HasValue || edit.Seconds.HasValue)) ||
             edit.Hours is < 0 or > ushort.MaxValue || edit.Minutes is < 0 or > 99 || edit.Seconds is < 0 or > 99)
             throw new ArgumentException("Trainer play time is out of range or unsupported.");
+        if (edit.Language is int language && !options.Languages.Any(x => x.Id == language))
+            throw new ArgumentException("Trainer language is unsupported for this save.");
+        bool nameChanged = save.OT != edit.Ot;
+        // Encode an explicitly changed name using the requested language. Unchanged bytes stay intact.
+        if (edit.Language is int targetLanguage && targetLanguage != save.Language) save.Language = targetLanguage;
         // Like SAV_SimpleTrainer, preserve unchanged name bytes (including trailing data).
-        if (save.OT != edit.Ot) save.OT = edit.Ot;
+        if (nameChanged) save.OT = edit.Ot;
         if (save.TID16 != edit.Tid) save.TID16 = edit.Tid;
         if (save.SID16 != edit.Sid) save.SID16 = edit.Sid;
         if (save.Money != edit.Money) save.Money = edit.Money;

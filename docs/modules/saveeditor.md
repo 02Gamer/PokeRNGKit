@@ -6,7 +6,7 @@
 ## 完整接入扩展
 
 2026-09-26 所有者要求完整接入；范围追踪见 [PKHeX 清单](../pkhex-inventory.md)。
-首批新增可视化仓储，API 3（当前已扩展为 34）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
+首批新增可视化仓储，API 3（当前已扩展为 35）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
 IBoxDetailWallpaper 的壁纸编号及上游 SpriteName 生成的图片键。
 UI 按原始格位保留空位，按上游 BoxEditor.InitializeGrid 使用每盒格数 / 5 的列数；队伍显示 6 格。选择空位不显示上一只宝可梦。
 图片来源为上游 Drawing 资源，按需同源加载；壁纸选择对应 WallpaperUtil.cs，
@@ -790,3 +790,25 @@ GBA/第四世代另植入姓名尾部字节验证保持；所有请求均验证�
 前端草稿校验与撤销草稿同步等共 9 项测试、原生套件、变更文件 lint、最终类型、核心与网页构建通过。
 保留既有裁剪与文件体积警告；浏览器待核验，工程检查不代替所有者验收。
 语言、地区、徽章、地图及各世代专有训练家字段继续按完整清单推进。
+
+## 训练家存档语言（API 35）
+
+训练家面板按存档版本显示语言选择，与应用界面语言独立；选项名称使用 PKHeX 的中、英、日文本。
+应用进入工作副本、撤销和导出流程，不批量修改已有宝可梦的名称或语言。
+当前开放 XY、ORAS、SM、USUM、剑／盾和 BDSP；旧世代简单训练家窗口不新增语言编辑，其他格式继续按完整清单推进。
+
+选项依据为 Gen6/SAV_Trainer、Gen7/SAV_Trainer7、Gen8/SAV_Trainer8/8b 的 CB_Language 与
+Core GameDataSource.LanguageDataSource。第六世代 ID 为 1、2、3、4、5、7、8；第七/八世代另含 9、10。
+界面为固定下拉项，空白、小数及不在当前目录的请求拒绝；未改变的未列出原值保持，不强制归一化。
+标签取 GameInfo.GetStrings(language).languageNames，不更改全局应用语言。
+
+存储依据为 MyStatus6.Language（0x2D 字节）、MyStatus7.Language（0x35 字节）、
+MyStatus8.Language（0xA7 字节）及 ConfigSave8b.Language（配置块偏移 4 的 int32）。
+剑／盾沿用 Core setter 同步 KGameLanguage：编号大于等于 6 时减 1，未改语言不调用 setter。
+导出回读同时核对训练家语言、剑／盾完整 MyStatus 与运行时语言值。
+同时改变姓名时先设置目标语言再编码新姓名；姓名未变时保留全部原始名称字节，包括尾部数据。
+
+X、OR、SN、US、BD 覆盖每个支持语言、日/韩/中文姓名、完整输出比较、原输入与尾部字节保持及无效请求。
+剑／盾测试仅使用 Core 创建对象，并显式初始化空模板运行时语言块类型；不代表真实存档往返验收。
+上述检查与原生套件、10 项前端测试、类型、变更文件 lint、核心及网页构建通过。
+保留既有裁剪与文件体积警告；浏览器仍待核验，工程证据不代替所有者验收。
