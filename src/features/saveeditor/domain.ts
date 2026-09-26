@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 27;
+  apiVersion: 28;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];

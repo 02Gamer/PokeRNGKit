@@ -27,6 +27,7 @@ internal static class PokemonEditing
     public static PokemonEdit Apply(SaveFile save, PokemonEdit edit)
     {
         var p = Read(save, edit.Box, edit.Slot);
+        var original = p.Clone();
         var requestedForm = edit.Identity?.Form ?? p.Form;
         if (edit.Box >= 0 && save.IsBoxSlotLocked(edit.Box, edit.Slot))
             throw new ArgumentException("Storage slot is locked.");
@@ -91,14 +92,16 @@ internal static class PokemonEditing
             p.IsNicknamed = true;
         }
         CheckName(edit.Ot, p.MaxStringLengthTrainer);
-        p.OriginalTrainerName = edit.Ot;
+        if (p.OriginalTrainerName != edit.Ot) p.OriginalTrainerName = edit.Ot;
         if (p.Nickname != edit.Nickname || p.OriginalTrainerName != edit.Ot)
             throw new ArgumentException("Pokemon name contains characters unsupported by this game.");
         if (edit.Identity?.UseSpeciesName == true) p.ClearNickname();
         else if (edit.Identity is not null) p.IsNicknamed = true;
         p.TID16 = edit.Tid;
         p.SID16 = edit.Sid;
-        p.CurrentLevel = edit.Level;
+        // Preserve within-level EXP unless the requested level or growth curve changes.
+        if (edit.Level != original.CurrentLevel || p.PersonalInfo.EXPGrowth != original.PersonalInfo.EXPGrowth)
+            p.CurrentLevel = edit.Level;
         if (p.IsEgg) p.OriginalTrainerFriendship = edit.Friendship;
         else p.CurrentFriendship = edit.Friendship;
         p.IV_HP = edit.Ivs[0]; p.IV_ATK = edit.Ivs[1]; p.IV_DEF = edit.Ivs[2];
@@ -111,7 +114,19 @@ internal static class PokemonEditing
         for (var i = 0; i < 4; i++)
             if (edit.MovePp[i] > p.GetMovePP(edit.Moves[i], ups[i]))
                 throw new ArgumentException("Pokemon PP exceeds the move maximum.");
-        p.ResetPartyStats();
+        if (edit.Box == -1)
+        {
+            Span<ushort> beforeStats = stackalloc ushort[6];
+            Span<ushort> afterStats = stackalloc ushort[6];
+            original.LoadStats(original.PersonalInfo, beforeStats);
+            p.LoadStats(p.PersonalInfo, afterStats);
+            if (original.CurrentLevel != p.CurrentLevel || !beforeStats.SequenceEqual(afterStats))
+            {
+                p.ResetPartyStats();
+                p.Stat_HPCurrent = Math.Min(original.Stat_HPCurrent, p.Stat_HPMax);
+                p.Status_Condition = original.Status_Condition;
+            }
+        }
         p.RefreshChecksum();
         if (edit.Box == -1) save.SetPartySlotAtIndex(p, edit.Slot, EntityImportSettings.None);
         else save.SetBoxSlotAtIndex(p, edit.Box, edit.Slot, EntityImportSettings.None);
