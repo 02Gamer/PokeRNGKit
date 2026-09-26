@@ -3,7 +3,7 @@ using PKHeX.Core;
 
 namespace PokeRNGKit.SaveEditor;
 
-public sealed record PokemonRawEdit(int Box, int Slot, string Action, uint? Pid = null, uint? EncryptionConstant = null, FormArgumentEdit? FormArgument = null, EncounterEdit? Encounter = null, OriginEdit? Origin = null, EggEdit? Egg = null, ShinyEdit? Shiny = null, RelearnEdit? Relearn = null, RibbonEdit? Ribbons = null, MemoryEdit? Memory = null, CareEdit? Care = null, HistoryEdit? History = null);
+public sealed record PokemonRawEdit(int Box, int Slot, string Action, uint? Pid = null, uint? EncryptionConstant = null, FormArgumentEdit? FormArgument = null, EncounterEdit? Encounter = null, OriginEdit? Origin = null, EggEdit? Egg = null, ShinyEdit? Shiny = null, RelearnEdit? Relearn = null, RibbonEdit? Ribbons = null, MemoryEdit? Memory = null, CareEdit? Care = null, HistoryEdit? History = null, TrainingEdit? Training = null);
 
 internal static class PokemonRawEditing
 {
@@ -16,6 +16,9 @@ internal static class PokemonRawEditing
             throw new ArgumentException("Storage slot is locked.");
         switch (edit.Action)
         {
+            case "training":
+                PokemonTraining.Apply(p, edit.Training ?? throw new ArgumentException("Pokemon training edit is missing."));
+                break;
             case "history":
                 PokemonHistory.Apply(p, edit.History ?? throw new ArgumentException("Pokemon history edit is missing."));
                 break;
@@ -71,7 +74,7 @@ internal static class PokemonRawEditing
         if (edit.Action == "values" && ((edit.Pid is uint requestedPid && p.PID != requestedPid) ||
             (edit.EncryptionConstant is uint requestedEc && p.EncryptionConstant != requestedEc)))
             throw new ArgumentException("Pokemon raw value cannot be represented by this format.");
-        if (edit.Box == -1 && !(edit.Action == "shiny" && edit.Shiny?.Method == "sid") && edit.Action is not ("formArgument" or "encounter" or "origin" or "egg" or "relearn" or "ribbons" or "memory" or "care" or "history"))
+        if (edit.Box == -1 && (edit.Action != "training" || edit.Training?.Hyper is not null) && !(edit.Action == "shiny" && edit.Shiny?.Method == "sid") && edit.Action is not ("formArgument" or "encounter" or "origin" or "egg" or "relearn" or "ribbons" or "memory" or "care" or "history"))
         {
             var hp = p.Stat_HPCurrent;
             var status = p.Status_Condition;

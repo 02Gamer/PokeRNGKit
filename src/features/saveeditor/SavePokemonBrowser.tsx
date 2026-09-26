@@ -1,3 +1,4 @@
+import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
@@ -312,6 +313,14 @@ export function SavePokemonBrowser({
                 position={{ box: selected.box, slot: selected.slot }}
                 disabled={busy || !report.canEdit || !selected.valid}
                 onRead={onReadOrigin}
+                onApply={onApplyRaw}
+              />
+              <PokemonTrainingEditor
+                key={`training-${revision}-${JSON.stringify(selected)}`}
+                training={selected.training}
+                generation={report.generation}
+                position={{ box: selected.box, slot: selected.slot }}
+                disabled={busy || !report.canEdit || !selected.valid}
                 onApply={onApplyRaw}
               />
               <PokemonEncounterEditor

@@ -17,6 +17,7 @@
     <Compile Include="../PokemonEditing.cs" Link="PokemonEditing.cs" />
     <Compile Include="../PokemonIdentity.cs" Link="PokemonIdentity.cs" />
     <Compile Include="../PokemonRawEditing.cs" Link="PokemonRawEditing.cs" />
+    <Compile Include="../PokemonTraining.cs" Link="PokemonTraining.cs" />
     <Compile Include="../PokemonHistory.cs" Link="PokemonHistory.cs" />
     <Compile Include="../PokemonCare.cs" Link="PokemonCare.cs" />
     <Compile Include="../PokemonMemories.cs" Link="PokemonMemories.cs" />

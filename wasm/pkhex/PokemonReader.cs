@@ -15,7 +15,7 @@ public sealed record PokemonEntry(
     uint Pid, uint EncryptionConstant, uint Experience, byte Friendship,
     LocalizedText SpeciesName, LocalizedText Nature, LocalizedText Ability,
     LocalizedText Item, LocalizedText[] Moves, int[] MovePp, int[] Ivs, int[] Evs, string Sprite, ushort[] MoveIds, PokemonLimits Limits, int[] MovePpUps,
-    int NatureId, int StatAlignment, bool CanStatAlignment, int AbilityIndex, LocalizedText[] AbilityChoices, int HeldItem, bool IsNicknamed, bool CanEditEncryptionConstant, FormArgumentInfo? FormArgument, EncounterInfo Encounter, OriginInfo Origin, EggInfo? EggInfo, ushort[]? RelearnMoves);
+    int NatureId, int StatAlignment, bool CanStatAlignment, int AbilityIndex, LocalizedText[] AbilityChoices, int HeldItem, bool IsNicknamed, bool CanEditEncryptionConstant, FormArgumentInfo? FormArgument, EncounterInfo Encounter, OriginInfo Origin, EggInfo? EggInfo, ushort[]? RelearnMoves, TrainingInfo Training);
 
 internal static class PokemonReader
 {
@@ -67,7 +67,7 @@ internal static class PokemonReader
                 [p.Move1_PPUps, p.Move2_PPUps, p.Move3_PPUps, p.Move4_PPUps],
                 (int)p.Nature, (int)p.StatAlignment, p.Format >= 8,
                 p.AbilityNumber switch { 1 => 0, 2 => 1, 4 => 2, _ => -1 },
-                Enumerable.Range(0, p.PersonalInfo.AbilityCount).Select(i => Text(s => Name(s.abilitylist, p.PersonalInfo.GetAbilityAtIndex(i)))).ToArray(), p.HeldItem, p.IsNicknamed, p.Format >= 6, PokemonFormArgument.Read(p, box), PokemonEncounter.Read(p), PokemonOrigin.Read(p), PokemonEgg.Read(p), PokemonRelearn.Read(p)));
+                Enumerable.Range(0, p.PersonalInfo.AbilityCount).Select(i => Text(s => Name(s.abilitylist, p.PersonalInfo.GetAbilityAtIndex(i)))).ToArray(), p.HeldItem, p.IsNicknamed, p.Format >= 6, PokemonFormArgument.Read(p, box), PokemonEncounter.Read(p), PokemonOrigin.Read(p), PokemonEgg.Read(p), PokemonRelearn.Read(p), PokemonTraining.Read(p)));
         }
     }
 }
