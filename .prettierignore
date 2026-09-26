@@ -23,3 +23,5 @@ wasm/pkhex/bin/
 wasm/pkhex/obj/
 wasm/pkhex/tests/bin/
 wasm/pkhex/tests/obj/
+
+third_party/pkhex/drawing/

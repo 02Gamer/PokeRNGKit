@@ -8,8 +8,7 @@
 - License: GPL-3.0-or-later, as declared by `PKHeX.Core.csproj`; original license in `LICENSE`.
 
 `PKHeX.Core/` and `Directory.Build.props` are unmodified copies. Per-file SHA-256 values are recorded in
-`source-manifest.json` and verified by the npm build/test entry point. The WinForms application and drawing
-assets are not included. PokeRNGKit's wrapper is in `wasm/pkhex/`; the React/Worker adapter is in
+`source-manifest.json` and verified by the npm build/test entry point. The WinForms application is not included. PokeRNGKit's wrapper is in `wasm/pkhex/`; the React/Worker adapter is in
 `src/features/saveeditor/`. Source remains distributed with the repository, alongside the build scripts.
 
 The browser bundle uses Microsoft's .NET WebAssembly runtime under its respective MIT license and
@@ -22,3 +21,12 @@ The browser adapter supplies PKHeX's existing RuntimeCryptographyProvider hooks 
 @noble/ciphers 2.4.0 (unpadded AES ECB/CBC) and @noble/hashes 2.4.0 (MD5).
 These MIT-licensed npm dependencies are pinned in package-lock.json; Vite copies their licenses
 into the distribution legal folder. This adaptation does not modify the upstream Core files.
+
+## Drawing resources (2026-09-26)
+
+`public/save-art/26.08.26/` contains unmodified PNGs from the same archive, selected using the upstream Resources.resx keys (normal Big Pokémon sprites and box wallpapers). Source paths and SHA-256 are in `art-manifest.json`; the frontend resource-key map is `src/features/saveeditor/art-manifest.json`.
+`drawing/SpriteName.cs` is an unmodified source copy compiled into the adapter. `drawing/README.upstream.md` preserves the upstream credits. Wallpaper selection in the frontend is adapted from `PKHeX.Drawing.Misc/Util/WallpaperUtil.cs` under the upstream GPL terms. Pokémon artwork and characters remain the property of their respective rights holders; this project claims no ownership or endorsement. No shiny sprite collection is redistributed in this batch; shininess is shown as a status marker.
+
+## Ribbon and mark resources (2026-09-27)
+
+161 unmodified ribbon/mark PNGs from `PKHeX.Drawing.Misc/Resources/img/ribbons/` are now included in the same local artwork directory. Resource keys follow the upstream `Properties/Resources.resx`; source paths and SHA-256 values extend `art-manifest.json`. Selection follows `RibbonSpriteUtil.cs` and the generation-specific numeric threshold in `RibbonEditor.cs`, under the same upstream GPL terms and artwork attribution above.

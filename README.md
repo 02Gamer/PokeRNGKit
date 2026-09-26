@@ -544,6 +544,10 @@ npm run verify
 
 ## 构建与测试
 
+悬浮工具中的存档编辑器使用 PKHeX.Core 在本机处理存档，提供带壁纸和图像的队伍/盒子浏览、
+训练家及宝可梦基础字段编辑、工作副本撤销和新文件导出。完整接入仍按
+[功能清单](docs/pkhex-inventory.md)推进，当前范围不等于桌面 PKHeX 全部功能。
+
 PKHeX 存档工具另需 .NET SDK 10.0.401 和 `wasm-tools` 工作负载（`dotnet workload install wasm-tools --skip-manifest-update`）。
 `npm run pkhex:build` 生成同源浏览器核心，`npm run pkhex:test` 检查合成存档读写；范围和未验证项见
 [存档编辑模块](docs/modules/saveeditor.md)。完整 `npm run build` 会先生成 PKHeX 核心，再执行下述 RNG 和前端构建。
@@ -652,4 +656,6 @@ PokeFinder 源码头声明可按 **GNU GPL v3 或更高版本**使用。PokeRNGK
 
 PokeRNGKit 是非官方、由社区开发的研究工具，与 Nintendo、Creatures Inc.、GAME FREAK inc.、The Pokemon Company 或其关联方没有隶属、授权或背书关系。
 
-Pokemon、宝可梦及相关名称、角色和素材是其各自权利人的商标或版权作品。项目名称中的相关指代仅用于说明工具用途。除非取得明确许可，本项目不分发官方美术、精灵图、音频、Logo 或其他受保护素材。
+Pokemon、宝可梦及相关名称、角色和素材是其各自权利人的商标或版权作品。项目名称中的相关指代仅用于说明工具用途。
+存档工具使用 PKHeX 仓库随附的宝可梦图像与盒子壁纸，保留原文件及来源记录；上游许可证、
+素材署名与逐文件清单见 [PKHeX 来源](third_party/pkhex/UPSTREAM.md)。项目不主张这些角色或素材的所有权。

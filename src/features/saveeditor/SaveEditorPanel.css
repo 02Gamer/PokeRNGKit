@@ -1,5 +1,5 @@
 .floating-tool-panel.save-editor-float-panel {
-  width: min(860px, calc(100vw - 24px));
+  width: min(1120px, calc(100vw - 24px));
   display: flex;
   flex-direction: column;
 }
@@ -115,6 +115,21 @@
   min-height: 44px;
   font-size: 15px;
 }
+.save-editor-fields .save-editor-checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.save-editor-fields input[type="checkbox"] {
+  width: 20px;
+  min-height: 20px;
+  height: 20px;
+}
+.save-editor-fields .save-editor-note {
+  grid-column: 1 / -1;
+}
 .save-editor-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -156,33 +171,87 @@
   margin: 0;
   font-size: 15px;
 }
+.save-pokemon-workspace {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(260px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.save-pokemon-storage,
+.save-pokemon-detail {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
 .save-pokemon-slots {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(var(--box-columns, 6), minmax(44px, 1fr));
+  gap: 2px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--surface) var(--box-wallpaper) center / 100% 100% no-repeat;
+  overflow-x: auto;
+}
+.save-pokemon-slots[data-party="true"] {
+  grid-template-columns: repeat(3, minmax(44px, 1fr));
 }
 .save-pokemon-slots button {
-  display: grid;
-  gap: 2px;
-  text-align: left;
-  min-height: 44px;
-  padding: 8px;
-  border: 1px solid var(--line);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 64px;
+  padding: 4px 0;
+  border: 1px solid transparent;
   border-radius: 10px;
-  color: var(--text);
-  background: var(--surface);
-  font: inherit;
-  overflow-wrap: anywhere;
+  background: #ffffff45;
+  color: #172338;
   cursor: pointer;
 }
-.save-pokemon-slots small {
-  font-size: 13px;
-  color: var(--muted);
+.save-pokemon-slots button:hover {
+  background: #ffffffa8;
 }
-.save-pokemon-slots button[aria-pressed="true"],
+.save-pokemon-slots button[aria-pressed="true"] {
+  background: #d8efffcc;
+  border-color: var(--brand);
+}
+.save-pokemon-slots img {
+  width: 68px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.save-pokemon-slot-number {
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  font-size: 13px;
+  line-height: 16px;
+  background: #ffffffd9;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+.save-pokemon-slot-state {
+  position: absolute;
+  bottom: 0;
+  right: 3px;
+  background: #ffffffd9;
+  border-radius: 3px;
+}
+.save-pokemon-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .save-editor-toolbar button[aria-pressed="true"] {
   background: var(--brand-soft);
   border-color: var(--brand);
+}
+@media (max-width: 800px) {
+  .save-pokemon-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .save-pokemon-moves {
   margin: 0;
@@ -207,11 +276,85 @@
   text-align: center;
 }
 @media (max-width: 480px) {
-  .save-pokemon-slots {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .save-editor-fields,
   .save-editor-summary {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.save-pokemon-editor {
+  display: grid;
+  min-width: 0;
+}
+.save-box-wallpaper-preview {
+  width: 160px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  image-rendering: pixelated;
+}
+.save-pokemon-editor summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+.save-pokemon-editor[open] > :not(summary) {
+  margin-top: 12px;
+}
+
+.save-pokemon-move-edit {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px;
+  gap: 8px;
+}
+
+.save-pokemon-legality {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.save-pokemon-legality summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+.save-editor-panel .save-legality-report {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.save-editor-fields.save-ribbon-list {
+  max-height: 360px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.save-ribbon-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.save-ribbon-icon {
+  flex: 0 0 32px;
+  object-fit: contain;
+}
+
+.save-ribbon-status {
+  display: block;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--muted);
+}
+.save-ribbon-status[data-status="invalid"] {
+  color: var(--danger-text);
+}
+.save-ribbon-status[data-status="missing"] {
+  color: var(--warning-text);
 }

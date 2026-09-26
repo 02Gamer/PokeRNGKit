@@ -1,4 +1,4 @@
-import { MAX_SAVE_BYTES, type SaveReport } from "./domain";
+import { MAX_SAVE_BYTES, type SaveEditorResult } from "./domain";
 
 export class SaveEditorClient {
   private worker?: Worker;
@@ -6,7 +6,7 @@ export class SaveEditorClient {
   private pending = new Map<
     number,
     {
-      resolve(value: { report: SaveReport; output?: Uint8Array }): void;
+      resolve(value: SaveEditorResult): void;
       reject(error: Error): void;
       timer: ReturnType<typeof setTimeout>;
     }
@@ -15,7 +15,19 @@ export class SaveEditorClient {
   run(
     bytes: Uint8Array,
     edit?: string,
-  ): Promise<{ report: SaveReport; output?: Uint8Array }> {
+    kind:
+      | "trainer"
+      | "pokemon"
+      | "pokemonRaw"
+      | "legality"
+      | "box"
+      | "storage"
+      | "pokemonImport"
+      | "ribbons"
+      | "relearnSuggestion"
+      | "originCatalog"
+      | "pokemonExport" = "trainer",
+  ): Promise<SaveEditorResult> {
     if (!bytes.length || bytes.length > MAX_SAVE_BYTES)
       return Promise.reject(
         new Error("Save file must be between 1 byte and 32 MiB."),
@@ -51,7 +63,9 @@ export class SaveEditorClient {
         120_000,
       );
       this.pending.set(id, { resolve, reject, timer });
-      this.worker!.postMessage({ id, bytes: copy, base, edit }, [copy.buffer]);
+      this.worker!.postMessage({ id, bytes: copy, base, edit, kind }, [
+        copy.buffer,
+      ]);
     });
   }
 

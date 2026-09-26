@@ -4,11 +4,17 @@ import {
   saveGameChoices,
   trainerDraft,
   validateTrainer,
+  parsePokemonHex,
   type SaveReport,
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 2,
+  apiVersion: 23,
+  attributeChoices: { natures: [], items: [], species: [] },
+  boxSlotCount: 30,
+  boxes: [],
+  boxOptions: { canName: false, nameLength: 8, wallpapers: [] },
+  moveChoices: [],
   format: "SAV3E",
   generation: 3,
   version: "E",
@@ -33,6 +39,13 @@ export const emeraldReport: SaveReport = {
 };
 
 describe("save editor boundaries", () => {
+  it("parses unsigned 32-bit hexadecimal values without truncation", () => {
+    expect(parsePokemonHex("00000000")).toBe(0);
+    expect(parsePokemonHex("ffffffff")).toBe(4294967295);
+    expect(parsePokemonHex("ABCDEF01")).toBe(0xabcdef01);
+    for (const value of ["", "100000000", "-1", "0x12", " 12", "12.3", "GG"])
+      expect(() => parsePokemonHex(value)).toThrow();
+  });
   it("rejects blanks, exponent notation, overflow and negative IDs", () => {
     for (const value of ["", "65536", "-1", "1e3", "12.5", " 1"]) {
       expect(() =>

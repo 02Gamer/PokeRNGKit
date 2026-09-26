@@ -1,4 +1,4 @@
-import type { SaveReport } from "./domain";
+import type { SaveReport, PokemonLegalityReport } from "./domain";
 import { browserCryptography } from "./browserCryptography";
 
 interface SaveExports {
@@ -8,6 +8,16 @@ interface SaveExports {
         ConfigureBrowserCrypto(): void;
         Inspect(data: Uint8Array): string;
         Export(data: Uint8Array, json: string): Uint8Array;
+        EditPokemon(data: Uint8Array, json: string): Uint8Array;
+        EditPokemonRaw(data: Uint8Array, json: string): Uint8Array;
+        EditBox(data: Uint8Array, json: string): Uint8Array;
+        EditStorage(data: Uint8Array, json: string): Uint8Array;
+        ImportPokemon(data: Uint8Array, json: string): Uint8Array;
+        ExportPokemon(data: Uint8Array, json: string): string;
+        ReadRibbons(data: Uint8Array, json: string): string;
+        SuggestRelearn(data: Uint8Array, json: string): string;
+        ReadOrigin(data: Uint8Array, json: string): string;
+        AnalyzePokemon(data: Uint8Array, json: string): string;
       };
     };
   };
@@ -36,9 +46,21 @@ self.addEventListener(
       base: string;
       bytes: Uint8Array;
       edit?: string;
+      kind?:
+        | "trainer"
+        | "pokemon"
+        | "pokemonRaw"
+        | "legality"
+        | "box"
+        | "storage"
+        | "pokemonImport"
+        | "ribbons"
+        | "relearnSuggestion"
+        | "originCatalog"
+        | "pokemonExport";
     }>,
   ) => {
-    const { id, base, bytes, edit } = event.data;
+    const { id, base, bytes, edit, kind } = event.data;
     try {
       runtime ??= loadRuntime(base).catch((error) => {
         runtime = undefined;
@@ -46,13 +68,62 @@ self.addEventListener(
       });
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
       const output =
-        edit === undefined
+        edit === undefined ||
+        kind === "legality" ||
+        kind === "pokemonExport" ||
+        kind === "originCatalog" ||
+        kind === "ribbons" ||
+        kind === "relearnSuggestion"
           ? undefined
-          : new Uint8Array(api.Export(bytes, edit));
+          : new Uint8Array(
+              kind === "pokemonRaw"
+                ? api.EditPokemonRaw(bytes, edit)
+                : kind === "pokemon"
+                  ? api.EditPokemon(bytes, edit)
+                  : kind === "box"
+                    ? api.EditBox(bytes, edit)
+                    : kind === "storage"
+                      ? api.EditStorage(bytes, edit)
+                      : kind === "pokemonImport"
+                        ? api.ImportPokemon(bytes, edit)
+                        : api.Export(bytes, edit),
+            );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 2)
+      if (report.apiVersion !== 23)
         throw new Error("Save editor API version mismatch.");
-      self.postMessage({ id, report, output }, output ? [output.buffer] : []);
+      const legality: PokemonLegalityReport | undefined =
+        kind === "legality" && edit !== undefined
+          ? JSON.parse(api.AnalyzePokemon(bytes, edit))
+          : undefined;
+      const pokemonFile =
+        kind === "pokemonExport" && edit !== undefined
+          ? JSON.parse(api.ExportPokemon(bytes, edit))
+          : undefined;
+      const originCatalog =
+        kind === "originCatalog" && edit !== undefined
+          ? JSON.parse(api.ReadOrigin(bytes, edit))
+          : undefined;
+      const relearnSuggestion =
+        kind === "relearnSuggestion" && edit !== undefined
+          ? JSON.parse(api.SuggestRelearn(bytes, edit))
+          : undefined;
+      const ribbons =
+        kind === "ribbons" && edit !== undefined
+          ? JSON.parse(api.ReadRibbons(bytes, edit))
+          : undefined;
+      self.postMessage(
+        {
+          id,
+          report,
+          output,
+          legality,
+          pokemonFile,
+          originCatalog,
+          relearnSuggestion,
+          ribbons,
+        },
+        output ? [output.buffer] : [],
+      );
     } catch (error) {
       self.postMessage({
         id,

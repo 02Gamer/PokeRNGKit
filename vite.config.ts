@@ -16,6 +16,14 @@ export default defineConfig(({ mode }) => ({
         await mkdir(`${outputDirectory}/legal`, { recursive: true });
         await Promise.all([
           copyFile(
+            "third_party/pkhex/drawing/README.upstream.md",
+            `${outputDirectory}/legal/PKHeX-Drawing-Credits.md`,
+          ),
+          copyFile(
+            "third_party/pkhex/art-manifest.json",
+            `${outputDirectory}/legal/PKHeX-Art-Manifest.json`,
+          ),
+          copyFile(
             "node_modules/@noble/ciphers/LICENSE",
             `${outputDirectory}/legal/Noble-Ciphers-LICENSE.txt`,
           ),
@@ -90,9 +98,19 @@ export default defineConfig(({ mode }) => ({
               importScripts: ["sw-update.js"],
               navigateFallback: "index.html",
               globPatterns: ["**/*.{js,css,html,ico,mjs,wasm,txt,md,png,jpg}"],
-              globIgnores: ["pkhex/**"],
+              globIgnores: ["pkhex/**", "save-art/**"],
               maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
               runtimeCaching: [
+                {
+                  urlPattern: ({ url, sameOrigin }) =>
+                    sameOrigin && url.pathname.includes("/save-art/26.08.26/"),
+                  handler: "CacheFirst",
+                  options: {
+                    cacheName: "pokerngkit-save-art-26-08-26",
+                    cacheableResponse: { statuses: [200] },
+                    expiration: { maxEntries: 1600 },
+                  },
+                },
                 {
                   urlPattern: ({ url, sameOrigin }) =>
                     sameOrigin &&

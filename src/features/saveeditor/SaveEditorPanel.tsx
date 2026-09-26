@@ -10,12 +10,20 @@ import {
   saveGameChoices,
   trainerDraft,
   validateTrainer,
+  type OriginCatalog,
   type SaveReport,
+  type BoxEdit,
+  type StorageEdit,
+  type PokemonImport,
+  type PokemonLegalityReport,
+  type PokemonPosition,
+  type PokemonRawEdit,
   type TrainerDraft,
 } from "./domain";
 import { profileLink, type SaveProfileControllers } from "./profileLink";
 import "./SaveEditorPanel.css";
 import { saveEditorResources, localizeSaveError } from "./locales";
+import type { PokemonEdit } from "./PokemonEditor";
 import { SavePokemonBrowser } from "./SavePokemonBrowser";
 
 export function SaveEditorPanel(
@@ -28,12 +36,16 @@ export function SaveEditorPanel(
   const gen5 = useGen5Profiles();
   const client = useRef(new SaveEditorClient());
   const original = useRef<Uint8Array | undefined>(undefined);
+  const working = useRef<Uint8Array | undefined>(undefined);
+  const [history, setHistory] = useState<Uint8Array[]>([]);
   const operation = useRef(0);
   const running = useRef(false);
   const [busy, setBusy] = useState(false);
   const [cancellable, setCancellable] = useState(false);
   const [name, setName] = useState("");
+  const [fileRevision, setFileRevision] = useState(0);
   const [report, setReport] = useState<SaveReport>();
+  const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [section, setSection] = useState<"pokemon" | "trainer">("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
     ot: "",
@@ -94,9 +106,13 @@ export function SaveEditorPanel(
       const result = await client.current.run(bytes);
       if (id !== operation.current) return;
       original.current = bytes;
+      working.current = bytes;
+      setHistory([]);
       setReport(result.report);
+      setLegality(undefined);
       setDraft(trainerDraft(result.report));
       setName(file.name);
+      setFileRevision((previous) => previous + 1);
       setProfileName(`${result.report.ot} · ${result.report.version}`);
       const games = saveGameChoices(result.report);
       setVersion(games.length === 1 ? games[0] : "");
@@ -109,7 +125,7 @@ export function SaveEditorPanel(
       if (!report || !original.current) return;
       const edit = validateTrainer(draft, report);
       const result = await client.current.run(
-        original.current,
+        working.current ?? original.current,
         JSON.stringify(edit),
       );
       if (id !== operation.current) return;
@@ -126,10 +142,189 @@ export function SaveEditorPanel(
       setStatus("exported");
     });
 
+  const readRibbons = async (position: PokemonPosition) => {
+    let ribbons: import("./domain").RibbonCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(position),
+        "ribbons",
+      );
+      if (id !== operation.current) return;
+      if (!result.ribbons) throw new Error("No ribbon catalog was returned.");
+      ribbons = result.ribbons;
+    });
+    return ribbons;
+  };
+
+  const suggestRelearn = async (
+    position: PokemonPosition,
+  ): Promise<number[] | undefined> => {
+    let moves: number[] | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(position),
+        "relearnSuggestion",
+      );
+      if (id !== operation.current) return;
+      if (!result.relearnSuggestion)
+        throw new Error("No relearn suggestion was returned.");
+      moves = result.relearnSuggestion;
+    });
+    return moves;
+  };
+
+  const readOrigin = async (
+    position: PokemonPosition,
+    version?: number,
+  ): Promise<OriginCatalog | undefined> => {
+    let catalog: OriginCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ ...position, version }),
+        "originCatalog",
+      );
+      if (id !== operation.current) return;
+      if (!result.originCatalog)
+        throw new Error("No origin catalog was returned.");
+      catalog = result.originCatalog;
+    });
+    return catalog;
+  };
+
+  const analyzePokemon = (position: PokemonPosition) =>
+    perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(position),
+        "legality",
+      );
+      if (id !== operation.current) return;
+      if (!result.legality) throw new Error("No legality report was returned.");
+      setLegality(result.legality);
+    });
+
+  const applyWorkingEdit = (
+    edit:
+      | PokemonEdit
+      | PokemonRawEdit
+      | BoxEdit
+      | StorageEdit
+      | (() => Promise<PokemonImport>),
+    kind: "pokemon" | "pokemonRaw" | "box" | "storage" | "pokemonImport",
+  ) =>
+    perform(async (id) => {
+      if (!working.current) return;
+      const before = working.current;
+      const values = typeof edit === "function" ? await edit() : edit;
+      if (id !== operation.current) return;
+      const result = await client.current.run(
+        before,
+        JSON.stringify(values),
+        kind,
+      );
+      if (id !== operation.current) return;
+      if (!result.output) throw new Error("No output was returned.");
+      setHistory((previous) => {
+        const next = [...previous, before];
+        while (
+          next.length > 1 &&
+          (next.length > 20 ||
+            next.reduce((size, bytes) => size + bytes.byteLength, 0) >
+              64 * 1024 * 1024)
+        )
+          next.shift();
+        return next;
+      });
+      working.current = result.output;
+      setReport(result.report);
+      setLegality(undefined);
+      setStatus("pokemonSaved");
+    });
+  const importPokemon = (position: PokemonPosition, file: File) =>
+    applyWorkingEdit(async () => {
+      if (!file.size || file.size > 1024 * 1024)
+        throw new Error("Entity file size is invalid.");
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      for (const byte of bytes) binary += String.fromCharCode(byte);
+      return { ...position, fileName: file.name, data: btoa(binary) };
+    }, "pokemonImport");
+
+  const exportPokemon = (position: PokemonPosition) =>
+    perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(position),
+        "pokemonExport",
+      );
+      if (id !== operation.current) return;
+      if (!result.pokemonFile) throw new Error("Entity file export failed.");
+      const bytes = Uint8Array.from(atob(result.pokemonFile.data), (char) =>
+        char.charCodeAt(0),
+      );
+      const url = URL.createObjectURL(
+        new Blob([bytes], { type: "application/octet-stream" }),
+      );
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = result.pokemonFile.fileName;
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    });
+
+  const restoreWorking = (originalSave = false) =>
+    perform(async (id) => {
+      const bytes = originalSave ? original.current : history.at(-1);
+      if (!bytes) return;
+      const result = await client.current.run(bytes);
+      if (id !== operation.current) return;
+      working.current = bytes;
+      setReport(result.report);
+      setLegality(undefined);
+      setHistory((previous) => (originalSave ? [] : previous.slice(0, -1)));
+      if (originalSave) setDraft(trainerDraft(result.report));
+    });
+
   return (
     <div className="save-editor-panel" aria-busy={busy}>
       <p>{words.intro}</p>
       <div className="save-editor-toolbar">
+        {report && (
+          <button
+            type="button"
+            className="primary"
+            disabled={busy || !report.canEdit}
+            onClick={() => void exportFile()}
+          >
+            <Download size={18} aria-hidden="true" /> {words.export}
+          </button>
+        )}
+        {report && (
+          <>
+            <button
+              type="button"
+              disabled={busy || history.length === 0}
+              onClick={() => void restoreWorking()}
+            >
+              {words.undo}
+            </button>
+            <button
+              type="button"
+              disabled={busy || history.length === 0}
+              onClick={() => void restoreWorking(true)}
+            >
+              {words.restoreSave}
+            </button>
+          </>
+        )}
         <label className="save-editor-file">
           <FileUp size={18} aria-hidden="true" /> {words.open}
           <input
@@ -148,7 +343,10 @@ export function SaveEditorPanel(
           disabled={busy || !report}
           onClick={() => {
             original.current = undefined;
+            working.current = undefined;
+            setHistory([]);
             setReport(undefined);
+            setLegality(undefined);
             setName("");
             setError("");
             setStatus("");
@@ -178,7 +376,11 @@ export function SaveEditorPanel(
           {localizeSaveError(error, words)}
         </p>
       )}
-      {status && <p role="status">{words[status as "exported" | "linked"]}</p>}
+      {status && (
+        <p role="status">
+          {words[status as "exported" | "linked" | "pokemonSaved"]}
+        </p>
+      )}
       {report && (
         <>
           <h3>{name}</h3>
@@ -208,7 +410,22 @@ export function SaveEditorPanel(
             </button>
           </div>
           {section === "pokemon" ? (
-            <SavePokemonBrowser key={name} report={report} />
+            <SavePokemonBrowser
+              key={`${name}:${fileRevision}`}
+              report={report}
+              busy={busy}
+              onApply={(edit) => applyWorkingEdit(edit, "pokemon")}
+              onApplyRaw={(edit) => applyWorkingEdit(edit, "pokemonRaw")}
+              onApplyBox={(edit) => applyWorkingEdit(edit, "box")}
+              onStorage={(edit) => applyWorkingEdit(edit, "storage")}
+              onImport={importPokemon}
+              onExport={exportPokemon}
+              legality={legality}
+              onReadOrigin={readOrigin}
+              onSuggestRelearn={suggestRelearn}
+              onReadRibbons={readRibbons}
+              onAnalyze={analyzePokemon}
+            />
           ) : (
             <>
               <dl className="save-editor-summary">
@@ -292,14 +509,6 @@ export function SaveEditorPanel(
                   }}
                 >
                   <RotateCcw size={18} aria-hidden="true" /> {words.reset}
-                </button>
-                <button
-                  type="button"
-                  className="primary"
-                  disabled={busy || !report.canEdit}
-                  onClick={() => void exportFile()}
-                >
-                  <Download size={18} aria-hidden="true" /> {words.export}
                 </button>
               </div>
               <section

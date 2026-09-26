@@ -1,7 +1,7 @@
 export const saveEditorCopy = {
   zh: {
     intro:
-      "在本机查看宝可梦与训练家信息，编辑训练家数据并导出副本。原文件不会被覆盖。",
+      "在本机查看与编辑宝可梦、盒子和训练家信息，导出存档副本。原文件不会被覆盖。",
     choose:
       "选择已解密的游戏存档（最大 32 MiB）。首次使用会加载本地 PKHeX 核心。",
     loading: "正在处理存档…",
@@ -19,7 +19,7 @@ export const saveEditorCopy = {
   },
   en: {
     intro:
-      "Browse Pokémon and trainer information locally, edit trainer data and export a copy. The original file is never overwritten.",
+      "View and edit Pokémon, boxes and trainer information locally, then export a save copy. The original file is never overwritten.",
     choose:
       "Choose decrypted save data (up to 32 MiB). PKHeX loads locally on first use.",
     loading: "Processing save…",
@@ -40,7 +40,7 @@ export const saveEditorCopy = {
   },
   ja: {
     intro:
-      "ローカルでポケモンとトレーナー情報を確認し、トレーナー情報を編集してコピーを出力します。元のファイルは上書きしません。",
+      "ローカルでポケモン・ボックス・トレーナー情報を確認・編集し、セーブのコピーを出力します。元のファイルは上書きしません。",
     choose:
       "復号済みセーブを選択してください（最大32 MiB）。初回にローカルのPKHeXを読み込みます。",
     loading: "処理中…",

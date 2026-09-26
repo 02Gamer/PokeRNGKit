@@ -17,6 +17,8 @@ internal static class SaveEditorTests
             save.Money = 100;
             var pokemon = save.BlankPKM;
             pokemon.Species = 25;
+            pokemon.Version = version;
+            pokemon.Language = 2;
             pokemon.TID16 = 12345;
             pokemon.SID16 = 54321;
             pokemon.OriginalTrainerName = "TEST";
@@ -25,6 +27,8 @@ internal static class SaveEditorTests
             pokemon.EV_SPE = 12;
             pokemon.Move1 = 85;
             pokemon.RefreshChecksum();
+            if (save is IBoxDetailName boxNames) boxNames.SetBoxName(0, "TESTBOX");
+            if (save is IBoxDetailWallpaper boxWallpaper) boxWallpaper.SetBoxWallpaper(0, 2);
             save.SetBoxSlotAtIndex(pokemon, 0, 0);
             save.SetPartySlotAtIndex(pokemon, 0);
             save.SetBoxSlotAtIndex(pokemon, save.BoxCount - 1, save.BoxSlotCount - 1);
@@ -34,12 +38,97 @@ internal static class SaveEditorTests
             using var document = JsonDocument.Parse(report);
             Require(document.RootElement.GetProperty("checksumsValid").GetBoolean(), $"{version}: blank fixture checksum");
             var entries = document.RootElement.GetProperty("pokemon");
+            var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
+            Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
+            Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 23, $"{version}: API version");
+            Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
+            var boxes = document.RootElement.GetProperty("boxes");
+            Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");
+            if (save is IBoxDetailNameRead) Require(boxes[0].GetProperty("name").GetString() == "TESTBOX", $"{version}: box name");
+            if (save is IBoxDetailWallpaper) Require(boxes[0].GetProperty("wallpaper").GetInt32() == 2, $"{version}: box wallpaper");
+            Require(entries[0].GetProperty("sprite").GetString() == "b_25", $"{version}: sprite key");
             Require(entries.GetArrayLength() == 3, $"{version}: party and box entries");
             Require(entries[2].GetProperty("box").GetInt32() == save.BoxCount - 1 && entries[2].GetProperty("slot").GetInt32() == save.BoxSlotCount - 1, $"{version}: final box slot");
             Require(entries[0].GetProperty("box").GetInt32() == -1 && entries[1].GetProperty("box").GetInt32() == 0, $"{version}: storage addresses");
             Require(entries[0].GetProperty("speciesName").GetProperty("zh").GetString() == "皮卡丘", $"{version}: Chinese species");
             Require(entries[1].GetProperty("ivs")[1].GetInt32() == 27 && entries[1].GetProperty("evs")[5].GetInt32() == 12, $"{version}: stat order");
             Require(entries[1].GetProperty("moves")[0].GetProperty("en").GetString() == "Thunderbolt", $"{version}: move names");
+            var pokemonEdit = new PokemonEdit(0, 0, "EDITMON", 26, 100, "EDIT", 42, 43,
+                [31, 30, 29, 28, 27, 26], [4, 8, 12, 16, 20, 24], [85, 0, 0, 0], [10, 0, 0, 0]);
+            var changedPokemon = SaveService.EditPokemon(input, JsonSerializer.Serialize(pokemonEdit, SaveJsonContext.Default.PokemonEdit));
+            var changedSave = SaveUtil.GetSaveFile(changedPokemon.ToArray())!;
+            PokemonEditing.Verify(changedSave, pokemonEdit);
+            foreach (ushort species in new ushort[] { 1, 201, 81, 29, 32 })
+            {
+                var form = (byte)(species == 201 ? 27 : 0);
+                foreach (var gender in PokemonIdentity.Genders(save, species, form))
+                {
+                    var identity = new PokemonIdentityEdit(species, form, gender, true);
+                    var identityEdit = pokemonEdit with { Identity = identity };
+                    var identityOutput = SaveService.EditPokemon(input, JsonSerializer.Serialize(identityEdit, SaveJsonContext.Default.PokemonEdit));
+                    var identitySave = SaveUtil.GetSaveFile(identityOutput.ToArray())!;
+                    var result = identitySave.GetBoxSlotAtIndex(0, 0);
+                    Require(identitySave.ChecksumsValid && result.Species == species && result.Form == form && result.Gender == gender && result.CurrentLevel == identityEdit.Level, $"{version}: species/form/gender/level");
+                    Require(!result.IsNicknamed && result.Nickname == SpeciesName.GetSpeciesNameGeneration(species, result.Language, result.Format), $"{version}: default species name");
+                    Require(result.EXP == Experience.GetEXP(result.CurrentLevel, result.PersonalInfo.EXPGrowth), $"{version}: changed growth curve");
+                    Require(input.SequenceEqual(original) && identitySave.GetPartySlotAtIndex(0).Data.SequenceEqual(save.GetPartySlotAtIndex(0).Data), $"{version}: identity original/party preservation");
+                }
+            }
+            for (var abilityIndex = 0; abilityIndex < pokemon.PersonalInfo.AbilityCount; abilityIndex++)
+            {
+                var attributes = pokemonEdit with { Nature = 13, AbilityIndex = abilityIndex, HeldItem = 1,
+                    StatAlignment = pokemon.Format >= 8 ? 3 : null };
+                var attributeOutput = SaveService.EditPokemon(input, JsonSerializer.Serialize(attributes, SaveJsonContext.Default.PokemonEdit));
+                var attributeSave = SaveUtil.GetSaveFile(attributeOutput.ToArray())!;
+                PokemonEditing.Verify(attributeSave, attributes);
+                Require(attributeSave.ChecksumsValid && input.SequenceEqual(original), $"{version}: attributes and original preservation");
+                Require(attributeSave.GetPartySlotAtIndex(0).Data.SequenceEqual(save.GetPartySlotAtIndex(0).Data), $"{version}: attributes preserved party");
+                Require(attributeSave.GetBoxSlotAtIndex(save.BoxCount - 1, save.BoxSlotCount - 1).Data.SequenceEqual(save.GetBoxSlotAtIndex(save.BoxCount - 1, save.BoxSlotCount - 1).Data), $"{version}: attributes preserved other box");
+                if (pokemon is PK5 && abilityIndex == 2)
+                {
+                    var normal = attributes with { AbilityIndex = 0 };
+                    var normalBytes = SaveService.EditPokemon(attributeOutput, JsonSerializer.Serialize(normal, SaveJsonContext.Default.PokemonEdit));
+                    PokemonEditing.Verify(SaveUtil.GetSaveFile(normalBytes.ToArray())!, normal);
+                }
+            }
+            foreach (ushort species in new ushort[] { 479, 678 })
+            {
+                if (species > pokemon.MaxSpeciesID) continue;
+                var forms = PokemonIdentity.Forms(save, species, GameInfo.GetStrings("en"));
+                var form = (byte)(forms.Length - 1);
+                var gender = PokemonIdentity.Genders(save, species, form)[0];
+                var identityEdit = pokemonEdit with { Identity = new(species, form, gender, false), AbilityIndex = 0 };
+                var outputIdentity = SaveService.EditPokemon(input, JsonSerializer.Serialize(identityEdit, SaveJsonContext.Default.PokemonEdit));
+                var identitySave = SaveUtil.GetSaveFile(outputIdentity.ToArray())!;
+                PokemonEditing.Verify(identitySave, identityEdit);
+                Require(identitySave.GetBoxSlotAtIndex(0, 0).IsNicknamed, $"{version}: custom nickname retained");
+                Require(identitySave.GetBoxSlotAtIndex(save.BoxCount - 1, save.BoxSlotCount - 1).Data.SequenceEqual(save.GetBoxSlotAtIndex(save.BoxCount - 1, save.BoxSlotCount - 1).Data), $"{version}: identity other box preserved");
+            }
+            for (var ppUps = 0; ppUps <= 3; ppUps++)
+            {
+                var maximum = save.GetBoxSlotAtIndex(0, 0).GetMovePP(85, ppUps);
+                var ppEdit = pokemonEdit with { MovePpUps = [ppUps, 0, 0, 0], MovePp = [maximum, 0, 0, 0] };
+                var ppOutput = SaveService.EditPokemon(input, JsonSerializer.Serialize(ppEdit, SaveJsonContext.Default.PokemonEdit));
+                var ppSave = SaveUtil.GetSaveFile(ppOutput.ToArray())!;
+                PokemonEditing.Verify(ppSave, ppEdit);
+                Require(ppSave.ChecksumsValid && input.SequenceEqual(original), $"{version}: PP Ups roundtrip and input preservation");
+                try
+                {
+                    SaveService.EditPokemon(input, JsonSerializer.Serialize(ppEdit with { MovePp = [maximum + 1, 0, 0, 0] }, SaveJsonContext.Default.PokemonEdit));
+                    throw new Exception("PP above selected boost maximum accepted");
+                }
+                catch (ArgumentException) { }
+            }
+            Require(changedSave.GetPartySlotAtIndex(0).Data.SequenceEqual(save.GetPartySlotAtIndex(0).Data), $"{version}: party preserved during box edit");
+            Require(changedSave.GetBoxSlotAtIndex(save.BoxCount - 1, save.BoxSlotCount - 1).Data.SequenceEqual(save.GetBoxSlotAtIndex(save.BoxCount - 1, save.BoxSlotCount - 1).Data), $"{version}: other box preserved during edit");
+            Require(input.SequenceEqual(original), $"{version}: Pokemon edit changed input");
+            var partyEdit = pokemonEdit with { Box = -1, Slot = 0 };
+            var changedParty = SaveService.EditPokemon(input, JsonSerializer.Serialize(partyEdit, SaveJsonContext.Default.PokemonEdit));
+            var partySave = SaveUtil.GetSaveFile(changedParty.ToArray())!;
+            PokemonEditing.Verify(partySave, partyEdit);
+            Require(partySave.PartyCount == save.PartyCount, $"{version}: party count preserved");
+            Require(partySave.GetBoxSlotAtIndex(0, 0).Data.SequenceEqual(save.GetBoxSlotAtIndex(0, 0).Data), $"{version}: box preserved during party edit");
             var edited = SaveService.Export(input, "{\"ot\":\"EDIT\",\"tid\":65535,\"sid\":0,\"money\":500}");
             Require(input.SequenceEqual(original), $"{version}: original mutated");
             var reread = SaveUtil.GetSaveFile(edited.ToArray())!;
@@ -60,6 +149,28 @@ internal static class SaveEditorTests
         try { SaveService.Inspect(template); throw new Exception("Unserialized SWSH template accepted"); }
         catch (ArgumentException) { Console.WriteLine("PASS unserialized SWSH template rejected; SWSH roundtrip still requires a representative fixture"); }
         var valid = File.ReadAllBytes(".tmp/pkhex-fixtures/E.sav");
+        var basicEdit = new PokemonEdit(0, 0, "EDITMON", 26, 100, "EDIT", 42, 43,
+            [31, 30, 29, 28, 27, 26], [4, 8, 12, 16, 20, 24], [85, 0, 0, 0], [10, 0, 0, 0]);
+        foreach (var bad in new[] {
+            basicEdit with { Slot = 30 }, basicEdit with { Box = -2 },
+            basicEdit with { Level = 0 }, basicEdit with { Ivs = [32,0,0,0,0,0] },
+            basicEdit with { Evs = [255,255,1,0,0,0] }, basicEdit with { Moves = [65535,0,0,0] },
+            basicEdit with { MovePp = [255,0,0,0] }, basicEdit with { Ot = "" },
+            basicEdit with { MovePpUps = [4,0,0,0] }, basicEdit with { MovePpUps = [-1,0,0,0] },
+            basicEdit with { MovePpUps = [0,1,0,0] }, basicEdit with { MovePpUps = [0] },
+            basicEdit with { Nature = 25 }, basicEdit with { Nature = -1 },
+            basicEdit with { AbilityIndex = 3 }, basicEdit with { AbilityIndex = -1 },
+            basicEdit with { HeldItem = 65535 }, basicEdit with { HeldItem = -1 },
+            basicEdit with { StatAlignment = 1 },
+            basicEdit with { Identity = new(0, 0, 0, false) }, basicEdit with { Identity = new(65535, 0, 0, false) },
+            basicEdit with { Identity = new(25, 255, 0, false) }, basicEdit with { Identity = new(81, 0, 0, false) },
+            basicEdit with { Identity = new(25, 0, 3, false) } })
+        {
+            var before = valid.ToArray();
+            try { SaveService.EditPokemon(valid, JsonSerializer.Serialize(bad, SaveJsonContext.Default.PokemonEdit)); throw new Exception("Invalid Pokemon edit accepted"); }
+            catch (ArgumentException) { Require(valid.SequenceEqual(before), "Rejected Pokemon edit changed input"); }
+        }
+        Console.WriteLine("PASS Pokemon edit positions, level, IVs, EVs, moves, PP, names and input preservation");
         var corrupt = valid.ToArray();
         corrupt[0x100] ^= 1;
         using var damagedReport = JsonDocument.Parse(SaveService.Inspect(corrupt));
@@ -68,6 +179,21 @@ internal static class SaveEditorTests
         RejectExport(valid, "{\"ot\":\"TEST\",\"tid\":1,\"sid\":2,\"money\":4294967295}");
         RejectExport(valid, "{\"ot\":\"TOOLONGNAME\",\"tid\":1,\"sid\":2,\"money\":100}");
         Console.WriteLine("PASS invalid checksum, money and trainer-name edits rejected");
+        PokemonLegalityTests.Run(CreateFixture);
+        BoxEditingTests.Run();
+        StorageEditingTests.Run();
+        PartyStorageTests.Run();
+        PokemonFileTests.Run();
+        PokemonRawTests.Run();
+        PokemonFormArgumentTests.Run();
+        PokemonEncounterTests.Run();
+        PokemonOriginTests.Run();
+        PokemonEggTests.Run();
+        PokemonMakeEggTests.Run();
+        PokemonShinyTests.Run();
+        PokemonRelearnTests.Run();
+        PokemonRibbonTests.Run();
+        PokemonRibbonSuggestionTests.Run();
     }
 
     private static void RejectExport(byte[] data, string edit)

@@ -1,7 +1,12 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 2;
+  apiVersion: 23;
+  attributeChoices: {
+    natures: LocalizedText[];
+    items: LocalizedText[];
+    species: SpeciesChoice[];
+  };
   format: string;
   generation: number;
   version: string;
@@ -23,6 +28,14 @@ export interface SaveReport {
   extension: string;
   nationalDex: boolean | null;
   pokemon: PokemonEntry[];
+  moveChoices: MoveChoice[];
+  boxSlotCount: number;
+  boxOptions: {
+    canName: boolean;
+    nameLength: number;
+    wallpapers: LocalizedText[];
+  };
+  boxes: { index: number; name: string; wallpaper: number }[];
 }
 
 export interface LocalizedText {
@@ -30,7 +43,78 @@ export interface LocalizedText {
   en: string;
   ja: string;
 }
+export interface MoveChoice {
+  name: LocalizedText;
+  maxPp: number[];
+}
+export interface SpeciesChoice {
+  id: number;
+  name: LocalizedText;
+  forms: {
+    name: LocalizedText;
+    genders: number[];
+    abilities: LocalizedText[];
+  }[];
+}
+export interface OriginChoice {
+  id: number;
+  name: LocalizedText;
+}
+export interface OriginCatalog {
+  version: number;
+  games: OriginChoice[];
+  balls: OriginChoice[];
+  metLocations: OriginChoice[];
+  eggLocations: OriginChoice[];
+}
 export interface PokemonEntry {
+  relearnMoves: number[] | null;
+  eggInfo: { cycles: number; suggestedMinimum: number } | null;
+  origin: {
+    version: number;
+    ball: number;
+    metLocation: number;
+    eggLocation: number;
+    canEggLocation: boolean;
+  };
+  encounter: {
+    metLevel: number;
+    maxMetLevel: number;
+    fateful: boolean;
+    canDates: boolean;
+    metDate: string;
+    eggDate: string;
+  };
+  formArgument: {
+    mode: "Raw" | "Named" | "Triple" | "TripleParty";
+    value: number;
+    max: number;
+    remain: number;
+    elapsed: number;
+    maximum: number;
+    canRemain: boolean;
+    canElapsed: boolean;
+    canMaximum: boolean;
+    choices: LocalizedText[];
+  } | null;
+  canEditEncryptionConstant: boolean;
+  isNicknamed: boolean;
+  natureId: number;
+  statAlignment: number;
+  canStatAlignment: boolean;
+  abilityIndex: number;
+  abilityChoices: LocalizedText[];
+  heldItem: number;
+  movePpUps: number[];
+  sprite: string;
+  moveIds: number[];
+  limits: {
+    nickname: number;
+    trainerName: number;
+    iv: number;
+    ev: number;
+    move: number;
+  };
   box: number;
   slot: number;
   species: number;
@@ -148,4 +232,101 @@ export function exportSaveName(name: string) {
     .map((char) => (char.charCodeAt(0) < 32 ? "_" : char))
     .join("");
   return `edited-${clean || "main"}`;
+}
+
+export interface PokemonPosition {
+  box: number;
+  slot: number;
+}
+export interface PokemonRawEdit extends PokemonPosition {
+  action:
+    | "values"
+    | "rerollPid"
+    | "rerollEc"
+    | "formArgument"
+    | "encounter"
+    | "origin"
+    | "egg"
+    | "shiny"
+    | "relearn"
+    | "ribbons";
+  relearn?: { moves: number[] };
+  ribbons?: {
+    mode?: "values" | "suggest" | "minimal";
+    values: { key: string; value: number }[];
+    affixed?: number;
+  };
+  shiny?: { method: "pid" | "sid"; type: "any" | "star" | "square" | "off" };
+  egg?: { action: "cycles" | "hatch" | "makeEgg"; cycles?: number };
+  origin?: {
+    version?: number;
+    ball?: number;
+    metLocation?: number;
+    eggLocation?: number;
+  };
+  encounter?: {
+    metLevel?: number;
+    fateful?: boolean;
+    metDate?: string;
+    eggDate?: string;
+  };
+  formArgument?: {
+    value?: number;
+    remain?: number;
+    elapsed?: number;
+    maximum?: number;
+  };
+  pid?: number;
+  encryptionConstant?: number;
+}
+
+export function parsePokemonHex(value: string): number {
+  if (!/^[0-9a-f]{1,8}$/i.test(value))
+    throw new Error("Pokemon value must contain 1–8 hexadecimal digits.");
+  return Number.parseInt(value, 16);
+}
+export interface PokemonLegalityReport extends PokemonPosition {
+  parsed: boolean;
+  valid: boolean;
+  summary: LocalizedText;
+  details: LocalizedText;
+}
+export interface RibbonCatalog {
+  entries: {
+    key: string;
+    name: LocalizedText;
+    value: number;
+    max: number;
+    status:
+      "unchecked" | "missing" | "invalid" | "possible" | "mark" | "unmarked";
+  }[];
+  analysisComplete: boolean;
+  affixed: number | null;
+  affixedChoices: { id: number; name: LocalizedText }[];
+}
+export interface SaveEditorResult {
+  ribbons?: RibbonCatalog;
+  relearnSuggestion?: number[];
+  originCatalog?: OriginCatalog;
+  report: SaveReport;
+  output?: Uint8Array;
+  legality?: PokemonLegalityReport;
+  pokemonFile?: { fileName: string; data: string };
+}
+
+export interface BoxEdit {
+  box: number;
+  name: string | null;
+  wallpaper: number | null;
+}
+
+export interface StorageEdit {
+  action: "move" | "swap" | "copy" | "delete";
+  source: PokemonPosition;
+  target: PokemonPosition | null;
+}
+
+export interface PokemonImport extends PokemonPosition {
+  fileName: string;
+  data: string;
 }
