@@ -24,6 +24,11 @@
 
 ## 当前工程证据
 
+API 38 接入训练家 BP、宝可里程、圆庆币和瓦特，按格式控制范围并联动对应累计记录。
+七种存档完整输出、边界/未改异常值、累计记录及剑／盾 Core 对象、原生套件通过。
+13 项前端测试、变更文件 lint、类型、核心与网页构建通过，保留既有构建警告；浏览器仍待核验。
+其他训练家字段、旧世代其他窗口的代币与完整 PKHeX 清单继续推进。
+
 API 37 接入已开放格式的逐枚徽章编辑，普通格式 8 项、HGSS 16 项，支持训练家草稿、应用与撤销。
 BDSP 仅重写实际改变的系统标记，未改异常值保持；不自动完成道馆事件或解锁地图。
 九种存档逐枚设置/清除、完整输出、边界及原生套件、12 项前端测试与变更文件 lint 通过。
@@ -191,134 +196,134 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 下表是来源文件盘点，不等于每个文件都需独立面板；共 129 个非 Designer 子窗口源码。
 功能可合并进编辑页，但必须保留各版本的数据语义。所有状态初始为待核对，不能推定完成。
 
-| 上游文件（PKHeX.WinForms）                                                    | 状态                                                      |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `Subforms/BoxExporter.cs`                                                     | 待核对                                                    |
-| `Subforms/EntitySearchSetup.cs`                                               | 待核对                                                    |
-| `Subforms/KChart.cs`                                                          | 待核对                                                    |
-| `Subforms/Misc/EntitySummaryImage.cs`                                         | 待核对                                                    |
-| `Subforms/Misc/PropertyComparer.cs`                                           | 待核对                                                    |
-| `Subforms/Misc/SortableBindingList.cs`                                        | 待核对                                                    |
-| `Subforms/PKM Editors/BatchEditor.cs`                                         | 待核对                                                    |
-| `Subforms/PKM Editors/MemoryAmie.cs`                                          | 记忆、亲密度/好感、互动数值与居住记录已接入；浏览器待核验 |
-| `Subforms/PKM Editors/MoveShopEditor.cs`                                      | 待核对                                                    |
-| `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | 待核对                                                    |
-| `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查  |
-| `Subforms/PKM Editors/SuperTrainingEditor.cs`                                 | 待核对                                                    |
-| `Subforms/PKM Editors/TechRecordEditor.cs`                                    | 待核对                                                    |
-| `Subforms/PKM Editors/Text.cs`                                                | 待核对                                                    |
-| `Subforms/ReportGrid.cs`                                                      | 待核对                                                    |
-| `Subforms/SAV_Database.cs`                                                    | 待核对                                                    |
-| `Subforms/SAV_Encounters.cs`                                                  | 待核对                                                    |
-| `Subforms/SAV_FolderList.cs`                                                  | 待核对                                                    |
-| `Subforms/SAV_MysteryGiftDB.cs`                                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen1/SAV_EventReset1.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen1/SAV_HallOfFame1.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen2/SAV_Misc2.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/Gen3/PokeBlock3CaseEditor.cs`                          | 待核对                                                    |
-| `Subforms/Save Editors/Gen3/SAV_HallOfFame3.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen3/SAV_Misc3.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/Gen3/SAV_RTC3.cs`                                      | 待核对                                                    |
-| `Subforms/Save Editors/Gen3/SAV_Roamer3.cs`                                   | 待核对                                                    |
-| `Subforms/Save Editors/Gen3/SAV_SecretBase3.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/PoffinCase4Editor.cs`                             | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/PokeGear4Editor.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonConnection4Editor.cs`        | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventData4Editor.cs`         | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventRecord4Editor.cs`       | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventTrainer4Editor.cs`      | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonParticipant4Editor.cs`       | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonSpeciesForm4Editor.cs`       | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_Apricorn.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_BattlePass.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_DLC4.cs`                                      | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_Gear.cs`                                      | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_Geonet4.cs`                                   | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_HoneyTree.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_Misc4.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_Pokeathlon4.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_Pokedex4.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_Trainer4BR.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen4/SAV_Underground.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/CGearImage.cs`                                    | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/Join Avenue/IJoinAvenueSpecificEditor.cs`         | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueAssistantSpecificEditor.cs` | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueEntityGeneralEditor.cs`     | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueFanSpecificEditor.cs`       | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueListEditor.cs`              | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueSettingsEditor.cs`          | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueVisitorSpecificEditor.cs`   | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/Join Avenue/SAV_JoinAvenue.cs`                    | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/SAV_DLC5.cs`                                      | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/SAV_GlobalLink5.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/SAV_Medals5.cs`                                   | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/SAV_Misc5.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/SAV_Pokedex5.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/Gen5/SAV_UnityTower.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_BerryFieldXY.cs`                              | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_BoxLayout.cs`                                 | 部分：箱名/壁纸已实现；解锁、标记、排序待实现             |
-| `Subforms/Save Editors/Gen6/SAV_HallOfFame.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_Link6.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_OPower.cs`                                    | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_PokeBlockORAS.cs`                             | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_PokedexORAS.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_PokedexXY.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_Pokepuff.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | 基础/性别/时间/语言/地区/徽章已接入；其他字段待接入       |
-| `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | 基础/性别/时间/语言/地区已接入；其他字段待接入            |
-| `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_FlagWork8b.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Poffin8b.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Raid8.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | 基础/性别/时间/语言已接入；其他字段待接入                 |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | 基础/性别/时间/语言/徽章已接入；其他字段待接入            |
-| `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_Donut9a.cs`                                   | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs`                                 | 待核对                                                    |
-| `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/SAV_BoxList.cs`                                        | 待核对                                                    |
-| `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | 待核对                                                    |
-| `Subforms/Save Editors/SAV_Chatter.cs`                                        | 待核对                                                    |
-| `Subforms/Save Editors/SAV_EventFlags.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | 待核对                                                    |
-| `Subforms/Save Editors/SAV_EventWork.cs`                                      | 待核对                                                    |
-| `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 待核对                                                    |
-| `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                   |
-| `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                    |
-| `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                    |
-| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/性别/时间/徽章已接入；其他字段待接入                 |
-| `Subforms/Save Editors/SAV_Wondercard.cs`                                     | 待核对                                                    |
-| `Subforms/Save Editors/TrainerStat.cs`                                        | 待核对                                                    |
-| `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                    |
-| `Subforms/SettingsEditor.cs`                                                  | 待核对                                                    |
+| 上游文件（PKHeX.WinForms）                                                    | 状态                                                         |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `Subforms/BoxExporter.cs`                                                     | 待核对                                                       |
+| `Subforms/EntitySearchSetup.cs`                                               | 待核对                                                       |
+| `Subforms/KChart.cs`                                                          | 待核对                                                       |
+| `Subforms/Misc/EntitySummaryImage.cs`                                         | 待核对                                                       |
+| `Subforms/Misc/PropertyComparer.cs`                                           | 待核对                                                       |
+| `Subforms/Misc/SortableBindingList.cs`                                        | 待核对                                                       |
+| `Subforms/PKM Editors/BatchEditor.cs`                                         | 待核对                                                       |
+| `Subforms/PKM Editors/MemoryAmie.cs`                                          | 记忆、亲密度/好感、互动数值与居住记录已接入；浏览器待核验    |
+| `Subforms/PKM Editors/MoveShopEditor.cs`                                      | 待核对                                                       |
+| `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | 待核对                                                       |
+| `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查     |
+| `Subforms/PKM Editors/SuperTrainingEditor.cs`                                 | 待核对                                                       |
+| `Subforms/PKM Editors/TechRecordEditor.cs`                                    | 待核对                                                       |
+| `Subforms/PKM Editors/Text.cs`                                                | 待核对                                                       |
+| `Subforms/ReportGrid.cs`                                                      | 待核对                                                       |
+| `Subforms/SAV_Database.cs`                                                    | 待核对                                                       |
+| `Subforms/SAV_Encounters.cs`                                                  | 待核对                                                       |
+| `Subforms/SAV_FolderList.cs`                                                  | 待核对                                                       |
+| `Subforms/SAV_MysteryGiftDB.cs`                                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen1/SAV_EventReset1.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen1/SAV_HallOfFame1.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen2/SAV_Misc2.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/Gen3/PokeBlock3CaseEditor.cs`                          | 待核对                                                       |
+| `Subforms/Save Editors/Gen3/SAV_HallOfFame3.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen3/SAV_Misc3.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/Gen3/SAV_RTC3.cs`                                      | 待核对                                                       |
+| `Subforms/Save Editors/Gen3/SAV_Roamer3.cs`                                   | 待核对                                                       |
+| `Subforms/Save Editors/Gen3/SAV_SecretBase3.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/PoffinCase4Editor.cs`                             | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/PokeGear4Editor.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonConnection4Editor.cs`        | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventData4Editor.cs`         | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventRecord4Editor.cs`       | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventTrainer4Editor.cs`      | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonParticipant4Editor.cs`       | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonSpeciesForm4Editor.cs`       | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Apricorn.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_BattlePass.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_DLC4.cs`                                      | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Gear.cs`                                      | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Geonet4.cs`                                   | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_HoneyTree.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Misc4.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Pokeathlon4.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Pokedex4.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Trainer4BR.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Underground.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/CGearImage.cs`                                    | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/Join Avenue/IJoinAvenueSpecificEditor.cs`         | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueAssistantSpecificEditor.cs` | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueEntityGeneralEditor.cs`     | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueFanSpecificEditor.cs`       | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueListEditor.cs`              | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueSettingsEditor.cs`          | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueVisitorSpecificEditor.cs`   | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/Join Avenue/SAV_JoinAvenue.cs`                    | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/SAV_DLC5.cs`                                      | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/SAV_GlobalLink5.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/SAV_Medals5.cs`                                   | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/SAV_Misc5.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/SAV_Pokedex5.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/SAV_UnityTower.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_BerryFieldXY.cs`                              | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_BoxLayout.cs`                                 | 部分：箱名/壁纸已实现；解锁、标记、排序待实现                |
+| `Subforms/Save Editors/Gen6/SAV_HallOfFame.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_Link6.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_OPower.cs`                                    | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_PokeBlockORAS.cs`                             | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_PokedexORAS.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_PokedexXY.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_Pokepuff.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | 基础/性别/时间/语言/地区/徽章/对应点数已接入；其他字段待接入 |
+| `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | 待核对                                                       |
+| `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | 基础/性别/时间/语言/地区/对应点数已接入；其他字段待接入      |
+| `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_FlagWork8b.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_Poffin8b.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_Raid8.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | 基础/性别/时间/语言/对应点数已接入；其他字段待接入           |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | 基础/性别/时间/语言/徽章/对应点数已接入；其他字段待接入      |
+| `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_Donut9a.cs`                                   | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/SAV_BoxList.cs`                                        | 待核对                                                       |
+| `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | 待核对                                                       |
+| `Subforms/Save Editors/SAV_Chatter.cs`                                        | 待核对                                                       |
+| `Subforms/Save Editors/SAV_EventFlags.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | 待核对                                                       |
+| `Subforms/Save Editors/SAV_EventWork.cs`                                      | 待核对                                                       |
+| `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 待核对                                                       |
+| `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                      |
+| `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                       |
+| `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/性别/时间/徽章/对应点数已接入；其他字段待接入           |
+| `Subforms/Save Editors/SAV_Wondercard.cs`                                     | 待核对                                                       |
+| `Subforms/Save Editors/TrainerStat.cs`                                        | 待核对                                                       |
+| `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                       |
+| `Subforms/SettingsEditor.cs`                                                  | 待核对                                                       |

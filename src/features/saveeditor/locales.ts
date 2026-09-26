@@ -298,6 +298,19 @@ export const saveEditorResources = {
       "剑／盾更改性别时，会沿用当前肤色并重置角色外观与穿着；可通过撤销恢复。",
     applyTrainer: "应用训练家修改",
     trainerLanguage: "存档语言",
+    trainerCurrencyNames: {
+      bp: "对战点数（BP）",
+      pokeMiles: "宝可里程",
+      festivalCoins: "圆庆币",
+      watts: "瓦特",
+    },
+    trainerCurrencyNotes: {
+      bp: "",
+      pokeMiles: "修改时会把当前与累计宝可里程设为同一数值。",
+      festivalCoins: "累计圆庆币会按已使用数量与新余额重新计算。",
+      watts: "余额超过累计获得量时，会一并提高累计记录。",
+    },
+    trainerCurrencyError: "请按当前存档支持的范围填写整数，不能留空。",
     trainerBadges: "徽章",
     trainerBadge: "徽章 {n}",
     trainerBadgesNote: "仅修改所选徽章，不自动完成道馆剧情或解锁地图。",
@@ -702,6 +715,23 @@ export const saveEditorResources = {
       "In Sword/Shield, changing gender resets appearance and clothing using the current skin tone. Undo restores the previous state.",
     applyTrainer: "Apply trainer changes",
     trainerLanguage: "Save language",
+    trainerCurrencyNames: {
+      bp: "Battle Points (BP)",
+      pokeMiles: "Poké Miles",
+      festivalCoins: "Festival Coins",
+      watts: "Watts",
+    },
+    trainerCurrencyNotes: {
+      bp: "",
+      pokeMiles:
+        "Sets current and total Poké Miles to the same value when changed.",
+      festivalCoins:
+        "Recalculates total Festival Coins from spent coins and the new balance.",
+      watts:
+        "Raises total earned Watts when the new balance exceeds that record.",
+    },
+    trainerCurrencyError:
+      "Enter a whole number within this save's supported range. Do not leave it blank.",
     trainerBadges: "Badges",
     trainerBadge: "Badge {n}",
     trainerBadgesNote:
@@ -1112,6 +1142,20 @@ export const saveEditorResources = {
       "ソード・シールドで性別を変更すると、現在の肌色に合わせて外見と服装をリセットします。取り消しで元に戻せます。",
     applyTrainer: "トレーナーの変更を適用",
     trainerLanguage: "セーブの言語",
+    trainerCurrencyNames: {
+      bp: "バトルポイント（BP）",
+      pokeMiles: "ポケマイル",
+      festivalCoins: "フェスコイン",
+      watts: "ワット",
+    },
+    trainerCurrencyNotes: {
+      bp: "",
+      pokeMiles: "変更時に現在と累計のポケマイルを同じ値に設定します。",
+      festivalCoins: "使用済みコインと新しい残高から累計を再計算します。",
+      watts: "残高が累計獲得量を超える場合は累計も引き上げます。",
+    },
+    trainerCurrencyError:
+      "このセーブの対応範囲内の整数を入力してください。空欄にはできません。",
     trainerBadges: "バッジ",
     trainerBadge: "バッジ {n}",
     trainerBadgesNote:
@@ -1234,6 +1278,7 @@ export function localizeSaveError(
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
   if (/Trainer language/.test(message)) return words.trainerLanguageError;
+  if (/Trainer currency/.test(message)) return words.trainerCurrencyError;
   if (/Trainer badges/.test(message)) return words.trainerBadgesError;
   if (/Trainer geography/.test(message)) return words.trainerGeographyError;
   if (/unrecognized skin color/.test(message)) return words.trainerSkinError;

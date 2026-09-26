@@ -6,7 +6,7 @@
 ## 完整接入扩展
 
 2026-09-26 所有者要求完整接入；范围追踪见 [PKHeX 清单](../pkhex-inventory.md)。
-首批新增可视化仓储，API 3（当前已扩展为 37）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
+首批新增可视化仓储，API 3（当前已扩展为 38）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
 IBoxDetailWallpaper 的壁纸编号及上游 SpriteName 生成的图片键。
 UI 按原始格位保留空位，按上游 BoxEditor.InitializeGrid 使用每盒格数 / 5 的列数；队伍显示 6 格。选择空位不显示上一只宝可梦。
 图片来源为上游 Drawing 资源，按需同源加载；壁纸选择对应 WallpaperUtil.cs，
@@ -854,3 +854,27 @@ BDSP 沿 SAV_Trainer8b 对应 FlagWork8b 系统标记 124–131，每项位于 O
 E、D、Pt、HG、B、B2、X、OR、BD 的逐枚/全部/清空、完整输出、范围拒绝、原文件与校验保持通过。
 另验证 BDSP 未改异常系统标记保持，以及不支持格式拒绝；原生套件、12 项前端测试、类型、变更文件 lint、核心与网页构建通过。
 保留既有裁剪与文件体积警告；浏览器仍待核验，其他进度和完整 PKHeX 清单继续推进。
+
+## 训练家 BP、里程、圆庆币与瓦特（API 38）
+
+第五至第八世代已开放格式按实际能力显示 BP、宝可里程、圆庆币或瓦特，沿用训练家草稿、应用、撤销及导出。
+界面使用十进制数字文本框并显示上限；BP 为 0–9999、最多四位，其余为 0–9999999、最多七位。
+空白、负数、小数、越界及不支持字段拒绝。未改的超范围或异常原值不发补丁，修改其他训练家字段时保持。
+
+输入来源：SAV_SimpleTrainer 的 MT_Coins 在第五世代重标为 BP，按 SaveFile.MaxCoins=9999 限制；
+Gen6/SAV_Trainer 的 TB_BP.Mask=0000、TB_PM.Mask=0000000；
+Gen7/SAV_Trainer7 的 NUD_BP.Maximum=9999、NUD_FC.Maximum=9999999；
+Gen8/SAV_Trainer8 的 NUD_BP、MT_Watt.Mask=0000000 与 MyStatus8.MaxWatt；SAV_Trainer8b 的 NUD_BP.Maximum=9999。
+未把旧世代其他窗口的代币编辑混入此训练家字段组，相关窗口继续按完整清单接入。
+
+存储与联动沿用上游：第五世代 BattleSubway5.BP 为偏移 0 的 ushort；第六世代 BP 使用 SAV6.BP。
+宝可里程同时设置记录 63（当前）和 64（累计），遵循 SAV_Trainer 保存流程，即使降低当前余额也把累计设为同值。
+第七世代 Misc7.BP 为偏移 0x11C 的 uint；JoinFesta7.FestaCoins 为 0x508 的 int32，
+setter 按记录 38 的已使用量加新余额重算 0x50C 的累计值，并截取至 9999999。
+剑／盾 Misc8.BP 为 0x11C 的 ushort，MyStatus8.Watt 为 0xD0 的 uint；
+新余额高于记录 22（Record8.WattTotal）时提高累计，否则保留累计值。BDSP BattleTowerWork8b.BP 为 0xC 的 uint。
+仅在对应余额发生变化时调用 setter；界面提前说明累计记录联动，导出回读同时检查这些关联值。
+
+B、B2、X、OR、SN、US、BD 的边界、累计联动、同值不重写、完整输出、原文件与校验保持通过。
+剑／盾 Core 创建对象的余额与累计记录完整块比较、其他格式拒绝及原生套件通过，不代表剑／盾真实存档往返验收。
+13 项前端测试、类型、变更文件 lint、核心与网页构建通过，保留既有裁剪与文件体积警告；浏览器仍待核验。

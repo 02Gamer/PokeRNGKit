@@ -11,8 +11,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 37,
+  apiVersion: 38,
   trainer: {
+    currencies: [],
     badges: { count: 8, value: 0 },
     geography: null,
     languages: [],
@@ -331,6 +332,51 @@ describe("save editor boundaries", () => {
         emeraldReport,
       ).badges,
     ).toBe("255");
+  });
+  it("validates supported currency fields and preserves unchanged abnormal balances", () => {
+    const report: SaveReport = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        currencies: [
+          { key: "bp", value: 5, max: 9999 },
+          { key: "pokeMiles", value: 50, max: 9999999 },
+        ],
+      },
+    };
+    const draft = trainerDraft(report);
+    expect(
+      validateTrainer({ ...draft, bp: "9999", pokeMiles: "9999999" }, report)
+        .currencies,
+    ).toEqual({ bp: 9999, pokeMiles: 9999999 });
+    for (const bp of ["", "-1", "2.5", "10000"])
+      expect(() => validateTrainer({ ...draft, bp }, report)).toThrow(
+        /currency/,
+      );
+    expect(() => validateTrainer({ ...draft, watts: "1" }, report)).toThrow(
+      /currency/,
+    );
+    expect(validateTrainer(draft, report).currencies).toBeUndefined();
+    const unusual: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        currencies: [{ key: "bp", value: 65535, max: 9999 }],
+      },
+    };
+    expect(
+      validateTrainer(trainerDraft(unusual), unusual).currencies,
+    ).toBeUndefined();
+    expect(rebaseTrainerDraft(trainerDraft(unusual), unusual, report).bp).toBe(
+      "5",
+    );
+    expect(
+      rebaseTrainerDraft(
+        { ...trainerDraft(unusual), bp: "123" },
+        unusual,
+        report,
+      ).bp,
+    ).toBe("123");
   });
   it("always exports a distinct filename", () => {
     expect(exportSaveName("main")).toBe("edited-main");

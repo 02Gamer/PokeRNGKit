@@ -1,7 +1,14 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
+export const TRAINER_CURRENCY_KEYS = [
+  "bp",
+  "pokeMiles",
+  "festivalCoins",
+  "watts",
+] as const;
+export type TrainerCurrencyKey = (typeof TRAINER_CURRENCY_KEYS)[number];
 
 export interface SaveReport {
-  apiVersion: 37;
+  apiVersion: 38;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -24,6 +31,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    currencies: { key: TrainerCurrencyKey; value: number; max: number }[];
     badges: { count: number; value: number } | null;
     geography: {
       value: { country: number; region: number; consoleRegion: number };
@@ -162,7 +170,7 @@ export interface PokemonEntry {
   evs: number[];
 }
 
-export interface TrainerDraft {
+export interface TrainerDraft extends Record<TrainerCurrencyKey, string> {
   badges: string;
   country: string;
   region: string;
@@ -180,6 +188,14 @@ export interface TrainerDraft {
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
+    ...(Object.fromEntries(
+      TRAINER_CURRENCY_KEYS.map((key) => [
+        key,
+        String(
+          report.trainer.currencies.find((f) => f.key === key)?.value ?? "",
+        ),
+      ]),
+    ) as Record<TrainerCurrencyKey, string>),
     badges: String(report.trainer.badges?.value ?? ""),
     country: String(report.trainer.geography?.value.country ?? ""),
     region: String(report.trainer.geography?.value.region ?? ""),
@@ -252,7 +268,16 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
       badges >= 2 ** report.trainer.badges.count)
   )
     throw new Error("Trainer badges are unsupported or out of range.");
+  const currencies: Partial<Record<TrainerCurrencyKey, number>> = {};
+  for (const key of TRAINER_CURRENCY_KEYS) {
+    const field = report.trainer.currencies.find((f) => f.key === key);
+    if (draft[key] === String(field?.value ?? "")) continue;
+    if (!field || !/^\d+$/.test(draft[key]) || Number(draft[key]) > field.max)
+      throw new Error("Trainer currency is unsupported or out of range.");
+    currencies[key] = Number(draft[key]);
+  }
   return {
+    currencies: Object.keys(currencies).length ? currencies : undefined,
     language,
     badges,
     ...validateTrainerGeography(draft, report),

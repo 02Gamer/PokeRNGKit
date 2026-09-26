@@ -54,6 +54,10 @@ export function SaveEditorPanel(
     "pokemon",
   );
   const [draft, setDraft] = useState<TrainerDraft>({
+    bp: "",
+    pokeMiles: "",
+    festivalCoins: "",
+    watts: "",
     badges: "",
     country: "",
     region: "",
@@ -636,6 +640,27 @@ export function SaveEditorPanel(
                     </Select>
                   </label>
                 )}
+                {report.trainer.currencies.map((field) => (
+                  <label className="field" key={field.key}>
+                    <span>
+                      {words.trainerCurrencyNames[field.key]} · 0–{field.max}
+                    </span>
+                    <input
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={String(field.max).length}
+                      value={draft[field.key]}
+                      onChange={(e) =>
+                        setDraft({ ...draft, [field.key]: e.target.value })
+                      }
+                    />
+                    {words.trainerCurrencyNotes[field.key] && (
+                      <span className="save-editor-note">
+                        {words.trainerCurrencyNotes[field.key]}
+                      </span>
+                    )}
+                  </label>
+                ))}
                 <TrainerGeographyFields
                   report={report}
                   draft={draft}
