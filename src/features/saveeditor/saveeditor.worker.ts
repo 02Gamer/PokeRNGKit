@@ -14,6 +14,7 @@ interface SaveExports {
         EditStorage(data: Uint8Array, json: string): Uint8Array;
         ImportPokemon(data: Uint8Array, json: string): Uint8Array;
         ExportPokemon(data: Uint8Array, json: string): string;
+        ReadMemory(data: Uint8Array, json: string): string;
         ReadRibbons(data: Uint8Array, json: string): string;
         SuggestRelearn(data: Uint8Array, json: string): string;
         ReadOrigin(data: Uint8Array, json: string): string;
@@ -54,6 +55,7 @@ self.addEventListener(
         | "box"
         | "storage"
         | "pokemonImport"
+        | "memoryCatalog"
         | "ribbons"
         | "relearnSuggestion"
         | "originCatalog"
@@ -72,6 +74,7 @@ self.addEventListener(
         kind === "legality" ||
         kind === "pokemonExport" ||
         kind === "originCatalog" ||
+        kind === "memoryCatalog" ||
         kind === "ribbons" ||
         kind === "relearnSuggestion"
           ? undefined
@@ -89,7 +92,7 @@ self.addEventListener(
                         : api.Export(bytes, edit),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 23)
+      if (report.apiVersion !== 24)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined
@@ -111,6 +114,10 @@ self.addEventListener(
         kind === "ribbons" && edit !== undefined
           ? JSON.parse(api.ReadRibbons(bytes, edit))
           : undefined;
+      const memoryCatalog =
+        kind === "memoryCatalog" && edit !== undefined
+          ? JSON.parse(api.ReadMemory(bytes, edit))
+          : undefined;
       self.postMessage(
         {
           id,
@@ -121,6 +128,7 @@ self.addEventListener(
           originCatalog,
           relearnSuggestion,
           ribbons,
+          memoryCatalog,
         },
         output ? [output.buffer] : [],
       );

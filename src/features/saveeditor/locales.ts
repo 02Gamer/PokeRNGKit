@@ -2,6 +2,20 @@ import { saveEditorCopy } from "./copy";
 
 export const saveEditorResources = {
   zh: {
+    clearMemory: "清空记忆",
+    memoryTitle: "训练家记忆",
+    loadMemory: "读取训练家记忆",
+    memoryTrainer: "记忆所属训练家",
+    handlingTrainer: "接手训练家",
+    memoryEvent: "记忆内容",
+    memoryArgument: "关联对象或地点",
+    memoryIntensity: "记忆程度",
+    memoryFeeling: "感受",
+    applyMemory: "应用记忆",
+    revertMemory: "还原记忆草稿",
+    memoryUnavailable: "按上游规则，该训练家履历当前不能编辑这组记忆。",
+    memoryNote:
+      "根据记忆内容联动对象、地点、道具或招式目录。切换内容会重置关联参数，选择无记忆会清空参数、程度和感受。先应用或还原草稿再切换训练家；完成后请检查合法性。",
     revertRibbonDraft: "还原缎带草稿",
     ribbonStatuses: {
       unchecked: "未完成分析",
@@ -248,6 +262,21 @@ export const saveEditorResources = {
     },
   },
   en: {
+    clearMemory: "Clear memory",
+    memoryTitle: "Trainer memories",
+    loadMemory: "Load trainer memories",
+    memoryTrainer: "Trainer",
+    handlingTrainer: "Handling trainer",
+    memoryEvent: "Memory",
+    memoryArgument: "Related entity or location",
+    memoryIntensity: "Intensity",
+    memoryFeeling: "Feeling",
+    applyMemory: "Apply memory",
+    revertMemory: "Revert memory draft",
+    memoryUnavailable:
+      "Upstream trainer-history rules do not allow editing this memory group.",
+    memoryNote:
+      "Memory types select the relevant entity, location, item or move catalog. Changing the memory resets its argument; no memory clears the argument, intensity and feeling. Apply or revert the draft before switching trainers, then check legality.",
     revertRibbonDraft: "Revert ribbon draft",
     ribbonStatuses: {
       unchecked: "Analysis incomplete",
@@ -501,6 +530,21 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    clearMemory: "思い出を空にする",
+    memoryTitle: "トレーナーの思い出",
+    loadMemory: "思い出を読み込む",
+    memoryTrainer: "思い出のトレーナー",
+    handlingTrainer: "引き取ったトレーナー",
+    memoryEvent: "思い出",
+    memoryArgument: "関連する対象・場所",
+    memoryIntensity: "強さ",
+    memoryFeeling: "気持ち",
+    applyMemory: "思い出を適用",
+    revertMemory: "思い出の下書きを戻す",
+    memoryUnavailable:
+      "上流のトレーナー履歴の規則により、この思い出は現在編集できません。",
+    memoryNote:
+      "思い出に応じて対象、場所、道具、技の候補が切り替わります。内容を変更すると関連値をリセットし、思い出なしでは関連値、強さ、気持ちを消去します。トレーナーの切替前に下書きを適用または戻し、最後に合法性を確認してください。",
     revertRibbonDraft: "リボンの下書きを戻す",
     ribbonStatuses: {
       unchecked: "解析未完了",

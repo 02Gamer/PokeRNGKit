@@ -45,6 +45,7 @@ export function SaveEditorPanel(
   const [name, setName] = useState("");
   const [fileRevision, setFileRevision] = useState(0);
   const [report, setReport] = useState<SaveReport>();
+  const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [section, setSection] = useState<"pokemon" | "trainer">("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
@@ -109,6 +110,7 @@ export function SaveEditorPanel(
       working.current = bytes;
       setHistory([]);
       setReport(result.report);
+      setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setDraft(trainerDraft(result.report));
       setName(file.name);
@@ -141,6 +143,23 @@ export function SaveEditorPanel(
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
       setStatus("exported");
     });
+
+  const readMemory = async (query: import("./domain").MemoryQuery) => {
+    let catalog: import("./domain").MemoryCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(query),
+        "memoryCatalog",
+      );
+      if (id !== operation.current) return;
+      if (!result.memoryCatalog)
+        throw new Error("No memory catalog was returned.");
+      catalog = result.memoryCatalog;
+    });
+    return catalog;
+  };
 
   const readRibbons = async (position: PokemonPosition) => {
     let ribbons: import("./domain").RibbonCatalog | undefined;
@@ -244,6 +263,7 @@ export function SaveEditorPanel(
       });
       working.current = result.output;
       setReport(result.report);
+      setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setStatus("pokemonSaved");
     });
@@ -288,6 +308,7 @@ export function SaveEditorPanel(
       if (id !== operation.current) return;
       working.current = bytes;
       setReport(result.report);
+      setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setHistory((previous) => (originalSave ? [] : previous.slice(0, -1)));
       if (originalSave) setDraft(trainerDraft(result.report));
@@ -413,6 +434,7 @@ export function SaveEditorPanel(
             <SavePokemonBrowser
               key={`${name}:${fileRevision}`}
               report={report}
+              revision={workingRevision}
               busy={busy}
               onApply={(edit) => applyWorkingEdit(edit, "pokemon")}
               onApplyRaw={(edit) => applyWorkingEdit(edit, "pokemonRaw")}
@@ -424,6 +446,7 @@ export function SaveEditorPanel(
               onReadOrigin={readOrigin}
               onSuggestRelearn={suggestRelearn}
               onReadRibbons={readRibbons}
+              onReadMemory={readMemory}
               onAnalyze={analyzePokemon}
             />
           ) : (

@@ -1,7 +1,7 @@
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 
 export interface SaveReport {
-  apiVersion: 23;
+  apiVersion: 24;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -249,8 +249,10 @@ export interface PokemonRawEdit extends PokemonPosition {
     | "egg"
     | "shiny"
     | "relearn"
-    | "ribbons";
+    | "ribbons"
+    | "memory";
   relearn?: { moves: number[] };
+  memory?: MemoryEdit;
   ribbons?: {
     mode?: "values" | "suggest" | "minimal";
     values: { key: string; value: number }[];
@@ -291,6 +293,28 @@ export interface PokemonLegalityReport extends PokemonPosition {
   summary: LocalizedText;
   details: LocalizedText;
 }
+export interface MemoryEdit {
+  handler: 0 | 1;
+  memory: number;
+  variable: number;
+  intensity: number;
+  feeling: number;
+}
+export interface MemoryQuery extends PokemonPosition {
+  handler: 0 | 1;
+  memory?: number;
+}
+export interface MemoryCatalog {
+  current: MemoryEdit;
+  canEdit: boolean;
+  nickname: string;
+  trainer: string;
+  memories: OriginChoice[];
+  variables: OriginChoice[];
+  intensities: OriginChoice[];
+  feelings: OriginChoice[];
+  argumentType: string;
+}
 export interface RibbonCatalog {
   entries: {
     key: string;
@@ -305,6 +329,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  memoryCatalog?: MemoryCatalog;
   ribbons?: RibbonCatalog;
   relearnSuggestion?: number[];
   originCatalog?: OriginCatalog;

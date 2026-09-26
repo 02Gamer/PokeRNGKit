@@ -24,6 +24,11 @@
 
 ## 当前工程证据
 
+API 24 新增双训练家记忆目录、内容/参数/程度/感受编辑及本地化预览，采用上游世代规则。
+工作副本修订号使摘要外面板的旧草稿失效。五种存档的双训练家记忆、边界及完整载荷保持通过；
+原生套件、648 前端测试、类型、lint 和两阶段构建通过，保留既有警告。
+记忆窗口的居住/好感等其他区域仍待接入，浏览器仍待新版页面核验。
+
 API 23 新增缎带分析状态和核心建议/精简操作，对应上游的批量合法性辅助路径。
 保留超级训练等关联字段，草稿未应用时禁用批量操作；11 格式核心一致性、类型、lint、648 前端测试与两阶段构建通过。
 保留既有警告，浏览器待检查；完整清单继续推进。
@@ -129,7 +134,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Misc/PropertyComparer.cs`                                           | 待核对                                                   |
 | `Subforms/Misc/SortableBindingList.cs`                                        | 待核对                                                   |
 | `Subforms/PKM Editors/BatchEditor.cs`                                         | 待核对                                                   |
-| `Subforms/PKM Editors/MemoryAmie.cs`                                          | 待核对                                                   |
+| `Subforms/PKM Editors/MemoryAmie.cs`                                          | 双训练家记忆已接入；居住/好感等其余区域待完成            |
 | `Subforms/PKM Editors/MoveShopEditor.cs`                                      | 待核对                                                   |
 | `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | 待核对                                                   |
 | `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查 |

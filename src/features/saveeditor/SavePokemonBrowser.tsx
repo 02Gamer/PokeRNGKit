@@ -1,3 +1,4 @@
+import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
 import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
@@ -29,6 +30,7 @@ import type { saveEditorResources } from "./locales";
 
 export function SavePokemonBrowser({
   report,
+  revision,
   busy,
   onApply,
   onApplyRaw,
@@ -36,6 +38,7 @@ export function SavePokemonBrowser({
   onReadOrigin,
   onSuggestRelearn,
   onReadRibbons,
+  onReadMemory,
   onAnalyze,
   onApplyBox,
   onStorage,
@@ -43,6 +46,7 @@ export function SavePokemonBrowser({
   onExport,
 }: {
   report: SaveReport;
+  revision: number;
   busy: boolean;
   onApply(edit: PokemonEdit): Promise<void>;
   onApplyRaw(edit: PokemonRawEdit): Promise<void>;
@@ -52,6 +56,9 @@ export function SavePokemonBrowser({
   onExport(position: PokemonPosition): Promise<void>;
   legality?: PokemonLegalityReport;
   onSuggestRelearn(position: PokemonPosition): Promise<number[] | undefined>;
+  onReadMemory(
+    query: import("./domain").MemoryQuery,
+  ): Promise<import("./domain").MemoryCatalog | undefined>;
   onReadRibbons(
     position: PokemonPosition,
   ): Promise<import("./domain").RibbonCatalog | undefined>;
@@ -308,8 +315,17 @@ export function SavePokemonBrowser({
                 disabled={busy || !report.canEdit || !selected.valid}
                 onApply={onApplyRaw}
               />
+              {report.generation >= 6 && (
+                <PokemonMemoryEditor
+                  key={`memory-${revision}-${JSON.stringify(selected)}`}
+                  position={{ box: selected.box, slot: selected.slot }}
+                  disabled={busy || !report.canEdit || !selected.valid}
+                  onApply={onApplyRaw}
+                  onRead={onReadMemory}
+                />
+              )}
               <PokemonRibbonEditor
-                key={`ribbons-${JSON.stringify(selected)}`}
+                key={`ribbons-${revision}-${JSON.stringify(selected)}`}
                 position={{ box: selected.box, slot: selected.slot }}
                 disabled={busy || !report.canEdit || !selected.valid}
                 onApply={onApplyRaw}

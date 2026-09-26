@@ -6,7 +6,7 @@
 ## 完整接入扩展
 
 2026-09-26 所有者要求完整接入；范围追踪见 [PKHeX 清单](../pkhex-inventory.md)。
-首批新增可视化仓储，API 3（当前已扩展为 23）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
+首批新增可视化仓储，API 3（当前已扩展为 24）返回 BoxSlotCount、IBoxDetailNameRead 的盒子名称、
 IBoxDetailWallpaper 的壁纸编号及上游 SpriteName 生成的图片键。
 UI 按原始格位保留空位，按上游 BoxEditor.InitializeGrid 使用每盒格数 / 5 的列数；队伍显示 6 格。选择空位不显示上一只宝可梦。
 图片来源为上游 Drawing 资源，按需同源加载；壁纸选择对应 WallpaperUtil.cs，
@@ -544,4 +544,27 @@ Chrome 重新刷新仍加载旧入口 index-BbDn0w3C.js，当前构建为 index-
 2026-09-27 首次推送扩展后的 Actions 在 npm ci 阶段报 EALLOWREMOTE，拒绝锁文件中的
 registry.npmmirror.com 地址。将 @noble/ciphers 与 @noble/hashes 的 resolved 改为官方
 registry.npmjs.org；版本保持 2.4.0，SHA-512 与官方 dist.integrity 逐项一致。
-不更改依赖内容或安装安全策略，待重新执行远端构建确认。
+不更改依赖内容或安装安全策略。修复提交 738424c 的 Actions 36259551366 已全部成功，
+包括网页构建、GitHub Pages/Cloudflare 部署和 Windows 打包。
+
+## 训练家记忆（API 24）
+
+按需读取原训练家与接手训练家的记忆内容、关联参数、程度和感受，使用核心中、英、日目录。
+依据上游 MemoryAmie.LoadFields/SaveFields/GetLangStrings/UpdateMemoryDisplay、MemoryStrings、
+Memories.GetMemoryArgType 与 ITrainerMemories。原训练家的参数按来源世代（0 时回退格式）生成，
+接手训练家按当前格式生成；感受列表分别按来源世代与格式选取，与桌面规则一致。
+参数目录随记忆联动为宝可梦、地点、道具或招式；不开放任意数值绕过目录。
+程度 0 使用本地化“无”，无记忆会清空关联参数、程度和感受；没有参数选择的记忆写入变量 0。
+底层字节/ushort 位宽与目录成员双重校验。原值不在目录时保留编号显示，提交仍受目录约束。
+
+旧来源原训练家记忆、未接手的空训练家记忆沿用桌面禁用条件；不伪造接手身份以启用字段。
+内容切换重置关联参数，清空先进入草稿；切换训练家前必须应用或还原草稿。
+完整文字使用已本地化的名称填入核心模板，不直接向使用者显示内部变量占位符。
+写入只改变选定训练家四项记忆，保留另一组、健康状态与其他存储格位。居住记录、好感、
+饱食/愉悦等 MemoryAmie 的其他区域仍待接入，不将整个窗口标为完成。
+
+同时为工作副本更新增加前端修订号：应用、撤销和还原后，缎带及记忆的旧草稿失效，下次读取使用新工作副本，
+保留当前盒子/格位选择，避免摘要未变化时沿用旧草稿或旧分析提示。
+X、OR、SN、US、BD 五种存档的队伍/盒子双训练家记忆、全部参数类别、清空、边界及完整载荷保持检查通过。
+原生套件、648 前端测试、类型、lint、核心及最终前端构建通过，保留既有警告。
+浏览器仍待新版页面核验，完整记忆窗口与 PKHeX 清单继续推进。

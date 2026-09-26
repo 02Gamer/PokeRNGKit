@@ -42,6 +42,9 @@ public static partial class Program
     public static string ExportPokemon(byte[] data, string json) => SaveService.ExportPokemon(data, json);
 
     [JSExport]
+    public static string ReadMemory(byte[] data, string json) => SaveService.ReadMemory(data, json);
+
+    [JSExport]
     public static string ReadRibbons(byte[] data, string json) => SaveService.ReadRibbons(data, json);
 
     [JSExport]
@@ -73,6 +76,13 @@ public static class SaveService
         SAV3RS or SAV3E or SAV3FRLG or SAV3Colosseum or SAV3XD or
         SAV4DP or SAV4Pt or SAV4HGSS or SAV5BW or SAV5B2W2 or
         SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS;
+
+    public static string ReadMemory(byte[] data, string json)
+    {
+        var save = Open(data);
+        var query = JsonSerializer.Deserialize(json, SaveJsonContext.Default.MemoryQuery) ?? throw new ArgumentException("Missing memory query.");
+        return JsonSerializer.Serialize(PokemonMemories.Read(PokemonEditing.Read(save, query.Box, query.Slot), query.Handler, query.Memory), SaveJsonContext.Default.MemoryCatalog);
+    }
 
     public static string ReadRibbons(byte[] data, string json)
     {
@@ -128,7 +138,7 @@ public static class SaveService
         var save = Open(data);
         var valid = save.ChecksumsValid;
         var report = new SaveReport(
-            23, save.GetType().Name, save.Generation, save.Version.ToString(),
+            24, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
@@ -260,6 +270,8 @@ public sealed record SaveReport(
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
 [JsonSerializable(typeof(RibbonCatalog))]
+[JsonSerializable(typeof(MemoryQuery))]
+[JsonSerializable(typeof(MemoryCatalog))]
 [JsonSerializable(typeof(ushort[]))]
 [JsonSerializable(typeof(OriginQuery))]
 [JsonSerializable(typeof(OriginCatalog))]
