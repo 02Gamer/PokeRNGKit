@@ -538,3 +538,10 @@ Chrome 重新刷新仍加载旧入口 index-BbDn0w3C.js，当前构建为 index-
 包括超级训练等关联字段；校验、原文件、其他格位与队伍健康保持通过。
 类型、lint、186 文件 / 648 前端测试、核心和最终前端构建、格式检查通过，保留既有警告。
 浏览器仍加载旧入口，新界面未验收；完整清单继续推进。
+
+## 构建依赖来源修正
+
+2026-09-27 首次推送扩展后的 Actions 在 npm ci 阶段报 EALLOWREMOTE，拒绝锁文件中的
+registry.npmmirror.com 地址。将 @noble/ciphers 与 @noble/hashes 的 resolved 改为官方
+registry.npmjs.org；版本保持 2.4.0，SHA-512 与官方 dist.integrity 逐项一致。
+不更改依赖内容或安装安全策略，待重新执行远端构建确认。
