@@ -7,12 +7,24 @@ import {
   MAX_ENTITY_BYTES,
   type StandalonePokemonReport,
   type StandalonePokemonSnapshot,
+  type StandalonePokemonRequest,
+  type StandaloneAdvancedData,
 } from "./standalonePokemon";
 import { standaloneWords } from "./standaloneWords";
 import { saveEditorResources } from "./locales";
 import { pokemonImage } from "./art";
 import { PokemonLegality } from "./PokemonLegality";
-import type { PokemonLegalityReport } from "./domain";
+import type { PokemonLegalityReport, PokemonRawEdit } from "./domain";
+import { PokemonRawEditor } from "./PokemonRawEditor";
+import { PokemonShinyEditor } from "./PokemonShinyEditor";
+import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
+import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
+import { PokemonFormArgumentEditor } from "./PokemonFormArgumentEditor";
+import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
+import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
+import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
+import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
+import { PokemonCareEditor } from "./PokemonCareEditor";
 
 function download(bytes: Uint8Array<ArrayBuffer>, name: string) {
   const url = URL.createObjectURL(
@@ -57,7 +69,9 @@ export function StandalonePokemonPanel() {
     client.current.dispose();
   }, []);
   useEffect(() => dispose, [dispose]);
-  async function perform(action: (id: number) => Promise<void>) {
+  async function perform<T>(
+    action: (id: number) => Promise<T>,
+  ): Promise<T | undefined> {
     if (running.current) return;
     running.current = true;
     setBusy(true);
@@ -65,7 +79,7 @@ export function StandalonePokemonPanel() {
     setStatus(undefined);
     const id = ++operation.current;
     try {
-      await action(id);
+      return await action(id);
     } catch (cause) {
       if (id === operation.current)
         setError(
@@ -105,7 +119,10 @@ export function StandalonePokemonPanel() {
       setEncrypted(false);
       setRevision((value) => value + 1);
     });
-  const apply = (edit: PokemonEdit) =>
+  const applyRequest = (
+    change: Pick<StandalonePokemonRequest, "edit" | "raw">,
+    kind: "entityEdit" | "entityRaw",
+  ) =>
     perform(async (id) => {
       if (!working) return;
       const result = await client.current.run(
@@ -113,9 +130,9 @@ export function StandalonePokemonPanel() {
         {
           fileName: working.fileName,
           inputEncrypted: working.inputEncrypted,
-          edit,
+          ...change,
         },
-        "entityEdit",
+        kind,
       );
       if (id !== operation.current) return;
       if (!result.output) throw new Error("Missing edited file");
@@ -126,6 +143,29 @@ export function StandalonePokemonPanel() {
       setReport(result.entity);
       setRevision((value) => value + 1);
       setStatus("applied");
+    });
+  const apply = (edit: PokemonEdit) => applyRequest({ edit }, "entityEdit");
+  const applyRaw = (raw: PokemonRawEdit) => applyRequest({ raw }, "entityRaw");
+  const readDetails = <K extends keyof StandaloneAdvancedData>(
+    readKind: K,
+    handler?: number,
+    memory?: number,
+  ): Promise<NonNullable<StandaloneAdvancedData[K]> | undefined> =>
+    perform(async (id) => {
+      if (!working) return;
+      const result = await client.current.run(
+        working.bytes,
+        {
+          fileName: working.fileName,
+          inputEncrypted: working.inputEncrypted,
+          readKind,
+          handler,
+          memory,
+        },
+        "entityDetails",
+      );
+      if (id !== operation.current) return;
+      return result.details?.[readKind] ?? undefined;
     });
   const restore = (reset: boolean) =>
     perform(async (id) => {
@@ -413,6 +453,92 @@ export function StandalonePokemonPanel() {
                 disabled={busy}
                 onApply={apply}
               />
+              <PokemonTrainingEditor
+                key={`training-${revision}`}
+                training={report.pokemon.training}
+                generation={report.generation}
+                position={report.pokemon}
+                disabled={busy}
+                onApply={applyRaw}
+              />
+              <PokemonEncounterEditor
+                key={`encounter-${revision}`}
+                encounter={report.pokemon.encounter}
+                position={report.pokemon}
+                disabled={busy}
+                onApply={applyRaw}
+              />
+              {report.canMemories && (
+                <PokemonMemoryEditor
+                  key={`memory-${revision}`}
+                  position={report.pokemon}
+                  disabled={busy}
+                  readDisabled={busy}
+                  onRead={(query) =>
+                    readDetails("memory", query.handler, query.memory)
+                  }
+                  onApply={applyRaw}
+                />
+              )}
+              {!report.canMemories && report.care.length > 0 && (
+                <PokemonCareEditor
+                  key={`care-${revision}`}
+                  fields={report.care}
+                  isEgg={report.pokemon.egg}
+                  position={report.pokemon}
+                  disabled={busy}
+                  onApply={applyRaw}
+                />
+              )}
+              {report.generation >= 6 && (
+                <PokemonHistoryEditor
+                  key={`history-${revision}`}
+                  position={report.pokemon}
+                  disabled={busy}
+                  readDisabled={busy}
+                  onRead={() => readDetails("history")}
+                  onApply={applyRaw}
+                />
+              )}
+              <PokemonRibbonEditor
+                key={`ribbons-${revision}`}
+                position={report.pokemon}
+                generation={report.generation}
+                disabled={busy}
+                readDisabled={busy}
+                onRead={() => readDetails("ribbons")}
+                onApply={applyRaw}
+              />
+              <PokemonRelearnEditor
+                key={`relearn-${revision}`}
+                position={report.pokemon}
+                moves={report.pokemon.relearnMoves}
+                choices={report.moveChoices}
+                disabled={busy}
+                onSuggest={() => readDetails("relearn")}
+                onApply={applyRaw}
+              />
+              <PokemonShinyEditor
+                key={`shiny-${revision}`}
+                position={report.pokemon}
+                disabled={busy}
+                onApply={applyRaw}
+              />
+              <PokemonRawEditor
+                key={`raw-${revision}`}
+                pokemon={report.pokemon}
+                disabled={busy}
+                onApply={applyRaw}
+              />
+              {report.pokemon.formArgument && (
+                <PokemonFormArgumentEditor
+                  key={`form-${revision}`}
+                  argument={report.pokemon.formArgument}
+                  position={report.pokemon}
+                  disabled={busy}
+                  onApply={applyRaw}
+                />
+              )}
             </>
           ) : (
             <p className="save-editor-note">{words.readonly}</p>

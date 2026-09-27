@@ -5,7 +5,7 @@ namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonFile(PKM Entity, bool Party);
 internal sealed record StandalonePokemonReport(string Format, string Extension, bool Party, bool CanEdit, PokemonEntry Pokemon,
-    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices)
+    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices, int Generation, bool CanMemories, CareField[] Care)
 {
     public int ApiVersion => SaveService.ApiVersion;
 }
@@ -53,7 +53,7 @@ internal static class StandalonePokemon
         if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         return new(p.GetType().Name, p.Extension, file.Party, CanEdit(p), PokemonReader.Read(p, file.Party ? -1 : 0, 0),
-            PokemonReader.Attributes(p), PokemonReader.MoveChoices(p));
+            PokemonReader.Attributes(p), PokemonReader.MoveChoices(p), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : []);
     }
 
     public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false)
@@ -82,6 +82,27 @@ internal static class StandalonePokemon
             throw new ArgumentException("Entity file export requires valid data.");
         if (party && !file.Party && p.SIZE_PARTY != p.SIZE_STORED) p.ForcePartyData();
         return Serialize(p, party, encrypted);
+    }
+
+    public static byte[] EditRaw(byte[] input, string filename, PokemonRawEdit edit, bool inputEncrypted = false)
+    {
+        var file = Open(input, filename, inputEncrypted); var p = file.Entity;
+        if (!CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
+            throw new ArgumentException("Entity file editing is unavailable for this data.");
+        var original = p.Clone();
+        PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party);
+        if (p is PB7 letsGo && original is PB7 prior)
+        {
+            Span<ushort> before = stackalloc ushort[6]; Span<ushort> after = stackalloc ushort[6];
+            prior.LoadStats(prior.PersonalInfo, before); letsGo.LoadStats(letsGo.PersonalInfo, after);
+            if (!before.SequenceEqual(after))
+            {
+                var hp = letsGo.Stat_HPCurrent; var status = letsGo.Status_Condition;
+                letsGo.ResetPartyStats(); letsGo.Stat_HPCurrent = Math.Min(hp, letsGo.Stat_HPMax); letsGo.Status_Condition = status;
+            }
+            if (letsGo.CalcCP != prior.CalcCP) letsGo.ResetCP();
+        }
+        return Serialize(p, file.Party, false);
     }
 
     private static byte[] Serialize(PKM p, bool party, bool encrypted)

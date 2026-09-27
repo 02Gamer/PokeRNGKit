@@ -3,16 +3,24 @@ import type {
   PokemonEntry,
   SaveReport,
   PokemonLegalityReport,
+  PokemonRawEdit,
+  RibbonCatalog,
+  HistoryCatalog,
+  MemoryCatalog,
+  CareField,
 } from "./domain";
 import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 67;
+  apiVersion: 68;
   format: string;
   extension: string;
   party: boolean;
   canEdit: boolean;
+  generation: number;
+  canMemories: boolean;
+  care: CareField[];
   pokemon: PokemonEntry;
   attributeChoices: SaveReport["attributeChoices"];
   moveChoices: MoveChoice[];
@@ -23,10 +31,26 @@ export interface StandalonePokemonRequest {
   party?: boolean;
   encrypted?: boolean;
   edit?: PokemonEdit;
+  raw?: PokemonRawEdit;
+  readKind?: keyof StandaloneAdvancedData;
+  handler?: number;
+  memory?: number;
+}
+export interface StandaloneAdvancedData {
+  ribbons?: RibbonCatalog | null;
+  history?: HistoryCatalog | null;
+  memory?: MemoryCatalog | null;
+  relearn?: number[] | null;
 }
 export type StandalonePokemonOperation =
-  "entityLegality" | "entityInspect" | "entityEdit" | "entityExport";
+  | "entityRaw"
+  | "entityDetails"
+  | "entityLegality"
+  | "entityInspect"
+  | "entityEdit"
+  | "entityExport";
 export interface StandalonePokemonResult {
+  details?: StandaloneAdvancedData;
   legality?: PokemonLegalityReport;
   entity: StandalonePokemonReport;
   output?: Uint8Array<ArrayBuffer>;

@@ -11,7 +11,7 @@ public sealed record EncounterInfo(int MetLevel, int MaxMetLevel, bool Fateful, 
 internal static class PokemonEncounter
 {
     private static int MaxLevel(PKM p) => p is CK3 or XK3 ? 255 : 127;
-    private static bool CanDates(PKM p) => p is PK4 or PK5 or PK6 or PK7 or PK8 or PB8;
+    private static bool CanDates(PKM p) => p is PK4 or BK4 or PK5 or PK6 or PK7 or PB7 or PK8 or PB8 or PA8 or PK9 or PA9;
     private static string Date(DateOnly? date) => date?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "";
     public static EncounterInfo Read(PKM p) => new(p.MetLevel, MaxLevel(p), p.FatefulEncounter,
         CanDates(p), Date(p.MetDate), Date(p.EggMetDate));

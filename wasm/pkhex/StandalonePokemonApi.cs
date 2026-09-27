@@ -2,10 +2,14 @@
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PKHeX.Core;
 
 namespace PokeRNGKit.SaveEditor;
 
-internal sealed record StandalonePokemonRequest(string FileName, bool InputEncrypted = false, bool Party = false, bool Encrypted = false, PokemonEdit? Edit = null);
+internal sealed record StandalonePokemonRequest(string FileName, bool InputEncrypted = false, bool Party = false, bool Encrypted = false, PokemonEdit? Edit = null,
+    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null);
+
+internal sealed record StandaloneAdvancedData(RibbonCatalog? Ribbons = null, HistoryCatalog? History = null, MemoryCatalog? Memory = null, ushort[]? Relearn = null);
 
 internal static class StandalonePokemonRequests
 {
@@ -22,6 +26,34 @@ internal static class StandalonePokemonRequests
 
 public static partial class Program
 {
+    [JSExport] public static byte[] EditStandalonePokemonRaw(byte[] data, string json)
+    {
+        var request = StandalonePokemonRequests.Read(json);
+        return StandalonePokemon.EditRaw(data, request.FileName, request.Raw ?? throw new ArgumentException("Entity file advanced edit is missing."), request.InputEncrypted);
+    }
+    [JSExport] public static string ReadStandalonePokemonAdvanced(byte[] data, string json)
+    {
+        var request = StandalonePokemonRequests.Read(json);
+        var p = StandalonePokemon.Open(data, request.FileName, request.InputEncrypted).Entity;
+        if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
+            throw new ArgumentException("Entity file must contain valid Pokemon data.");
+        var result = request.ReadKind switch
+        {
+            "ribbons" => new StandaloneAdvancedData(Ribbons: PokemonRibbons.Read(p, true)),
+            "history" => new StandaloneAdvancedData(History: PokemonHistory.Read(p)),
+            "memory" => new StandaloneAdvancedData(Memory: PokemonMemories.Read(p, request.Handler, request.Memory)),
+            "relearn" => new StandaloneAdvancedData(Relearn: ReadRelearn(p)),
+            _ => throw new ArgumentException("Entity file detail is unavailable."),
+        };
+        return JsonSerializer.Serialize(result, StandalonePokemonJson.Default.StandaloneAdvancedData);
+    }
+    private static ushort[] ReadRelearn(PKHeX.Core.PKM p)
+    {
+        if (!PokemonRelearn.Supported(p)) throw new ArgumentException("Pokemon relearn moves are unavailable in this format.");
+        var analysis = new PKHeX.Core.LegalityAnalysis(p);
+        if (!analysis.Parsed) throw new ArgumentException("Pokemon relearn analysis could not complete.");
+        ushort[] moves = new ushort[4]; analysis.GetSuggestedRelearnMoves(moves); return moves;
+    }
     [JSExport] public static string AnalyzeStandalonePokemon(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
@@ -51,4 +83,5 @@ public static partial class Program
 [JsonSerializable(typeof(StandalonePokemonReport))]
 [JsonSerializable(typeof(StandalonePokemonRequest))]
 [JsonSerializable(typeof(PokemonLegalityReport))]
+[JsonSerializable(typeof(StandaloneAdvancedData))]
 internal partial class StandalonePokemonJson : JsonSerializerContext;

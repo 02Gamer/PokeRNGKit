@@ -14,6 +14,25 @@ internal static class PokemonRawEditing
             throw new ArgumentException("Pokemon slot must contain valid data.");
         if (edit.Box >= 0 && save.IsBoxSlotLocked(edit.Box, edit.Slot))
             throw new ArgumentException("Storage slot is locked.");
+        Apply(p, edit, edit.Box == -1, () =>
+        {
+            if (edit.Action == "origin") PokemonOrigin.Apply(save, p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
+            else
+            {
+                if (edit.Egg?.Action == "makeEgg" && edit.Box == -1 &&
+                    !Enumerable.Range(0, save.PartyCount).Any(i => i != edit.Slot && save.GetPartySlotAtIndex(i) is { Species: not 0, IsEgg: false }))
+                    throw new ArgumentException("Storage party must contain a non-egg Pokemon when adding an egg.");
+                PokemonEgg.Apply(save, p, edit.Egg ?? throw new ArgumentException("Pokemon egg edit is missing."));
+            }
+        });
+        if (edit.Box == -1) save.SetPartySlotAtIndex(p, edit.Slot, EntityImportSettings.None);
+        else save.SetBoxSlotAtIndex(p, edit.Box, edit.Slot, EntityImportSettings.None);
+    }
+
+    public static void Apply(PKM p, PokemonRawEdit edit, bool party, Action? applyContext = null)
+    {
+        if (p.Species == 0 || !p.ChecksumValid || p.Format < 3)
+            throw new ArgumentException("Pokemon slot must contain valid data.");
         switch (edit.Action)
         {
             case "training":
@@ -38,13 +57,9 @@ internal static class PokemonRawEditing
                 PokemonShiny.Apply(p, edit.Shiny ?? throw new ArgumentException("Pokemon shiny edit is missing."));
                 break;
             case "egg":
-                if (edit.Egg?.Action == "makeEgg" && edit.Box == -1 &&
-                    !Enumerable.Range(0, save.PartyCount).Any(i => i != edit.Slot && save.GetPartySlotAtIndex(i) is { Species: not 0, IsEgg: false }))
-                    throw new ArgumentException("Storage party must contain a non-egg Pokemon when adding an egg.");
-                PokemonEgg.Apply(save, p, edit.Egg ?? throw new ArgumentException("Pokemon egg edit is missing."));
-                break;
             case "origin":
-                PokemonOrigin.Apply(save, p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
+                if (applyContext is null) throw new ArgumentException("Entity file operation requires a game and trainer context.");
+                applyContext();
                 break;
             case "encounter":
                 PokemonEncounter.Apply(p, edit.Encounter ?? throw new ArgumentException("Encounter edit is missing."));
@@ -74,7 +89,7 @@ internal static class PokemonRawEditing
         if (edit.Action == "values" && ((edit.Pid is uint requestedPid && p.PID != requestedPid) ||
             (edit.EncryptionConstant is uint requestedEc && p.EncryptionConstant != requestedEc)))
             throw new ArgumentException("Pokemon raw value cannot be represented by this format.");
-        if (edit.Box == -1 && (edit.Action != "training" || edit.Training?.Hyper is not null) && !(edit.Action == "shiny" && edit.Shiny?.Method == "sid") && edit.Action is not ("formArgument" or "encounter" or "origin" or "egg" or "relearn" or "ribbons" or "memory" or "care" or "history"))
+        if (party && (edit.Action != "training" || edit.Training?.Hyper is not null) && !(edit.Action == "shiny" && edit.Shiny?.Method == "sid") && edit.Action is not ("formArgument" or "encounter" or "origin" or "egg" or "relearn" or "ribbons" or "memory" or "care" or "history"))
         {
             var hp = p.Stat_HPCurrent;
             var status = p.Status_Condition;
@@ -83,7 +98,5 @@ internal static class PokemonRawEditing
             p.Status_Condition = status;
         }
         p.RefreshChecksum();
-        if (edit.Box == -1) save.SetPartySlotAtIndex(p, edit.Slot, EntityImportSettings.None);
-        else save.SetBoxSlotAtIndex(p, edit.Box, edit.Slot, EntityImportSettings.None);
     }
 }
