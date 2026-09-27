@@ -188,6 +188,7 @@ internal static class SaveEditorTests
         LegendsPokedexTests.Run();
         SvBlockFixtureTests.Run();
         SvPokedexTests.Run();
+        ZaBlockFixtureTests.Run();
         Gen5PokedexTests.Run();
         Gen4PokedexTests.Run();
         SimplePokedexTests.Run();

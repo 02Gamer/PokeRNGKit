@@ -24,6 +24,10 @@
 
 ## 当前工程证据
 
+Z-A 图鉴已核对三组形态位、十语言、头目／超级进化和四种显示性别，增加三种修订的合成分块检查。
+三组专项、完整原生套件及完整 verify 通过，API 57 不变。
+编辑入口尚未接入；越界种类映射与批量清除差异已记录，真实存档和浏览器待核验。
+
 API 57 接入朱／紫原版及 DLC 图鉴编辑：状态、四组形态位、九语言、三地区显示和批量操作。
 保留未改原值，修复缺失 DLC 块清除和形态所属地区差异；六组专项、原生套件、核心构建与完整 verify 通过，实档与浏览器待核验。
 
@@ -377,7 +381,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | 待核对                                                             |
 | `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 待核对                                                             |
 | `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | 待核对                                                             |
-| `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | 待核对                                                             |
+| `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | 已核对字段、修订与批量差异；分块检查已补充，入口待接入             |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 已接入旧版状态、形态、语言、显示及批量；工程检查通过，浏览器待核验 |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 已接入四组形态位及三地区显示、批量；工程检查通过，浏览器待核验     |
 | `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | 待核对                                                             |
