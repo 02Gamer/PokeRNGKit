@@ -1,3 +1,4 @@
+import { validateTrainerDates } from "./trainerDates";
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 export const TRAINER_CURRENCY_KEYS = [
   "bp",
@@ -20,8 +21,15 @@ export const trainerPositionRange = (key: TrainerPositionKey) => ({
   max: key === "map" ? 1000 : 65535,
 });
 
+export const TRAINER_DATE_KEYS = ["started", "fame"] as const;
+export type TrainerDateKey = (typeof TRAINER_DATE_KEYS)[number];
+export interface TrainerDateState extends Record<TrainerDateKey, string> {
+  min: string;
+  max: string;
+}
+
 export interface SaveReport {
-  apiVersion: 42;
+  apiVersion: 43;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -44,6 +52,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    dates: TrainerDateState | null;
     position: Record<TrainerPositionKey, number> | null;
     gameOptions: Record<TrainerGameOptionKey, number> | null;
     canRecords: boolean;
@@ -188,7 +197,10 @@ export interface PokemonEntry {
 }
 
 export interface TrainerDraft extends Record<
-  TrainerCurrencyKey | TrainerGameOptionKey | TrainerPositionKey,
+  | TrainerCurrencyKey
+  | TrainerGameOptionKey
+  | TrainerPositionKey
+  | TrainerDateKey,
   string
 > {
   badges: string;
@@ -208,6 +220,8 @@ export interface TrainerDraft extends Record<
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
+    started: report.trainer.dates?.started ?? "",
+    fame: report.trainer.dates?.fame ?? "",
     ...(Object.fromEntries(
       TRAINER_POSITION_KEYS.map((key) => [
         key,
@@ -343,6 +357,7 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
     position[key] = value;
   }
   return {
+    dates: validateTrainerDates(draft, report.trainer.dates),
     position: Object.keys(position).length ? position : undefined,
     gameOptions: Object.keys(gameOptions).length ? gameOptions : undefined,
     currencies: Object.keys(currencies).length ? currencies : undefined,

@@ -327,6 +327,10 @@ export const saveEditorResources = {
     trainerCurrencyError: "请按当前存档支持的范围填写整数，不能留空。",
     trainerBadges: "徽章",
     trainerGameOptions: "游戏设置",
+    trainerDates: "冒险日期",
+    trainerDateNames: { started: "冒险开始", fame: "首次进入名人堂" },
+    trainerDateNote: "按游戏内时钟保存，精确到秒，不转换时区。可修改范围：",
+    trainerDateError: "日期无效、超出允许范围或此存档不支持日期编辑。",
     trainerPosition: "地图与坐标",
     trainerPositionNames: {
       map: "地图编号",
@@ -797,6 +801,15 @@ export const saveEditorResources = {
       "Enter a whole number within this save's supported range. Do not leave it blank.",
     trainerBadges: "Badges",
     trainerGameOptions: "Game options",
+    trainerDates: "Adventure dates",
+    trainerDateNames: {
+      started: "Adventure started",
+      fame: "First Hall of Fame",
+    },
+    trainerDateNote:
+      "Game clock values, precise to seconds; no timezone conversion. Editable range:",
+    trainerDateError:
+      "Invalid date, outside the allowed range, or unsupported save format.",
     trainerPosition: "Map position",
     trainerPositionNames: {
       map: "Map ID",
@@ -1273,6 +1286,11 @@ export const saveEditorResources = {
       "このセーブの対応範囲内の整数を入力してください。空欄にはできません。",
     trainerBadges: "バッジ",
     trainerGameOptions: "ゲーム設定",
+    trainerDates: "冒険の日付",
+    trainerDateNames: { started: "冒険の開始", fame: "初めての殿堂入り" },
+    trainerDateNote:
+      "ゲーム内時計の秒単位の値です。タイムゾーン変換は行いません。編集可能範囲：",
+    trainerDateError: "無効な日付、範囲外の値、または未対応のセーブ形式です。",
     trainerPosition: "マップと座標",
     trainerPositionNames: {
       map: "マップ番号",
@@ -1448,6 +1466,7 @@ export function localizeSaveError(
   if (/Trainer text speed/.test(message)) return words.trainerTextSpeedError;
   if (/Trainer position cannot be represented/.test(message))
     return words.trainerPositionRepresentError;
+  if (/Trainer dates/.test(message)) return words.trainerDateError;
   if (/Trainer position/.test(message)) return words.trainerPositionError;
   if (/Trainer geography/.test(message)) return words.trainerGeographyError;
   if (/unrecognized skin color/.test(message)) return words.trainerSkinError;

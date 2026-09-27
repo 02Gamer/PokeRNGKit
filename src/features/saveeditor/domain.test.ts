@@ -12,8 +12,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 42,
+  apiVersion: 43,
   trainer: {
+    dates: null,
     position: null,
     gameOptions: { textSpeed: 1, battleStyle: 0, sound: 1, battleEffects: 1 },
     canRecords: false,
@@ -56,6 +57,108 @@ export const emeraldReport: SaveReport = {
 };
 
 describe("save editor boundaries", () => {
+  it("validates game-clock dates without timezone conversion and preserves independent drafts", () => {
+    const report: SaveReport = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        dates: {
+          started: "2024-01-01T00:00:00",
+          fame: "2024-02-01T12:34:56",
+          min: "2000-01-01T00:00:00",
+          max: "2099-12-31T23:59:59",
+        },
+      },
+    };
+    const draft = trainerDraft(report);
+    expect(validateTrainer(draft, report).dates).toBeUndefined();
+    expect(
+      validateTrainer({ ...draft, started: "2024-01-01T00:00" }, report).dates,
+    ).toBeUndefined();
+    for (const value of [
+      "2000-01-01T00:00:00",
+      "2000-02-29T23:59:59",
+      "2096-02-29T12:34:56",
+      "2099-12-31T23:59:59",
+    ])
+      expect(
+        validateTrainer({ ...draft, started: value }, report).dates,
+      ).toEqual({ started: value });
+    expect(
+      validateTrainer({ ...draft, fame: "2024-03-01T12:00" }, report).dates,
+    ).toEqual({ fame: "2024-03-01T12:00:00" });
+    for (const value of [
+      "",
+      "1999-12-31T23:59:59",
+      "2100-01-01T00:00:00",
+      "2023-02-29T12:00:00",
+      "2024-04-31T12:00:00",
+      "2024-01-01T24:00:00",
+      "2024-01-01T12:60:00",
+      "2024-01-01T12:00:60",
+      "2024-01-01",
+      "2024-01-01T12:00:00Z",
+      "2024-01-01T12:00:00+08:00",
+      "2024-01-01T12:00:00.1",
+      " 2024-01-01T12:00:00",
+    ])
+      expect(() =>
+        validateTrainer({ ...draft, started: value }, report),
+      ).toThrow(/Trainer dates/);
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(emeraldReport), started: draft.started },
+        emeraldReport,
+      ),
+    ).toThrow(/Trainer dates/);
+    const next: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        dates: {
+          ...report.trainer.dates!,
+          started: "2025-01-01T00:00:00",
+          fame: "2025-02-01T00:00:00",
+        },
+      },
+    };
+    expect(
+      rebaseTrainerDraft(
+        { ...draft, fame: "2026-01-01T00:00:00" },
+        report,
+        next,
+      ),
+    ).toMatchObject({
+      started: "2025-01-01T00:00:00",
+      fame: "2026-01-01T00:00:00",
+    });
+    const unusual: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        dates: {
+          ...report.trainer.dates!,
+          started: "2136-02-07T06:28:15",
+          max: "2050-12-31T23:59:59",
+        },
+      },
+    };
+    expect(
+      validateTrainer(trainerDraft(unusual), unusual).dates,
+    ).toBeUndefined();
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(unusual), fame: "2051-01-01T00:00:00" },
+        unusual,
+      ),
+    ).toThrow(/Trainer dates/);
+    expect(
+      validateTrainer(
+        { ...trainerDraft(unusual), started: "2050-12-31T23:59:59" },
+        unusual,
+      ).dates,
+    ).toEqual({ started: "2050-12-31T23:59:59" });
+  });
   it("parses unsigned 32-bit hexadecimal values without truncation", () => {
     expect(parsePokemonHex("00000000")).toBe(0);
     expect(parsePokemonHex("ffffffff")).toBe(4294967295);

@@ -1,3 +1,4 @@
+import { TrainerDateFields } from "./TrainerDateFields";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Download, FileUp, RotateCcw, Unplug } from "lucide-react";
@@ -57,6 +58,8 @@ export function SaveEditorPanel(
     "pokemon" | "trainer" | "inventory" | "records"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
+    started: "",
+    fame: "",
     map: "",
     x: "",
     z: "",
@@ -792,6 +795,12 @@ export function SaveEditorPanel(
                 </fieldset>
               )}
               <TrainerGameOptionFields
+                report={report}
+                draft={draft}
+                disabled={busy || !report.canEdit}
+                onChange={setDraft}
+              />
+              <TrainerDateFields
                 report={report}
                 draft={draft}
                 disabled={busy || !report.canEdit}

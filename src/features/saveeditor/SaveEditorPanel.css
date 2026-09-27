@@ -106,6 +106,9 @@
   margin-bottom: 8px;
   font-weight: 600;
 }
+.save-editor-fields.save-trainer-dates {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
 .save-editor-fields .field {
   min-width: 0;
 }
