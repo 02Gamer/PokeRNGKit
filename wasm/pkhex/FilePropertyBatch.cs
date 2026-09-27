@@ -39,7 +39,6 @@ internal static class FilePropertyBatch
     public const long MaximumOutcomes = 1_000_000;
     public const int MaximumInstructionCharacters = 1_000_000;
     public const int MaximumPathCharacters = 4 * 1024 * 1024;
-    private static readonly HashSet<string> EntityExtensions = new(EntityFileExtension.GetExtensions(), StringComparer.OrdinalIgnoreCase);
     public static bool IsFailure(string status) => status is "unrecognized" or "formatConflict" or "invalid" or "exportFailed";
 
     private sealed class Entry(FileBatchInput input, string path)
@@ -80,10 +79,9 @@ internal static class FilePropertyBatch
             try
             {
                 var extension = System.IO.Path.GetExtension(entry.Path).ToLowerInvariant();
-                if (!FileUtil.TryGetPKM(files[i].Data.ToArray(), out var pk, extension, context)) { entry.Status = "unrecognized"; continue; }
+                if (!PokemonFiles.TryRead(files[i].Data, extension, context, out var pk)) { entry.Status = "unrecognized"; continue; }
                 entry.Pokemon = pk;
-                if (extension.Length > 1 && EntityExtensions.Contains(extension[1..]) &&
-                    !extension[1..].Equals(pk.Extension, StringComparison.OrdinalIgnoreCase)) { entry.Status = "formatConflict"; continue; }
+                if (PokemonFiles.HasFormatConflict(extension, pk)) { entry.Status = "formatConflict"; continue; }
                 if (!pk.Valid) { entry.Status = "invalid"; continue; }
                 if (pk.Species == 0) { entry.Status = "empty"; continue; }
                 entry.Slot = new SlotCache(new SlotInfoFileSingle(entry.Path), pk);

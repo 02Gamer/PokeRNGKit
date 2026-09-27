@@ -48,8 +48,10 @@ internal static class FilePropertyBatchTests
             Check(output[file.Path].SequenceEqual(expectedBytes), "ZIP party payload equals independently edited native entity");
             Check(file.Data.SequenceEqual(source), "Preview preserves source file bytes");
             var encrypted = FilePropertyBatch.Preview(context, [file with { Data = Stored(seed, true) }], ".IV_HP=31", "en");
-            Check(seed is PK5 ? encrypted.Summary.Files[0].Status == "formatConflict" : encrypted.Summary.ExportedFiles == 1,
-                "Encrypted files are processed only when the recognized native format agrees");
+            Check(encrypted.Summary.ExportedFiles == 1,
+                "Encrypted files retain their native format after decryption before detection");
+            var plain = FilePropertyBatch.Preview(context, [file], ".IV_HP=31", "en");
+            Check(encrypted.Export().SequenceEqual(plain.Export()), "Encrypted and plaintext sources produce identical archives");
             var partial = FilePropertyBatch.Preview(context, [file], ".IV_HP=31\n.UnknownProperty=1", "en");
             Check(partial.Summary.Files[0].Outcomes[0].Error, "Partial failure is visible");
             Reject(() => partial.Export()); Check(Read(partial.Export(allowErrors: true)).Count == 1, "Partial export requires explicit confirmation");
@@ -61,6 +63,32 @@ internal static class FilePropertyBatchTests
             Check(first.SequenceEqual(second), "Random values and ZIP metadata are frozen at preview");
             first[0] ^= 1; Check(random.Export().SequenceEqual(second), "Caller cannot mutate retained ZIP");
             Console.WriteLine($"PASS {version}: file preview, independent ZIP bytes, sequential party stats, partial confirmation, filtered files and fixed random results");
+        }
+        foreach (var version in new[] { "D", "Pt", "HG", "B", "B2" })
+        {
+            var save = SaveUtil.GetSaveFile(File.ReadAllBytes($".tmp/pkhex-fixtures/{version}.sav"))!;
+            foreach (uint pid in new uint[] { 0, 1, 0x12345678, uint.MaxValue })
+            {
+                var seed = save.BlankPKM; seed.Species = 25; seed.Version = Enum.Parse<GameVersion>(version);
+                seed.PID = pid; seed.Language = 2; seed.CurrentLevel = 25; seed.IV_HP = 29; seed.ForcePartyData();
+                foreach (bool party in new[] { false, true })
+                {
+                    var bytes = new byte[party ? seed.SIZE_PARTY : seed.SIZE_STORED];
+                    if (party) seed.WriteEncryptedDataParty(bytes); else seed.WriteEncryptedDataStored(bytes);
+                    var original = bytes.ToArray();
+                    Check(PokemonFiles.TryRead(bytes, "." + seed.Extension.ToUpperInvariant(), save, out var read) &&
+                        read.GetType() == seed.GetType() && read.ChecksumValid && read.PID == pid && read.IV_HP == 29,
+                        "Encrypted DS stored and party files retain format and fields across PIDs");
+                    Check(bytes.SequenceEqual(original), "Decoding never changes caller-owned encrypted bytes");
+                    PokemonFiles.Import(save, new(0, 0, "sample." + seed.Extension, Convert.ToBase64String(bytes)));
+                    var imported = save.GetBoxSlotAtIndex(0, 0);
+                    Check(imported.PID == pid && imported.IV_HP == 29 && imported.ChecksumValid, "Single import shares corrected decoding");
+                    var wrong = seed is PK5 ? "sample.pk4" : "sample.pk5";
+                    Reject(() => PokemonFiles.Import(save, new(0, 1, wrong, Convert.ToBase64String(bytes))));
+                    bytes[6] ^= 1;
+                    Reject(() => PokemonFiles.Import(save, new(0, 1, "sample." + seed.Extension, Convert.ToBase64String(bytes))));
+                }
+            }
         }
         var prior = GameInfo.Strings;
         var all = FilePropertyBatch.Preview(context, mixed.ToArray(), ".IV_HP=31", "zh");
@@ -93,8 +121,8 @@ internal static class FilePropertyBatchTests
         Reject(() => pathFilter.Export());
         var foreign = mixed.First(f => f.Path.Contains("/B/"));
         var pk5 = (PK5)EntityFormat.GetFromBytes(foreign.Data.ToArray())!;
-        var conflict = FilePropertyBatch.Preview(context, [new(foreign.Path, Stored(pk5, true)), pick], ".IV_HP=31", "en");
-        Check(conflict.Summary.Files[0].Status == "formatConflict" && conflict.Summary.ExportedFiles == 1, "Encrypted PK5 cannot silently become PK4");
+        var conflict = FilePropertyBatch.Preview(context, [new("wrong.pk4", Stored(pk5, true)), pick], ".IV_HP=31", "en");
+        Check(conflict.Summary.Files[0].Status == "formatConflict" && conflict.Summary.ExportedFiles == 1, "Mislabeled encrypted PK5 cannot silently become PK4");
         Reject(() => conflict.Export()); Check(Read(conflict.Export(true)).Count == 1, "Conflicting source excluded from partial archive");
         var badOutput = FilePropertyBatch.Preview(context, [pick], $".IV_HP=31\n;\n.Version={(int)GameVersion.SN}", "en");
         Check(badOutput.Summary.ExportedFiles == 0 && badOutput.Summary.Files[0].Status == "exportFailed", "Output format drift rejects that file including prior intermediate output");
