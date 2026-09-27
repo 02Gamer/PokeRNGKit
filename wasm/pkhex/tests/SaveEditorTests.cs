@@ -14,6 +14,7 @@ internal static class SaveEditorTests
         // Incremental development after the full suite has generated the shared synthetic fixtures.
         // The default command still runs every suite and is required before committing.
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "box-batch") { BoxBatchTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "property-batch") { PropertyBatchContractTests.Run(); return; }
         foreach (var version in new[] { GameVersion.E, GameVersion.D, GameVersion.Pt, GameVersion.HG, GameVersion.B, GameVersion.B2, GameVersion.X, GameVersion.OR, GameVersion.SN, GameVersion.US, GameVersion.BD })
         {
             var save = CreateFixture(version);
@@ -200,6 +201,7 @@ internal static class SaveEditorTests
         BoxEditingTests.Run();
         BoxLayoutTests.Run();
         BoxBatchTests.Run();
+        PropertyBatchContractTests.Run();
         StorageEditingTests.Run();
         PartyStorageTests.Run();
         PokemonFileTests.Run();

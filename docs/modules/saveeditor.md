@@ -3,6 +3,31 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 通用属性批量编辑：接入契约核对
+
+产品入口尚未接入，API 60 不变。此项对应上游 `PKHeX.WinForms/Subforms/PKM Editors/BatchEditor.cs`、
+`Controls/PKM Editor/EntityInstructionBuilder` 及 Core `Editing/Bulk/Base`、`Editing/Bulk/Entity`；
+不能以箱子预设菜单代替任意属性指令编辑。
+
+- `TryGetInstructionSets` 拒绝空文本、空白行、空筛选值；只含筛选的组用于匹配预览，不能执行修改。
+  空修改值允许在额外确认后提交。Designer 未设置独立文本长度上限，不从旧页面占位符推断限制。
+- 使用 Core 的文本解析器，`;` 分组，组按顺序作用于同一缓存。属性标识保持 Core 原名，界面说明与操作按三语显示。
+- 筛选包含 `=`、`!`、`>`、`<`、`≥`、`≤`；赋值 `.`，计算 `+ - * / %`，位运算 `& | ^ « »`，
+  值以 `*属性名` 引用同一实体属性。数值类型、溢出和除零行为由 Core 与属性访问器决定，不能统一限制为 0–255。
+- `Box`、`Slot`、`IdentifierContains` 是来源条件，必须先与实体条件分离；箱号与格位从 1 开始，队伍没有箱号。
+  上游存档路径跳过空槽、越界种类、无效实体和受保护箱子格位；文件夹路径单独处理。
+- `TryModify` 允许 `Modified | Error`，失败指令前后的成功修改仍可能保留；`EntityBatchProcessor` 在成功后刷新校验。
+  预览必须记录实际改变的格位、逐组失败和解析结果，不能把部分成功显示为全部成功，也不能以布尔结果丢弃失败信息。
+- `ScreenStrings` 使用 `GameInfo.Strings` 解析当前语言的种类、道具、特性、性格、球和招式名称。
+  接入时应显式提供活动语言，并避免泄漏到其他存档操作；数值、随机范围与特殊建议保持 Core 语义。
+- Core 会忽略部分无法识别的文本行；界面必须展示解析数量与未识别内容，不能仅靠“无异常”判断完整执行。
+- 属性目录依赖运行时反射。浏览器裁剪构建需要保留完整属性访问器，并核对发布后的目录与原生目录；
+  当前原生检查不能证明 WebAssembly 属性目录完整，尚未加入产品入口或扩大编辑格式白名单。
+
+新增 `PropertyBatchContractTests` 覆盖 11 种现有合成格式及上述指令语义，定向与完整原生检查通过。
+完整 npm run verify 通过：203 文件／748 项前端测试及网页／PWA 构建；API 与产品入口未变化。
+下一步实现预览与提交分离的工作副本适配器，处理队伍删除后的格位重排，再接入三语指令构建器和本地文件流程。
+
 ## 箱子批量菜单（API 60）
 
 核对上游 `BoxMenuStrip.cs`、`BoxManipulator`、`BoxManipDefaults`、全部 `BoxManip*` 实现，
