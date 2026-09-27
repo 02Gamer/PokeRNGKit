@@ -1,5 +1,17 @@
 export const standaloneWords = {
   zh: {
+    names:
+      "请检查昵称和训练家姓名的长度，以及原游戏支持的字符。当前工作副本未改变。",
+    gbValueError:
+      "请检查姓名、等级、DV（0–15）、能力经验（0–65535）及招式 PP 范围。",
+    dvs: "个体值（DV）",
+    statExperience: "能力经验",
+    special: "特殊",
+    gbNote:
+      "HP 个体值由其余四项个体值决定；特殊攻击与特殊防御共享个体值和能力经验。名称保留当前文字编码，改种类不会自动改名。",
+    gbFile: "含名称的单只宝可梦文件",
+    gbExport:
+      "按第一／二世代标准单只文件导出，保留名称、队伍能力值与蛋标记；这两代文件不区分加密或箱子导出。",
     eggContext: "蛋操作使用的信息",
     loadEggContext: "读取游戏与训练家信息",
     targetGame: "目标游戏",
@@ -41,6 +53,18 @@ export const standaloneWords = {
     history: "保留最近 20 次编辑，可随时还原原件。",
   },
   en: {
+    names:
+      "Check nickname and trainer-name lengths and the characters supported by the original game. The working copy is unchanged.",
+    gbValueError:
+      "Check names, level, DVs (0–15), stat experience (0–65535) and move PP limits.",
+    dvs: "DVs",
+    statExperience: "Stat experience",
+    special: "Special",
+    gbNote:
+      "HP DV is derived from the other four DVs. Special Attack and Special Defense share DV and stat experience. Names keep their current encoding; changing species does not rename the Pokémon.",
+    gbFile: "Single Pokémon file with names",
+    gbExport:
+      "Export a standard Generation I/II single-entry file, preserving names, party stats and the Egg marker. These formats have no separate encrypted or box export.",
     eggContext: "Egg operation context",
     loadEggContext: "Load game and trainer details",
     targetGame: "Destination game",
@@ -88,6 +112,18 @@ export const standaloneWords = {
       "The last 20 edits can be undone. You can always restore the original.",
   },
   ja: {
+    names:
+      "ニックネームとトレーナー名の長さ、および元のゲームで使用できる文字を確認してください。作業用コピーは変更されていません。",
+    gbValueError:
+      "名前、レベル、個体値（0–15）、努力レベル用経験値（0–65535）、技の PP 範囲を確認してください。",
+    dvs: "個体値（DV）",
+    statExperience: "努力レベル用経験値",
+    special: "特殊",
+    gbNote:
+      "HP 個体値は他の四つの個体値から決まります。特攻と特防は個体値と努力レベル用経験値を共有します。名前の文字コードは保持され、種族を変更しても名前は変わりません。",
+    gbFile: "名前を含む単体ポケモンファイル",
+    gbExport:
+      "第一・第二世代の標準単体ファイルとして出力し、名前・手持ち能力値・タマゴ識別子を保持します。暗号化やボックス用の別形式はありません。",
     eggContext: "タマゴ操作に使用する情報",
     loadEggContext: "ゲームとトレーナー情報を読み込む",
     targetGame: "対象ゲーム",

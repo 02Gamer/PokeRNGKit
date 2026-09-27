@@ -27,6 +27,7 @@ import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
 import { PokemonCareEditor } from "./PokemonCareEditor";
 import { PokemonOriginEditor } from "./PokemonOriginEditor";
 import { StandaloneEggEditor } from "./StandaloneEggEditor";
+import { StandaloneGbEditor } from "./StandaloneGbEditor";
 
 function download(bytes: Uint8Array<ArrayBuffer>, name: string) {
   const url = URL.createObjectURL(
@@ -64,7 +65,7 @@ export function StandalonePokemonPanel() {
   const [party, setParty] = useState(false),
     [encrypted, setEncrypted] = useState(false);
   const [error, setError] = useState<
-    "failed" | "timeout" | "size" | "runtime"
+    "failed" | "timeout" | "size" | "runtime" | "names"
   >();
   const [status, setStatus] = useState<"applied" | "restored">();
   const dispose = useCallback(() => {
@@ -88,11 +89,14 @@ export function StandalonePokemonPanel() {
         setError(
           cause instanceof Error && /API version mismatch/.test(cause.message)
             ? "runtime"
-            : cause instanceof Error && /timed out/.test(cause.message)
-              ? "timeout"
-              : cause instanceof Error && cause.message === "size"
-                ? "size"
-                : "failed",
+            : cause instanceof Error &&
+                /(?:GB|Pokemon) name/.test(cause.message)
+              ? "names"
+              : cause instanceof Error && /timed out/.test(cause.message)
+                ? "timeout"
+                : cause instanceof Error && cause.message === "size"
+                  ? "size"
+                  : "failed",
         );
     } finally {
       if (id === operation.current) {
@@ -129,8 +133,11 @@ export function StandalonePokemonPanel() {
       setRevision((value) => value + 1);
     });
   const applyRequest = (
-    change: Pick<StandalonePokemonRequest, "edit" | "raw" | "eggTrainer">,
-    kind: "entityEdit" | "entityRaw",
+    change: Pick<
+      StandalonePokemonRequest,
+      "edit" | "raw" | "eggTrainer" | "gb"
+    >,
+    kind: "entityEdit" | "entityRaw" | "entityGb",
   ) =>
     perform(async (id) => {
       if (!working) return;
@@ -370,23 +377,41 @@ export function StandalonePokemonPanel() {
           </div>
           <p className="save-editor-note">
             {working.fileName} · {report.format} ·{" "}
-            {report.party ? words.party : words.stored}
+            {report.generation < 3
+              ? words.gbFile
+              : report.party
+                ? words.party
+                : words.stored}
           </p>
           <dl className="save-editor-summary">
             {[
               [common.nickname, report.pokemon.nickname || "—"],
               [common.level, report.pokemon.level],
               [common.trainerName, report.pokemon.ot || "—"],
-              ["TID / SID", `${report.pokemon.tid} / ${report.pokemon.sid}`],
-              [common.nature, report.pokemon.nature[lang]],
-              [common.ability, report.pokemon.ability[lang]],
-              [
-                common.gender,
-                [common.male, common.female, common.genderless][
-                  report.pokemon.gender
-                ] ?? "—",
-              ],
-              [common.shiny, report.pokemon.shiny ? common.yes : common.no],
+              ...(report.generation < 3
+                ? [["TID", report.pokemon.tid]]
+                : [
+                    [
+                      "TID / SID",
+                      `${report.pokemon.tid} / ${report.pokemon.sid}`,
+                    ],
+                    [common.nature, report.pokemon.nature[lang]],
+                    [common.ability, report.pokemon.ability[lang]],
+                  ]),
+              ...(report.generation >= 2
+                ? [
+                    [
+                      common.gender,
+                      [common.male, common.female, common.genderless][
+                        report.pokemon.gender
+                      ] ?? "—",
+                    ],
+                    [
+                      common.shiny,
+                      report.pokemon.shiny ? common.yes : common.no,
+                    ],
+                  ]
+                : []),
             ].map(([label, value]) => (
               <div key={label}>
                 <dt>{label}</dt>
@@ -407,14 +432,23 @@ export function StandalonePokemonPanel() {
               <thead>
                 <tr>
                   <th scope="col">{common.pokemon}</th>
-                  {[
-                    common.hp,
-                    common.attack,
-                    common.defense,
-                    common.spAttack,
-                    common.spDefense,
-                    common.speed,
-                  ].map((stat) => (
+                  {(report.generation < 3
+                    ? [
+                        common.hp,
+                        common.attack,
+                        common.defense,
+                        common.speed,
+                        words.special,
+                      ]
+                    : [
+                        common.hp,
+                        common.attack,
+                        common.defense,
+                        common.spAttack,
+                        common.spDefense,
+                        common.speed,
+                      ]
+                  ).map((stat) => (
                     <th scope="col" key={stat}>
                       {stat}
                     </th>
@@ -423,14 +457,24 @@ export function StandalonePokemonPanel() {
               </thead>
               <tbody>
                 <tr>
-                  <th scope="row">{common.ivs}</th>
-                  {report.pokemon.ivs.map((value, index) => (
+                  <th scope="row">
+                    {report.generation < 3 ? words.dvs : common.ivs}
+                  </th>
+                  {(report.generation < 3
+                    ? [0, 1, 2, 5, 3].map((i) => report.pokemon.ivs[i])
+                    : report.pokemon.ivs
+                  ).map((value, index) => (
                     <td key={index}>{value}</td>
                   ))}
                 </tr>
                 <tr>
-                  <th scope="row">{common.evs}</th>
-                  {report.pokemon.evs.map((value, index) => (
+                  <th scope="row">
+                    {report.generation < 3 ? words.statExperience : common.evs}
+                  </th>
+                  {(report.generation < 3
+                    ? [0, 1, 2, 5, 3].map((i) => report.pokemon.evs[i])
+                    : report.pokemon.evs
+                  ).map((value, index) => (
                     <td key={index}>{value}</td>
                   ))}
                 </tr>
@@ -446,34 +490,38 @@ export function StandalonePokemonPanel() {
           <p className="save-editor-note">{words.legalityContext}</p>
           {report.canEdit ? (
             <>
-              <div className="save-editor-fields">
-                <label className="field">
-                  <span>{words.layout}</span>
-                  <Select
-                    disabled={busy}
-                    value={party ? "party" : "stored"}
-                    onChange={(event) =>
-                      setParty(event.target.value === "party")
-                    }
-                  >
-                    <option value="stored">{words.stored}</option>
-                    <option value="party">{words.party}</option>
-                  </Select>
-                </label>
-                <label className="field">
-                  <span>{words.encoding}</span>
-                  <Select
-                    disabled={busy}
-                    value={encrypted ? "encrypted" : "plain"}
-                    onChange={(event) =>
-                      setEncrypted(event.target.value === "encrypted")
-                    }
-                  >
-                    <option value="plain">{words.plain}</option>
-                    <option value="encrypted">{words.encrypted}</option>
-                  </Select>
-                </label>
-              </div>
+              {report.generation < 3 ? (
+                <p className="save-editor-note">{words.gbExport}</p>
+              ) : (
+                <div className="save-editor-fields">
+                  <label className="field">
+                    <span>{words.layout}</span>
+                    <Select
+                      disabled={busy}
+                      value={party ? "party" : "stored"}
+                      onChange={(event) =>
+                        setParty(event.target.value === "party")
+                      }
+                    >
+                      <option value="stored">{words.stored}</option>
+                      <option value="party">{words.party}</option>
+                    </Select>
+                  </label>
+                  <label className="field">
+                    <span>{words.encoding}</span>
+                    <Select
+                      disabled={busy}
+                      value={encrypted ? "encrypted" : "plain"}
+                      onChange={(event) =>
+                        setEncrypted(event.target.value === "encrypted")
+                      }
+                    >
+                      <option value="plain">{words.plain}</option>
+                      <option value="encrypted">{words.encrypted}</option>
+                    </Select>
+                  </label>
+                </div>
+              )}
               <div className="save-editor-toolbar">
                 <button
                   className="primary"
@@ -485,120 +533,131 @@ export function StandalonePokemonPanel() {
                 </button>
               </div>
               <p className="save-editor-note">{words.history}</p>
-              <PokemonEditor
-                key={revision}
-                pokemon={report.pokemon}
-                moveChoices={report.moveChoices}
-                attributeChoices={report.attributeChoices}
-                disabled={busy}
-                onApply={apply}
-              />
-              <PokemonTrainingEditor
-                key={`training-${revision}`}
-                training={report.pokemon.training}
-                generation={report.generation}
-                position={report.pokemon}
-                disabled={busy}
-                onApply={applyRaw}
-              />
-              <PokemonEncounterEditor
-                key={`encounter-${revision}`}
-                encounter={report.pokemon.encounter}
-                position={report.pokemon}
-                disabled={busy}
-                onApply={applyRaw}
-              />
-              <PokemonOriginEditor
-                key={`origin-${revision}`}
-                origin={report.pokemon.origin}
-                position={report.pokemon}
-                disabled={busy}
-                readDisabled={busy}
-                onRead={(_, version) =>
-                  readDetails("origin", undefined, undefined, version)
-                }
-                onApply={applyRaw}
-              />
-              <StandaloneEggEditor
-                key={`egg-${revision}`}
-                pokemon={report.pokemon}
-                disabled={busy}
-                initialTrainer={working?.eggTrainer}
-                onRead={() => readDetails("eggContext")}
-                onApply={(raw, eggTrainer) =>
-                  applyRequest({ raw, eggTrainer }, "entityRaw")
-                }
-              />
-              {report.canMemories && (
-                <PokemonMemoryEditor
-                  key={`memory-${revision}`}
-                  position={report.pokemon}
+              {report.generation < 3 ? (
+                <StandaloneGbEditor
+                  key={revision}
+                  report={report}
                   disabled={busy}
-                  readDisabled={busy}
-                  onRead={(query) =>
-                    readDetails("memory", query.handler, query.memory)
-                  }
-                  onApply={applyRaw}
+                  onApply={(gb) => applyRequest({ gb }, "entityGb")}
                 />
-              )}
-              {!report.canMemories && report.care.length > 0 && (
-                <PokemonCareEditor
-                  key={`care-${revision}`}
-                  fields={report.care}
-                  isEgg={report.pokemon.egg}
-                  position={report.pokemon}
-                  disabled={busy}
-                  onApply={applyRaw}
-                />
-              )}
-              {report.generation >= 6 && (
-                <PokemonHistoryEditor
-                  key={`history-${revision}`}
-                  position={report.pokemon}
-                  disabled={busy}
-                  readDisabled={busy}
-                  onRead={() => readDetails("history")}
-                  onApply={applyRaw}
-                />
-              )}
-              <PokemonRibbonEditor
-                key={`ribbons-${revision}`}
-                position={report.pokemon}
-                generation={report.generation}
-                disabled={busy}
-                readDisabled={busy}
-                onRead={() => readDetails("ribbons")}
-                onApply={applyRaw}
-              />
-              <PokemonRelearnEditor
-                key={`relearn-${revision}`}
-                position={report.pokemon}
-                moves={report.pokemon.relearnMoves}
-                choices={report.moveChoices}
-                disabled={busy}
-                onSuggest={() => readDetails("relearn")}
-                onApply={applyRaw}
-              />
-              <PokemonShinyEditor
-                key={`shiny-${revision}`}
-                position={report.pokemon}
-                disabled={busy}
-                onApply={applyRaw}
-              />
-              <PokemonRawEditor
-                key={`raw-${revision}`}
-                pokemon={report.pokemon}
-                disabled={busy}
-                onApply={applyRaw}
-              />
-              {report.pokemon.formArgument && (
-                <PokemonFormArgumentEditor
-                  key={`form-${revision}`}
-                  argument={report.pokemon.formArgument}
-                  position={report.pokemon}
-                  disabled={busy}
-                  onApply={applyRaw}
-                />
+              ) : (
+                <>
+                  <PokemonEditor
+                    key={revision}
+                    pokemon={report.pokemon}
+                    moveChoices={report.moveChoices}
+                    attributeChoices={report.attributeChoices}
+                    disabled={busy}
+                    onApply={apply}
+                  />
+                  <PokemonTrainingEditor
+                    key={`training-${revision}`}
+                    training={report.pokemon.training}
+                    generation={report.generation}
+                    position={report.pokemon}
+                    disabled={busy}
+                    onApply={applyRaw}
+                  />
+                  <PokemonEncounterEditor
+                    key={`encounter-${revision}`}
+                    encounter={report.pokemon.encounter}
+                    position={report.pokemon}
+                    disabled={busy}
+                    onApply={applyRaw}
+                  />
+                  <PokemonOriginEditor
+                    key={`origin-${revision}`}
+                    origin={report.pokemon.origin}
+                    position={report.pokemon}
+                    disabled={busy}
+                    readDisabled={busy}
+                    onRead={(_, version) =>
+                      readDetails("origin", undefined, undefined, version)
+                    }
+                    onApply={applyRaw}
+                  />
+                  <StandaloneEggEditor
+                    key={`egg-${revision}`}
+                    pokemon={report.pokemon}
+                    disabled={busy}
+                    initialTrainer={working?.eggTrainer}
+                    onRead={() => readDetails("eggContext")}
+                    onApply={(raw, eggTrainer) =>
+                      applyRequest({ raw, eggTrainer }, "entityRaw")
+                    }
+                  />
+                  {report.canMemories && (
+                    <PokemonMemoryEditor
+                      key={`memory-${revision}`}
+                      position={report.pokemon}
+                      disabled={busy}
+                      readDisabled={busy}
+                      onRead={(query) =>
+                        readDetails("memory", query.handler, query.memory)
+                      }
+                      onApply={applyRaw}
+                    />
+                  )}
+                  {!report.canMemories && report.care.length > 0 && (
+                    <PokemonCareEditor
+                      key={`care-${revision}`}
+                      fields={report.care}
+                      isEgg={report.pokemon.egg}
+                      position={report.pokemon}
+                      disabled={busy}
+                      onApply={applyRaw}
+                    />
+                  )}
+                  {report.generation >= 6 && (
+                    <PokemonHistoryEditor
+                      key={`history-${revision}`}
+                      position={report.pokemon}
+                      disabled={busy}
+                      readDisabled={busy}
+                      onRead={() => readDetails("history")}
+                      onApply={applyRaw}
+                    />
+                  )}
+                  <PokemonRibbonEditor
+                    key={`ribbons-${revision}`}
+                    position={report.pokemon}
+                    generation={report.generation}
+                    disabled={busy}
+                    readDisabled={busy}
+                    onRead={() => readDetails("ribbons")}
+                    onApply={applyRaw}
+                  />
+                  <PokemonRelearnEditor
+                    key={`relearn-${revision}`}
+                    position={report.pokemon}
+                    moves={report.pokemon.relearnMoves}
+                    choices={report.moveChoices}
+                    disabled={busy}
+                    onSuggest={() => readDetails("relearn")}
+                    onApply={applyRaw}
+                  />
+                  <PokemonShinyEditor
+                    key={`shiny-${revision}`}
+                    position={report.pokemon}
+                    disabled={busy}
+                    onApply={applyRaw}
+                  />
+                  <PokemonRawEditor
+                    key={`raw-${revision}`}
+                    pokemon={report.pokemon}
+                    disabled={busy}
+                    onApply={applyRaw}
+                  />
+                  {report.pokemon.formArgument && (
+                    <PokemonFormArgumentEditor
+                      key={`form-${revision}`}
+                      argument={report.pokemon.formArgument}
+                      position={report.pokemon}
+                      disabled={busy}
+                      onApply={applyRaw}
+                    />
+                  )}
+                </>
               )}
             </>
           ) : (

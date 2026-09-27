@@ -10,7 +10,7 @@ internal static class StandaloneEgg
 {
     public static StandaloneEggCatalog Read(PKM p)
     {
-        if (!StandalonePokemon.CanEdit(p)) throw new ArgumentException("Entity egg editing is unavailable.");
+        if (p.Format < 3 || !StandalonePokemon.CanEdit(p)) throw new ArgumentException("Entity egg editing is unavailable.");
         var versions = GameUtil.GetVersionsInGeneration(p.Context, p.Version).ToHashSet();
         var games = PokemonOrigin.Catalog(p).Games.Where(c => versions.Contains((GameVersion)c.Id)).ToArray();
         if (games.Length == 0) throw new ArgumentException("Entity egg context has no supported game.");

@@ -60,8 +60,8 @@ internal static class StandalonePokemonTests
             p.Species = 25; p.Nickname = "TEST"; p.OriginalTrainerName = "TEST"; p.CurrentLevel = 25;
             var data = new byte[p.SIZE_STORED]; p.WriteDecryptedDataStored(data);
             var report = StandalonePokemon.Inspect(data, "entity." + p.Extension);
-            Check(!report.CanEdit && report.Pokemon.Species == 25, "Early-generation list containers remain read-only");
-            Reject(() => StandalonePokemon.Export(data, "entity." + p.Extension, false, false));
+            Check(report.CanEdit && report.Pokemon.Species == 25, "Early-generation list containers have a dedicated editor");
+            Check(StandalonePokemon.Export(data, "entity." + p.Extension, false, false).SequenceEqual(data), "Early-generation list export preserves names and data");
         }
     }
     private static void Exercise(PKM p)

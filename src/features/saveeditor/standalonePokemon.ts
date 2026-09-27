@@ -15,7 +15,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 70;
+  apiVersion: 71;
   format: string;
   extension: string;
   party: boolean;
@@ -28,6 +28,7 @@ export interface StandalonePokemonReport {
   moveChoices: MoveChoice[];
 }
 export interface StandalonePokemonRequest {
+  gb?: GbPokemonEdit;
   fileName: string;
   inputEncrypted: boolean;
   party?: boolean;
@@ -61,12 +62,27 @@ export interface StandaloneAdvancedData {
   relearn?: number[] | null;
 }
 export type StandalonePokemonOperation =
+  | "entityGb"
   | "entityRaw"
   | "entityDetails"
   | "entityLegality"
   | "entityInspect"
   | "entityEdit"
   | "entityExport";
+export interface GbPokemonEdit {
+  species: number;
+  nickname: string;
+  ot: string;
+  tid: number;
+  level: number;
+  dvs: number[];
+  statExperience: number[];
+  moves: number[];
+  movePp: number[];
+  movePpUps: number[];
+  friendship: number | null;
+  heldItem: number | null;
+}
 export interface StandalonePokemonResult {
   details?: StandaloneAdvancedData;
   legality?: PokemonLegalityReport;

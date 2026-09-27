@@ -43,14 +43,16 @@ internal static class StandalonePokemon
             throw new ArgumentException("Entity file format is unrecognized or conflicts with the extension.");
         if (input.Length != pokemon.SIZE_STORED && input.Length != pokemon.SIZE_PARTY)
             throw new ArgumentException("Entity file container requires a dedicated reader.");
+        if (pokemon is GBPKML) pokemon = StandaloneGb.Read(input, "." + pokemon.Extension);
         // Colosseum/XD and Let's Go keep party stats in their only storage representation.
         return new(pokemon, input.Length == pokemon.SIZE_PARTY);
     }
 
-    public static bool CanEdit(PKM p) => p is PK3 or CK3 or XK3 or PK4 or BK4 or PK5 or PK6 or PK7 or PB7 or PK8 or PB8 or PA8 or PK9 or PA9;
+    public static bool CanEdit(PKM p) => p is PK1 or PK2 or PK3 or CK3 or XK3 or PK4 or BK4 or PK5 or PK6 or PK7 or PB7 or PK8 or PB8 or PA8 or PK9 or PA9;
 
     private static PKM ReadDeclared(byte[] input, string extension)
     {
+        if (extension is ".pk1" or ".pk2") return StandaloneGb.Read(input, extension);
         // Explicit choice only. Editing can change heuristic format clues; never
         // reinterpret a working copy as another generation or pad a short file.
         PKM layout = extension switch
@@ -86,7 +88,7 @@ internal static class StandalonePokemon
     public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
     {
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
-        if (!CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
+        if (p.Format < 3 || !CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file editing is unavailable for this data.");
         var original = p.Clone();
         var applied = PokemonEditing.Apply(p, edit, file.Party, identity => PokemonIdentity.Apply(p, identity, file.Party ? -1 : 0));
@@ -114,7 +116,7 @@ internal static class StandalonePokemon
     public static byte[] EditRaw(byte[] input, string filename, PokemonRawEdit edit, bool inputEncrypted = false, bool useFileFormat = false, StandaloneEggTrainer? eggTrainer = null)
     {
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
-        if (!CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
+        if (p.Format < 3 || !CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file editing is unavailable for this data.");
         var original = p.Clone();
         PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party, () =>
@@ -147,7 +149,8 @@ internal static class StandalonePokemon
         else { if (encrypted) p.WriteEncryptedDataStored(data); else p.WriteDecryptedDataStored(data); }
         var reopened = Open(data, "." + p.Extension, encrypted, useFileFormat: true).Entity;
         if (reopened.GetType() != p.GetType() || !reopened.Valid || !reopened.ChecksumValid ||
-            !p.Data[..(party ? p.SIZE_PARTY : p.SIZE_STORED)].SequenceEqual(reopened.Data[..(party ? p.SIZE_PARTY : p.SIZE_STORED)]))
+            !(p is GBPKML gb && reopened is GBPKML other ? StandaloneGb.Equal(gb, other) :
+                p.Data[..(party ? p.SIZE_PARTY : p.SIZE_STORED)].SequenceEqual(reopened.Data[..(party ? p.SIZE_PARTY : p.SIZE_STORED)])))
             throw new InvalidOperationException("Entity file export verification failed.");
         return data;
     }

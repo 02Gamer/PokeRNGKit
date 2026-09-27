@@ -7,7 +7,7 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonRequest(string FileName, bool InputEncrypted = false, bool Party = false, bool Encrypted = false, PokemonEdit? Edit = null,
-    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null, int? Version = null, bool UseFileFormat = false, StandaloneEggTrainer? EggTrainer = null);
+    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null, int? Version = null, bool UseFileFormat = false, StandaloneEggTrainer? EggTrainer = null, GbPokemonEdit? Gb = null);
 
 internal sealed record StandaloneAdvancedData(RibbonCatalog? Ribbons = null, HistoryCatalog? History = null, MemoryCatalog? Memory = null, ushort[]? Relearn = null, OriginCatalog? Origin = null, StandaloneEggCatalog? EggContext = null);
 
@@ -26,6 +26,7 @@ internal static class StandalonePokemonRequests
 
 public static partial class Program
 {
+    [JSExport] public static byte[] EditStandalonePokemonGb(byte[] data, string json) => StandaloneGb.Edit(data, StandalonePokemonRequests.Read(json));
     [JSExport] public static byte[] EditStandalonePokemonRaw(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
