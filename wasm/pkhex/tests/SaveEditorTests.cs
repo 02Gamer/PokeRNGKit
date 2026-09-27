@@ -183,6 +183,7 @@ internal static class SaveEditorTests
         Gen7PokedexTests.Run();
         LetsGoPokedexTests.Run();
         BdspPokedexTests.Run();
+        SwshBlockFixtureTests.Run();
         Gen5PokedexTests.Run();
         Gen4PokedexTests.Run();
         SimplePokedexTests.Run();
