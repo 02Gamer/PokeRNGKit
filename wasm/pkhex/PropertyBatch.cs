@@ -9,6 +9,26 @@ internal sealed record PropertyBatchOutcome(int Group, int Box, int Slot, string
 internal sealed record PropertyBatchSummary(int Groups, int Filters, int Instructions, int ChangedSlots,
     int[] IgnoredLines, bool EmptyValues, PropertyBatchOutcome[] Outcomes);
 
+internal sealed record PropertyBatchCommands(StringInstructionSet[] Sets, int[] IgnoredLines, bool EmptyValues)
+{
+    public static PropertyBatchCommands Parse(string text, string language)
+    {
+        if (language is not ("zh" or "en" or "ja") || string.IsNullOrWhiteSpace(text) || StringInstructionSet.HasEmptyLine(text))
+            throw new ArgumentException("Invalid property batch instructions.");
+        var sets = StringInstructionSet.GetBatchSets(text.AsSpan());
+        if (sets.Length == 0 || sets.Any(s => s.Filters.Any(f => string.IsNullOrWhiteSpace(f.PropertyValue))))
+            throw new ArgumentException("Invalid property batch filters.");
+        var ignored = new List<int>(); int lineNumber = 0;
+        foreach (var line in text.AsSpan().EnumerateLines())
+        {
+            lineNumber++;
+            if (line.StartsWith(";")) continue;
+            if (!StringInstruction.TryParseFilter(line, out _) && !StringInstruction.TryParseInstruction(line, out _)) ignored.Add(lineNumber);
+        }
+        return new(sets, ignored.ToArray(), sets.Any(s => s.Instructions.Any(i => string.IsNullOrWhiteSpace(i.PropertyValue))));
+    }
+}
+
 // The Worker will retain the plan until confirmation; committing never reruns random instructions.
 internal sealed class PropertyBatchPlan(byte[] sourceHash, byte[] output, PropertyBatchSummary summary)
 {
@@ -34,19 +54,8 @@ internal static class PropertyBatch
             (request.Scope == "box" && (uint)request.Box >= save.BoxCount) ||
             (request.Scope == "party" && (!save.HasParty || (uint)save.PartyCount > 6)))
             throw new ArgumentException("Invalid property batch scope.");
-        if (string.IsNullOrWhiteSpace(request.Text) || StringInstructionSet.HasEmptyLine(request.Text))
-            throw new ArgumentException("Invalid property batch instructions.");
-        var sets = StringInstructionSet.GetBatchSets(request.Text.AsSpan());
-        if (sets.Length == 0 || sets.Any(s => s.Filters.Any(f => string.IsNullOrWhiteSpace(f.PropertyValue))))
-            throw new ArgumentException("Invalid property batch filters.");
-        var ignored = new List<int>(); int lineNumber = 0;
-        foreach (var line in request.Text.AsSpan().EnumerateLines())
-        {
-            lineNumber++;
-            if (line.StartsWith(";")) continue;
-            if (!StringInstruction.TryParseFilter(line, out _) && !StringInstruction.TryParseInstruction(line, out _)) ignored.Add(lineNumber);
-        }
-        var empty = sets.Any(s => s.Instructions.Any(i => string.IsNullOrWhiteSpace(i.PropertyValue)));
+        var commands = PropertyBatchCommands.Parse(request.Text, request.Language);
+        var sets = commands.Sets;
         var slots = new List<SlotCache>();
         if (request.Scope == "party") SlotInfoLoader.AddPartyData(save, slots);
         else SlotInfoLoader.AddBoxData(save, slots);
@@ -100,7 +109,7 @@ internal static class PropertyBatch
         if (reopened is null || reopened.GetType() != save.GetType() || !SaveChecksums.Valid(reopened) || Snapshot(reopened) != expected)
             throw new InvalidOperationException("Property batch export verification failed.");
         return new(SHA256.HashData(input), output, new(sets.Length, sets.Sum(s => s.Filters.Count), sets.Sum(s => s.Instructions.Count),
-            changed.Length, ignored.ToArray(), empty, outcomes.ToArray()));
+            changed.Length, commands.IgnoredLines, commands.EmptyValues, outcomes.ToArray()));
     }
     private static string Snapshot(SaveFile save) => BoxEditing.Snapshot(save) + "|" + save.PartyCount + "|" +
         string.Join('|', Enumerable.Range(0, save.HasParty ? 6 : 0).Select(i => Convert.ToHexString(save.GetPartySlotAtIndex(i).Data)));
