@@ -49,6 +49,8 @@ import type { PokemonEdit } from "./PokemonEditor";
 import { SavePokemonBrowser } from "./SavePokemonBrowser";
 import { SaveInventoryBrowser } from "./SaveInventoryBrowser";
 import { TrainerGeographyFields } from "./TrainerGeographyFields";
+import { SaveFoodEditor } from "./SaveFoodEditor";
+import { supportsFood, foodWords } from "./saveFood";
 import { SaveRecordEditor } from "./SaveRecordEditor";
 import { TrainerGameOptionFields } from "./TrainerGameOptionFields";
 import { TrainerPositionFields } from "./TrainerPositionFields";
@@ -78,6 +80,7 @@ export function SaveEditorPanel(
     | "pokemon"
     | "trainer"
     | "inventory"
+    | "food"
     | "records"
     | "pokedex"
     | "batch"
@@ -184,7 +187,8 @@ export function SaveEditorPanel(
       setSection((previous) =>
         (previous === "batch" && !result.report.canEdit) ||
         (previous === "pokedex" && !result.report.pokedex) ||
-        (previous === "records" && !result.report.trainer.canRecords)
+        (previous === "records" && !result.report.trainer.canRecords) ||
+        (previous === "food" && !supportsFood(result.report.format))
           ? "trainer"
           : previous,
       );
@@ -554,6 +558,22 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readFood = async () => {
+    let catalog: import("./saveFood").SaveFoodCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "food",
+      );
+      if (id !== operation.current) return;
+      if (!result.food) throw new Error("No food catalog was returned.");
+      catalog = result.food;
+    });
+    return catalog;
+  };
+
   const readRecords = async () => {
     let catalog: import("./domain").SaveRecordCatalog | undefined;
     await perform(async (id) => {
@@ -690,6 +710,7 @@ export function SaveEditorPanel(
       | import("./gen5Pokedex").Dex5Edit
       | import("./gen4Pokedex").Dex4Edit
       | import("./simplePokedex").SimpleDexEdit
+      | import("./saveFood").SaveFoodEdit
       | import("./domain").SaveRecordEdit
       | ReturnType<typeof validateTrainer>
       | StorageEdit
@@ -715,6 +736,7 @@ export function SaveEditorPanel(
       | "pokedex5Edit"
       | "pokedex4Edit"
       | "pokedexEdit"
+      | "foodEdit"
       | "recordEdit"
       | "trainer",
   ) =>
@@ -960,6 +982,15 @@ export function SaveEditorPanel(
                 {words.pokedexTitle}
               </button>
             )}
+            {supportsFood(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "food"}
+                onClick={() => setSection("food")}
+              >
+                {foodWords[batchLang].title}
+              </button>
+            )}
             {report.trainer.canRecords && (
               <button
                 type="button"
@@ -1089,6 +1120,16 @@ export function SaveEditorPanel(
               busy={busy}
               onRead={readPokedex}
               onApply={(edit) => applyWorkingEdit(edit, "pokedexEdit")}
+            />
+          ) : section === "food" && supportsFood(report.format) ? (
+            <SaveFoodEditor
+              key={`${name}:${fileRevision}`}
+              revision={workingRevision}
+              busy={busy}
+              canEdit={report.canEdit}
+              lang={batchLang}
+              onRead={readFood}
+              onApply={(edit) => applyWorkingEdit(edit, "foodEdit")}
             />
           ) : section === "records" && report.trainer.canRecords ? (
             <SaveRecordEditor

@@ -109,6 +109,18 @@
   margin-bottom: 8px;
   font-weight: 600;
 }
+.save-food-fields {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.save-food-fields legend {
+  margin-bottom: 12px;
+  font-weight: 600;
+}
 .save-editor-fields.save-trainer-dates {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 }

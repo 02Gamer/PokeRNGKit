@@ -77,6 +77,11 @@ public static partial class Program
     public static byte[] ExportWorkingCopy(byte[] data) => SaveService.ExportWorkingCopy(data);
 
     [JSExport]
+    public static string ReadFood(byte[] data) => SaveService.ReadFood(data);
+    [JSExport]
+    public static byte[] EditFood(byte[] data, string json) => SaveService.EditFood(data, json);
+
+    [JSExport]
     public static string ReadRecords(byte[] data) => SaveService.ReadRecords(data);
 
     [JSExport]
@@ -131,9 +136,9 @@ public static partial class Program
     public static byte[] ImportPokemon(byte[] data, string json) => SaveService.ImportPokemon(data, json);
 }
 
-public static class SaveService
+public static partial class SaveService
 {
-    public const int ApiVersion = 72;
+    public const int ApiVersion = 73;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -531,6 +536,8 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(SimpleDexQuery))]
 [JsonSerializable(typeof(SimpleDexCatalog))]
 [JsonSerializable(typeof(SimpleDexEdit))]
+[JsonSerializable(typeof(SaveFoodCatalog))]
+[JsonSerializable(typeof(SaveFoodEdit))]
 [JsonSerializable(typeof(SaveRecordCatalog))]
 [JsonSerializable(typeof(SaveRecordEdit))]
 [JsonSerializable(typeof(BagReport))]

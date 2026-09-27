@@ -3,6 +3,23 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 宝芙蕾与宝可豆
+
+API 73 接入 XY／ORAS 的宝芙蕾、SM／USUM 的宝可豆，入口为存档工具中的“宝可梦食物”。
+宝芙蕾有 100 个格位，每格编号 0–26；名称直接使用 Core GameStrings.puffs 的中英日文资源。
+PuffCount 为独立 Int32 字段，新增编辑范围 0–100，不根据非零格位重算；未修改的异常数量和格位编号保留。
+批量操作直接调用 Puff6.Sort(false/true)、MaxCheat(false/true)、Reset：普通补满以 1–26 循环后打乱，顶级补满为随机 21／22，数量均为 100。
+恢复默认设置首五格为 1–5、剩余清零、数量为 5；排序只改变格位次序，不改变数量。
+与桌面 SAV_Pokepuff 保存时统一设置数量 100 的行为区分：网页独立编辑该字段，避免只改一格就增加实际持有量。
+宝可豆依据 ResortSave7.GetBeans 的 15 项顺序（七种普通、七种花纹、彩虹），每项为 0–255；补满／清空使用 FillBeans／ClearBeans。
+拒绝负数、越界、空值、错误数组长度及不适用的操作；逐格编辑时，原始未列出宝芙蕾只可原位保持，不可复制为新增值；批量排序沿用 Core 的全格位排序。
+批量按钮在有未应用草稿时禁用。修改沿用存档原件、工作副本、20 步／64 MiB 撤销和导出，不覆盖原文件。
+写出后检查格式、校验和及完整食物所在块；后端仅支持 SAV6XY、SAV6AO、SAV7SM、SAV7USUM。
+界面沿用 Ant Neutral 浮动面板、44px 控件与双列响应式字段，宝芙蕾通过格位选择器避免同时展开 100 行；不新增主题或装饰面板。
+上游依据：WinForms Subforms/Save Editors/Gen6/SAV_Pokepuff.cs、Gen7/SAV_Pokebean.cs，
+Core Saves/Substructures/Gen6/Puff6.cs（前 100 字节与后续数量）、Gen7/ResortSave7.cs（0x564C 起 15 字节）及 BeanColor7。
+宝可豆标签按上游枚举顺序提供三语描述。树果、宝可方块、宝芬、宝可度假地其他记录仍为独立待接入项。
+
 ## 独立宝可梦文件（开发中）
 
 StandalonePokemon 直接读取 PKM，独立于 SaveFile；共享读取、基础编辑与回读校验，存档格位写入仍由原包装层负责。

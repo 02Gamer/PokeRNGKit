@@ -378,7 +378,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen6/SAV_PokeBlockORAS.cs`                             | 待核对                                                             |
 | `Subforms/Save Editors/Gen6/SAV_PokedexORAS.cs`                               | 已接入；字段及批量工程检查通过，浏览器待核验                       |
 | `Subforms/Save Editors/Gen6/SAV_PokedexXY.cs`                                 | 已接入；字段及批量工程检查通过，浏览器待核验                       |
-| `Subforms/Save Editors/Gen6/SAV_Pokepuff.cs`                                  | 待核对                                                             |
+| `Subforms/Save Editors/Gen6/SAV_Pokepuff.cs`                                  | API 73 逐项／批量编辑工程检查通过；浏览器与真实存档待核验          |
 | `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | 待核对                                                             |
 | `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | 待核对                                                             |
 | `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | 待核对                                                             |
@@ -386,7 +386,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 已接入 API 53；工程检查通过，浏览器待核验                          |
 | `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | 待核对                                                             |
 | `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | 待核对                                                             |
-| `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | 待核对                                                             |
+| `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | API 73 逐项／批量编辑工程检查通过；浏览器与真实存档待核验          |
 | `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 已接入 API 53；工程检查通过，浏览器待核验                          |
 | `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 已接入 API 52；形态、九语言及批量操作                              |
 | `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | 基础/性别/时间/语言/地区/对应点数已接入；其他字段待接入            |

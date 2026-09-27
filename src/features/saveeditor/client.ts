@@ -55,6 +55,8 @@ export class SaveEditorClient {
       | "exportWorkingCopy"
       | "trainer"
       | "inventory"
+      | "food"
+      | "foodEdit"
       | "records"
       | "recordEdit"
       | "inventoryEdit"
