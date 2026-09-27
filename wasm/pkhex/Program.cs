@@ -305,7 +305,7 @@ public static class SaveService
             ?? throw new ArgumentException("Unrecognized save file. Open decrypted save data, not a ROM or encrypted console container.");
     }
 
-    private static bool CanEdit(SaveFile save) => save is
+    internal static bool CanEdit(SaveFile save) => save is
         SAV3RS or SAV3E or SAV3FRLG or SAV3Colosseum or SAV3XD or
         SAV4DP or SAV4Pt or SAV4HGSS or SAV5BW or SAV5B2W2 or
         SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS;
