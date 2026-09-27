@@ -22,6 +22,12 @@ internal static class StandalonePokemonRequests
 
 public static partial class Program
 {
+    [JSExport] public static string AnalyzeStandalonePokemon(byte[] data, string json)
+    {
+        var request = StandalonePokemonRequests.Read(json);
+        return JsonSerializer.Serialize(StandalonePokemon.Analyze(data, request.FileName, request.InputEncrypted),
+            StandalonePokemonJson.Default.PokemonLegalityReport);
+    }
     [JSExport] public static string InspectStandalonePokemon(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
@@ -44,4 +50,5 @@ public static partial class Program
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(StandalonePokemonReport))]
 [JsonSerializable(typeof(StandalonePokemonRequest))]
+[JsonSerializable(typeof(PokemonLegalityReport))]
 internal partial class StandalonePokemonJson : JsonSerializerContext;

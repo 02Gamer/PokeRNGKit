@@ -12,6 +12,17 @@ internal sealed record StandalonePokemonReport(string Format, string Extension, 
 
 internal static class StandalonePokemon
 {
+    public static PokemonLegalityReport Analyze(byte[] input, string filename, bool inputEncrypted = false)
+    {
+        var file = Open(input, filename, inputEncrypted);
+        var p = file.Entity;
+        if (!p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
+            throw new ArgumentException("Entity file analysis requires valid data.");
+        // File serialization width does not establish its original save slot. Use the
+        // entity personal info and Core's independent-entity context, not a fictitious save.
+        return PokemonLegality.Report(new LegalityAnalysis(p, StorageSlotType.None), new(file.Party ? -1 : 0, 0));
+    }
+
     public static StandalonePokemonFile Open(byte[] input, string filename, bool inputEncrypted = false)
     {
         if (input is null || input.Length is 0 or > PokemonFiles.MaximumSize)

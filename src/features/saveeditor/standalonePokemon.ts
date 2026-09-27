@@ -1,9 +1,14 @@
-import type { MoveChoice, PokemonEntry, SaveReport } from "./domain";
+import type {
+  MoveChoice,
+  PokemonEntry,
+  SaveReport,
+  PokemonLegalityReport,
+} from "./domain";
 import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 66;
+  apiVersion: 67;
   format: string;
   extension: string;
   party: boolean;
@@ -20,8 +25,9 @@ export interface StandalonePokemonRequest {
   edit?: PokemonEdit;
 }
 export type StandalonePokemonOperation =
-  "entityInspect" | "entityEdit" | "entityExport";
+  "entityLegality" | "entityInspect" | "entityEdit" | "entityExport";
 export interface StandalonePokemonResult {
+  legality?: PokemonLegalityReport;
   entity: StandalonePokemonReport;
   output?: Uint8Array<ArrayBuffer>;
   entityFile?: Uint8Array<ArrayBuffer>;

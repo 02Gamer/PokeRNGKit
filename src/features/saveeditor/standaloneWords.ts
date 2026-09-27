@@ -1,5 +1,8 @@
 export const standaloneWords = {
   zh: {
+    runtime: "页面与存档组件版本不一致，请刷新页面后重试。当前工作副本未改变。",
+    legalityContext:
+      "独立文件按自身格式检查；导入目标存档后，应再检查该游戏和格位的限制。",
     save: "存档",
     title: "宝可梦文件",
     intro: "独立打开宝可梦文件。编辑保存在工作副本中，原文件不会被覆盖。",
@@ -27,6 +30,10 @@ export const standaloneWords = {
     history: "保留最近 20 次编辑，可随时还原原件。",
   },
   en: {
+    runtime:
+      "The page and save component versions differ. Refresh the page and retry. The current working copy is unchanged.",
+    legalityContext:
+      "Independent files are checked using their own format. Check again after import for the destination game's and slot's restrictions.",
     save: "Save file",
     title: "Pokémon file",
     intro:
@@ -59,6 +66,10 @@ export const standaloneWords = {
       "The last 20 edits can be undone. You can always restore the original.",
   },
   ja: {
+    runtime:
+      "ページとセーブ処理のバージョンが一致しません。ページを再読み込みしてください。現在の作業用コピーは変更されていません。",
+    legalityContext:
+      "単独ファイルはその形式に基づいて検証します。インポート後は、対象ゲームとスロットの制限について再確認してください。",
     save: "セーブデータ",
     title: "ポケモンファイル",
     intro:

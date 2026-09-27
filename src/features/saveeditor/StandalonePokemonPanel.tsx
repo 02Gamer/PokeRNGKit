@@ -11,6 +11,8 @@ import {
 import { standaloneWords } from "./standaloneWords";
 import { saveEditorResources } from "./locales";
 import { pokemonImage } from "./art";
+import { PokemonLegality } from "./PokemonLegality";
+import type { PokemonLegalityReport } from "./domain";
 
 function download(bytes: Uint8Array<ArrayBuffer>, name: string) {
   const url = URL.createObjectURL(
@@ -37,6 +39,7 @@ export function StandalonePokemonPanel() {
   const [working, setWorking] = useState<StandalonePokemonSnapshot>();
   const [history, setHistory] = useState<StandalonePokemonSnapshot[]>([]);
   const [report, setReport] = useState<StandalonePokemonReport>();
+  const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [revision, setRevision] = useState(0);
   const [changed, setChanged] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -45,7 +48,9 @@ export function StandalonePokemonPanel() {
   const [inputEncrypted, setInputEncrypted] = useState(false);
   const [party, setParty] = useState(false),
     [encrypted, setEncrypted] = useState(false);
-  const [error, setError] = useState<"failed" | "timeout" | "size">();
+  const [error, setError] = useState<
+    "failed" | "timeout" | "size" | "runtime"
+  >();
   const [status, setStatus] = useState<"applied" | "restored">();
   const dispose = useCallback(() => {
     operation.current++;
@@ -64,11 +69,13 @@ export function StandalonePokemonPanel() {
     } catch (cause) {
       if (id === operation.current)
         setError(
-          cause instanceof Error && /timed out/.test(cause.message)
-            ? "timeout"
-            : cause instanceof Error && cause.message === "size"
-              ? "size"
-              : "failed",
+          cause instanceof Error && /API version mismatch/.test(cause.message)
+            ? "runtime"
+            : cause instanceof Error && /timed out/.test(cause.message)
+              ? "timeout"
+              : cause instanceof Error && cause.message === "size"
+                ? "size"
+                : "failed",
         );
     } finally {
       if (id === operation.current) {
@@ -89,6 +96,7 @@ export function StandalonePokemonPanel() {
       });
       if (id !== operation.current) return;
       original.current = snapshot;
+      setLegality(undefined);
       setChanged(false);
       setWorking(snapshot);
       setHistory([]);
@@ -113,6 +121,7 @@ export function StandalonePokemonPanel() {
       if (!result.output) throw new Error("Missing edited file");
       setHistory((previous) => [...previous, working].slice(-20));
       setWorking({ ...working, bytes: result.output, inputEncrypted: false });
+      setLegality(undefined);
       setChanged(true);
       setReport(result.entity);
       setRevision((value) => value + 1);
@@ -130,9 +139,23 @@ export function StandalonePokemonPanel() {
       setWorking(snapshot);
       setReport(result.entity);
       setChanged(snapshot !== original.current);
+      setLegality(undefined);
       setHistory((previous) => (reset ? [] : previous.slice(0, -1)));
       setRevision((value) => value + 1);
       setStatus("restored");
+    });
+  const analyze = () =>
+    perform(async (id) => {
+      if (!working) return;
+      setLegality(undefined);
+      const result = await client.current.run(
+        working.bytes,
+        { fileName: working.fileName, inputEncrypted: working.inputEncrypted },
+        "entityLegality",
+      );
+      if (id !== operation.current) return;
+      if (!result.legality) throw new Error("Missing legality report");
+      setLegality(result.legality);
     });
   const exportFile = () =>
     perform(async (id) => {
@@ -219,6 +242,7 @@ export function StandalonePokemonPanel() {
               disabled={busy}
               onClick={() => {
                 original.current = undefined;
+                setLegality(undefined);
                 setChanged(false);
                 setWorking(undefined);
                 setReport(undefined);
@@ -333,6 +357,13 @@ export function StandalonePokemonPanel() {
               </tbody>
             </table>
           </div>
+          <PokemonLegality
+            position={report.pokemon}
+            report={legality}
+            busy={busy}
+            onAnalyze={analyze}
+          />
+          <p className="save-editor-note">{words.legalityContext}</p>
           {report.canEdit ? (
             <>
               <div className="save-editor-fields">
