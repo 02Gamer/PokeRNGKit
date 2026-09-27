@@ -24,6 +24,9 @@
 
 ## 当前工程证据
 
+API 49 接入 SAV_Pokedex4 的 DP/Pt/HGSS 图鉴、六语言、性别／形态顺序、解锁及批量操作。
+三种布局的完整输出与独立 Core 保存对照通过，浏览器待核验。
+
 API 48 接入 SAV_SimplePokedex 对应的第一至第三世代见过/捕获与四种批量操作。
 三语名称、本地图像、工作副本/撤销/下载，按上游处理未知图腾字母、GBA 关联位图和 FRLG 特殊模式。
 第一、二世代采用独立图鉴编辑能力，不开放其他未接入编辑器；后续世代专用图鉴继续推进，浏览器待核验。
@@ -285,7 +288,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen4/SAV_HoneyTree.cs`                                 | 待核对                                                       |
 | `Subforms/Save Editors/Gen4/SAV_Misc4.cs`                                     | 待核对                                                       |
 | `Subforms/Save Editors/Gen4/SAV_Pokeathlon4.cs`                               | 待核对                                                       |
-| `Subforms/Save Editors/Gen4/SAV_Pokedex4.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen4/SAV_Pokedex4.cs`                                  | 已接入；三种布局工程检查通过，浏览器待核验                   |
 | `Subforms/Save Editors/Gen4/SAV_Trainer4BR.cs`                                | 待核对                                                       |
 | `Subforms/Save Editors/Gen4/SAV_Underground.cs`                               | 待核对                                                       |
 | `Subforms/Save Editors/Gen5/CGearImage.cs`                                    | 待核对                                                       |

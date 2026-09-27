@@ -476,3 +476,17 @@
   position: static;
   font-weight: normal;
 }
+
+.save-dex4-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 12px;
+}
+.save-dex4-order {
+  max-height: 20rem;
+  overflow: auto;
+  padding-inline-start: 1.5rem;
+}
+.save-dex4-order li {
+  padding-block: 4px;
+}

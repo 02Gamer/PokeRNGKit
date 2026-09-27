@@ -1,3 +1,4 @@
+import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
 import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
 import { TrainerDateFields } from "./TrainerDateFields";
@@ -220,6 +221,22 @@ export function SaveEditorPanel(
     return inventory;
   };
 
+  const readPokedex4 = async () => {
+    let catalog: import("./gen4Pokedex").Dex4Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "pokedex4",
+      );
+      if (id !== operation.current) return;
+      if (!result.pokedex4)
+        throw new Error("Pokedex catalog was not returned.");
+      catalog = result.pokedex4;
+    });
+    return catalog;
+  };
   const readPokedex = async () => {
     let catalog: import("./simplePokedex").SimpleDexCatalog | undefined;
     await perform(async (id) => {
@@ -361,6 +378,7 @@ export function SaveEditorPanel(
       | BoxEdit
       | import("./domain").BagEdit
       | import("./domain").BagOperation
+      | import("./gen4Pokedex").Dex4Edit
       | import("./simplePokedex").SimpleDexEdit
       | import("./domain").SaveRecordEdit
       | ReturnType<typeof validateTrainer>
@@ -374,6 +392,7 @@ export function SaveEditorPanel(
       | "pokemonImport"
       | "inventoryEdit"
       | "inventoryBatch"
+      | "pokedex4Edit"
       | "pokedexEdit"
       | "recordEdit"
       | "trainer",
@@ -614,7 +633,15 @@ export function SaveEditorPanel(
               </button>
             )}
           </div>
-          {section === "pokedex" && report.pokedex ? (
+          {section === "pokedex" && report.pokedex?.kind === "gen4" ? (
+            <Gen4PokedexEditor
+              key={`${name}:${fileRevision}`}
+              revision={workingRevision}
+              busy={busy}
+              onRead={readPokedex4}
+              onApply={(edit) => applyWorkingEdit(edit, "pokedex4Edit")}
+            />
+          ) : section === "pokedex" && report.pokedex ? (
             <SimplePokedexEditor
               key={`${name}:${fileRevision}`}
               revision={workingRevision}

@@ -7,6 +7,8 @@ interface SaveExports {
       Program: {
         ConfigureBrowserCrypto(): void;
         Inspect(data: Uint8Array): string;
+        ReadPokedex4(data: Uint8Array): string;
+        EditPokedex4(data: Uint8Array, json: string): Uint8Array;
         ReadPokedex(data: Uint8Array, json: string): string;
         EditPokedex(data: Uint8Array, json: string): Uint8Array;
         ExportWorkingCopy(data: Uint8Array): Uint8Array;
@@ -57,6 +59,8 @@ self.addEventListener(
       bytes: Uint8Array;
       edit?: string;
       kind?:
+        | "pokedex4"
+        | "pokedex4Edit"
         | "pokedex"
         | "pokedexEdit"
         | "exportWorkingCopy"
@@ -91,6 +95,7 @@ self.addEventListener(
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
       const output =
         (edit === undefined && kind !== "exportWorkingCopy") ||
+        kind === "pokedex4" ||
         kind === "pokedex" ||
         kind === "inventory" ||
         kind === "records" ||
@@ -105,28 +110,30 @@ self.addEventListener(
           : new Uint8Array(
               kind === "exportWorkingCopy"
                 ? api.ExportWorkingCopy(bytes)
-                : kind === "pokedexEdit"
-                  ? api.EditPokedex(bytes, payload)
-                  : kind === "recordEdit"
-                    ? api.EditRecord(bytes, payload)
-                    : kind === "inventoryBatch"
-                      ? api.EditInventoryBatch(bytes, payload)
-                      : kind === "inventoryEdit"
-                        ? api.EditInventory(bytes, payload)
-                        : kind === "pokemonRaw"
-                          ? api.EditPokemonRaw(bytes, payload)
-                          : kind === "pokemon"
-                            ? api.EditPokemon(bytes, payload)
-                            : kind === "box"
-                              ? api.EditBox(bytes, payload)
-                              : kind === "storage"
-                                ? api.EditStorage(bytes, payload)
-                                : kind === "pokemonImport"
-                                  ? api.ImportPokemon(bytes, payload)
-                                  : api.Export(bytes, payload),
+                : kind === "pokedex4Edit"
+                  ? api.EditPokedex4(bytes, payload)
+                  : kind === "pokedexEdit"
+                    ? api.EditPokedex(bytes, payload)
+                    : kind === "recordEdit"
+                      ? api.EditRecord(bytes, payload)
+                      : kind === "inventoryBatch"
+                        ? api.EditInventoryBatch(bytes, payload)
+                        : kind === "inventoryEdit"
+                          ? api.EditInventory(bytes, payload)
+                          : kind === "pokemonRaw"
+                            ? api.EditPokemonRaw(bytes, payload)
+                            : kind === "pokemon"
+                              ? api.EditPokemon(bytes, payload)
+                              : kind === "box"
+                                ? api.EditBox(bytes, payload)
+                                : kind === "storage"
+                                  ? api.EditStorage(bytes, payload)
+                                  : kind === "pokemonImport"
+                                    ? api.ImportPokemon(bytes, payload)
+                                    : api.Export(bytes, payload),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 48)
+      if (report.apiVersion !== 49)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined
@@ -160,6 +167,10 @@ self.addEventListener(
         {
           id,
           report,
+          pokedex4:
+            kind === "pokedex4"
+              ? JSON.parse(api.ReadPokedex4(bytes))
+              : undefined,
           pokedex:
             kind === "pokedex" && edit !== undefined
               ? JSON.parse(api.ReadPokedex(bytes, payload))
