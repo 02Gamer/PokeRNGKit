@@ -17,7 +17,7 @@ internal static class PokemonFiles
         extension.Length > 1 && EntityExtensions.Contains(extension[1..]) &&
         !extension[1..].Equals(pokemon.Extension, StringComparison.OrdinalIgnoreCase);
 
-    public static bool TryRead(byte[] source, string extension, SaveFile save, [NotNullWhen(true)] out PKM? pokemon)
+    public static bool TryRead(byte[] source, string extension, ITrainerInfo? save, [NotNullWhen(true)] out PKM? pokemon)
     {
         var bytes = source.ToArray();
         // GetFormat45 assumes plaintext, but PK4/PK5 constructors decrypt only after detection.

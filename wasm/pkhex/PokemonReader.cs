@@ -29,9 +29,14 @@ internal static class PokemonReader
     public static MoveChoice[] MoveChoices(SaveFile save)
     {
         var p = save.BlankPKM;
-        return Enumerable.Range(0, save.MaxMoveID + 1).Select(i => new MoveChoice(Text(s => Name(s.movelist, i)),
-            Enumerable.Range(0, 4).Select(up => p.GetMovePP((ushort)i, up)).ToArray())).ToArray();
+        return MoveChoices(p, save.MaxMoveID);
     }
+    public static MoveChoice[] MoveChoices(PKM p, int? maximum = null) =>
+        Enumerable.Range(0, (maximum ?? p.MaxMoveID) + 1).Select(i => new MoveChoice(Text(s => Name(s.movelist, i)),
+            Enumerable.Range(0, 4).Select(up => p.GetMovePP((ushort)i, up)).ToArray())).ToArray();
+    public static AttributeChoices Attributes(PKM p) => new(
+        Enumerable.Range(0, 25).Select(i => Text(s => Name(s.natures, i))).ToArray(),
+        Enumerable.Range(0, p.MaxItemID + 1).Select(i => Text(s => Name(s.GetItemStrings(p.Context, p.Version), i))).ToArray(), PokemonIdentity.Choices(p));
 
     public static BoxEntry[] Boxes(SaveFile save) => Enumerable.Range(0, save.BoxCount).Select(i =>
         new BoxEntry(i, save is IBoxDetailNameRead names ? names.GetBoxName(i) : string.Empty,
@@ -51,23 +56,27 @@ internal static class PokemonReader
 
         void Add(PKM p, int box, int slot)
         {
-            if (p.Species == 0) return;
-            entries.Add(new(box, slot, p.Species, p.Form, p.Nickname, p.CurrentLevel,
-                p.Gender, p.IsShiny, p.IsEgg, p.ChecksumValid, p.OriginalTrainerName, p.TID16, p.SID16,
-                p.PID, p.EncryptionConstant, p.EXP, p.IsEgg ? p.OriginalTrainerFriendship : p.CurrentFriendship,
-                Text(s => Name(s.specieslist, p.Species)), Text(s => Name(s.natures, (int)p.Nature)),
-                Text(s => Name(s.abilitylist, p.Ability)), Text(s => Name(s.GetItemStrings(p.Context, p.Version), p.HeldItem)),
-                p.Moves.Select(m => Text(s => Name(s.movelist, m))).ToArray(),
-                [p.Move1_PP, p.Move2_PP, p.Move3_PP, p.Move4_PP],
-                [p.IV_HP, p.IV_ATK, p.IV_DEF, p.IV_SPA, p.IV_SPD, p.IV_SPE],
-                [p.EV_HP, p.EV_ATK, p.EV_DEF, p.EV_SPA, p.EV_SPD, p.EV_SPE],
-                p.IsEgg ? (p.Species == 490 ? "b_490_e" : "b_egg") : "b" + SpriteName.GetResourceStringSprite(
-                    p.Species, p.Form, p.Gender, p is IFormArgument argument ? argument.FormArgument : 0, p.Context),
-                p.Moves, new(p.MaxStringLengthNickname, p.MaxStringLengthTrainer, p.MaxIV, p.MaxEV, p.MaxMoveID),
-                [p.Move1_PPUps, p.Move2_PPUps, p.Move3_PPUps, p.Move4_PPUps],
-                (int)p.Nature, (int)p.StatAlignment, p.Format >= 8,
-                p.AbilityNumber switch { 1 => 0, 2 => 1, 4 => 2, _ => -1 },
-                Enumerable.Range(0, p.PersonalInfo.AbilityCount).Select(i => Text(s => Name(s.abilitylist, p.PersonalInfo.GetAbilityAtIndex(i)))).ToArray(), p.HeldItem, p.IsNicknamed, p.Format >= 6, PokemonFormArgument.Read(p, box), PokemonEncounter.Read(p), PokemonOrigin.Read(p), PokemonEgg.Read(p), PokemonRelearn.Read(p), PokemonTraining.Read(p)));
+            if (p.Species != 0) entries.Add(Read(p, box, slot));
         }
+    }
+
+    public static PokemonEntry Read(PKM p, int box, int slot)
+    {
+        return new(box, slot, p.Species, p.Form, p.Nickname, p.CurrentLevel,
+            p.Gender, p.IsShiny, p.IsEgg, p.ChecksumValid, p.OriginalTrainerName, p.TID16, p.SID16,
+            p.PID, p.EncryptionConstant, p.EXP, p.IsEgg ? p.OriginalTrainerFriendship : p.CurrentFriendship,
+            Text(s => Name(s.specieslist, p.Species)), Text(s => Name(s.natures, (int)p.Nature)),
+            Text(s => Name(s.abilitylist, p.Ability)), Text(s => Name(s.GetItemStrings(p.Context, p.Version), p.HeldItem)),
+            p.Moves.Select(m => Text(s => Name(s.movelist, m))).ToArray(),
+            [p.Move1_PP, p.Move2_PP, p.Move3_PP, p.Move4_PP],
+            [p.IV_HP, p.IV_ATK, p.IV_DEF, p.IV_SPA, p.IV_SPD, p.IV_SPE],
+            [p.EV_HP, p.EV_ATK, p.EV_DEF, p.EV_SPA, p.EV_SPD, p.EV_SPE],
+            p.IsEgg ? (p.Species == 490 ? "b_490_e" : "b_egg") : "b" + SpriteName.GetResourceStringSprite(
+                p.Species, p.Form, p.Gender, p is IFormArgument argument ? argument.FormArgument : 0, p.Context),
+            p.Moves, new(p.MaxStringLengthNickname, p.MaxStringLengthTrainer, p.MaxIV, p.MaxEV, p.MaxMoveID),
+            [p.Move1_PPUps, p.Move2_PPUps, p.Move3_PPUps, p.Move4_PPUps],
+            (int)p.Nature, (int)p.StatAlignment, p.Format >= 8,
+            p.AbilityNumber switch { 1 => 0, 2 => 1, 4 => 2, _ => -1 },
+            Enumerable.Range(0, p.PersonalInfo.AbilityCount).Select(i => Text(s => Name(s.abilitylist, p.PersonalInfo.GetAbilityAtIndex(i)))).ToArray(), p.HeldItem, p.IsNicknamed, p.Format >= 6, PokemonFormArgument.Read(p, box), PokemonEncounter.Read(p), PokemonOrigin.Read(p), PokemonEgg.Read(p), PokemonRelearn.Read(p), PokemonTraining.Read(p));
     }
 }

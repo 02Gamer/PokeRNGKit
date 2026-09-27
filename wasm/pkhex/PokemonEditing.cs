@@ -27,17 +27,26 @@ internal static class PokemonEditing
     public static PokemonEdit Apply(SaveFile save, PokemonEdit edit)
     {
         var p = Read(save, edit.Box, edit.Slot);
-        var original = p.Clone();
-        var requestedForm = edit.Identity?.Form ?? p.Form;
         if (edit.Box >= 0 && save.IsBoxSlotLocked(edit.Box, edit.Slot))
             throw new ArgumentException("Storage slot is locked.");
+        var applied = Apply(p, edit, edit.Box == -1, identity => PokemonIdentity.Apply(save, p, identity, edit.Box));
+        if (edit.Box == -1) save.SetPartySlotAtIndex(p, edit.Slot, EntityImportSettings.None);
+        else save.SetBoxSlotAtIndex(p, edit.Box, edit.Slot, EntityImportSettings.None);
+        return applied;
+    }
+
+    // Entity editing is independent of a save; callers supply only identity constraints and party-stat semantics.
+    public static PokemonEdit Apply(PKM p, PokemonEdit edit, bool party, Action<PokemonIdentityEdit> applyIdentity)
+    {
+        var original = p.Clone();
+        var requestedForm = edit.Identity?.Form ?? p.Form;
         if (p.Species == 0 || !p.ChecksumValid)
             throw new ArgumentException("Pokemon slot must contain valid data.");
         if (edit.Level is < 1 or > 100)
             throw new ArgumentException("Pokemon level must be between 1 and 100.");
         if (edit.Identity is not null)
         {
-            PokemonIdentity.Apply(save, p, edit.Identity, edit.Box);
+            applyIdentity(edit.Identity);
             if (edit.Identity.UseSpeciesName)
                 edit = edit with { Nickname = SpeciesName.GetSpeciesNameGeneration(p.Species, p.Language, p.Format) };
             // Changing species/form must select an ability from the new personal entry.
@@ -114,7 +123,7 @@ internal static class PokemonEditing
         for (var i = 0; i < 4; i++)
             if (edit.MovePp[i] > p.GetMovePP(edit.Moves[i], ups[i]))
                 throw new ArgumentException("Pokemon PP exceeds the move maximum.");
-        if (edit.Box == -1)
+        if (party)
         {
             Span<ushort> beforeStats = stackalloc ushort[6];
             Span<ushort> afterStats = stackalloc ushort[6];
@@ -128,14 +137,13 @@ internal static class PokemonEditing
             }
         }
         p.RefreshChecksum();
-        if (edit.Box == -1) save.SetPartySlotAtIndex(p, edit.Slot, EntityImportSettings.None);
-        else save.SetBoxSlotAtIndex(p, edit.Box, edit.Slot, EntityImportSettings.None);
         return edit;
     }
 
-    public static void Verify(SaveFile save, PokemonEdit edit)
+    public static void Verify(SaveFile save, PokemonEdit edit) => Verify(Read(save, edit.Box, edit.Slot), edit);
+
+    public static void Verify(PKM p, PokemonEdit edit)
     {
-        var p = Read(save, edit.Box, edit.Slot);
         if (edit.Identity is { } identity && (p.Species != identity.Species || p.Form != identity.Form || p.Gender != identity.Gender || ((p.Format >= 4 || identity.UseSpeciesName) && p.IsNicknamed == identity.UseSpeciesName)))
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         if ((edit.Nature is int nature && (int)p.Nature != nature) ||

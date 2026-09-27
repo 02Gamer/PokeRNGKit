@@ -3,6 +3,23 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 独立宝可梦文件（开发中）
+
+StandalonePokemon 直接读取 PKM，独立于 SaveFile；共享读取、基础编辑与回读校验，存档格位写入仍由原包装层负责。
+输入限 1 MiB，长度必须匹配实体类型的 SIZE_STORED 或 SIZE_PARTY；已知扩展名同时用作 Core 歧义格式提示与冲突检查。
+基础编辑暂开放 PK3／CK3／XK3／PK4／BK4／PK5／PK6／PK7／PB7／PK8／PB8／PA8／PK9／PA9；其他类型尚未开放写出。
+采用实体的 MaxSpeciesID、MaxMoveID、MaxItemID、MaxIV、MaxEV 和名称长度；其余基础范围沿用 PokemonEditing 的既有契约。
+种类、形态与性别目录依据 PKM.PersonalInfo／Context。PK4、PK5、PK6、PK7 分别使用 HGSS、B2W2、ORAS、USUM 的实体表，
+不把来源存档的较早游戏限制带入独立文件；原存档编辑继续使用 SaveFile.Personal。
+编辑保持输入的存储／队伍字节长度并生成解密工作副本，导出可选存储／队伍及加密表示；写出后重新解析并核对类型、校验和与完整实体字节。
+后续接口和撤销历史必须随字节保存 BK4 输入布局：编辑结果为解密布局，撤销回原始格位时同时恢复布局选项，避免重复解码。
+包含队伍能力值的格式按需重算并保留序列化后的 HP／状态；CK3／XK3 的 Core Status_Condition 为非序列化属性，不能承诺写回未定位字段。
+PB7 改变种类／形态时调用 Core ResetCalculatedValues，其他 CP 计算变化时更新 CP；只改昵称不重算已有体型和 CP。
+BK4 只打乱数据块，校验和不能判定布局。默认按宝可梦文件读取，原始格位必须显式设置 inputEncrypted，并按 Core Decrypt4BE 处理。
+上游依据：PKM/PKM.cs、PKM/Util/EntityFormat.cs、Util/FileUtil.cs、各 PKM 类型的 PersonalInfo 与尺寸属性、
+PKM/Util/PokeCrypto.cs、PKM/PB7.cs，以及 WinForms Controls/PKM Editor/SizeCP.cs。
+内部专项与完整检查状态见进度；独立 API、Worker、工作区入口、进阶编辑、第一／二世代写出和浏览器核验仍待完成。
+
 ## 整箱二进制
 
 BoxBinary 按 Core SaveFile 的 GetPCBinary／GetBoxBinary 导出，保留 SIZE_BOXSLOT 表示；

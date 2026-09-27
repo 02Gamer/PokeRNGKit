@@ -13,6 +13,7 @@ internal static class SaveEditorTests
     {
         // Incremental development after the full suite has generated the shared synthetic fixtures.
         // The default command still runs every suite and is required before committing.
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone") { StandalonePokemonTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "box-binary-api") { BoxBinaryTests.Run(); BoxBinaryApiTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "pk3-checksum") { Pk3ChecksumTests.Run(); BoxBinaryTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "box-binary") { BoxBinaryTests.Run(); return; }
@@ -221,6 +222,7 @@ internal static class SaveEditorTests
         BoxImportApiTests.Run();
         BoxBinaryTests.Run();
         BoxBinaryApiTests.Run();
+        StandalonePokemonTests.Run();
         Pk3ChecksumTests.Run();
         PropertyBatchTests.Run();
         StorageEditingTests.Run();

@@ -8,6 +8,7 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../StandalonePokemon.cs" Link="StandalonePokemon.cs" />
     <Compile Include="../BoxBinaryApi.cs" Link="BoxBinaryApi.cs" />
     <Compile Include="../BoxBinary.cs" Link="BoxBinary.cs" />
     <Compile Include="../BoxImportApi.cs" Link="BoxImportApi.cs" />
