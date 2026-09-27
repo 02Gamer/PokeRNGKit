@@ -11,7 +11,14 @@
 提交核对原文件 SHA-256，并分别要求删除、覆盖和未导入实体确认；返回预览时固定的独立字节副本。
 导出后重读并核对格式、校验和、箱子元数据／内容／保护标记及队伍；无操作时保留原始字节。
 11 格式专项检查已核对清空／覆盖四种组合与 Core 输出逐字节一致、空输入删除确认、过期拒绝及副本隔离。
-文件来源展开、导入设置的完整覆盖、Worker 和界面仍待接入，不作为完整批量导入能力。
+BoxImportFiles 将文件展开并接入固定结果预览，保存文件序号、规范化相对路径与组内序号。
+输入最多 10000 文件／64 MiB，总路径最多 4 Mi 字符，展开最多 10000 实体；拒绝路径穿越和重名。
+沿用 Core FileUtil、BoxUtil 的实体／实体礼物／相遇／IPokeGroup／实体序列分类，显式实体扩展名沿用 PK4／PK5 解密修正。
+额外处理 ConcatenatedEntitySet：以目标存档的格位宽度及 GetStoredSlot 读取；这是实体展开，精确 PC 布局替换仍需独立操作。
+解析失败的组不保留部分条目；无法识别、非实体内容、空组和解析失败均进入文件结果，提交需确认未导入项。
+礼物随机生成只发生在预览，提交使用固定结果。11 格式文件／PC 箱子展开、PGT 实体／道具区分、
+RentalTeam8 六成员顺序、文件来源与预览联动、错误确认及礼物固定提交检查通过；完整原生套件通过。
+导入设置完整覆盖、Worker 和界面仍待接入，不作为完整批量导入能力。
 
 核对 WinForms SAVEditor.GetBulkImportSettings／LoadBoxes、Core BoxUtil.LoadBoxes、
 SaveExtensions.GetCompatible／ImportPKMs 和 SaveFile.ClearBoxes。当前仅固定上游规则，批量导入产品入口尚未接入。

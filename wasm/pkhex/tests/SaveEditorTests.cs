@@ -13,6 +13,7 @@ internal static class SaveEditorTests
     {
         // Incremental development after the full suite has generated the shared synthetic fixtures.
         // The default command still runs every suite and is required before committing.
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "box-import-files") { BoxImportFileTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "box-import") { BoxImportContractTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "box-archive") { BoxArchiveTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "box-batch") { BoxBatchTests.Run(); return; }
@@ -212,6 +213,7 @@ internal static class SaveEditorTests
         FilePropertyBatchTests.Run();
         BoxArchiveTests.Run();
         BoxImportContractTests.Run();
+        BoxImportFileTests.Run();
         PropertyBatchTests.Run();
         StorageEditingTests.Run();
         PartyStorageTests.Run();
