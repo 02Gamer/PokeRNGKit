@@ -5,7 +5,10 @@ namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonFile(PKM Entity, bool Party);
 internal sealed record StandalonePokemonReport(string Format, string Extension, bool Party, bool CanEdit, PokemonEntry Pokemon,
-    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices);
+    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices)
+{
+    public int ApiVersion => SaveService.ApiVersion;
+}
 
 internal static class StandalonePokemon
 {
@@ -72,6 +75,9 @@ internal static class StandalonePokemon
 
     private static byte[] Serialize(PKM p, bool party, bool encrypted)
     {
+        // BK4's constructor marks party-sized data as initialized. Match that representation
+        // when expanding a stored file, without changing flags for stored-size exports.
+        if (party && p is BK4 bk4) bk4.IsDecryptedStateParty = true;
         var data = new byte[party ? p.SIZE_PARTY : p.SIZE_STORED];
         if (party) { if (encrypted) p.WriteEncryptedDataParty(data); else p.WriteDecryptedDataParty(data); }
         else { if (encrypted) p.WriteEncryptedDataStored(data); else p.WriteDecryptedDataStored(data); }

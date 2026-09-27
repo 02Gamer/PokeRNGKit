@@ -1,11 +1,18 @@
 import type { SaveReport, PokemonLegalityReport } from "./domain";
 import { browserCryptography } from "./browserCryptography";
+import type {
+  StandalonePokemonReport,
+  StandalonePokemonRequest,
+} from "./standalonePokemon";
 
 interface SaveExports {
   PokeRNGKit: {
     SaveEditor: {
       Program: {
         ConfigureBrowserCrypto(): void;
+        InspectStandalonePokemon(data: Uint8Array, json: string): string;
+        EditStandalonePokemon(data: Uint8Array, json: string): Uint8Array;
+        ExportStandalonePokemon(data: Uint8Array, json: string): Uint8Array;
         ExportBoxBinary(data: Uint8Array, json: string): Uint8Array;
         PreviewBoxBinary(data: Uint8Array, json: string): string;
         CommitBoxBinary(data: Uint8Array, json: string): Uint8Array;
@@ -91,6 +98,9 @@ self.addEventListener(
       bytes: Uint8Array;
       edit?: string;
       kind?:
+        | "entityInspect"
+        | "entityEdit"
+        | "entityExport"
         | "boxBinaryPreview"
         | "boxBinaryCommit"
         | "boxBinaryDiscard"
@@ -157,9 +167,38 @@ self.addEventListener(
         throw error;
       });
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
+      if (kind?.startsWith("entity")) {
+        const before: StandalonePokemonReport = JSON.parse(
+          api.InspectStandalonePokemon(bytes, payload),
+        );
+        if (before.apiVersion !== 66)
+          throw new Error("Save editor API version mismatch.");
+        const output =
+          kind === "entityEdit"
+            ? new Uint8Array(api.EditStandalonePokemon(bytes, payload))
+            : undefined;
+        const entityFile =
+          kind === "entityExport"
+            ? new Uint8Array(api.ExportStandalonePokemon(bytes, payload))
+            : undefined;
+        const request: StandalonePokemonRequest = JSON.parse(payload);
+        const entity = output
+          ? JSON.parse(
+              api.InspectStandalonePokemon(
+                output,
+                JSON.stringify({ ...request, inputEncrypted: false }),
+              ),
+            )
+          : before;
+        self.postMessage(
+          { id, entity, output, entityFile },
+          output ? [output.buffer] : entityFile ? [entityFile.buffer] : [],
+        );
+        return;
+      }
       if (kind?.startsWith("boxBinary")) {
         const before: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (before.apiVersion !== 65)
+        if (before.apiVersion !== 66)
           throw new Error("Save editor API version mismatch.");
         if (kind === "boxBinaryDiscard") api.DiscardBoxBinary(payload);
         const output =
@@ -187,7 +226,7 @@ self.addEventListener(
       }
       if (kind?.startsWith("boxImport")) {
         const before: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (before.apiVersion !== 65)
+        if (before.apiVersion !== 66)
           throw new Error("Save editor API version mismatch.");
         if (kind === "boxImportDiscard") api.DiscardBoxImport(payload);
         const output =
@@ -210,7 +249,7 @@ self.addEventListener(
       }
       if (kind?.startsWith("file") || kind === "boxArchive") {
         const report: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (report.apiVersion !== 65)
+        if (report.apiVersion !== 66)
           throw new Error("Save editor API version mismatch.");
         if (kind === "fileDiscard") api.DiscardFileBatch(payload);
         const archive =
@@ -325,7 +364,7 @@ self.addEventListener(
                                                         ),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 65)
+      if (report.apiVersion !== 66)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined

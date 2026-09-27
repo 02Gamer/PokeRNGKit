@@ -16,9 +16,13 @@ StandalonePokemon 直接读取 PKM，独立于 SaveFile；共享读取、基础�
 包含队伍能力值的格式按需重算并保留序列化后的 HP／状态；CK3／XK3 的 Core Status_Condition 为非序列化属性，不能承诺写回未定位字段。
 PB7 改变种类／形态时调用 Core ResetCalculatedValues，其他 CP 计算变化时更新 CP；只改昵称不重算已有体型和 CP。
 BK4 只打乱数据块，校验和不能判定布局。默认按宝可梦文件读取，原始格位必须显式设置 inputEncrypted，并按 Core Decrypt4BE 处理。
+从箱子长度扩展为队伍长度时，同步 BK4.IsDecryptedStateParty，与 Core 的队伍长度构造行为一致；箱子长度导出保留原标记。
 上游依据：PKM/PKM.cs、PKM/Util/EntityFormat.cs、Util/FileUtil.cs、各 PKM 类型的 PersonalInfo 与尺寸属性、
 PKM/Util/PokeCrypto.cs、PKM/PB7.cs，以及 WinForms Controls/PKM Editor/SizeCP.cs。
-内部专项与完整检查状态见进度；独立 API、Worker、工作区入口、进阶编辑、第一／二世代写出和浏览器核验仍待完成。
+API 66 增加独立读取／编辑／导出接口与专用 Worker 客户端，不构造虚拟 SaveFile。
+请求 JSON 上限 1 Mi 字符，文件名必须非空且不超过 1024 字符；单体数据上限保持 1 MiB。
+客户端转移输入副本；取消、错误和 120 秒超时清理待处理请求。编辑结果按解密布局重新读取，BK4 原布局随输入快照保留。
+内部专项与完整检查状态见进度；工作区入口、撤销界面、进阶编辑、第一／二世代写出和浏览器核验仍待完成。
 
 ## 整箱二进制
 

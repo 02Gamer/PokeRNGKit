@@ -59,7 +59,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 65;
+  apiVersion: 66;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
