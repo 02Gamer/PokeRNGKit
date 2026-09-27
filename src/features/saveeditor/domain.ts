@@ -59,7 +59,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 58;
+  apiVersion: 59;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -116,6 +116,10 @@ export interface SaveReport {
     canName: boolean;
     nameLength: number;
     wallpapers: LocalizedText[];
+    unlocked: number | null;
+    flags: number[];
+    flagMaximum: number;
+    canSwap: boolean;
   };
   boxes: { index: number; name: string; wallpaper: number }[];
 }
@@ -869,6 +873,9 @@ export interface BoxEdit {
   box: number;
   name: string | null;
   wallpaper: number | null;
+  unlocked?: number;
+  flags?: number[];
+  swapWith?: number;
 }
 
 export interface StorageEdit {

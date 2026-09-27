@@ -182,6 +182,7 @@ export const saveEditorResources = {
     boxSettings: "盒子设置",
     boxName: "盒子名称",
     wallpaper: "壁纸",
+    boxLayoutError: "请检查解锁箱数、箱子标记和交换目标。",
     boxValueError: "盒子名称或壁纸无效，请检查长度、字符和选项。",
     ...saveEditorCopy.zh,
     title: "PKHeX · 存档编辑器",
@@ -707,6 +708,7 @@ export const saveEditorResources = {
     boxSettings: "Box settings",
     boxName: "Box name",
     wallpaper: "Wallpaper",
+    boxLayoutError: "Check the unlocked box count, box flags and swap target.",
     boxValueError:
       "Invalid box name or wallpaper. Check the length, characters and selection.",
     ...saveEditorCopy.en,
@@ -1259,6 +1261,7 @@ export const saveEditorResources = {
     boxSettings: "ボックス設定",
     boxName: "ボックス名",
     wallpaper: "壁紙",
+    boxLayoutError: "解放数・ボックスフラグ・交換先を確認してください。",
     boxValueError:
       "ボックス名または壁紙が無効です。文字数、文字、選択を確認してください。",
     ...saveEditorCopy.ja,
@@ -1636,6 +1639,7 @@ export function localizeSaveError(
 ) {
   if (/^Entity file/.test(message)) return words.pokemonFileError;
   if (/^Storage /.test(message)) return words.storageError;
+  if (/Invalid box layout values/.test(message)) return words.boxLayoutError;
   if (/box name|box wallpaper|box position/.test(message))
     return words.boxValueError;
   if (/shiny PID has no solution/.test(message)) return words.shinyNoSolution;

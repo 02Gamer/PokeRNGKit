@@ -378,7 +378,7 @@ public static class SaveService
         var save = Open(data);
         var valid = SaveChecksums.Valid(save);
         var report = new SaveReport(
-            58, save.GetType().Name, save.Generation, save.Version.ToString(),
+            59, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
@@ -460,11 +460,13 @@ public static class SaveService
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BoxEdit)
             ?? throw new ArgumentException("Missing box values.");
         BoxEditing.Apply(save, edit);
+        var expected = BoxEditing.Snapshot(save);
         var output = save.Write().ToArray();
         var check = Open(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType())
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         BoxEditing.Verify(check, edit);
+        if (BoxEditing.Snapshot(check) != expected) throw new InvalidOperationException("Export verification failed. No file was exported.");
         return output;
     }
 

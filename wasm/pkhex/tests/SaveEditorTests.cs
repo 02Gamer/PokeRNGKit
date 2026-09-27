@@ -41,7 +41,7 @@ internal static class SaveEditorTests
             var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
             Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
             Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
-            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 58, $"{version}: API version");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 59, $"{version}: API version");
             Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
             var boxes = document.RootElement.GetProperty("boxes");
             Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");
@@ -195,6 +195,7 @@ internal static class SaveEditorTests
         SimplePokedexTests.Run();
         PokemonLegalityTests.Run(CreateFixture);
         BoxEditingTests.Run();
+        BoxLayoutTests.Run();
         StorageEditingTests.Run();
         PartyStorageTests.Run();
         PokemonFileTests.Run();

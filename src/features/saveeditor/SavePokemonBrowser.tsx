@@ -132,7 +132,12 @@ export function SavePokemonBrowser({
       </label>
       {box >= 0 && report.canEdit && (
         <BoxEditor
-          key={JSON.stringify([box, report.boxes[box]])}
+          key={JSON.stringify([
+            box,
+            report.boxes[box],
+            report.boxOptions,
+            revision,
+          ])}
           report={report}
           box={box}
           busy={busy}
