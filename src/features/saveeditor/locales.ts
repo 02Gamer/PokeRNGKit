@@ -1,7 +1,11 @@
 import { saveEditorCopy } from "./copy";
+import { fileBatchWords } from "./fileBatch";
 
 export const saveEditorResources = {
   zh: {
+    fileBatchError: fileBatchWords.zh.error,
+    fileBatchLimits: fileBatchWords.zh.limits,
+    fileBatchPaths: fileBatchWords.zh.paths,
     inventory: "背包",
     bagAdvanced: "高级编辑（HaX）",
     bagAdvancedNote:
@@ -527,6 +531,9 @@ export const saveEditorResources = {
     },
   },
   en: {
+    fileBatchError: fileBatchWords.en.error,
+    fileBatchLimits: fileBatchWords.en.limits,
+    fileBatchPaths: fileBatchWords.en.paths,
     inventory: "Inventory",
     bagAdvanced: "Advanced editing (HaX)",
     bagAdvancedNote:
@@ -1084,6 +1091,9 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    fileBatchError: fileBatchWords.ja.error,
+    fileBatchLimits: fileBatchWords.ja.limits,
+    fileBatchPaths: fileBatchWords.ja.paths,
     inventory: "バッグ",
     bagAdvanced: "高度な編集（HaX）",
     bagAdvancedNote:
@@ -1649,6 +1659,10 @@ export function localizeSaveError(
   words: typeof saveEditorResources.en,
 ) {
   if (/^Entity file/.test(message)) return words.pokemonFileError;
+  if (/File batch.*(?:limit|too large)/.test(message))
+    return words.fileBatchLimits;
+  if (/File batch path/.test(message)) return words.fileBatchPaths;
+  if (/File batch/.test(message)) return words.fileBatchError;
   if (/Property batch|Invalid property batch/.test(message))
     return words.propertyBatchError;
   if (/^Storage /.test(message)) return words.storageError;

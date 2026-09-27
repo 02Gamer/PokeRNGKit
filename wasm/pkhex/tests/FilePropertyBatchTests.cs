@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 using System.IO.Compression;
+using System.Text.Json;
 using PKHeX.Core;
 using PokeRNGKit.SaveEditor;
 
@@ -114,5 +115,27 @@ internal static class FilePropertyBatchTests
             Reject(() => FilePropertyBatch.Preview(context, [pick], text, "en"));
         Check(context.SequenceEqual(contextBefore) && ReferenceEquals(prior, GameInfo.Strings), "All file previews preserve save context and restore language");
         Console.WriteLine("PASS file preview: mixed directory, three languages, independent confirmations, PK5 ambiguity, output drift, safe paths and bounded input");
+        string Request(string instructions) => JsonSerializer.Serialize(new FileBatchRequest([pick], instructions, "en"), FileBatchJson.Default.FileBatchRequest);
+        var firstTicket = FileBatchSession.Prepare(context, Request(".IV_HP=30"));
+        var nextTicket = FileBatchSession.Prepare(context, Request(".IV_HP=31"));
+        Reject(() => FileBatchSession.Export(new(firstTicket.Token, false, false, false)));
+        FileBatchSession.Discard(firstTicket.Token);
+        var confirmation = new PropertyBatchConfirmation(nextTicket.Token, false, false, false);
+        Check(FileBatchSession.Export(confirmation).SequenceEqual(FileBatchSession.Export(confirmation)), "Repeated downloads reuse frozen archive");
+        FileBatchSession.Discard(nextTicket.Token);
+        Reject(() => FileBatchSession.Export(confirmation));
+        var beforeFailure = FileBatchSession.Prepare(context, Request(".IV_HP=31"));
+        Reject(() => FileBatchSession.Prepare(context, Request("")));
+        Reject(() => FileBatchSession.Export(new(beforeFailure.Token, false, false, false)));
+        using (var doc = JsonDocument.Parse(PokeRNGKit.SaveEditor.Program.PreviewFileBatch(context, Request(".IV_HP=31"))))
+        {
+            Check(doc.RootElement.GetProperty("summary").GetProperty("exportedFiles").GetInt32() == 1, "Browser JSON uses camelCase and decodes base64 entity input");
+            PokeRNGKit.SaveEditor.Program.DiscardFileBatch(doc.RootElement.GetProperty("token").GetString()!);
+        }
+        var catalogs = FileBatchSession.Catalog();
+        Check(catalogs.Length == EntityBatchEditor.Instance.Types.Count && catalogs.All(c => c.Fields.Any(f => f.Name == "IV_HP")), "Every Core file format has a property catalog");
+        using (var doc = JsonDocument.Parse(PokeRNGKit.SaveEditor.Program.ReadFileBatchCatalog()))
+            Check(doc.RootElement[0].GetProperty("fields")[0].TryGetProperty("type", out _), "File catalogs expose property types through source-generated JSON");
+        Console.WriteLine("PASS file Worker API: replacement, stale discard, repeat download, cancellation, failed preview cleanup and full format catalog");
     }
 }

@@ -11,6 +11,12 @@ import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
 import { TrainerDateFields } from "./TrainerDateFields";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PropertyBatchEditor } from "./PropertyBatchEditor";
+import { FileBatchEditor } from "./FileBatchEditor";
+import {
+  fileBatchWords,
+  readBatchFiles,
+  type FileBatchConfirmation,
+} from "./fileBatch";
 import { propertyBatchWords } from "./propertyBatch";
 import { useTranslation } from "react-i18next";
 import { Download, FileUp, RotateCcw, Unplug } from "lucide-react";
@@ -69,7 +75,13 @@ export function SaveEditorPanel(
   const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [section, setSection] = useState<
-    "pokemon" | "trainer" | "inventory" | "records" | "pokedex" | "batch"
+    | "pokemon"
+    | "trainer"
+    | "inventory"
+    | "records"
+    | "pokedex"
+    | "batch"
+    | "files"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
     nickname: "",
@@ -225,7 +237,7 @@ export function SaveEditorPanel(
       client.current.discardPropertyPreview(working.current, token);
   }, []);
   const readPropertyBatch = async (
-    kind: "propertyCatalog" | "propertyPreview",
+    kind: "propertyCatalog" | "propertyPreview" | "fileCatalog",
     payload?: string,
   ) => {
     let response: import("./domain").SaveEditorResult | undefined;
@@ -235,6 +247,53 @@ export function SaveEditorPanel(
       if (id === operation.current) response = result;
     });
     return response;
+  };
+  const discardFilePreview = useCallback((token: string) => {
+    if (working.current)
+      client.current.discardFilePreview(working.current, token);
+  }, []);
+  const previewFileBatch = async (files: File[], text: string) => {
+    let response: import("./domain").SaveEditorResult | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const loaded = await readBatchFiles(
+        files,
+        () => id === operation.current,
+      );
+      if (!loaded || id !== operation.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ files: loaded, text, language: batchLang }),
+        "filePreview",
+      );
+      if (id === operation.current) response = result;
+    });
+    return response;
+  };
+  const downloadFileBatch = async (confirmation: FileBatchConfirmation) => {
+    let downloaded = false;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(confirmation),
+        "fileExport",
+      );
+      if (id !== operation.current) return;
+      if (!result.archive) throw new Error("File batch archive is missing.");
+      const url = URL.createObjectURL(
+        new Blob([result.archive], { type: "application/zip" }),
+      );
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "PokeRNGKit-Pokemon.zip";
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      downloaded = true;
+    });
+    return downloaded;
   };
   const readInventory = async () => {
     let inventory: import("./domain").BagReport | undefined;
@@ -799,6 +858,13 @@ export function SaveEditorPanel(
                 {propertyBatchWords[batchLang].title}
               </button>
             )}
+            <button
+              type="button"
+              aria-pressed={section === "files"}
+              onClick={() => setSection("files")}
+            >
+              {fileBatchWords[batchLang].title}
+            </button>
             {report.pokedex && (
               <button
                 type="button"
@@ -818,7 +884,25 @@ export function SaveEditorPanel(
               </button>
             )}
           </div>
-          {section === "batch" && report.canEdit ? (
+          {section === "files" ? (
+            <FileBatchEditor
+              key={
+                name +
+                ":" +
+                fileRevision +
+                ":" +
+                workingRevision +
+                ":" +
+                batchLang
+              }
+              busy={busy}
+              lang={batchLang}
+              onCatalog={() => readPropertyBatch("fileCatalog")}
+              onPreview={previewFileBatch}
+              onDownload={downloadFileBatch}
+              onDiscard={discardFilePreview}
+            />
+          ) : section === "batch" && report.canEdit ? (
             <PropertyBatchEditor
               key={
                 name +

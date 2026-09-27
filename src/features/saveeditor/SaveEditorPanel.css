@@ -517,3 +517,8 @@
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
+.save-file-batch .save-file-path {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 30rem;
+}

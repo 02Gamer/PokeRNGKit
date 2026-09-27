@@ -16,6 +16,10 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "filePreview"
+      | "fileExport"
+      | "fileDiscard"
+      | "fileCatalog"
       | "propertyCatalog"
       | "propertyPreview"
       | "propertyCommit"
@@ -114,5 +118,9 @@ export class SaveEditorClient {
   discardPropertyPreview(bytes: Uint8Array, token: string) {
     if (this.worker)
       void this.run(bytes, token, "propertyDiscard").catch(() => {});
+  }
+
+  discardFilePreview(bytes: Uint8Array, token: string) {
+    if (this.worker) void this.run(bytes, token, "fileDiscard").catch(() => {});
   }
 }

@@ -59,7 +59,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 61;
+  apiVersion: 62;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -749,6 +749,9 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  filePreview?: import("./fileBatch").FileBatchTicket;
+  fileCatalog?: import("./propertyBatch").PropertyBatchCatalog[];
+  archive?: Uint8Array<ArrayBuffer>;
   propertyCatalog?: import("./propertyBatch").PropertyBatchCatalog;
   propertyPreview?: import("./propertyBatch").PropertyBatchTicket;
   pokedex9a?: import("./zaPokedex").Dex9aCatalog;
