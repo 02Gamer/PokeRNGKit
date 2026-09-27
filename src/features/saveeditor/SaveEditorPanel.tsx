@@ -9,6 +9,7 @@ import {
   exportSaveName,
   MAX_SAVE_BYTES,
   saveGameChoices,
+  reconcileSaveGame,
   trainerDraft,
   rebaseTrainerDraft,
   validateTrainer,
@@ -58,6 +59,7 @@ export function SaveEditorPanel(
     "pokemon" | "trainer" | "inventory" | "records"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
+    gameVersion: "",
     saved: "",
     started: "",
     fame: "",
@@ -147,6 +149,11 @@ export function SaveEditorPanel(
       working.current = bytes;
       setHistory([]);
       setReport(result.report);
+      setVersion((previous) => reconcileSaveGame(previous, result.report));
+      if (report && report.version !== result.report.version) {
+        setTarget("new");
+        setReviewDefaults(false);
+      }
       setSection((previous) =>
         previous === "records" && !result.report.trainer.canRecords
           ? "trainer"
@@ -367,6 +374,11 @@ export function SaveEditorPanel(
       });
       working.current = result.output;
       setReport(result.report);
+      setVersion((previous) => reconcileSaveGame(previous, result.report));
+      if (report && report.version !== result.report.version) {
+        setTarget("new");
+        setReviewDefaults(false);
+      }
       setDraft((previous) =>
         kind === "trainer" || !report
           ? trainerDraft(result.report)
@@ -417,6 +429,11 @@ export function SaveEditorPanel(
       if (id !== operation.current) return;
       working.current = bytes;
       setReport(result.report);
+      setVersion((previous) => reconcileSaveGame(previous, result.report));
+      if (report && report.version !== result.report.version) {
+        setTarget("new");
+        setReviewDefaults(false);
+      }
       setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setHistory((previous) => (originalSave ? [] : previous.slice(0, -1)));
@@ -668,6 +685,41 @@ export function SaveEditorPanel(
                     />
                   </label>
                 ))}
+                {report.trainer.gameVersion.choices.length > 0 && (
+                  <label className="field">
+                    <span>{words.trainerGameVersion}</span>
+                    <Select
+                      value={draft.gameVersion}
+                      onChange={(e) =>
+                        setDraft({ ...draft, gameVersion: e.target.value })
+                      }
+                    >
+                      {!report.trainer.gameVersion.choices.some(
+                        (c) => String(c.id) === draft.gameVersion,
+                      ) && (
+                        <option value={draft.gameVersion}>
+                          #{draft.gameVersion}
+                        </option>
+                      )}
+                      {report.trainer.gameVersion.choices.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {
+                            c.name[
+                              i18n.language.startsWith("zh")
+                                ? "zh"
+                                : i18n.language.startsWith("ja")
+                                  ? "ja"
+                                  : "en"
+                            ]
+                          }
+                        </option>
+                      ))}
+                    </Select>
+                    <span className="save-editor-note">
+                      {words.trainerGameVersionNote}
+                    </span>
+                  </label>
+                )}
                 {report.trainer.languages.length > 0 && (
                   <label className="field">
                     <span>{words.trainerLanguage}</span>
@@ -883,16 +935,7 @@ export function SaveEditorPanel(
                         >
                           <option value="">—</option>
                           {choices.map((game) => (
-                            <option
-                              key={
-                                words.games[game as keyof typeof words.games] ??
-                                game
-                              }
-                              value={
-                                words.games[game as keyof typeof words.games] ??
-                                game
-                              }
-                            >
+                            <option key={game} value={game}>
                               {words.games[game as keyof typeof words.games] ??
                                 game}
                             </option>

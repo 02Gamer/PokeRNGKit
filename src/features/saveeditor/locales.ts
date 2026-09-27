@@ -297,6 +297,10 @@ export const saveEditorResources = {
     trainerAppearanceNote:
       "剑／盾更改性别时，会沿用当前肤色并重置角色外观与穿着；可通过撤销恢复。",
     applyTrainer: "应用训练家修改",
+    trainerGameVersion: "游戏版本标记",
+    trainerGameVersionNote:
+      "仅修改版本标记，不转换存档格式或宝可梦来源。日月与究极日月格式不匹配时暂停配置联动。",
+    trainerGameVersionError: "此存档不支持所选游戏版本。",
     trainerLanguage: "存档语言",
     recordsTitle: "游戏记录",
     recordsRead: "读取游戏记录",
@@ -796,6 +800,11 @@ export const saveEditorResources = {
     trainerAppearanceNote:
       "In Sword/Shield, changing gender resets appearance and clothing using the current skin tone. Undo restores the previous state.",
     applyTrainer: "Apply trainer changes",
+    trainerGameVersion: "Game version marker",
+    trainerGameVersionNote:
+      "Changes the version marker only, without converting the save format or Pokémon origins. Profile linking is unavailable when the SM/USUM format does not match.",
+    trainerGameVersionError:
+      "This save does not support the selected game version.",
     trainerLanguage: "Save language",
     recordsTitle: "Game records",
     recordsRead: "Read game records",
@@ -1317,6 +1326,11 @@ export const saveEditorResources = {
     trainerAppearanceNote:
       "ソード・シールドで性別を変更すると、現在の肌色に合わせて外見と服装をリセットします。取り消しで元に戻せます。",
     applyTrainer: "トレーナーの変更を適用",
+    trainerGameVersion: "ゲームバージョンの識別値",
+    trainerGameVersionNote:
+      "識別値のみ変更し、セーブ形式やポケモンの出身は変換しません。SM・USUM の形式が一致しない場合、プロフィール連携は利用できません。",
+    trainerGameVersionError:
+      "このセーブでは選択したゲームバージョンを使用できません。",
     trainerLanguage: "セーブの言語",
     recordsTitle: "ゲームの記録",
     recordsRead: "ゲームの記録を読み込む",
@@ -1554,6 +1568,8 @@ export function localizeSaveError(
   if (/Unrecognized/.test(message)) return words.fileError;
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
+  if (/Trainer game version/.test(message))
+    return words.trainerGameVersionError;
   if (/Trainer language/.test(message)) return words.trainerLanguageError;
   if (/Game record value cannot/.test(message))
     return words.recordsRepresentError;

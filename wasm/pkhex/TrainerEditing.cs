@@ -5,17 +5,17 @@ namespace PokeRNGKit.SaveEditor;
 
 public sealed record TrainerEdit(string Ot, ushort Tid, ushort Sid, uint Money,
     int? Gender = null, int? Hours = null, int? Minutes = null, int? Seconds = null, int? Language = null,
-    int? Country = null, int? Region = null, int? ConsoleRegion = null, int? Badges = null, TrainerCurrencyEdit? Currencies = null, TrainerGameOptionEdit? GameOptions = null, TrainerPositionEdit? Position = null, TrainerDateEdit? Dates = null, TrainerSpatialEdit? SpatialPosition = null);
+    int? Country = null, int? Region = null, int? ConsoleRegion = null, int? Badges = null, TrainerCurrencyEdit? Currencies = null, TrainerGameOptionEdit? GameOptions = null, TrainerPositionEdit? Position = null, TrainerDateEdit? Dates = null, TrainerSpatialEdit? SpatialPosition = null, int? GameVersion = null);
 public sealed record TrainerLocation(int Country, int Region, int? ConsoleRegion);
 public sealed record TrainerGeography(TrainerLocation Value, OriginChoice[] Countries, GeoRegions[] Regions, OriginChoice[] Consoles, bool KeepRegionWhenCountryZero);
-public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages, TrainerGeography? Geography, TrainerBadgeState? Badges, TrainerCurrencyField[] Currencies, bool CanRecords, TrainerGameOptionState? GameOptions, TrainerPositionState? Position, TrainerDateField[] Dates, TrainerSpatialField[] SpatialPosition);
-internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance, int Language, uint? RuntimeLanguage, TrainerLocation? Location, TrainerBadgeState? Badges, string Currencies, TrainerGameOptionState? GameOptions, TrainerPositionSnapshot? Position, TrainerDateSnapshot? Dates, string? SpatialPosition);
+public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages, TrainerGeography? Geography, TrainerBadgeState? Badges, TrainerCurrencyField[] Currencies, bool CanRecords, TrainerGameOptionState? GameOptions, TrainerPositionState? Position, TrainerDateField[] Dates, TrainerSpatialField[] SpatialPosition, TrainerGameVersionState GameVersion);
+internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance, int Language, uint? RuntimeLanguage, TrainerLocation? Location, TrainerBadgeState? Badges, string Currencies, TrainerGameOptionState? GameOptions, TrainerPositionSnapshot? Position, TrainerDateSnapshot? Dates, string? SpatialPosition, GameVersion Version);
 
 internal static class TrainerEditing
 {
     public static TrainerOptions Options(SaveFile save) => new(save.Generation > 1,
         save is SAV3 or SAV4 or SAV5 or SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS,
-        save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds, Languages(save), Geography(save), TrainerBadges.Read(save), TrainerCurrencies.Read(save), SaveRecords.Supports(save), TrainerGameOptions.Read(save), TrainerPosition.Read(save), TrainerDates.Read(save), TrainerSpatialPosition.Read(save));
+        save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds, Languages(save), Geography(save), TrainerBadges.Read(save), TrainerCurrencies.Read(save), SaveRecords.Supports(save), TrainerGameOptions.Read(save), TrainerPosition.Read(save), TrainerDates.Read(save), TrainerSpatialPosition.Read(save), TrainerGameVersion.Read(save));
     private static readonly Lazy<OriginChoice[]> Consoles = new(() => Locale3DS.DefinedLocales.ToArray().Select(id =>
         new OriginChoice(id,new(GameInfo.GetStrings("zh-Hans").console3ds[id],GameInfo.GetStrings("en").console3ds[id],GameInfo.GetStrings("ja").console3ds[id]))).ToArray());
     private static TrainerLocation? Location(SaveFile save) => save switch
@@ -43,7 +43,7 @@ internal static class TrainerEditing
     }
     internal static TrainerSnapshot Snapshot(SaveFile save) => new(save.OT,save.TID16,save.SID16,save.Money,save.Gender,save.PlayedHours,save.PlayedMinutes,save.PlayedSeconds,
         save is SAV8SWSH swsh ? Convert.ToHexString(swsh.MyStatus.Data) : null,
-        save.Language, save is SAV8SWSH runtime ? runtime.GetValue<uint>(SaveBlockAccessor8SWSH.KGameLanguage) : null, Location(save), TrainerBadges.Read(save), TrainerCurrencies.Snapshot(save), TrainerGameOptions.Read(save), TrainerPosition.Snapshot(save), TrainerDates.Snapshot(save), TrainerSpatialPosition.Snapshot(save));
+        save.Language, save is SAV8SWSH runtime ? runtime.GetValue<uint>(SaveBlockAccessor8SWSH.KGameLanguage) : null, Location(save), TrainerBadges.Read(save), TrainerCurrencies.Snapshot(save), TrainerGameOptions.Read(save), TrainerPosition.Snapshot(save), TrainerDates.Snapshot(save), TrainerSpatialPosition.Snapshot(save), save.Version);
 
     public static void Apply(SaveFile save, TrainerEdit edit)
     {
@@ -91,6 +91,7 @@ internal static class TrainerEditing
         if(edit.Position is { } position) TrainerPosition.Apply(save,position);
         if(edit.Dates is { } dates) TrainerDates.Apply(save,dates);
         if(edit.SpatialPosition is { } spatial) TrainerSpatialPosition.Apply(save, spatial);
+        if (edit.GameVersion is int gameVersion) TrainerGameVersion.Apply(save, gameVersion);
         bool nameChanged = save.OT != edit.Ot;
         // Encode an explicitly changed name using the requested language. Unchanged bytes stay intact.
         if (edit.Language is int targetLanguage && targetLanguage != save.Language) save.Language = targetLanguage;

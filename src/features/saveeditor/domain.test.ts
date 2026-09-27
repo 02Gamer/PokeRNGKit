@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   exportSaveName,
   saveGameChoices,
+  reconcileSaveGame,
   trainerDraft,
   rebaseTrainerDraft,
   changeTrainerCountry,
@@ -12,8 +13,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 45,
+  apiVersion: 46,
   trainer: {
+    gameVersion: { value: 3, choices: [] },
     spatialPosition: [],
     dates: [],
     position: null,
@@ -58,6 +60,93 @@ export const emeraldReport: SaveReport = {
 };
 
 describe("save editor boundaries", () => {
+  it("validates trainer game markers and preserves pending changes during undo", () => {
+    const report: SaveReport = {
+      ...emeraldReport,
+      format: "SAV7SM",
+      version: "SN",
+      trainer: {
+        ...emeraldReport.trainer,
+        gameVersion: {
+          value: 30,
+          choices: [30, 31, 32, 33].map((id) => ({
+            id,
+            name: { zh: String(id), en: String(id), ja: String(id) },
+          })),
+        },
+      },
+    };
+    const draft = trainerDraft(report);
+    expect(validateTrainer(draft, report).gameVersion).toBeUndefined();
+    for (const value of [30, 31, 32, 33])
+      expect(
+        validateTrainer({ ...draft, gameVersion: String(value) }, report)
+          .gameVersion,
+      ).toBe(value === 30 ? undefined : value);
+    for (const value of ["", "-1", "34", "255", "31.0", "3e1"])
+      expect(() =>
+        validateTrainer({ ...draft, gameVersion: value }, report),
+      ).toThrow("Trainer game version");
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(emeraldReport), gameVersion: "30" },
+        emeraldReport,
+      ),
+    ).toThrow("Trainer game version");
+    const after = {
+      ...report,
+      version: "MN",
+      trainer: {
+        ...report.trainer,
+        gameVersion: { ...report.trainer.gameVersion, value: 31 },
+      },
+    };
+    expect(rebaseTrainerDraft(draft, report, after).gameVersion).toBe("31");
+    expect(
+      rebaseTrainerDraft({ ...draft, gameVersion: "33" }, report, after)
+        .gameVersion,
+    ).toBe("33");
+    const unusual = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        gameVersion: { ...report.trainer.gameVersion, value: 255 },
+      },
+    };
+    expect(
+      validateTrainer(trainerDraft(unusual), unusual).gameVersion,
+    ).toBeUndefined();
+    expect(
+      validateTrainer({ ...trainerDraft(unusual), gameVersion: "31" }, unusual)
+        .gameVersion,
+    ).toBe(31);
+  });
+
+  it("reconciles profile games after apply, undo and restore without treating markers as format conversions", () => {
+    const sun = { ...emeraldReport, format: "SAV7SM", version: "SN" };
+    const moon = { ...sun, version: "MN" };
+    expect(reconcileSaveGame("sun", moon)).toBe("moon");
+    expect(reconcileSaveGame("moon", sun)).toBe("sun");
+    expect(reconcileSaveGame("sun", sun)).toBe("sun");
+    for (const version of ["US", "UM"]) {
+      expect(saveGameChoices({ ...sun, version })).toEqual([]);
+      expect(reconcileSaveGame("sun", { ...sun, version })).toBe("");
+    }
+    for (const version of ["SN", "MN"])
+      expect(saveGameChoices({ ...sun, format: "SAV7USUM", version })).toEqual(
+        [],
+      );
+    expect(
+      saveGameChoices({ ...sun, format: "SAV7USUM", version: "US" }),
+    ).toEqual(["ultra-sun"]);
+    const grouped = { ...emeraldReport, format: "SAV3RS", version: "RS" };
+    expect(reconcileSaveGame("ruby", grouped)).toBe("ruby");
+    expect(reconcileSaveGame("emerald", grouped)).toBe("");
+    expect(
+      reconcileSaveGame("sword", { ...sun, format: "SAV8SWSH", version: "SH" }),
+    ).toBe("shield");
+  });
+
   it("routes spatial formats separately from DS and rebases the full position group", () => {
     const report: SaveReport = {
       ...emeraldReport,

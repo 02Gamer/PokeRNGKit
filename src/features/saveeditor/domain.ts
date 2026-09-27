@@ -38,7 +38,7 @@ export interface TrainerDateField {
 }
 
 export interface SaveReport {
-  apiVersion: 45;
+  apiVersion: 46;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -61,6 +61,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    gameVersion: { value: number; choices: OriginChoice[] };
     spatialPosition: TrainerSpatialField[];
     dates: TrainerDateField[];
     position: Record<TrainerPositionKey, number> | null;
@@ -214,6 +215,7 @@ export interface TrainerDraft extends Record<
   | TrainerDateKey,
   string
 > {
+  gameVersion: string;
   badges: string;
   country: string;
   region: string;
@@ -271,6 +273,7 @@ export function trainerDraft(report: SaveReport): TrainerDraft {
         ),
       ]),
     ) as Record<TrainerCurrencyKey, string>),
+    gameVersion: String(report.trainer.gameVersion.value),
     badges: String(report.trainer.badges?.value ?? ""),
     country: String(report.trainer.geography?.value.country ?? ""),
     region: String(report.trainer.geography?.value.region ?? ""),
@@ -324,6 +327,16 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
       throw new Error(`${label}: 0–${max}.`);
     return Number(text);
   };
+  const gameVersion =
+    draft.gameVersion === String(report.trainer.gameVersion.value)
+      ? undefined
+      : Number(draft.gameVersion);
+  if (
+    gameVersion !== undefined &&
+    (!/^\d+$/.test(draft.gameVersion) ||
+      !report.trainer.gameVersion.choices.some((c) => c.id === gameVersion))
+  )
+    throw new Error("Trainer game version is unsupported for this save.");
   const language =
     draft.language !== String(report.language)
       ? Number(draft.language)
@@ -396,6 +409,7 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
     position: Object.keys(position).length ? position : undefined,
     gameOptions: Object.keys(gameOptions).length ? gameOptions : undefined,
     currencies: Object.keys(currencies).length ? currencies : undefined,
+    gameVersion,
     language,
     badges,
     ...validateTrainerGeography(draft, report),
@@ -527,7 +541,21 @@ export const SAVE_GAME_CHOICES: Readonly<Record<string, readonly string[]>> = {
 export function saveGameChoices(report: SaveReport): readonly string[] {
   if (report.format === "SAV3Colosseum") return ["colosseum"];
   if (report.format === "SAV3XD") return ["xd"];
+  if (
+    (report.format === "SAV7SM" && !["SN", "MN"].includes(report.version)) ||
+    (report.format === "SAV7USUM" && !["US", "UM"].includes(report.version))
+  )
+    return [];
   return SAVE_GAME_CHOICES[report.version] ?? [];
+}
+
+export function reconcileSaveGame(current: string, report: SaveReport): string {
+  const choices = saveGameChoices(report);
+  return choices.includes(current)
+    ? current
+    : choices.length === 1
+      ? choices[0]
+      : "";
 }
 
 export function exportSaveName(name: string) {
