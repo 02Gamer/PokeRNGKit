@@ -147,7 +147,7 @@ import { MiscRngPanel } from "./features/miscrng/MiscRngPanel";
 import { TsvListPanel } from "./features/tsvlist/TsvListPanel";
 import { IvToolsPanel } from "./features/ivtools/IvToolsPanel";
 import { FloatingToolPanel } from "./features/shared/FloatingToolPanel";
-import { SaveEditorPanel } from "./features/saveeditor/SaveEditorPanel";
+import { SaveToolsPanel } from "./features/saveeditor/SaveToolsPanel";
 import { Select } from "./features/shared/Select";
 import { Gen3WorkflowTipsPanel } from "./features/gen3workflow/Gen3WorkflowTipsPanel";
 import { ProfileSelector } from "./features/shared/ProfileSelector";
@@ -4170,7 +4170,7 @@ function App() {
           tone="brand"
           triggerId="save-editor-trigger"
         >
-          <SaveEditorPanel
+          <SaveToolsPanel
             gen3={profiles}
             gen4={gen4Profiles}
             gen8={gen8Profiles}
