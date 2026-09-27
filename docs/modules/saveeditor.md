@@ -3,6 +3,31 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 文件／目录批量编辑契约
+
+核对 PKHeX 26.08.26 `BatchEditor.cs` 的 CreateFolderData、RunBatchEditFolder、ProcessFolder，
+以及 Core 的 FileUtil、SlotInfoFile、SlotCache、EntityBatchProcessor 和 PKM.ForcePartyData。
+本批只增加契约检查，API 61 和产品入口不变，文件选择与目录导出尚未接入。
+
+- 目录递归枚举，先用 EntityDetection.IsSizePlausible 过滤长度，再以扩展名和当前存档作为识别上下文。
+  当前存档不限制文件的世代，也不将实体转换为当前存档的 PKM 类型；礼物扩展名用于排除大小冲突。
+- GetFormat45 在解密前读取格式提示。本次加密 PK5 工程样本经 FileUtil 被识别成 PK4，且 Valid 为真；
+  已固定这项上游限制。后续适配必须对明确扩展名与识别结果冲突单独报告，不能以校验有效作为格式正确的充分条件。
+  本批不宣称所有加密实体均可直接批量编辑，也未修改 Core 识别器。
+- 文件来源用 SlotInfoFileSingle，Slot 筛选值为 1，没有 Box；IdentifierContains 保留文件路径信息。
+  该来源不可写回存档格位。浏览器只能使用用户所选文件的名称或相对路径，不声称取得磁盘绝对路径。
+- 分组在外层、文件在内层，后组使用前组修改过的同一实体缓存。每次成功处理后立即 ForcePartyData，
+  再以 SIZE_PARTY 写出解密数据；原来只有仓储数据或加密的数据也使用此输出格式。
+  队伍数据初始化会影响后续筛选，不能统一延迟到全部指令完成后再执行。
+- 空实体和无效实体跳过；部分指令失败仍可产生成功输出，需要分别报告成功修改和失败指令。
+  无匹配文件不导出。Web 适配须在输出后重新识别并核对类型、校验和实际内容，保持原始文件。
+- 桌面版以 Path.GetFileName 写到目标目录，不同子目录的同名文件可能覆盖。
+  Web 适配应保留安全的相对目录，并拒绝未解决的重名冲突；不得静默覆盖或直接写回来源目录。
+
+新增 FolderBatchContractTests 覆盖 11 种合成存档对应实体的明文／加密仓储输入、混合世代识别、
+来源筛选、部分成功、解密队伍导出、逐字节重读、跨组队伍初始化及原件／上下文保持。
+检查结果见进度文档；这些证据不表示文件批量产品入口已经完成。
+
 ## 通用属性批量编辑（API 61）
 
 通过 `PropertyBatch.Preview` 与保留结果的 `PropertyBatchPlan.Commit` 接入 Worker 和“通用批量编辑”页签。
