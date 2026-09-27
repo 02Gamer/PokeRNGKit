@@ -1,3 +1,4 @@
+import { BdspPokedexEditor } from "./BdspPokedexEditor";
 import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
@@ -223,6 +224,22 @@ export function SaveEditorPanel(
     return inventory;
   };
 
+  const readPokedex8b = async () => {
+    let catalog: import("./bdspPokedex").Dex8bCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "pokedex8b",
+      );
+      if (id !== operation.current) return;
+      if (!result.pokedex8b)
+        throw new Error("Pokedex catalog was not returned.");
+      catalog = result.pokedex8b;
+    });
+    return catalog;
+  };
   const readPokedex7 = async () => {
     let catalog: import("./gen7Pokedex").Dex7Catalog | undefined;
     await perform(async (id) => {
@@ -428,6 +445,7 @@ export function SaveEditorPanel(
       | BoxEdit
       | import("./domain").BagEdit
       | import("./domain").BagOperation
+      | import("./bdspPokedex").Dex8bEdit
       | import("./gen7Pokedex").Dex7Edit
       | import("./gen5Pokedex").Dex5Edit
       | import("./gen4Pokedex").Dex4Edit
@@ -444,6 +462,7 @@ export function SaveEditorPanel(
       | "pokemonImport"
       | "inventoryEdit"
       | "inventoryBatch"
+      | "pokedex8bEdit"
       | "pokedex7Edit"
       | "pokedex6Edit"
       | "pokedex5Edit"
@@ -688,7 +707,15 @@ export function SaveEditorPanel(
               </button>
             )}
           </div>
-          {section === "pokedex" && report.pokedex?.kind === "gen7" ? (
+          {section === "pokedex" && report.pokedex?.kind === "bdsp" ? (
+            <BdspPokedexEditor
+              key={`${name}:${fileRevision}`}
+              revision={workingRevision}
+              busy={busy}
+              onRead={readPokedex8b}
+              onApply={(edit) => applyWorkingEdit(edit, "pokedex8bEdit")}
+            />
+          ) : section === "pokedex" && report.pokedex?.kind === "gen7" ? (
             <Gen7PokedexEditor
               key={`${name}:${fileRevision}`}
               revision={workingRevision}

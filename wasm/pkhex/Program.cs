@@ -21,6 +21,11 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadPokedex8b(byte[] data) => SaveService.ReadPokedex8b(data);
+    [JSExport]
+    public static byte[] EditPokedex8b(byte[] data, string json) => SaveService.EditPokedex8b(data, json);
+
+    [JSExport]
     public static string ReadPokedex7(byte[] data) => SaveService.ReadPokedex7(data);
     [JSExport]
     public static byte[] EditPokedex7(byte[] data, string json) => SaveService.EditPokedex7(data, json);
@@ -111,6 +116,16 @@ public static class SaveService
 {
     public const int MaximumSize = 32 * 1024 * 1024;
 
+    public static string ReadPokedex8b(byte[] data) => JsonSerializer.Serialize(BdspPokedex.Read(Open(data)),SaveJsonContext.Default.Dex8bCatalog);
+    public static byte[] EditPokedex8b(byte[] data,string json)
+    {
+        var save=Open(data);
+        if(save is not SAV8BS||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Pokedex editing requires a supported valid save.");
+        var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.Dex8bEdit)??throw new ArgumentException("Pokedex edit is missing.");
+        var expected=BdspPokedex.Apply(save,edit);var output=save.Write().ToArray();var check=Open(output);
+        if(check is not SAV8BS after||check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||BdspPokedex.Snapshot(after)!=expected)throw new InvalidOperationException("Pokedex export verification failed.");
+        return output;
+    }
     public static string ReadPokedex7(byte[] data) => JsonSerializer.Serialize(Gen7Pokedex.Read(Open(data)), SaveJsonContext.Default.Dex7Catalog);
     public static byte[] EditPokedex7(byte[] data,string json)
     {
@@ -307,14 +322,14 @@ public static class SaveService
         var save = Open(data);
         var valid = SaveChecksums.Valid(save);
         var report = new SaveReport(
-            53, save.GetType().Name, save.Generation, save.Version.ToString(),
+            54, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
             save.BoxCount, save.PartyCount, save.PlayTimeString, valid,
             valid && CanEdit(save) && save.State.Exportable,
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
-            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), save is SAV7 or SAV7b ? new PokedexCapability("gen7", valid && save.State.Exportable) : save is SAV6XY or SAV6AO ? new PokedexCapability("gen6", valid && save.State.Exportable) : save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
+            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), save is SAV8BS ? new PokedexCapability("bdsp", valid && save.State.Exportable) : save is SAV7 or SAV7b ? new PokedexCapability("gen7", valid && save.State.Exportable) : save is SAV6XY or SAV6AO ? new PokedexCapability("gen6", valid && save.State.Exportable) : save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -424,6 +439,8 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(Dex8bCatalog))]
+[JsonSerializable(typeof(Dex8bEdit))]
 [JsonSerializable(typeof(Dex7Catalog))]
 [JsonSerializable(typeof(Dex7Edit))]
 [JsonSerializable(typeof(Dex6Catalog))]

@@ -24,6 +24,8 @@
 
 ## 当前工程证据
 
+API 54 接入 BDSP 图鉴状态、性别、九语言、普通／闪光形态及全国开关，工程检查通过。
+
 API 53 接入 Let’s Go 图鉴、体型及捕获／传送次数，工程检查通过，浏览器待核验。
 
 API 52 接入 SM／USUM 图鉴，包含独立形态、九语言及单条目／全图鉴操作，工程检查通过。
@@ -343,7 +345,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_FlagWork8b.cs`                                | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_Poffin8b.cs`                                  | 待核对                                                       |
-| `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 已接入 API 54；工程检查通过，浏览器待核验                    |
 | `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | 待核对                                                       |
