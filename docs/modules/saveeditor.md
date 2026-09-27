@@ -3,6 +3,26 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 箱子批量导入契约
+
+核对 WinForms SAVEditor.GetBulkImportSettings／LoadBoxes、Core BoxUtil.LoadBoxes、
+SaveExtensions.GetCompatible／ImportPKMs 和 SaveFile.ClearBoxes。当前仅固定上游规则，批量导入产品入口尚未接入。
+
+- 从指定箱开始向后寻找格位，容量耗尽后停止，不回绕到前面的箱子。overwrite=true 实际覆盖已有格位，
+  XML 注释中的“仅覆盖空格”与实现相反，以实现及样本为准。
+- 清空范围从起始箱一直到最后一个箱子，跳过受保护格位。Core 在枚举兼容输入前执行清空，
+  因此即使输入为空并返回 -1，也可能已经删除内容。Web 必须先在副本中预览，明确列出清空范围和实际删除数。
+- 覆盖模式返回 index-startCount，可能把跳过的受保护格位计入导入数量。Web 必须独立记录每次写入及跳过原因，
+  不能用这个返回值作为成功文件数。只填空格模式另行计数。
+- 先转换为存档实体类型，再检查 GB 语言兼容性及 EvaluateCompatibility；能够识别文件不代表能够导入当前游戏。
+- 桌面文件枚举可以展开实体、可转换神秘礼物、相遇数据、IPokeGroup 与实体序列。目录默认只读顶层，
+  all 参数才递归。浏览器以用户所选文件及相对路径为边界，预览须保留文件到展开实体的对应关系。
+- EntityImportSettings 分别控制适配存档、图鉴更新和记录更新，取值为 UseDefault／Enable／Disable；
+  All 和 None 是三项显式启用／禁用。未来 UI 需要说明会更新哪些数据，并将整个操作纳入撤销。
+
+BoxImportContractTests 覆盖 11 格式的顺序、覆盖、清空范围、空输入、招式兼容性、容量和 Gen7 受保护格位计数；
+验证状态见进度，不以契约检查代替批量导入功能完成。
+
 ## 箱子 ZIP 导出（API 63）
 
 宝可梦页新增可折叠“导出箱子”，支持当前／全部箱子、平铺／逐箱目录、三种目录名称、
