@@ -38,6 +38,7 @@
     <Compile Include="../InventoryBatch.cs" Link="InventoryBatch.cs" />
     <Compile Include="../PokemonLegality.cs" Link="PokemonLegality.cs" />
     <Compile Include="../BoxEditing.cs" Link="BoxEditing.cs" />
+    <Compile Include="../BoxBatch.cs" Link="BoxBatch.cs" />
     <Compile Include="../StorageEditing.cs" Link="StorageEditing.cs" />
     <Compile Include="../PokemonFiles.cs" Link="PokemonFiles.cs" />
     <Compile Include="../PokemonEditing.cs" Link="PokemonEditing.cs" />

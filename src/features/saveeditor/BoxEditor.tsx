@@ -5,6 +5,7 @@ import { boxWallpaper } from "./art";
 import type { BoxEdit, SaveReport } from "./domain";
 import type { saveEditorResources } from "./locales";
 import { boxFlags, boxLayoutLabels } from "./boxLayout";
+import { BoxBatchEditor } from "./BoxBatchEditor";
 
 export function BoxEditor({
   report,
@@ -68,7 +69,8 @@ export function BoxEditor({
     !options.wallpapers.length &&
     options.unlocked === null &&
     !options.flags.length &&
-    !options.canSwap
+    !options.canSwap &&
+    !options.batchActions.length
   )
     return null;
   return (
@@ -238,6 +240,13 @@ export function BoxEditor({
           <p className="save-editor-note">{labels.note}</p>
         </fieldset>
       )}
+      <BoxBatchEditor
+        report={report}
+        box={box}
+        disabled={busy || changed}
+        lang={lang}
+        onApply={onApply}
+      />
     </details>
   );
 }

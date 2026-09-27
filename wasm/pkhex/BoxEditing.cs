@@ -3,8 +3,8 @@ using PKHeX.Core;
 
 namespace PokeRNGKit.SaveEditor;
 
-public sealed record BoxEdit(int Box, string? Name, int? Wallpaper, int? Unlocked = null, int[]? Flags = null, int? SwapWith = null);
-public sealed record BoxOptions(bool CanName, int NameLength, LocalizedText[] Wallpapers, int? Unlocked, int[] Flags, int FlagMaximum, bool CanSwap);
+public sealed record BoxEdit(int Box, string? Name, int? Wallpaper, int? Unlocked = null, int[]? Flags = null, int? SwapWith = null, string? Batch = null, bool All = false, bool Reverse = false, string? Language = null);
+public sealed record BoxOptions(bool CanName, int NameLength, LocalizedText[] Wallpapers, int? Unlocked, int[] Flags, int FlagMaximum, bool CanSwap, BoxBatchChoice[] BatchActions);
 
 internal static class BoxEditing
 {
@@ -35,13 +35,15 @@ internal static class BoxEditing
                 GameInfo.GetStrings("en").wallpapernames[i], GameInfo.GetStrings("ja").wallpapernames[i])
             : new LocalizedText($"壁纸 {i + 1}", $"Wallpaper {i + 1}", $"壁紙 {i + 1}")).ToArray();
         return new(save is IBoxDetailName, length, wallpapers, save.BoxesUnlocked < 0 ? null : save.BoxesUnlocked,
-            Array.ConvertAll(save.BoxFlags, b => (int)b), save is SAV8SWSH or SAV8LA ? 1 : 255, save.BoxCount > 1);
+            Array.ConvertAll(save.BoxFlags, b => (int)b), save is SAV8SWSH or SAV8LA ? 1 : 255, save.BoxCount > 1, BoxBatch.Choices(save));
     }
 
     public static void Apply(SaveFile save, BoxEdit edit)
     {
         if ((uint)edit.Box >= save.BoxCount)
             throw new ArgumentException("Invalid box position.");
+        if (edit.Batch is not null) { BoxBatch.Apply(save, edit); return; }
+        if (edit.All || edit.Reverse || edit.Language is not null) throw new ArgumentException("Invalid box batch values.");
         var options = Options(save);
         // Validate the complete request before changing any field. Raw untouched values are omitted.
         if (edit.Unlocked is { } unlocked && (options.Unlocked is null || (uint)unlocked > save.BoxCount))

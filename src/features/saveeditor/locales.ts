@@ -182,6 +182,7 @@ export const saveEditorResources = {
     boxSettings: "盒子设置",
     boxName: "盒子名称",
     wallpaper: "壁纸",
+    boxBatchError: "所选操作、范围或宝可梦数据无法完成批量处理，未应用修改。",
     boxLayoutError: "请检查解锁箱数、箱子标记和交换目标。",
     boxValueError: "盒子名称或壁纸无效，请检查长度、字符和选项。",
     ...saveEditorCopy.zh,
@@ -708,6 +709,8 @@ export const saveEditorResources = {
     boxSettings: "Box settings",
     boxName: "Box name",
     wallpaper: "Wallpaper",
+    boxBatchError:
+      "The operation, range or Pokémon data cannot be processed. No changes were applied.",
     boxLayoutError: "Check the unlocked box count, box flags and swap target.",
     boxValueError:
       "Invalid box name or wallpaper. Check the length, characters and selection.",
@@ -1261,6 +1264,8 @@ export const saveEditorResources = {
     boxSettings: "ボックス設定",
     boxName: "ボックス名",
     wallpaper: "壁紙",
+    boxBatchError:
+      "操作・範囲・ポケモンのデータを処理できません。変更は適用されていません。",
     boxLayoutError: "解放数・ボックスフラグ・交換先を確認してください。",
     boxValueError:
       "ボックス名または壁紙が無効です。文字数、文字、選択を確認してください。",
@@ -1639,6 +1644,8 @@ export function localizeSaveError(
 ) {
   if (/^Entity file/.test(message)) return words.pokemonFileError;
   if (/^Storage /.test(message)) return words.storageError;
+  if (/Box batch|Invalid box batch values/.test(message))
+    return words.boxBatchError;
   if (/Invalid box layout values/.test(message)) return words.boxLayoutError;
   if (/box name|box wallpaper|box position/.test(message))
     return words.boxValueError;

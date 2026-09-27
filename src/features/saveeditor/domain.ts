@@ -59,7 +59,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 59;
+  apiVersion: 60;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -120,6 +120,7 @@ export interface SaveReport {
     flags: number[];
     flagMaximum: number;
     canSwap: boolean;
+    batchActions: { id: string; group: number }[];
   };
   boxes: { index: number; name: string; wallpaper: number }[];
 }
@@ -876,6 +877,10 @@ export interface BoxEdit {
   unlocked?: number;
   flags?: number[];
   swapWith?: number;
+  batch?: string;
+  all?: boolean;
+  reverse?: boolean;
+  language?: "zh" | "en" | "ja";
 }
 
 export interface StorageEdit {

@@ -8,6 +8,7 @@ const options = {
   flags: [0],
   flagMaximum: 255,
   canSwap: true,
+  batchActions: [],
 };
 it("parses hexadecimal flags without treating empty values as zero", () => {
   expect(boxFlags(["FF"], options)).toEqual([255]);
