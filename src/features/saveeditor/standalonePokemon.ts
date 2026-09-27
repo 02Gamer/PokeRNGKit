@@ -15,7 +15,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 71;
+  apiVersion: 72;
   format: string;
   extension: string;
   party: boolean;
@@ -26,9 +26,11 @@ export interface StandalonePokemonReport {
   pokemon: PokemonEntry;
   attributeChoices: SaveReport["attributeChoices"];
   moveChoices: MoveChoice[];
+  gb?: GbSpecialInfo | null;
 }
 export interface StandalonePokemonRequest {
   gb?: GbPokemonEdit;
+  gbSpecial?: GbSpecialEdit;
   fileName: string;
   inputEncrypted: boolean;
   party?: boolean;
@@ -91,8 +93,35 @@ export interface StandalonePokemonResult {
   entityFile?: Uint8Array<ArrayBuffer>;
 }
 
+export interface GbSpecialFields {
+  catchRate?: number | null;
+  type1?: number | null;
+  type2?: number | null;
+  metLevel?: number | null;
+  metLocation?: number | null;
+  metTimeOfDay?: number | null;
+  trainerGender?: number | null;
+  pokerusStrain?: number | null;
+  pokerusDays?: number | null;
+}
+export interface GbSpecialInfo {
+  fields: GbSpecialFields;
+  types: OriginChoice[];
+  locations: OriginChoice[];
+  languages: OriginChoice[];
+  language: number;
+  pokerusDurations: number[];
+}
+export interface GbSpecialEdit {
+  action: "fields" | "speciesName" | "egg";
+  fields?: GbSpecialFields;
+  egg?: { action: "makeEgg" | "hatch" | "cycles"; cycles?: number };
+  language?: number;
+}
+
 // History must restore encoding metadata together with the original byte sequence.
 export interface StandalonePokemonSnapshot {
+  gbLanguage?: number;
   bytes: Uint8Array<ArrayBuffer>;
   fileName: string;
   inputEncrypted: boolean;

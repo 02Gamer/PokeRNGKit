@@ -31,7 +31,9 @@ internal static class StandaloneGb
     {
         if (StandalonePokemon.Open(input, request.FileName, request.InputEncrypted, request.UseFileFormat).Entity is not GBPKML p)
             throw new ArgumentException("GB editing requires a first- or second-generation file.");
-        var edit = request.Gb ?? throw new ArgumentException("GB edit is missing.");
+        if ((request.Gb is null) == (request.GbSpecial is null)) throw new ArgumentException("GB edit requires exactly one operation.");
+        if (request.GbSpecial is { } special) { StandaloneGbSpecial.Apply(p, special); return Write(p); }
+        var edit = request.Gb!;
         var original = p.Clone();
         if (edit.Species < 1 || edit.Species > p.MaxSpeciesID || edit.Tid is < 0 or > 65535 || edit.Level is < 1 or > 100)
             throw new ArgumentException("GB identity value is outside the format limits.");
@@ -68,6 +70,11 @@ internal static class StandaloneGb
         {
             p.ResetPartyStats(); p.Stat_HPCurrent = Math.Min(original.Stat_HPCurrent, p.Stat_HPMax); p.Status_Condition = original.Status_Condition;
         }
+        return Write(p);
+    }
+
+    public static byte[] Write(GBPKML p)
+    {
         var output = new byte[p.SIZE_STORED]; p.WriteDecryptedDataStored(output);
         if (!Equal(p, Read(output, "." + p.Extension))) throw new InvalidOperationException("GB export verification failed.");
         return output;

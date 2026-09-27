@@ -74,7 +74,21 @@ API 71 增加第一／二世代独立文件基础编辑、专用三语表单与�
 等级与成长曲线不变时保留等级内经验；只有计算能力值或等级变化时重算队伍能力值，保留 HP／异常状态。
 写出使用 PokeList1／PokeList2 的标准单体列表，四种存储／加密选项在这两代输出一致，因此界面不显示这些选择器。
 回读验证包括实体全部字节、两个名称缓冲区、日文布局与蛋标记。编辑、导出及撤销保留原件；后续世代通用原始字段／蛋编辑仍拒绝第一／二世代。
-第一世代捕获率／属性、第二世代捕获信息／宝可病毒和专用蛋操作尚未开放；不以基础字段完成代替完整接入。
+API 72 增加第一世代捕获率／属性、第二世代捕获记录／宝可病毒，以及名称恢复和第二世代专用蛋操作。
+捕获率为 0–255；属性使用 PersonalTable1.TypeIDExists 的 15 个第一世代编号，并通过 MoveType.GetMoveTypeGeneration(1) 对应三语名称。
+捕获等级为 0–63，地点为 0–127 且必须属于 Core 第二世代目录，时段 0–3（未记录／早晨／白天／夜晚），原训练家性别 0–1。
+PK2.CaughtData 0x1D–0x1E 的等级、地点、时段和性别通过各属性的位掩码写入，保留相邻位。
+宝可病毒为 PK2.PokerusState 0x1C 的菌株／天数两段，各占四位；菌株 0–15，主动修改的天数必须在 0–Pokerus.GetMaxDuration(strain) 内。
+与原值完全相同的未列出属性、地点和特殊菌株／天数组合可保持不变；不因修改其他字段而规范化已有数值。
+依据 Core PKM/PK1.cs、PK2.cs、PersonalInfo/Table/PersonalTable1.cs、Game/Enums/MoveType.cs、Editing/Pokerus.cs，
+以及 WinForms 的 CatchRate.cs／Designer.cs、EditPK2.cs、PKMEditor.ChangePKRSstrainDropDownLists 和 CB_MetTimeOfDay。
+命名语言按现有布局限制：日文为 1，韩文第二世代为 8，其他布局为 2／3／4／5／7；使用 Core 三语语言名称和 GuessedLanguage 初值。
+恢复种类名称调用 GBPKML.SetNotNicknamed(language)，不转换文件编码；明确的语言选择随工作副本保存和撤销，避免无法从蛋名推测语言时丢失选择。
+第二世代创建蛋使用既有 PokemonEgg 逻辑与 Core 的最低孵化周期，并按所选语言命名；孵化使用 ForceHatchPKM 后按所选语言恢复种类名称。
+PK2 的 Version 固定为 GSC，操作不需要虚构存档或额外训练家上下文，不读取隐藏的最近训练家版本；第四世代以上创建蛋仍要求上下文。
+周期编辑保持 0–255；第一世代拒绝蛋操作。写出沿用单体列表标记与完整回读校验，保留原件、队伍 HP／状态与未涉及记录。
+依据 Core Editing/CommonEdits.cs、PKM/Shared/GBPKML.cs、EggStateLegality.cs，以及 WinForms PKMEditor.UpdateIsEgg。
+捕获率建议恢复、原始队伍字段、其他独立格式和格式转换仍待完成；专属字段接入不代表全功能完成或真实文件验收。
 
 ## 整箱二进制
 

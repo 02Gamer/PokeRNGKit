@@ -28,6 +28,7 @@ import { PokemonCareEditor } from "./PokemonCareEditor";
 import { PokemonOriginEditor } from "./PokemonOriginEditor";
 import { StandaloneEggEditor } from "./StandaloneEggEditor";
 import { StandaloneGbEditor } from "./StandaloneGbEditor";
+import { StandaloneGbSpecialEditor } from "./StandaloneGbSpecialEditor";
 
 function download(bytes: Uint8Array<ArrayBuffer>, name: string) {
   const url = URL.createObjectURL(
@@ -135,7 +136,7 @@ export function StandalonePokemonPanel() {
   const applyRequest = (
     change: Pick<
       StandalonePokemonRequest,
-      "edit" | "raw" | "eggTrainer" | "gb"
+      "edit" | "raw" | "eggTrainer" | "gb" | "gbSpecial"
     >,
     kind: "entityEdit" | "entityRaw" | "entityGb",
   ) =>
@@ -161,6 +162,7 @@ export function StandalonePokemonPanel() {
         inputEncrypted: false,
         useFileFormat: true,
         eggTrainer: change.eggTrainer ?? working.eggTrainer,
+        gbLanguage: change.gbSpecial?.language ?? working.gbLanguage,
       });
       setLegality(undefined);
       setChanged(true);
@@ -534,12 +536,26 @@ export function StandalonePokemonPanel() {
               </div>
               <p className="save-editor-note">{words.history}</p>
               {report.generation < 3 ? (
-                <StandaloneGbEditor
-                  key={revision}
-                  report={report}
-                  disabled={busy}
-                  onApply={(gb) => applyRequest({ gb }, "entityGb")}
-                />
+                <>
+                  <StandaloneGbEditor
+                    key={revision}
+                    report={report}
+                    disabled={busy}
+                    onApply={(gb) => applyRequest({ gb }, "entityGb")}
+                  />
+                  {report.gb && (
+                    <StandaloneGbSpecialEditor
+                      key={`gb-special-${revision}`}
+                      info={report.gb}
+                      pokemon={report.pokemon}
+                      disabled={busy}
+                      initialLanguage={working.gbLanguage}
+                      onApply={(gbSpecial) =>
+                        applyRequest({ gbSpecial }, "entityGb")
+                      }
+                    />
+                  )}
+                </>
               ) : (
                 <>
                   <PokemonEditor

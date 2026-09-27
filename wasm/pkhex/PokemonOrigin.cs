@@ -15,7 +15,7 @@ internal static class PokemonOrigin
         .Select(language => new GameDataSource(GameInfo.GetStrings(language))).ToArray());
     public static OriginInfo Read(PKM p) => new((int)p.Version, p.Ball, p.MetLocation, p.EggLocation, p.Format >= 4);
 
-    private static OriginChoice[] Localize(Func<GameDataSource, IEnumerable<ComboItem>> get)
+    internal static OriginChoice[] Localize(Func<GameDataSource, IEnumerable<ComboItem>> get)
     {
         var lists = Sources.Value.Select(s => get(s).GroupBy(c => c.Value).Select(g => g.First()).ToArray()).ToArray();
         var en = lists[1].ToDictionary(c => c.Value, c => c.Text);

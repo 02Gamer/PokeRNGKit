@@ -5,7 +5,7 @@ namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonFile(PKM Entity, bool Party);
 internal sealed record StandalonePokemonReport(string Format, string Extension, bool Party, bool CanEdit, PokemonEntry Pokemon,
-    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices, int Generation, bool CanMemories, CareField[] Care)
+    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices, int Generation, bool CanMemories, CareField[] Care, GbSpecialInfo? Gb = null)
 {
     public int ApiVersion => SaveService.ApiVersion;
 }
@@ -82,7 +82,7 @@ internal static class StandalonePokemon
         if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         return new(p.GetType().Name, p.Extension, file.Party, CanEdit(p), PokemonReader.Read(p, file.Party ? -1 : 0, 0),
-            PokemonReader.Attributes(p), PokemonReader.MoveChoices(p), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : []);
+            PokemonReader.Attributes(p), PokemonReader.MoveChoices(p), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : [], p is GBPKML gb ? StandaloneGbSpecial.Read(gb) : null);
     }
 
     public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
