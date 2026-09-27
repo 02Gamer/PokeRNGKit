@@ -1,5 +1,10 @@
 export const standaloneWords = {
   zh: {
+    formatMode: "格式识别",
+    autoFormat: "自动识别",
+    fileFormat: "按文件扩展名读取",
+    formatNote:
+      "修改后的文件若被自动识别为其他格式，可选择按扩展名读取。请确认扩展名代表实际格式；仍会检查长度和校验和。此选项用于下次打开文件。",
     runtime: "页面与存档组件版本不一致，请刷新页面后重试。当前工作副本未改变。",
     legalityContext:
       "独立文件按自身格式检查；导入目标存档后，应再检查该游戏和格位的限制。",
@@ -30,6 +35,11 @@ export const standaloneWords = {
     history: "保留最近 20 次编辑，可随时还原原件。",
   },
   en: {
+    formatMode: "Format detection",
+    autoFormat: "Detect automatically",
+    fileFormat: "Use file extension",
+    formatNote:
+      "If an edited file is detected as another format, use its extension. Confirm that the extension matches the actual format; size and checksum are still checked. This applies to the next file opened.",
     runtime:
       "The page and save component versions differ. Refresh the page and retry. The current working copy is unchanged.",
     legalityContext:
@@ -66,6 +76,11 @@ export const standaloneWords = {
       "The last 20 edits can be undone. You can always restore the original.",
   },
   ja: {
+    formatMode: "形式の識別",
+    autoFormat: "自動識別",
+    fileFormat: "拡張子に従って読み込む",
+    formatNote:
+      "編集したファイルが別形式と判定される場合は、拡張子による読み込みを選択できます。実際の形式と拡張子が一致することを確認してください。サイズとチェックサムは引き続き検証します。次に開くファイルに適用されます。",
     runtime:
       "ページとセーブ処理のバージョンが一致しません。ページを再読み込みしてください。現在の作業用コピーは変更されていません。",
     legalityContext:

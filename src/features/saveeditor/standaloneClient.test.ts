@@ -12,7 +12,11 @@ class FakeWorker {
     FakeWorker.instances.push(this);
   }
 }
-const request = { fileName: "entity.bk4", inputEncrypted: true };
+const request = {
+  fileName: "entity.bk4",
+  inputEncrypted: true,
+  useFileFormat: true,
+};
 describe("independent entity worker lifecycle", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -24,7 +28,7 @@ describe("independent entity worker lifecycle", () => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
-  it("transfers a copy and preserves the explicit BK4 encoding hint", async () => {
+  it("transfers a copy and preserves explicit format and BK4 encoding hints", async () => {
     const client = new StandalonePokemonClient();
     const source = new Uint8Array([1, 2, 3]);
     const pending = client.run(source, request);

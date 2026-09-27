@@ -36,9 +36,9 @@ internal static class PokemonOrigin
         var copy = p.Clone(); copy.Ball = (byte)value;
         return copy.Ball == value;
     }
-    private static OriginChoice[] Games(SaveFile save, PKM p)
+    private static OriginChoice[] Games(IGameValueLimit limits, EntityContext context, PKM p)
     {
-        var allowed = GameUtil.GetVersionsWithinRange(save, save.Context).ToHashSet();
+        var allowed = GameUtil.GetVersionsWithinRange(limits, context).ToHashSet();
         return Localize(s => s.VersionDataSource.Where(c =>
             (c.Value == 0 || allowed.Contains((GameVersion)c.Value)) && CanVersion(p, c.Value)));
     }
@@ -50,18 +50,24 @@ internal static class PokemonOrigin
         return Catalog(save, p, query.Version);
     }
     private static OriginCatalog Catalog(SaveFile save, PKM p, int? version)
+        => Catalog(save, save.Context, save.Version, p, version);
+
+    public static OriginCatalog Catalog(PKM p, int? version = null)
+        => Catalog(p, p.Context, GameVersion.Invalid, p, version);
+
+    private static OriginCatalog Catalog(IGameValueLimit limits, EntityContext context, GameVersion fallback, PKM p, int? version)
     {
-        var games = Games(save, p);
+        var games = Games(limits, context, p);
         var chosen = version ?? (int)p.Version;
         if (chosen != (int)p.Version && !games.Any(c => c.Id == chosen))
             throw new ArgumentException("Origin game is unavailable in this format.");
         p = p.Clone(); p.Version = (GameVersion)chosen;
-        var balls = Localize(s => s.BallDataSource.Where(c => c.Value <= save.MaxBallID && CanBall(p, c.Value)));
+        var balls = Localize(s => s.BallDataSource.Where(c => c.Value <= limits.MaxBallID && CanBall(p, c.Value)));
         // The desktop falls back to the save/context for an unknown origin group.
         var locationVersion = p.Version;
         if (GameUtil.GetMetLocationVersionGroup(locationVersion) == GameVersion.Invalid)
         {
-            locationVersion = GameUtil.GetMetLocationVersionGroup(save.Version);
+            locationVersion = GameUtil.GetMetLocationVersionGroup(fallback);
             if (locationVersion == GameVersion.Invalid || p.Version == GameVersion.Any)
                 locationVersion = p.Context.GetSingleGameVersion();
         }
@@ -72,10 +78,15 @@ internal static class PokemonOrigin
     }
 
     public static void Apply(SaveFile save, PKM p, OriginEdit edit)
+        => Apply(p, edit, Catalog(save, p, edit.Version));
+
+    public static void Apply(PKM p, OriginEdit edit)
+        => Apply(p, edit, Catalog(p, edit.Version));
+
+    private static void Apply(PKM p, OriginEdit edit, OriginCatalog catalog)
     {
         if (edit.Version is null && edit.Ball is null && edit.MetLocation is null && edit.EggLocation is null)
             throw new ArgumentException("Origin edit requires a changed value.");
-        var catalog = Catalog(save, p, edit.Version);
         static void Check(int? value, int current, OriginChoice[] choices)
         {
             if (value is int v && v != current && !choices.Any(c => c.Id == v))

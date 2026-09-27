@@ -12,9 +12,9 @@ internal sealed record StandalonePokemonReport(string Format, string Extension, 
 
 internal static class StandalonePokemon
 {
-    public static PokemonLegalityReport Analyze(byte[] input, string filename, bool inputEncrypted = false)
+    public static PokemonLegalityReport Analyze(byte[] input, string filename, bool inputEncrypted = false, bool useFileFormat = false)
     {
-        var file = Open(input, filename, inputEncrypted);
+        var file = Open(input, filename, inputEncrypted, useFileFormat);
         var p = file.Entity;
         if (!p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file analysis requires valid data.");
@@ -23,7 +23,7 @@ internal static class StandalonePokemon
         return PokemonLegality.Report(new LegalityAnalysis(p, StorageSlotType.None), new(file.Party ? -1 : 0, 0));
     }
 
-    public static StandalonePokemonFile Open(byte[] input, string filename, bool inputEncrypted = false)
+    public static StandalonePokemonFile Open(byte[] input, string filename, bool inputEncrypted = false, bool useFileFormat = false)
     {
         if (input is null || input.Length is 0 or > PokemonFiles.MaximumSize)
             throw new ArgumentException("Entity file size is invalid.");
@@ -37,7 +37,9 @@ internal static class StandalonePokemon
             // BK4 only shuffles blocks: its checksum cannot distinguish the two layouts.
             PokeCrypto.Decrypt4BE(input.AsSpan(0, layout.SIZE_STORED));
         }
-        if (!PokemonFiles.TryRead(input, extension, null, out var pokemon) || PokemonFiles.HasFormatConflict(extension, pokemon))
+        PKM? pokemon;
+        if (useFileFormat) pokemon = ReadDeclared(input, extension);
+        else if (!PokemonFiles.TryRead(input, extension, null, out pokemon) || PokemonFiles.HasFormatConflict(extension, pokemon))
             throw new ArgumentException("Entity file format is unrecognized or conflicts with the extension.");
         if (input.Length != pokemon.SIZE_STORED && input.Length != pokemon.SIZE_PARTY)
             throw new ArgumentException("Entity file container requires a dedicated reader.");
@@ -47,18 +49,43 @@ internal static class StandalonePokemon
 
     public static bool CanEdit(PKM p) => p is PK3 or CK3 or XK3 or PK4 or BK4 or PK5 or PK6 or PK7 or PB7 or PK8 or PB8 or PA8 or PK9 or PA9;
 
-    public static StandalonePokemonReport Inspect(byte[] input, string filename, bool inputEncrypted = false)
+    private static PKM ReadDeclared(byte[] input, string extension)
     {
-        var file = Open(input, filename, inputEncrypted); var p = file.Entity;
+        // Explicit choice only. Editing can change heuristic format clues; never
+        // reinterpret a working copy as another generation or pad a short file.
+        PKM layout = extension switch
+        {
+            ".pk3" => new PK3(), ".ck3" => new CK3(), ".xk3" => new XK3(), ".pk4" => new PK4(), ".bk4" => new BK4(),
+            ".pk5" => new PK5(), ".pk6" => new PK6(), ".pk7" => new PK7(), ".pb7" => new PB7(), ".pk8" => new PK8(),
+            ".pb8" => new PB8(), ".pa8" => new PA8(), ".pk9" => new PK9(), ".pa9" => new PA9(),
+            _ => throw new ArgumentException("Explicit entity format is unsupported."),
+        };
+        if (input.Length != layout.SIZE_STORED && input.Length != layout.SIZE_PARTY)
+            throw new ArgumentException("Entity file size does not match the declared format.");
+        Memory<byte> data = input.ToArray();
+        PKM result = layout switch
+        {
+            PK3 => new PK3(data), CK3 => new CK3(data), XK3 => new XK3(data), PK4 => new PK4(data), BK4 => new BK4(data),
+            PK5 => new PK5(data), PK6 => new PK6(data), PK7 => new PK7(data), PB7 => new PB7(data), PK8 => new PK8(data),
+            PB8 => new PB8(data), PA8 => new PA8(data), PK9 => new PK9(data), PA9 => new PA9(data),
+            _ => throw new ArgumentException("Explicit entity format is unsupported."),
+        };
+        if (!result.Valid || !result.ChecksumValid) throw new ArgumentException("Entity file checksum is invalid.");
+        return result;
+    }
+
+    public static StandalonePokemonReport Inspect(byte[] input, string filename, bool inputEncrypted = false, bool useFileFormat = false)
+    {
+        var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         return new(p.GetType().Name, p.Extension, file.Party, CanEdit(p), PokemonReader.Read(p, file.Party ? -1 : 0, 0),
             PokemonReader.Attributes(p), PokemonReader.MoveChoices(p), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : []);
     }
 
-    public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false)
+    public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
     {
-        var file = Open(input, filename, inputEncrypted); var p = file.Entity;
+        var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (!CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file editing is unavailable for this data.");
         var original = p.Clone();
@@ -70,27 +97,31 @@ internal static class StandalonePokemon
             else if (letsGo.CalcCP != prior.CalcCP) letsGo.ResetCP();
         }
         var output = Serialize(p, file.Party, false);
-        var reopened = Open(output, "." + p.Extension).Entity;
+        var reopened = Open(output, "." + p.Extension, useFileFormat: true).Entity;
         PokemonEditing.Verify(reopened, applied);
         return output;
     }
 
-    public static byte[] Export(byte[] input, string filename, bool party, bool encrypted, bool inputEncrypted = false)
+    public static byte[] Export(byte[] input, string filename, bool party, bool encrypted, bool inputEncrypted = false, bool useFileFormat = false)
     {
-        var file = Open(input, filename, inputEncrypted); var p = file.Entity;
+        var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (!CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file export requires valid data.");
         if (party && !file.Party && p.SIZE_PARTY != p.SIZE_STORED) p.ForcePartyData();
         return Serialize(p, party, encrypted);
     }
 
-    public static byte[] EditRaw(byte[] input, string filename, PokemonRawEdit edit, bool inputEncrypted = false)
+    public static byte[] EditRaw(byte[] input, string filename, PokemonRawEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
     {
-        var file = Open(input, filename, inputEncrypted); var p = file.Entity;
+        var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (!CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file editing is unavailable for this data.");
         var original = p.Clone();
-        PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party);
+        PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party, () =>
+        {
+            if (edit.Action != "origin") throw new ArgumentException("Entity egg operations require a trainer context.");
+            PokemonOrigin.Apply(p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
+        });
         if (p is PB7 letsGo && original is PB7 prior)
         {
             Span<ushort> before = stackalloc ushort[6]; Span<ushort> after = stackalloc ushort[6];
@@ -113,7 +144,7 @@ internal static class StandalonePokemon
         var data = new byte[party ? p.SIZE_PARTY : p.SIZE_STORED];
         if (party) { if (encrypted) p.WriteEncryptedDataParty(data); else p.WriteDecryptedDataParty(data); }
         else { if (encrypted) p.WriteEncryptedDataStored(data); else p.WriteDecryptedDataStored(data); }
-        var reopened = Open(data, "." + p.Extension, encrypted).Entity;
+        var reopened = Open(data, "." + p.Extension, encrypted, useFileFormat: true).Entity;
         if (reopened.GetType() != p.GetType() || !reopened.Valid || !reopened.ChecksumValid ||
             !p.Data[..(party ? p.SIZE_PARTY : p.SIZE_STORED)].SequenceEqual(reopened.Data[..(party ? p.SIZE_PARTY : p.SIZE_STORED)]))
             throw new InvalidOperationException("Entity file export verification failed.");

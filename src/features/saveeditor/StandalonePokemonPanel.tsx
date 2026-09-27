@@ -25,6 +25,7 @@ import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
 import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
 import { PokemonCareEditor } from "./PokemonCareEditor";
+import { PokemonOriginEditor } from "./PokemonOriginEditor";
 
 function download(bytes: Uint8Array<ArrayBuffer>, name: string) {
   const url = URL.createObjectURL(
@@ -58,6 +59,7 @@ export function StandalonePokemonPanel() {
   const running = useRef(false),
     operation = useRef(0);
   const [inputEncrypted, setInputEncrypted] = useState(false);
+  const [useFileFormat, setUseFileFormat] = useState(false);
   const [party, setParty] = useState(false),
     [encrypted, setEncrypted] = useState(false);
   const [error, setError] = useState<
@@ -103,10 +105,16 @@ export function StandalonePokemonPanel() {
       if (!file.size || file.size > MAX_ENTITY_BYTES) throw new Error("size");
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (id !== operation.current) return;
-      const snapshot = { bytes, fileName: file.name, inputEncrypted };
+      const snapshot = {
+        bytes,
+        fileName: file.name,
+        inputEncrypted,
+        useFileFormat,
+      };
       const result = await client.current.run(bytes, {
         fileName: file.name,
         inputEncrypted,
+        useFileFormat,
       });
       if (id !== operation.current) return;
       original.current = snapshot;
@@ -130,6 +138,7 @@ export function StandalonePokemonPanel() {
         {
           fileName: working.fileName,
           inputEncrypted: working.inputEncrypted,
+          useFileFormat: working.useFileFormat,
           ...change,
         },
         kind,
@@ -137,7 +146,13 @@ export function StandalonePokemonPanel() {
       if (id !== operation.current) return;
       if (!result.output) throw new Error("Missing edited file");
       setHistory((previous) => [...previous, working].slice(-20));
-      setWorking({ ...working, bytes: result.output, inputEncrypted: false });
+      setWorking({
+        ...working,
+        fileName: `${working.fileName.replace(/\.[^.]*$/, "")}.${result.entity.extension}`,
+        bytes: result.output,
+        inputEncrypted: false,
+        useFileFormat: true,
+      });
       setLegality(undefined);
       setChanged(true);
       setReport(result.entity);
@@ -150,6 +165,7 @@ export function StandalonePokemonPanel() {
     readKind: K,
     handler?: number,
     memory?: number,
+    version?: number,
   ): Promise<NonNullable<StandaloneAdvancedData[K]> | undefined> =>
     perform(async (id) => {
       if (!working) return;
@@ -158,9 +174,11 @@ export function StandalonePokemonPanel() {
         {
           fileName: working.fileName,
           inputEncrypted: working.inputEncrypted,
+          useFileFormat: working.useFileFormat,
           readKind,
           handler,
           memory,
+          version,
         },
         "entityDetails",
       );
@@ -174,6 +192,7 @@ export function StandalonePokemonPanel() {
       const result = await client.current.run(snapshot.bytes, {
         fileName: snapshot.fileName,
         inputEncrypted: snapshot.inputEncrypted,
+        useFileFormat: snapshot.useFileFormat,
       });
       if (id !== operation.current) return;
       setWorking(snapshot);
@@ -190,7 +209,11 @@ export function StandalonePokemonPanel() {
       setLegality(undefined);
       const result = await client.current.run(
         working.bytes,
-        { fileName: working.fileName, inputEncrypted: working.inputEncrypted },
+        {
+          fileName: working.fileName,
+          inputEncrypted: working.inputEncrypted,
+          useFileFormat: working.useFileFormat,
+        },
         "entityLegality",
       );
       if (id !== operation.current) return;
@@ -205,6 +228,7 @@ export function StandalonePokemonPanel() {
         {
           fileName: working.fileName,
           inputEncrypted: working.inputEncrypted,
+          useFileFormat: working.useFileFormat,
           party,
           encrypted,
         },
@@ -236,6 +260,20 @@ export function StandalonePokemonPanel() {
           </Select>
         </label>
         <p className="save-editor-note">{words.inputNote}</p>
+        <label className="field">
+          <span>{words.formatMode}</span>
+          <Select
+            disabled={busy}
+            value={useFileFormat ? "file" : "auto"}
+            onChange={(event) =>
+              setUseFileFormat(event.target.value === "file")
+            }
+          >
+            <option value="auto">{words.autoFormat}</option>
+            <option value="file">{words.fileFormat}</option>
+          </Select>
+        </label>
+        <p className="save-editor-note">{words.formatNote}</p>
       </div>
       <div className="save-editor-toolbar">
         <label className="save-editor-file">
@@ -466,6 +504,17 @@ export function StandalonePokemonPanel() {
                 encounter={report.pokemon.encounter}
                 position={report.pokemon}
                 disabled={busy}
+                onApply={applyRaw}
+              />
+              <PokemonOriginEditor
+                key={`origin-${revision}`}
+                origin={report.pokemon.origin}
+                position={report.pokemon}
+                disabled={busy}
+                readDisabled={busy}
+                onRead={(_, version) =>
+                  readDetails("origin", undefined, undefined, version)
+                }
                 onApply={applyRaw}
               />
               {report.canMemories && (

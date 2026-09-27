@@ -7,9 +7,9 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonRequest(string FileName, bool InputEncrypted = false, bool Party = false, bool Encrypted = false, PokemonEdit? Edit = null,
-    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null);
+    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null, int? Version = null, bool UseFileFormat = false);
 
-internal sealed record StandaloneAdvancedData(RibbonCatalog? Ribbons = null, HistoryCatalog? History = null, MemoryCatalog? Memory = null, ushort[]? Relearn = null);
+internal sealed record StandaloneAdvancedData(RibbonCatalog? Ribbons = null, HistoryCatalog? History = null, MemoryCatalog? Memory = null, ushort[]? Relearn = null, OriginCatalog? Origin = null);
 
 internal static class StandalonePokemonRequests
 {
@@ -29,16 +29,17 @@ public static partial class Program
     [JSExport] public static byte[] EditStandalonePokemonRaw(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
-        return StandalonePokemon.EditRaw(data, request.FileName, request.Raw ?? throw new ArgumentException("Entity file advanced edit is missing."), request.InputEncrypted);
+        return StandalonePokemon.EditRaw(data, request.FileName, request.Raw ?? throw new ArgumentException("Entity file advanced edit is missing."), request.InputEncrypted, request.UseFileFormat);
     }
     [JSExport] public static string ReadStandalonePokemonAdvanced(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
-        var p = StandalonePokemon.Open(data, request.FileName, request.InputEncrypted).Entity;
+        var p = StandalonePokemon.Open(data, request.FileName, request.InputEncrypted, request.UseFileFormat).Entity;
         if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         var result = request.ReadKind switch
         {
+            "origin" => new StandaloneAdvancedData(Origin: PokemonOrigin.Catalog(p, request.Version)),
             "ribbons" => new StandaloneAdvancedData(Ribbons: PokemonRibbons.Read(p, true)),
             "history" => new StandaloneAdvancedData(History: PokemonHistory.Read(p)),
             "memory" => new StandaloneAdvancedData(Memory: PokemonMemories.Read(p, request.Handler, request.Memory)),
@@ -57,25 +58,25 @@ public static partial class Program
     [JSExport] public static string AnalyzeStandalonePokemon(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
-        return JsonSerializer.Serialize(StandalonePokemon.Analyze(data, request.FileName, request.InputEncrypted),
+        return JsonSerializer.Serialize(StandalonePokemon.Analyze(data, request.FileName, request.InputEncrypted, request.UseFileFormat),
             StandalonePokemonJson.Default.PokemonLegalityReport);
     }
     [JSExport] public static string InspectStandalonePokemon(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
-        return JsonSerializer.Serialize(StandalonePokemon.Inspect(data, request.FileName, request.InputEncrypted),
+        return JsonSerializer.Serialize(StandalonePokemon.Inspect(data, request.FileName, request.InputEncrypted, request.UseFileFormat),
             StandalonePokemonJson.Default.StandalonePokemonReport);
     }
     [JSExport] public static byte[] EditStandalonePokemon(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
         return StandalonePokemon.Edit(data, request.FileName,
-            request.Edit ?? throw new ArgumentException("Entity file edit is missing."), request.InputEncrypted);
+            request.Edit ?? throw new ArgumentException("Entity file edit is missing."), request.InputEncrypted, request.UseFileFormat);
     }
     [JSExport] public static byte[] ExportStandalonePokemon(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
-        return StandalonePokemon.Export(data, request.FileName, request.Party, request.Encrypted, request.InputEncrypted);
+        return StandalonePokemon.Export(data, request.FileName, request.Party, request.Encrypted, request.InputEncrypted, request.UseFileFormat);
     }
 }
 

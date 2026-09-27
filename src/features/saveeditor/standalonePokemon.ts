@@ -8,12 +8,13 @@ import type {
   HistoryCatalog,
   MemoryCatalog,
   CareField,
+  OriginCatalog,
 } from "./domain";
 import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 68;
+  apiVersion: 69;
   format: string;
   extension: string;
   party: boolean;
@@ -35,8 +36,11 @@ export interface StandalonePokemonRequest {
   readKind?: keyof StandaloneAdvancedData;
   handler?: number;
   memory?: number;
+  version?: number;
+  useFileFormat?: boolean;
 }
 export interface StandaloneAdvancedData {
+  origin?: OriginCatalog | null;
   ribbons?: RibbonCatalog | null;
   history?: HistoryCatalog | null;
   memory?: MemoryCatalog | null;
@@ -62,4 +66,5 @@ export interface StandalonePokemonSnapshot {
   bytes: Uint8Array<ArrayBuffer>;
   fileName: string;
   inputEncrypted: boolean;
+  useFileFormat?: boolean;
 }
