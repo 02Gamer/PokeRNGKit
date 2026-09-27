@@ -3,8 +3,8 @@ using PKHeX.Core;
 using System.Text.Json;
 namespace PokeRNGKit.SaveEditor;
 
-public sealed record SaveFoodCatalog(string Kind, int[] Values, int? Count, LocalizedText[] Names);
-public sealed record SaveFoodEdit(string Action, int[]? Values = null, int? Count = null);
+public sealed record SaveFoodCatalog(string Kind, int[] Values, int? Count, LocalizedText[] Names, PokeBlocks6Catalog? Blocks = null);
+public sealed record SaveFoodEdit(string Action, int[]? Values = null, int? Count = null, uint[]? BlockValues = null);
 internal static class SaveFood
 {
     private static Puff6 Puff(SaveFile save) => save switch { SAV6XY s => s.Puff, SAV6AO s => s.Puff, _ => throw new ArgumentException("Food is unavailable for this format.") };
@@ -16,7 +16,7 @@ internal static class SaveFood
             var puff = Puff(save);
             var zh = GameInfo.GetStrings("zh-Hans").puffs; var en = GameInfo.GetStrings("en").puffs; var ja = GameInfo.GetStrings("ja").puffs;
             return new("puffs", puff.GetPuffs().ToArray().Select(x => (int)x).ToArray(), puff.PuffCount,
-                Enumerable.Range(0, en.Length).Select(i => new LocalizedText(zh[i], en[i], ja[i])).ToArray());
+                Enumerable.Range(0, en.Length).Select(i => new LocalizedText(zh[i], en[i], ja[i])).ToArray(), save is SAV6AO oras ? PokeBlocks6.Read(oras) : null);
         }
         var resort = Resort(save);
         string[] zhColors = ["红色", "蓝色", "浅蓝色", "绿色", "黄色", "紫色", "橙色"];
@@ -27,9 +27,13 @@ internal static class SaveFood
                 i == 14 ? "彩虹宝可豆" : zhColors[i % 7] + (i < 7 ? "宝可豆" : "花纹宝可豆"), names[i],
                 i == 14 ? "にじいろポケマメ" : jaColors[i % 7] + (i < 7 ? "のポケマメ" : "のがらつきポケマメ"))).ToArray());
     }
-    public static string Snapshot(SaveFile save) => Convert.ToHexString(save is SAV6XY or SAV6AO ? Puff(save).Data : Resort(save).Data);
+    public static string Snapshot(SaveFile save) => save is SAV6AO oras
+        ? Convert.ToHexString(oras.Puff.Data) + Convert.ToHexString(oras.Contest.Data) + Convert.ToHexString(oras.BerryField.Data)
+        : Convert.ToHexString(save is SAV6XY ? Puff(save).Data : Resort(save).Data);
     public static void Apply(SaveFile save, SaveFoodEdit edit)
     {
+        if (edit.Action is "blocksEdit" or "blocksFill" or "blocksClear" or "berries") { PokeBlocks6.Apply(save, edit); return; }
+        if (edit.BlockValues is not null) throw new ArgumentException("Food action contains unrelated fields.");
         var old = Read(save); bool puffs = old.Kind == "puffs";
         if (edit.Action == "edit")
         {

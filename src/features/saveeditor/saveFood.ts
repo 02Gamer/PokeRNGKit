@@ -3,11 +3,36 @@ export interface SaveFoodCatalog {
   values: number[];
   count: number | null;
   names: { zh: string; en: string; ja: string }[];
+  blocks?: PokeBlocks6Catalog | null;
 }
+export interface PokeBlocks6Catalog {
+  values: number[];
+  names: { zh: string; en: string; ja: string }[];
+  occupiedPlots: number;
+  plotCount: number;
+}
+export type FoodAction =
+  "edit" | "fill" | "best" | "reset" | "sort" | "reverse" | "clear";
 export interface SaveFoodEdit {
-  action: "edit" | "fill" | "best" | "reset" | "sort" | "reverse" | "clear";
+  action: FoodAction | "blocksEdit" | "blocksFill" | "blocksClear" | "berries";
   values?: number[];
   count?: number;
+  blockValues?: number[];
+}
+export function validatePokeBlocks(
+  catalog: PokeBlocks6Catalog,
+  values: string[],
+): SaveFoodEdit {
+  const counts = values.map((v) => (/^\d{1,10}$/.test(v) ? Number(v) : NaN));
+  if (
+    counts.length !== 12 ||
+    counts.some(
+      (v, i) =>
+        !Number.isInteger(v) || v < 0 || (v > 999 && v !== catalog.values[i]),
+    )
+  )
+    throw new Error("Invalid Pokéblock counts.");
+  return { action: "blocksEdit", blockValues: counts };
 }
 export const supportsFood = (format: string) =>
   ["SAV6XY", "SAV6AO", "SAV7SM", "SAV7USUM"].includes(format);
@@ -107,5 +132,43 @@ export const foodWords = {
     note: "一括操作は作業用コピーに適用され、上部の操作で元に戻せます。先に編集中の変更を適用するか破棄してください。",
     puffNote:
       "スロットと所持数は別々に保存されます。初期化すると最初の5スロットが設定され、所持数が5になります。",
+  },
+};
+
+export const pokeBlockWords = {
+  zh: {
+    title: "宝可方块与树果田",
+    blocks: "宝可方块",
+    berries: "树果田",
+    occupied: "种有树果的田地",
+    reset: "随机重置全部树果田",
+    confirm: "确认重置",
+    cancel: "取消",
+    note: "将替换全部 {count} 块树果田中的树果与生长状态：随机选择树果、设为成熟且数量为 4，并清除时间与浇水记录。可用上方撤销恢复。",
+    invalid: "请填写 0–999 的整数；原存档中超出范围的数量只能保持原值。",
+  },
+  en: {
+    title: "Pokéblocks and berry plots",
+    blocks: "Pokéblocks",
+    berries: "Berry plots",
+    occupied: "Plots with berries",
+    reset: "Randomize and reset all berry plots",
+    confirm: "Confirm reset",
+    cancel: "Cancel",
+    note: "Replaces berries and growth state in all {count} plots: random berries, ripe stage, yield 4, and cleared timers and watering records. Undo above restores the previous working copy.",
+    invalid:
+      "Enter whole numbers from 0 to 999. Existing out-of-range counts may only be kept unchanged.",
+  },
+  ja: {
+    title: "ポロックときのみ畑",
+    blocks: "ポロック",
+    berries: "きのみ畑",
+    occupied: "きのみがある区画",
+    reset: "全区画をランダムにリセット",
+    confirm: "リセットを確定",
+    cancel: "キャンセル",
+    note: "全 {count} 区画のきのみと生育状態を置き換えます。きのみをランダムに選び、収穫可能、個数4、経過時間と水やり記録なしに設定します。上部の操作で元に戻せます。",
+    invalid:
+      "0–999 の整数を入力してください。元の範囲外の個数は変更せず保持できます。",
   },
 };

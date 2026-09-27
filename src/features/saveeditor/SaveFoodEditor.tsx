@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
+import { PokeBlocks6Editor } from "./PokeBlocks6Editor";
 import {
   foodWords,
+  pokeBlockWords,
   validateFood,
   type SaveFoodCatalog,
   type SaveFoodEdit,
+  type FoodAction,
 } from "./saveFood";
 
 export function SaveFoodEditor({
@@ -23,6 +26,8 @@ export function SaveFoodEditor({
   onApply(edit: SaveFoodEdit): Promise<void>;
 }) {
   const reader = useRef(onRead);
+  const [mode, setMode] = useState<"food" | "blocks">("food");
+  const [hasDraft, setHasDraft] = useState(false);
   const [loaded, setLoaded] = useState<{
     revision: number;
     catalog: SaveFoodCatalog;
@@ -44,13 +49,47 @@ export function SaveFoodEditor({
     <section className="save-record-editor">
       <h3>{words.title}</h3>
       {loaded?.revision === revision ? (
-        <FoodForm
-          key={revision}
-          catalog={loaded.catalog}
-          disabled={busy || !canEdit}
-          lang={lang}
-          onApply={onApply}
-        />
+        <>
+          {loaded.catalog.blocks && (
+            <div className="save-editor-toolbar">
+              <button
+                type="button"
+                disabled={busy || hasDraft}
+                aria-pressed={mode === "food"}
+                onClick={() => setMode("food")}
+              >
+                {words[loaded.catalog.kind]}
+              </button>
+              <button
+                type="button"
+                disabled={busy || hasDraft}
+                aria-pressed={mode === "blocks"}
+                onClick={() => setMode("blocks")}
+              >
+                {pokeBlockWords[lang].title}
+              </button>
+            </div>
+          )}
+          {mode === "blocks" && loaded.catalog.blocks ? (
+            <PokeBlocks6Editor
+              key={revision}
+              catalog={loaded.catalog.blocks}
+              disabled={busy || !canEdit}
+              lang={lang}
+              onApply={onApply}
+              onDirty={setHasDraft}
+            />
+          ) : (
+            <FoodForm
+              key={revision}
+              catalog={loaded.catalog}
+              disabled={busy || !canEdit}
+              lang={lang}
+              onApply={onApply}
+              onDirty={setHasDraft}
+            />
+          )}
+        </>
       ) : (
         <button
           type="button"
@@ -73,11 +112,13 @@ function FoodForm({
   disabled,
   lang,
   onApply,
+  onDirty,
 }: {
   catalog: SaveFoodCatalog;
   disabled: boolean;
   lang: "zh" | "en" | "ja";
   onApply(edit: SaveFoodEdit): Promise<void>;
+  onDirty(value: boolean): void;
 }) {
   const words = foodWords[lang];
   const [values, setValues] = useState(catalog.values.map(String));
@@ -88,6 +129,10 @@ function FoodForm({
   const dirty =
     values.some((v, i) => v !== String(catalog.values[i])) ||
     (puffs && count !== String(catalog.count));
+  useEffect(() => {
+    onDirty(dirty);
+    return () => onDirty(false);
+  }, [dirty, onDirty]);
   const change = (index: number, value: string) =>
     setValues((old) => old.map((v, i) => (i === index ? value : v)));
   const apply = () => {
@@ -101,7 +146,7 @@ function FoodForm({
     }
     void onApply(edit);
   };
-  const actions: Exclude<SaveFoodEdit["action"], "edit">[] = puffs
+  const actions: Exclude<FoodAction, "edit">[] = puffs
     ? ["fill", "best", "reset", "sort", "reverse"]
     : ["fill", "clear"];
   return (

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { validateFood, supportsFood, type SaveFoodCatalog } from "./saveFood";
+import {
+  validateFood,
+  supportsFood,
+  validatePokeBlocks,
+  type SaveFoodCatalog,
+} from "./saveFood";
 const puffs: SaveFoodCatalog = {
   kind: "puffs",
   values: [255, 1, 26],
@@ -13,6 +18,29 @@ const beans: SaveFoodCatalog = {
   names: [],
 };
 describe("food editing", () => {
+  it("keeps original UInt32 block counts and rejects new out-of-range values", () => {
+    const blocks = {
+      values: [4294967295, ...Array<number>(11).fill(0)],
+      names: [],
+      occupiedPlots: 30,
+      plotCount: 90,
+    };
+    const values = blocks.values.map(String);
+    expect(validatePokeBlocks(blocks, values).blockValues?.[0]).toBe(
+      4294967295,
+    );
+    for (const value of ["", "-1", "1.5", "1000", "4294967295", " 0", "1e2"])
+      expect(() =>
+        validatePokeBlocks(
+          blocks,
+          values.map((v, i) => (i === 1 ? value : v)),
+        ),
+      ).toThrow();
+    expect(
+      validatePokeBlocks(blocks, Array<string>(12).fill("999")).blockValues,
+    ).toEqual(Array<number>(12).fill(999));
+    expect(() => validatePokeBlocks(blocks, [])).toThrow();
+  });
   it("preserves untouched abnormal puffs and rejects new ones", () => {
     expect(validateFood(puffs, ["255", "2", "26"], "-1")).toEqual({
       action: "edit",

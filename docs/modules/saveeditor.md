@@ -18,7 +18,18 @@ PuffCount 为独立 Int32 字段，新增编辑范围 0–100，不根据非零�
 界面沿用 Ant Neutral 浮动面板、44px 控件与双列响应式字段，宝芙蕾通过格位选择器避免同时展开 100 行；不新增主题或装饰面板。
 上游依据：WinForms Subforms/Save Editors/Gen6/SAV_Pokepuff.cs、Gen7/SAV_Pokebean.cs，
 Core Saves/Substructures/Gen6/Puff6.cs（前 100 字节与后续数量）、Gen7/ResortSave7.cs（0x564C 起 15 字节）及 BeanColor7。
-宝可豆标签按上游枚举顺序提供三语描述。树果、宝可方块、宝芬、宝可度假地其他记录仍为独立待接入项。
+宝可豆标签按上游枚举顺序提供三语描述。其他世代树果／宝可方块、宝芬、宝可度假地其他记录仍为独立待接入项。
+
+API 74 接入 ORAS 宝可方块及该上游窗口的树果田重置操作，在同一食物入口内分区切换；有未应用草稿时禁止切换，应用／撤销后保持所选分区。
+12 类宝可方块使用 Contest6.CountBlock 与 GameStrings.pokeblocks[94..106] 的原生顺序、三语名称。
+存储为 Contest 块前 0x30 字节的 12 个 UInt32，桌面 NumericUpDown 与 Core MaxBlock 均为 0–999；输入为空、小数、负数或新增越界值时拒绝。
+原始超出 999 的值可精确读取并原位保持不变，跳过 SetBlockCount，防止 Core 的上限截断影响无关编辑；其他更改必须在 0–999 内。
+全部补满／清空对应 12 项 999／0。API 拒绝不适用游戏、字段混用、缺失或错误长度数组，写出回读同时核对 Puff、Contest 与 BerryField 三个完整块。
+树果田调用 BerryField6AO.ResetAndRandomize(Util.Rand, ItemStorage6XY.Berry)，只处理 90 个有效格位，每格 16 字节，保留后续 10 个未使用格位及块尾数据。
+每格沿用 SetAsDefault：清零整格、GrowthStage=5、Count=4（Single）、IsDefault=true，Time／Water 为 0，再随机指定上游树果目录中的种类。
+界面展示有树果的格位数（排除 0／0xFFFF），使用展开说明与明确确认按钮提示重置范围；确认后修改工作副本，可撤销。
+依据 Core Saves/Substructures/Gen6/Contest6.cs、BerryField6AO.cs，以及 WinForms Subforms/Save Editors/Gen6/SAV_PokeBlockORAS.cs／Designer.cs。
+本批不扩展为任意树果生长字段编辑器；清单覆盖的是该上游窗口实际提供的全部操作。
 
 ## 独立宝可梦文件（开发中）
 
