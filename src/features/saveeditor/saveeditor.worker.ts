@@ -6,6 +6,9 @@ interface SaveExports {
     SaveEditor: {
       Program: {
         ConfigureBrowserCrypto(): void;
+        PreviewBoxImport(data: Uint8Array, json: string): string;
+        CommitBoxImport(data: Uint8Array, json: string): Uint8Array;
+        DiscardBoxImport(token: string): void;
         PreviewFileBatch(data: Uint8Array, json: string): string;
         ExportFileBatch(json: string): Uint8Array;
         DiscardFileBatch(token: string): void;
@@ -84,6 +87,9 @@ self.addEventListener(
       bytes: Uint8Array;
       edit?: string;
       kind?:
+        | "boxImportPreview"
+        | "boxImportCommit"
+        | "boxImportDiscard"
         | "boxArchive"
         | "filePreview"
         | "fileExport"
@@ -143,9 +149,32 @@ self.addEventListener(
         throw error;
       });
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
+      if (kind?.startsWith("boxImport")) {
+        const before: SaveReport = JSON.parse(api.Inspect(bytes));
+        if (before.apiVersion !== 64)
+          throw new Error("Save editor API version mismatch.");
+        if (kind === "boxImportDiscard") api.DiscardBoxImport(payload);
+        const output =
+          kind === "boxImportCommit"
+            ? new Uint8Array(api.CommitBoxImport(bytes, payload))
+            : undefined;
+        self.postMessage(
+          {
+            id,
+            report: output ? JSON.parse(api.Inspect(output)) : before,
+            output,
+            boxImportPreview:
+              kind === "boxImportPreview"
+                ? JSON.parse(api.PreviewBoxImport(bytes, payload))
+                : undefined,
+          },
+          output ? [output.buffer] : [],
+        );
+        return;
+      }
       if (kind?.startsWith("file") || kind === "boxArchive") {
         const report: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (report.apiVersion !== 63)
+        if (report.apiVersion !== 64)
           throw new Error("Save editor API version mismatch.");
         if (kind === "fileDiscard") api.DiscardFileBatch(payload);
         const archive =
@@ -260,7 +289,7 @@ self.addEventListener(
                                                         ),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 63)
+      if (report.apiVersion !== 64)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined

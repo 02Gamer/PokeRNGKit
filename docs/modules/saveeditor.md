@@ -18,7 +18,12 @@ BoxImportFiles 将文件展开并接入固定结果预览，保存文件序号�
 解析失败的组不保留部分条目；无法识别、非实体内容、空组和解析失败均进入文件结果，提交需确认未导入项。
 礼物随机生成只发生在预览，提交使用固定结果。11 格式文件／PC 箱子展开、PGT 实体／道具区分、
 RentalTeam8 六成员顺序、文件来源与预览联动、错误确认及礼物固定提交检查通过；完整原生套件通过。
-导入设置完整覆盖、Worker 和界面仍待接入，不作为完整批量导入能力。
+API 64 增加 PreviewBoxImport／CommitBoxImport／DiscardBoxImport 与对应 Worker 请求。
+预览 JSON 限 128 Mi 字符，确认 JSON 限 4096 字符；设置整数先检查 0–2 再转换为 Core 枚举。
+重新预览先移除旧计划，失败也不恢复旧结果；定向取消不影响较新的令牌，成功提交后令牌失效。
+11 格式 × 27 组导入设置已与 Core 读取同一份输入文件后的完整导出逐字节对照；
+BDSP 箱子包含队伍字段，存储格式文件不含队伍尾部，对照必须使用相同文件表示。
+浏览器核心构建及完整检查状态见进度；产品界面与浏览器实际导入仍待接入，不作为完整批量导入能力。
 
 核对 WinForms SAVEditor.GetBulkImportSettings／LoadBoxes、Core BoxUtil.LoadBoxes、
 SaveExtensions.GetCompatible／ImportPKMs 和 SaveFile.ClearBoxes。当前仅固定上游规则，批量导入产品入口尚未接入。

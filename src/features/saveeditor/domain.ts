@@ -59,7 +59,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 63;
+  apiVersion: 64;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -749,6 +749,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  boxImportPreview?: import("./boxImport").BoxImportTicket;
   filePreview?: import("./fileBatch").FileBatchTicket;
   fileCatalog?: import("./propertyBatch").PropertyBatchCatalog[];
   archive?: Uint8Array<ArrayBuffer>;
