@@ -1,3 +1,4 @@
+import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
@@ -222,6 +223,22 @@ export function SaveEditorPanel(
     return inventory;
   };
 
+  const readPokedex7 = async () => {
+    let catalog: import("./gen7Pokedex").Dex7Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "pokedex7",
+      );
+      if (id !== operation.current) return;
+      if (!result.pokedex7)
+        throw new Error("Pokedex catalog was not returned.");
+      catalog = result.pokedex7;
+    });
+    return catalog;
+  };
   const readPokedex6 = async () => {
     let catalog: import("./gen5Pokedex").Dex5Catalog | undefined;
     await perform(async (id) => {
@@ -411,6 +428,7 @@ export function SaveEditorPanel(
       | BoxEdit
       | import("./domain").BagEdit
       | import("./domain").BagOperation
+      | import("./gen7Pokedex").Dex7Edit
       | import("./gen5Pokedex").Dex5Edit
       | import("./gen4Pokedex").Dex4Edit
       | import("./simplePokedex").SimpleDexEdit
@@ -426,6 +444,7 @@ export function SaveEditorPanel(
       | "pokemonImport"
       | "inventoryEdit"
       | "inventoryBatch"
+      | "pokedex7Edit"
       | "pokedex6Edit"
       | "pokedex5Edit"
       | "pokedex4Edit"
@@ -669,7 +688,15 @@ export function SaveEditorPanel(
               </button>
             )}
           </div>
-          {section === "pokedex" && report.pokedex?.kind === "gen6" ? (
+          {section === "pokedex" && report.pokedex?.kind === "gen7" ? (
+            <Gen7PokedexEditor
+              key={`${name}:${fileRevision}`}
+              revision={workingRevision}
+              busy={busy}
+              onRead={readPokedex7}
+              onApply={(edit) => applyWorkingEdit(edit, "pokedex7Edit")}
+            />
+          ) : section === "pokedex" && report.pokedex?.kind === "gen6" ? (
             <FlagPokedexEditor
               key={`${name}:${fileRevision}`}
               kind={report.format === "SAV6AO" ? "oras" : "xy"}

@@ -24,6 +24,8 @@
 
 ## 当前工程证据
 
+API 52 接入 SM／USUM 图鉴，包含独立形态、九语言及单条目／全图鉴操作，工程检查通过。
+
 API 51 接入 XY／ORAS 图鉴、旧世代来源、遇见／获得计数和 DexNav 批量设置，复用第五／六世代界面。
 两种格式的完整输出对照通过；上游索引、性别表及末项范围差异已记录，浏览器待核验。
 
@@ -330,7 +332,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | 待核对                                                       |
 | `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | 待核对                                                       |
 | `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 待核对                                                       |
-| `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 已接入 API 52；形态、九语言及批量操作                        |
 | `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | 基础/性别/时间/语言/地区/对应点数已接入；其他字段待接入      |
 | `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | 待核对                                                       |
 | `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | 待核对                                                       |
