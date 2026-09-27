@@ -24,6 +24,9 @@
 
 ## 当前工程证据
 
+API 50 接入 SAV_Pokedex5 的黑白／黑白2图鉴、普通／闪光显示、形态、七语言、全国模式及图案值。
+批量修饰选项显式呈现，两种布局原生保存对照通过，浏览器待核验。
+
 API 49 接入 SAV_Pokedex4 的 DP/Pt/HGSS 图鉴、六语言、性别／形态顺序、解锁及批量操作。
 三种布局的完整输出与独立 Core 保存对照通过，浏览器待核验。
 
@@ -304,7 +307,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen5/SAV_GlobalLink5.cs`                               | 待核对                                                       |
 | `Subforms/Save Editors/Gen5/SAV_Medals5.cs`                                   | 待核对                                                       |
 | `Subforms/Save Editors/Gen5/SAV_Misc5.cs`                                     | 待核对                                                       |
-| `Subforms/Save Editors/Gen5/SAV_Pokedex5.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/Gen5/SAV_Pokedex5.cs`                                  | 已接入；两种布局工程检查通过，浏览器待核验                   |
 | `Subforms/Save Editors/Gen5/SAV_UnityTower.cs`                                | 待核对                                                       |
 | `Subforms/Save Editors/Gen6/SAV_BerryFieldXY.cs`                              | 待核对                                                       |
 | `Subforms/Save Editors/Gen6/SAV_BoxLayout.cs`                                 | 部分：箱名/壁纸已实现；解锁、标记、排序待实现                |

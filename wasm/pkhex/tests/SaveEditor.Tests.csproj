@@ -13,6 +13,7 @@
     <Compile Include="../TrainerGameVersion.cs" Link="TrainerGameVersion.cs" />
     <Compile Include="../TrainerAppearance6.cs" Link="TrainerAppearance6.cs" />
     <Compile Include="../SaveChecksums.cs" Link="SaveChecksums.cs" />
+    <Compile Include="../Gen5Pokedex.cs" Link="Gen5Pokedex.cs" />
     <Compile Include="../Gen4Pokedex.cs" Link="Gen4Pokedex.cs" />
     <Compile Include="../SimplePokedex.cs" Link="SimplePokedex.cs" />
     <Compile Include="../TrainerEditing.cs" Link="TrainerEditing.cs" />

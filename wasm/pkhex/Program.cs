@@ -21,6 +21,12 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadPokedex5(byte[] data) => SaveService.ReadPokedex5(data);
+
+    [JSExport]
+    public static byte[] EditPokedex5(byte[] data, string json) => SaveService.EditPokedex5(data, json);
+
+    [JSExport]
     public static string ReadPokedex4(byte[] data) => SaveService.ReadPokedex4(data);
 
     [JSExport]
@@ -94,6 +100,16 @@ public static class SaveService
 {
     public const int MaximumSize = 32 * 1024 * 1024;
 
+    public static string ReadPokedex5(byte[] data) => JsonSerializer.Serialize(Gen5Pokedex.Read(Open(data)), SaveJsonContext.Default.Dex5Catalog);
+    public static byte[] EditPokedex5(byte[] data,string json)
+    {
+        var save=Open(data);
+        if(save is not SAV5 gen5||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Pokedex editing requires a supported valid save.");
+        var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.Dex5Edit)??throw new ArgumentException("Pokedex edit is missing.");
+        var expected=Gen5Pokedex.Apply(gen5,edit);var output=save.Write().ToArray();var check=Open(output);
+        if(check is not SAV5 after||check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||Gen5Pokedex.Snapshot(after)!=expected)throw new InvalidOperationException("Pokedex export verification failed.");
+        return output;
+    }
     public static string ReadPokedex4(byte[] data) => JsonSerializer.Serialize(Gen4Pokedex.Read(Open(data)), SaveJsonContext.Default.Dex4Catalog);
     public static byte[] EditPokedex4(byte[] data, string json)
     {
@@ -260,14 +276,14 @@ public static class SaveService
         var save = Open(data);
         var valid = SaveChecksums.Valid(save);
         var report = new SaveReport(
-            49, save.GetType().Name, save.Generation, save.Version.ToString(),
+            50, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
             save.BoxCount, save.PartyCount, save.PlayTimeString, valid,
             valid && CanEdit(save) && save.State.Exportable,
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
-            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
+            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -377,6 +393,8 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(Dex5Catalog))]
+[JsonSerializable(typeof(Dex5Edit))]
 [JsonSerializable(typeof(Dex4Catalog))]
 [JsonSerializable(typeof(Dex4Edit))]
 [JsonSerializable(typeof(SimpleDexQuery))]

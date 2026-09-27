@@ -1,3 +1,4 @@
+import { Gen5PokedexEditor } from "./Gen5PokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
 import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
@@ -221,6 +222,22 @@ export function SaveEditorPanel(
     return inventory;
   };
 
+  const readPokedex5 = async () => {
+    let catalog: import("./gen5Pokedex").Dex5Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "pokedex5",
+      );
+      if (id !== operation.current) return;
+      if (!result.pokedex5)
+        throw new Error("Pokedex catalog was not returned.");
+      catalog = result.pokedex5;
+    });
+    return catalog;
+  };
   const readPokedex4 = async () => {
     let catalog: import("./gen4Pokedex").Dex4Catalog | undefined;
     await perform(async (id) => {
@@ -378,6 +395,7 @@ export function SaveEditorPanel(
       | BoxEdit
       | import("./domain").BagEdit
       | import("./domain").BagOperation
+      | import("./gen5Pokedex").Dex5Edit
       | import("./gen4Pokedex").Dex4Edit
       | import("./simplePokedex").SimpleDexEdit
       | import("./domain").SaveRecordEdit
@@ -392,6 +410,7 @@ export function SaveEditorPanel(
       | "pokemonImport"
       | "inventoryEdit"
       | "inventoryBatch"
+      | "pokedex5Edit"
       | "pokedex4Edit"
       | "pokedexEdit"
       | "recordEdit"
@@ -633,7 +652,16 @@ export function SaveEditorPanel(
               </button>
             )}
           </div>
-          {section === "pokedex" && report.pokedex?.kind === "gen4" ? (
+          {section === "pokedex" && report.pokedex?.kind === "gen5" ? (
+            <Gen5PokedexEditor
+              key={`${name}:${fileRevision}`}
+              revision={workingRevision}
+              busy={busy}
+              saveLanguage={report.language}
+              onRead={readPokedex5}
+              onApply={(edit) => applyWorkingEdit(edit, "pokedex5Edit")}
+            />
+          ) : section === "pokedex" && report.pokedex?.kind === "gen4" ? (
             <Gen4PokedexEditor
               key={`${name}:${fileRevision}`}
               revision={workingRevision}
