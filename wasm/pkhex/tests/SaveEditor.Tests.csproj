@@ -17,6 +17,7 @@
     <Compile Include="../LetsGoCapture.cs" Link="LetsGoCapture.cs" />
     <Compile Include="../BdspPokedex.cs" Link="BdspPokedex.cs" />
     <Compile Include="../SwshPokedex.cs" Link="SwshPokedex.cs" />
+    <Compile Include="../LegendsPokedex.cs" Link="LegendsPokedex.cs" />
     <Compile Include="../Gen7Pokedex.cs" Link="Gen7Pokedex.cs" />
     <Compile Include="../Gen6Pokedex.cs" Link="Gen6Pokedex.cs" />
     <Compile Include="../Gen5Pokedex.cs" Link="Gen5Pokedex.cs" />

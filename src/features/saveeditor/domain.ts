@@ -46,10 +46,18 @@ export interface TrainerDateField {
 
 export interface SaveReport {
   pokedex: {
-    kind: "simple" | "gen4" | "gen5" | "gen6" | "gen7" | "bdsp" | "swsh";
+    kind:
+      | "simple"
+      | "gen4"
+      | "gen5"
+      | "gen6"
+      | "gen7"
+      | "bdsp"
+      | "swsh"
+      | "legends";
     canEdit: boolean;
   } | null;
-  apiVersion: 55;
+  apiVersion: 56;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -734,6 +742,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  pokedex8a?: import("./legendsPokedex").Dex8aCatalog;
   pokedex8?: import("./swshPokedex").Dex8Catalog;
   pokedex8b?: import("./bdspPokedex").Dex8bCatalog;
   pokedex7?: import("./gen7Pokedex").Dex7Catalog;

@@ -9,7 +9,7 @@ internal static class SwshBlockFixtureTests
     private static void Check(bool value, string message) { if (!value) throw new Exception(message); }
 
     // Build through the public wire-format reader; no reflection or changes to vendored Core.
-    private static SCBlock Typed(uint key, byte[] data, SCTypeCode type, SCTypeCode subtype = SCTypeCode.None)
+    internal static SCBlock Typed(uint key, byte[] data, SCTypeCode type, SCTypeCode subtype = SCTypeCode.None)
     {
         using var stream = new MemoryStream();
         using var writer = new BinaryWriter(stream);

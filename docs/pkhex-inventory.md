@@ -24,6 +24,9 @@
 
 ## 当前工程证据
 
+API 56 接入阿尔宙斯图鉴与 30 项高级研究计数，覆盖形态、体型、任务和汇报流程。
+两种合成存档修订用于工程验证；真实存档端到端及浏览器验收待完成。
+
 API 55 接入剑／盾三个地区图鉴的独立记录、形态／语言／显示／次数和批量菜单。
 合成分块工程检查与产品功能分开记录；真实存档端到端及浏览器检查待完成。
 
@@ -352,8 +355,8 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_Poffin8b.cs`                                  | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 已接入 API 54；工程检查通过，浏览器待核验                    |
-| `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | 待核对                                                       |
-| `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | API 56 已接入；真实存档与浏览器待核验                        |
+| `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | API 56 已接入全部 30 项计数；真实存档与浏览器待核验          |
 | `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | API 55 已接入；真实存档与浏览器待核验                        |
 | `Subforms/Save Editors/Gen8/SAV_Raid8.cs`                                     | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | 待核对                                                       |
