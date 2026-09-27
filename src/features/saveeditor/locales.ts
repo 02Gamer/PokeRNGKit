@@ -303,6 +303,28 @@ export const saveEditorResources = {
     trainerGameVersionError: "此存档不支持所选游戏版本。",
     trainerAppearance6Error:
       "昵称或外观值无效，或角色性别已变化。请检查范围，必要时重置昵称与外观草稿。",
+    pokedexTitle: "图鉴",
+    pokedexRead: "读取图鉴",
+    pokedexSeen: "见过",
+    pokedexCaught: "捕获",
+    pokedexSeenAll: "全部设为见过",
+    pokedexSeenNone: "全部设为未见过",
+    pokedexCaughtAll: "全部设为已捕获",
+    pokedexCaughtNone: "全部设为未捕获",
+    pokedexSearch: "搜索宝可梦名称或编号",
+    pokedexNoMatches: "没有匹配的宝可梦。",
+    pokedexCounts: "见过 {seen} / {total}，捕获 {caught} / {total}",
+    pokedexApply: "应用图鉴修改",
+    pokedexReset: "重置图鉴草稿",
+    pokedexNote:
+      "见过与捕获分别编辑。批量按钮作用于整本图鉴，搜索只改变显示；应用后才写入工作副本，可通过撤销恢复。",
+    pokedexGen2:
+      "应用时，已捕获的未知图腾会按 PKHeX 补齐字母记录，并修复空的首次遇见记录。",
+    pokedexGen3: "应用时会同步存档中的三份“见过”记录。",
+    pokedexVc:
+      "已按原文件名识别火红／叶绿特殊模式。应用时会清除禁用种类的捕获标记，保留其见过记录。",
+    pokedexOnly: "此格式目前开放图鉴编辑，其他编辑功能仍在接入中。",
+    pokedexError: "图鉴数据、条目或文件名无效，或此格式暂不支持图鉴编辑。",
     trainerLanguage: "存档语言",
     recordsTitle: "游戏记录",
     recordsRead: "读取游戏记录",
@@ -809,6 +831,30 @@ export const saveEditorResources = {
       "This save does not support the selected game version.",
     trainerAppearance6Error:
       "Invalid nickname or appearance value, or the trainer gender changed. Check the limits or reset the nickname and appearance draft.",
+    pokedexTitle: "Pokédex",
+    pokedexRead: "Read Pokédex",
+    pokedexSeen: "Seen",
+    pokedexCaught: "Caught",
+    pokedexSeenAll: "Seen all",
+    pokedexSeenNone: "Seen none",
+    pokedexCaughtAll: "Caught all",
+    pokedexCaughtNone: "Caught none",
+    pokedexSearch: "Search Pokémon name or number",
+    pokedexNoMatches: "No matching Pokémon.",
+    pokedexCounts: "Seen {seen} / {total}, caught {caught} / {total}",
+    pokedexApply: "Apply Pokédex changes",
+    pokedexReset: "Reset Pokédex draft",
+    pokedexNote:
+      "Seen and caught are independent. Bulk buttons affect the whole Pokédex; search only filters the view. Apply writes to the working copy and can be undone.",
+    pokedexGen2:
+      "Applying fills the letter records for caught Unown and repairs an empty first-seen record, following PKHeX.",
+    pokedexGen3: "Applying synchronizes all three copies of the seen flags.",
+    pokedexVc:
+      "The original filename identifies the special FireRed/LeafGreen mode. Applying clears disallowed caught flags while keeping their seen flags.",
+    pokedexOnly:
+      "Pokédex editing is available for this format; other editors are still being integrated.",
+    pokedexError:
+      "Invalid Pokédex data, entry or filename, or this format is not supported yet.",
     trainerLanguage: "Save language",
     recordsTitle: "Game records",
     recordsRead: "Read game records",
@@ -1337,6 +1383,30 @@ export const saveEditorResources = {
       "このセーブでは選択したゲームバージョンを使用できません。",
     trainerAppearance6Error:
       "ニックネーム・外見の値が無効、または性別が変更されています。範囲を確認し、必要なら下書きをリセットしてください。",
+    pokedexTitle: "ポケモン図鑑",
+    pokedexRead: "図鑑を読み込む",
+    pokedexSeen: "見つけた",
+    pokedexCaught: "捕まえた",
+    pokedexSeenAll: "すべて見つけた",
+    pokedexSeenNone: "すべて未発見",
+    pokedexCaughtAll: "すべて捕まえた",
+    pokedexCaughtNone: "すべて未捕獲",
+    pokedexSearch: "ポケモン名・番号で検索",
+    pokedexNoMatches: "一致するポケモンはありません。",
+    pokedexCounts: "見つけた {seen} / {total}、捕まえた {caught} / {total}",
+    pokedexApply: "図鑑の変更を適用",
+    pokedexReset: "図鑑の下書きをリセット",
+    pokedexNote:
+      "発見と捕獲を個別に編集します。一括操作は図鑑全体に適用され、検索は表示のみを絞り込みます。適用後も取り消しで戻せます。",
+    pokedexGen2:
+      "適用時、捕獲済みアンノーンの文字記録を埋め、最初に見つけた記録が空なら PKHeX と同様に修復します。",
+    pokedexGen3: "適用時、3 か所の発見記録を同期します。",
+    pokedexVc:
+      "元のファイル名から FR/LG の特殊モードを識別しました。適用時に対象外の捕獲フラグを解除し、発見記録は保持します。",
+    pokedexOnly:
+      "この形式では図鑑を編集できます。他の編集機能は対応作業中です。",
+    pokedexError:
+      "図鑑データ・項目・ファイル名が無効、または未対応の形式です。",
     trainerLanguage: "セーブの言語",
     recordsTitle: "ゲームの記録",
     recordsRead: "ゲームの記録を読み込む",
@@ -1574,6 +1644,7 @@ export function localizeSaveError(
   if (/Unrecognized/.test(message)) return words.fileError;
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
+  if (/Pokedex/.test(message)) return words.pokedexError;
   if (/Trainer nickname|Trainer appearance/.test(message))
     return words.trainerAppearance6Error;
   if (/Trainer game version/.test(message))

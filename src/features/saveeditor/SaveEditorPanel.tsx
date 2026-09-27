@@ -1,3 +1,4 @@
+import { SimplePokedexEditor } from "./SimplePokedexEditor";
 import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
 import { TrainerDateFields } from "./TrainerDateFields";
 import { useEffect, useRef, useState } from "react";
@@ -58,7 +59,7 @@ export function SaveEditorPanel(
   const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [section, setSection] = useState<
-    "pokemon" | "trainer" | "inventory" | "records"
+    "pokemon" | "trainer" | "inventory" | "records" | "pokedex"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
     nickname: "",
@@ -159,7 +160,8 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
-        previous === "records" && !result.report.trainer.canRecords
+        (previous === "pokedex" && !result.report.pokedex) ||
+        (previous === "records" && !result.report.trainer.canRecords)
           ? "trainer"
           : previous,
       );
@@ -178,11 +180,16 @@ export function SaveEditorPanel(
   const exportFile = () =>
     perform(async (id) => {
       if (!report || !original.current) return;
-      const edit = validateTrainer(draft, report);
-      const result = await client.current.run(
-        working.current ?? original.current,
-        JSON.stringify(edit),
-      );
+      const result = report.canEdit
+        ? await client.current.run(
+            working.current ?? original.current,
+            JSON.stringify(validateTrainer(draft, report)),
+          )
+        : await client.current.run(
+            working.current ?? original.current,
+            undefined,
+            "exportWorkingCopy",
+          );
       if (id !== operation.current) return;
       if (!result.output) throw new Error("No output was returned.");
       const blob = new Blob([new Uint8Array(result.output)], {
@@ -211,6 +218,22 @@ export function SaveEditorPanel(
       inventory = result.inventory;
     });
     return inventory;
+  };
+
+  const readPokedex = async () => {
+    let catalog: import("./simplePokedex").SimpleDexCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ fileName: name }),
+        "pokedex",
+      );
+      if (id !== operation.current) return;
+      if (!result.pokedex) throw new Error("Pokedex catalog was not returned.");
+      catalog = result.pokedex;
+    });
+    return catalog;
   };
 
   const readRecords = async () => {
@@ -338,6 +361,7 @@ export function SaveEditorPanel(
       | BoxEdit
       | import("./domain").BagEdit
       | import("./domain").BagOperation
+      | import("./simplePokedex").SimpleDexEdit
       | import("./domain").SaveRecordEdit
       | ReturnType<typeof validateTrainer>
       | StorageEdit
@@ -350,6 +374,7 @@ export function SaveEditorPanel(
       | "pokemonImport"
       | "inventoryEdit"
       | "inventoryBatch"
+      | "pokedexEdit"
       | "recordEdit"
       | "trainer",
   ) =>
@@ -456,7 +481,7 @@ export function SaveEditorPanel(
           <button
             type="button"
             className="primary"
-            disabled={busy || !report.canEdit}
+            disabled={busy || !(report.canEdit || report.pokedex?.canEdit)}
             onClick={() => void exportFile()}
           >
             <Download size={18} aria-hidden="true" /> {words.export}
@@ -570,6 +595,15 @@ export function SaveEditorPanel(
             >
               {words.inventory}
             </button>
+            {report.pokedex && (
+              <button
+                type="button"
+                aria-pressed={section === "pokedex"}
+                onClick={() => setSection("pokedex")}
+              >
+                {words.pokedexTitle}
+              </button>
+            )}
             {report.trainer.canRecords && (
               <button
                 type="button"
@@ -580,7 +614,16 @@ export function SaveEditorPanel(
               </button>
             )}
           </div>
-          {section === "records" && report.trainer.canRecords ? (
+          {section === "pokedex" && report.pokedex ? (
+            <SimplePokedexEditor
+              key={`${name}:${fileRevision}`}
+              revision={workingRevision}
+              fileName={name}
+              busy={busy}
+              onRead={readPokedex}
+              onApply={(edit) => applyWorkingEdit(edit, "pokedexEdit")}
+            />
+          ) : section === "records" && report.trainer.canRecords ? (
             <SaveRecordEditor
               key={`${name}:${fileRevision}`}
               revision={workingRevision}
@@ -655,7 +698,9 @@ export function SaveEditorPanel(
                 </div>
               </dl>
               {report.checksumsValid && !report.canEdit && (
-                <p>{words.readonly}</p>
+                <p>
+                  {report.pokedex?.canEdit ? words.pokedexOnly : words.readonly}
+                </p>
               )}
               <fieldset
                 disabled={busy || !report.canEdit}

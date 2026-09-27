@@ -13,7 +13,8 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 47,
+  pokedex: { kind: "simple", canEdit: true },
+  apiVersion: 48,
   trainer: {
     appearance6: null,
     gameVersion: { value: 3, choices: [] },

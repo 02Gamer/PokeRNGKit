@@ -460,3 +460,19 @@
   gap: 8px;
   min-height: 32px;
 }
+
+.save-pokedex-table-wrap {
+  max-height: min(52dvh, 32rem);
+  overflow: auto;
+}
+.save-pokedex-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+.save-pokedex-table-wrap tbody th {
+  position: static;
+  font-weight: normal;
+}

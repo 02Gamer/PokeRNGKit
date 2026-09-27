@@ -41,6 +41,10 @@ export function ribbonImage(
   return assets[resource] ? url(resource) : undefined;
 }
 
+export function speciesImage(species: number) {
+  return url(assets[`b_${species}`] ? `b_${species}` : "b_unknown");
+}
+
 export function pokemonImage(pokemon: PokemonEntry) {
   const key = assets[pokemon.sprite]
     ? pokemon.sprite

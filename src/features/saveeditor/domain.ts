@@ -45,7 +45,8 @@ export interface TrainerDateField {
 }
 
 export interface SaveReport {
-  apiVersion: 47;
+  pokedex: { kind: "simple"; canEdit: boolean } | null;
+  apiVersion: 48;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -730,6 +731,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  pokedex?: import("./simplePokedex").SimpleDexCatalog;
   records?: SaveRecordCatalog;
   inventory?: BagReport;
   memoryCatalog?: MemoryCatalog;

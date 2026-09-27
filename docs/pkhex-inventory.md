@@ -24,6 +24,10 @@
 
 ## 当前工程证据
 
+API 48 接入 SAV_SimplePokedex 对应的第一至第三世代见过/捕获与四种批量操作。
+三语名称、本地图像、工作副本/撤销/下载，按上游处理未知图腾字母、GBA 关联位图和 FRLG 特殊模式。
+第一、二世代采用独立图鉴编辑能力，不开放其他未接入编辑器；后续世代专用图鉴继续推进，浏览器待核验。
+
 API 47 接入 XY 训练家昵称及完整外观属性：男性 30 项、女性 34 项，三语名称、枚举和高级编号。
 保留原始未改位模式/昵称尾部，支持性别变化后的草稿重置、撤销和导出回读；其他训练家字段仍待接入。
 
@@ -360,7 +364,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 待核对                                                       |
 | `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                      |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                       |
-| `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 待核对                                                       |
+| `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 已接入 Gen1–3；区域布局、批量标记及联动规则通过工程检查      |
 | `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/GBA 设置/DS 地区及坐标已接入；日期等字段待接入          |
 | `Subforms/Save Editors/SAV_Wondercard.cs`                                     | 待核对                                                       |
 | `Subforms/Save Editors/TrainerStat.cs`                                        | 读写与三语名称已接入；浏览器待核验                           |

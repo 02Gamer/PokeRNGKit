@@ -24,6 +24,15 @@ public static partial class Program
     public static string ReadInventory(byte[] data) => SaveService.ReadInventory(data);
 
     [JSExport]
+    public static string ReadPokedex(byte[] data, string json) => SaveService.ReadPokedex(data, json);
+
+    [JSExport]
+    public static byte[] EditPokedex(byte[] data, string json) => SaveService.EditPokedex(data, json);
+
+    [JSExport]
+    public static byte[] ExportWorkingCopy(byte[] data) => SaveService.ExportWorkingCopy(data);
+
+    [JSExport]
     public static string ReadRecords(byte[] data) => SaveService.ReadRecords(data);
 
     [JSExport]
@@ -79,16 +88,42 @@ public static class SaveService
 {
     public const int MaximumSize = 32 * 1024 * 1024;
 
+    public static string ReadPokedex(byte[] data, string json)
+    {
+        var query = JsonSerializer.Deserialize(json, SaveJsonContext.Default.SimpleDexQuery) ?? throw new ArgumentException("Missing Pokedex query.");
+        return JsonSerializer.Serialize(SimplePokedex.Read(Open(data), query.FileName), SaveJsonContext.Default.SimpleDexCatalog);
+    }
+    public static byte[] EditPokedex(byte[] data, string json)
+    {
+        var save = Open(data);
+        if (!SimplePokedex.Supports(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
+            throw new ArgumentException("Pokedex editing requires a supported save with valid checksums.");
+        var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.SimpleDexEdit) ?? throw new ArgumentException("Missing Pokedex edit.");
+        var expected = SimplePokedex.Apply(save, edit);
+        var output = save.Write().ToArray(); var check = Open(output);
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || SimplePokedex.Snapshot(check) != expected)
+            throw new InvalidOperationException("Pokedex export verification failed.");
+        return output;
+    }
+    public static byte[] ExportWorkingCopy(byte[] data)
+    {
+        var save = Open(data);
+        if ((!CanEdit(save) && !SimplePokedex.Supports(save)) || !save.State.Exportable || !SaveChecksums.Valid(save))
+            throw new ArgumentException("Export requires a supported save with valid checksums.");
+        // Every edit already recomputes checksums and verifies a reload. Preserve those exact verified bytes.
+        return data.ToArray();
+    }
+
     public static string ReadRecords(byte[] data) => JsonSerializer.Serialize(SaveRecords.Read(Open(data)),SaveJsonContext.Default.SaveRecordCatalog);
     public static byte[] EditRecord(byte[] data,string json)
     {
         var save=Open(data);
-        if(!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if(!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.SaveRecordEdit) ?? throw new ArgumentException("Missing game record edit.");
         var expected=SaveRecords.Apply(save,edit);
         var output=save.Write().ToArray(); var check=Open(output);
-        if(!check.ChecksumsValid || check.GetType()!=save.GetType() || SaveRecords.Snapshot(check)!=expected)
+        if(!SaveChecksums.Valid(check) || check.GetType()!=save.GetType() || SaveRecords.Snapshot(check)!=expected)
             throw new InvalidOperationException("Game record export verification failed.");
         return output;
     }
@@ -99,13 +134,13 @@ public static class SaveService
     public static byte[] EditInventory(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BagEdit) ?? throw new ArgumentException("Missing inventory edit.");
         var expected = InventoryEditing.Apply(save, edit);
         var output = save.Write().ToArray();
         var check = Open(output);
-        if (!check.ChecksumsValid || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
             throw new InvalidOperationException("Inventory export verification failed.");
         return output;
     }
@@ -113,12 +148,12 @@ public static class SaveService
     public static byte[] EditInventoryBatch(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BagOperation) ?? throw new ArgumentException("Missing inventory action.");
         var expected = InventoryBatch.Apply(save,edit);
         var output = save.Write().ToArray(); var check = Open(output);
-        if (!check.ChecksumsValid || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
             throw new InvalidOperationException("Inventory export verification failed.");
         return output;
     }
@@ -187,7 +222,7 @@ public static class SaveService
     public static byte[] EditPokemon(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.PokemonEdit)
             ?? throw new ArgumentException("Missing Pokemon values.");
@@ -196,7 +231,7 @@ public static class SaveService
         var expected = StorageEditing.StoredData(save, position);
         var output = save.Write().ToArray();
         var check = Open(output);
-        if (!check.ChecksumsValid || check.GetType() != save.GetType() || !StorageEditing.StoredData(check, position).SequenceEqual(expected))
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || !StorageEditing.StoredData(check, position).SequenceEqual(expected))
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         PokemonEditing.Verify(check, edit);
         return output;
@@ -205,16 +240,16 @@ public static class SaveService
     public static string Inspect(byte[] data)
     {
         var save = Open(data);
-        var valid = save.ChecksumsValid;
+        var valid = SaveChecksums.Valid(save);
         var report = new SaveReport(
-            47, save.GetType().Name, save.Generation, save.Version.ToString(),
+            48, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
             save.BoxCount, save.PartyCount, save.PlayTimeString, valid,
             valid && CanEdit(save) && save.State.Exportable,
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
-            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save));
+            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), SimplePokedex.Capability(save));
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -229,7 +264,7 @@ public static class SaveService
     public static byte[] ImportPokemon(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var request = JsonSerializer.Deserialize(json, SaveJsonContext.Default.PokemonImport)
             ?? throw new ArgumentException("Missing Pokemon file.");
@@ -238,7 +273,7 @@ public static class SaveService
         var partyCount = save.PartyCount;
         var output = save.Write().ToArray();
         var check = Open(output);
-        if (!check.ChecksumsValid || check.GetType() != save.GetType() || check.PartyCount != partyCount ||
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || check.PartyCount != partyCount ||
             !StorageEditing.StoredData(check, position).SequenceEqual(expected))
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         return output;
@@ -247,7 +282,7 @@ public static class SaveService
     public static byte[] EditPokemonRaw(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.PokemonRawEdit)
             ?? throw new ArgumentException("Missing Pokemon values.");
@@ -256,7 +291,7 @@ public static class SaveService
         var expected = StorageEditing.StoredData(save, position);
         var output = save.Write().ToArray();
         var check = Open(output);
-        if (!check.ChecksumsValid || check.GetType() != save.GetType() || check.PartyCount != save.PartyCount ||
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || check.PartyCount != save.PartyCount ||
             !StorageEditing.StoredData(check, position).SequenceEqual(expected))
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         return output;
@@ -265,7 +300,7 @@ public static class SaveService
     public static byte[] EditStorage(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.StorageEdit)
             ?? throw new ArgumentException("Missing storage values.");
@@ -275,7 +310,7 @@ public static class SaveService
         var partyCount = save.PartyCount;
         var output = save.Write().ToArray();
         var check = Open(output);
-        if (!check.ChecksumsValid || check.GetType() != save.GetType() || check.PartyCount != partyCount ||
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || check.PartyCount != partyCount ||
             positions.Where((position, index) => !StorageEditing.StoredData(check, position).SequenceEqual(expected[index])).Any())
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         return output;
@@ -284,14 +319,14 @@ public static class SaveService
     public static byte[] EditBox(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BoxEdit)
             ?? throw new ArgumentException("Missing box values.");
         BoxEditing.Apply(save, edit);
         var output = save.Write().ToArray();
         var check = Open(output);
-        if (!check.ChecksumsValid || check.GetType() != save.GetType())
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType())
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         BoxEditing.Verify(check, edit);
         return output;
@@ -300,7 +335,7 @@ public static class SaveService
     public static byte[] Export(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !save.ChecksumsValid)
+        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.TrainerEdit)
             ?? throw new ArgumentException("Missing trainer values.");
@@ -308,7 +343,7 @@ public static class SaveService
         var expected = TrainerEditing.Snapshot(save);
         var output = save.Write().ToArray();
         var check = Open(output);
-        if (!check.ChecksumsValid || check.GetType() != save.GetType() ||
+        if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() ||
             TrainerEditing.Snapshot(check) != expected)
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         return output;
@@ -320,10 +355,13 @@ public sealed record SaveReport(
     ushort Tid, ushort Sid, uint DisplayTid, uint DisplaySid, int Language,
     byte Gender, uint Money, int MaxMoney, int MaxNameLength, int BoxCount,
     int PartyCount, string PlayTime, bool ChecksumsValid, bool CanEdit,
-    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer);
+    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer, PokedexCapability? Pokedex);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(SimpleDexQuery))]
+[JsonSerializable(typeof(SimpleDexCatalog))]
+[JsonSerializable(typeof(SimpleDexEdit))]
 [JsonSerializable(typeof(SaveRecordCatalog))]
 [JsonSerializable(typeof(SaveRecordEdit))]
 [JsonSerializable(typeof(BagReport))]

@@ -7,6 +7,9 @@ interface SaveExports {
       Program: {
         ConfigureBrowserCrypto(): void;
         Inspect(data: Uint8Array): string;
+        ReadPokedex(data: Uint8Array, json: string): string;
+        EditPokedex(data: Uint8Array, json: string): Uint8Array;
+        ExportWorkingCopy(data: Uint8Array): Uint8Array;
         ReadInventory(data: Uint8Array): string;
         ReadRecords(data: Uint8Array): string;
         EditRecord(data: Uint8Array, json: string): Uint8Array;
@@ -54,6 +57,9 @@ self.addEventListener(
       bytes: Uint8Array;
       edit?: string;
       kind?:
+        | "pokedex"
+        | "pokedexEdit"
+        | "exportWorkingCopy"
         | "trainer"
         | "inventory"
         | "records"
@@ -74,7 +80,9 @@ self.addEventListener(
         | "pokemonExport";
     }>,
   ) => {
-    const { id, base, bytes, edit, kind } = event.data;
+    const { id, base, bytes, kind } = event.data;
+    const edit = event.data.edit;
+    const payload = edit ?? "";
     try {
       runtime ??= loadRuntime(base).catch((error) => {
         runtime = undefined;
@@ -82,7 +90,8 @@ self.addEventListener(
       });
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
       const output =
-        edit === undefined ||
+        (edit === undefined && kind !== "exportWorkingCopy") ||
+        kind === "pokedex" ||
         kind === "inventory" ||
         kind === "records" ||
         kind === "legality" ||
@@ -94,59 +103,67 @@ self.addEventListener(
         kind === "relearnSuggestion"
           ? undefined
           : new Uint8Array(
-              kind === "recordEdit"
-                ? api.EditRecord(bytes, edit)
-                : kind === "inventoryBatch"
-                  ? api.EditInventoryBatch(bytes, edit)
-                  : kind === "inventoryEdit"
-                    ? api.EditInventory(bytes, edit)
-                    : kind === "pokemonRaw"
-                      ? api.EditPokemonRaw(bytes, edit)
-                      : kind === "pokemon"
-                        ? api.EditPokemon(bytes, edit)
-                        : kind === "box"
-                          ? api.EditBox(bytes, edit)
-                          : kind === "storage"
-                            ? api.EditStorage(bytes, edit)
-                            : kind === "pokemonImport"
-                              ? api.ImportPokemon(bytes, edit)
-                              : api.Export(bytes, edit),
+              kind === "exportWorkingCopy"
+                ? api.ExportWorkingCopy(bytes)
+                : kind === "pokedexEdit"
+                  ? api.EditPokedex(bytes, payload)
+                  : kind === "recordEdit"
+                    ? api.EditRecord(bytes, payload)
+                    : kind === "inventoryBatch"
+                      ? api.EditInventoryBatch(bytes, payload)
+                      : kind === "inventoryEdit"
+                        ? api.EditInventory(bytes, payload)
+                        : kind === "pokemonRaw"
+                          ? api.EditPokemonRaw(bytes, payload)
+                          : kind === "pokemon"
+                            ? api.EditPokemon(bytes, payload)
+                            : kind === "box"
+                              ? api.EditBox(bytes, payload)
+                              : kind === "storage"
+                                ? api.EditStorage(bytes, payload)
+                                : kind === "pokemonImport"
+                                  ? api.ImportPokemon(bytes, payload)
+                                  : api.Export(bytes, payload),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 47)
+      if (report.apiVersion !== 48)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined
-          ? JSON.parse(api.AnalyzePokemon(bytes, edit))
+          ? JSON.parse(api.AnalyzePokemon(bytes, payload))
           : undefined;
       const pokemonFile =
         kind === "pokemonExport" && edit !== undefined
-          ? JSON.parse(api.ExportPokemon(bytes, edit))
+          ? JSON.parse(api.ExportPokemon(bytes, payload))
           : undefined;
       const originCatalog =
         kind === "originCatalog" && edit !== undefined
-          ? JSON.parse(api.ReadOrigin(bytes, edit))
+          ? JSON.parse(api.ReadOrigin(bytes, payload))
           : undefined;
       const relearnSuggestion =
         kind === "relearnSuggestion" && edit !== undefined
-          ? JSON.parse(api.SuggestRelearn(bytes, edit))
+          ? JSON.parse(api.SuggestRelearn(bytes, payload))
           : undefined;
       const ribbons =
         kind === "ribbons" && edit !== undefined
-          ? JSON.parse(api.ReadRibbons(bytes, edit))
+          ? JSON.parse(api.ReadRibbons(bytes, payload))
           : undefined;
       const historyCatalog =
         kind === "historyCatalog" && edit !== undefined
-          ? JSON.parse(api.ReadHistory(bytes, edit))
+          ? JSON.parse(api.ReadHistory(bytes, payload))
           : undefined;
       const memoryCatalog =
         kind === "memoryCatalog" && edit !== undefined
-          ? JSON.parse(api.ReadMemory(bytes, edit))
+          ? JSON.parse(api.ReadMemory(bytes, payload))
           : undefined;
       self.postMessage(
         {
           id,
           report,
+          pokedex:
+            kind === "pokedex" && edit !== undefined
+              ? JSON.parse(api.ReadPokedex(bytes, payload))
+              : undefined,
           records:
             kind === "records" ? JSON.parse(api.ReadRecords(bytes)) : undefined,
           inventory:
