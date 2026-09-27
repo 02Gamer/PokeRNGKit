@@ -8,6 +8,7 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../BoxImportPreview.cs" Link="BoxImportPreview.cs" />
     <Compile Include="../BoxArchive.cs" Link="BoxArchive.cs" />
     <Compile Include="../FileBatchApi.cs" Link="FileBatchApi.cs" />
     <Compile Include="../FilePropertyBatch.cs" Link="FilePropertyBatch.cs" />

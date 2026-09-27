@@ -5,6 +5,14 @@
 
 ## 箱子批量导入契约
 
+内部 BoxImportPreview 已实现实体输入层的副本预览和固定结果提交，尚未接入产品入口。
+源文件限 32 MiB、实体限 10000 个；起始箱索引必须位于存档箱子范围，三项导入设置均限 0–2。
+仅接收可编辑且校验通过的存档，按 Core 的原始格位存在判定寻找空格，分别记录删除、覆盖、写入与跳过原因。
+提交核对原文件 SHA-256，并分别要求删除、覆盖和未导入实体确认；返回预览时固定的独立字节副本。
+导出后重读并核对格式、校验和、箱子元数据／内容／保护标记及队伍；无操作时保留原始字节。
+11 格式专项检查已核对清空／覆盖四种组合与 Core 输出逐字节一致、空输入删除确认、过期拒绝及副本隔离。
+文件来源展开、导入设置的完整覆盖、Worker 和界面仍待接入，不作为完整批量导入能力。
+
 核对 WinForms SAVEditor.GetBulkImportSettings／LoadBoxes、Core BoxUtil.LoadBoxes、
 SaveExtensions.GetCompatible／ImportPKMs 和 SaveFile.ClearBoxes。当前仅固定上游规则，批量导入产品入口尚未接入。
 

@@ -1,10 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 using PKHeX.Core;
+using PokeRNGKit.SaveEditor;
 
 internal static class BoxImportContractTests
 {
     private static void Check(bool value, string message) { if (!value) throw new Exception(message); }
     private static SaveFile Open(byte[] data) => SaveUtil.GetSaveFile(data.ToArray())!;
+    private static void Reject(Action action)
+    {
+        try { action(); } catch (ArgumentException) { return; }
+        throw new Exception("Expected preview confirmation or stale-source rejection");
+    }
     public static void Run()
     {
         foreach (var version in new[] { "E", "D", "Pt", "HG", "B", "B2", "X", "OR", "SN", "US", "BD" })
@@ -20,6 +26,28 @@ internal static class BoxImportContractTests
                 p.PID = pid; p.Language = 2; p.CurrentLevel = 20; p.RefreshChecksum(); return p;
             }
             var incoming = new[] { Incoming(200), Incoming(201) };
+            foreach (bool clearFirst in new[] { false, true })
+                foreach (bool overwrite in new[] { false, true })
+                {
+                    var plan = BoxImportPreview.Prepare(input, incoming, 1, clearFirst, overwrite, EntityImportSettings.None);
+                    var reference = Open(input);
+                    reference.LoadBoxes(incoming, out _, 1, clearFirst, overwrite, EntityImportSettings.None);
+                    var actual = plan.Commit(input, true, true, true);
+                    Check(actual.SequenceEqual(reference.Write().ToArray()), "Preview bytes match Core import and export");
+                    Check(plan.Summary.Written == 2 && plan.Summary.Overwritten == (!clearFirst && overwrite ? 1 : 0), "Actual write and overwrite counts");
+                    if (clearFirst) Reject(() => plan.Commit(input, false, true, true));
+                    if (!clearFirst && overwrite) Reject(() => plan.Commit(input, true, false, true));
+                    var changed = input.ToArray(); changed[0] ^= 1;
+                    Reject(() => plan.Commit(changed, true, true, true));
+                    actual[0] ^= 1;
+                    Check(plan.Commit(input, true, true, true).SequenceEqual(reference.Write().ToArray()), "Commit returns detached frozen bytes");
+                }
+            var emptyPlan = BoxImportPreview.Prepare(input, [], 1, true, false, EntityImportSettings.None);
+            Check(emptyPlan.Summary.Deleted == 2 && emptyPlan.Summary.Written == 0 &&
+                emptyPlan.Summary.Outcomes.Count(o => o.Status == "deleted") == 2, "Empty input deletion positions remain explicit");
+            Reject(() => emptyPlan.Commit(input, false, true, true));
+            var noChange = BoxImportPreview.Prepare(input, [], 1, false, false, EntityImportSettings.None);
+            Check(noChange.Commit(input, false, false, false).SequenceEqual(input), "No-op preserves exact original bytes");
             var fill = Open(input);
             Check(fill.LoadBoxes(incoming, out _, 1, false, false, EntityImportSettings.None) == 2, "Open-slot import count");
             Check(fill.GetBoxSlotAtIndex(1, 0).PID == 100 && fill.GetBoxSlotAtIndex(1, 1).PID == 200 &&
@@ -39,10 +67,18 @@ internal static class BoxImportContractTests
                 "Core can clear boxes before reporting no import; Web preview must make deletion explicit");
             var incompatible = Incoming(202); incompatible.Move1 = (ushort)(setup.MaxMoveID + 1);
             Check(!Open(input).GetCompatible([incompatible]).Any(), "Move compatibility is separate from file recognition");
+            incompatible.RefreshChecksum();
+            var skipped = BoxImportPreview.Prepare(input, [incompatible], 1, false, false, EntityImportSettings.None);
+            Check(skipped.Summary.Outcomes.Single().Status == "incompatible", "Preview reports compatibility rejection");
+            Reject(() => skipped.Commit(input, true, true, false));
             var full = Open(input);
             int last = full.BoxCount - 1;
             for (int slot = 0; slot < full.BoxSlotCount - 1; slot++) full.SetBoxSlotAtIndex(sentinel, last, slot, EntityImportSettings.None);
             full.SetBoxSlotAtIndex(full.BlankPKM, last, full.BoxSlotCount - 1, EntityImportSettings.None);
+            var fullInput = full.Write().ToArray();
+            var capacity = BoxImportPreview.Prepare(fullInput, incoming, last, false, false, EntityImportSettings.None);
+            Check(capacity.Summary.Written == 1 && capacity.Summary.Outcomes.Last().Status == "full", "Preview reports capacity exhaustion");
+            Reject(() => capacity.Commit(fullInput, false, false, false));
             Check(full.LoadBoxes(incoming, out _, last, false, false, EntityImportSettings.None) == 1 &&
                 full.GetBoxSlotAtIndex(last, full.BoxSlotCount - 1).PID == 200,
                 "Capacity stops after the last free slot without wrapping to earlier boxes");
@@ -50,13 +86,19 @@ internal static class BoxImportContractTests
             {
                 protectedSave.BoxLayout.TeamSlots[0] = protectedSave.BoxSlotCount;
                 protectedSave.BoxLayout.SetIsTeamLocked(0, false);
+                var protectedInput = protectedSave.Write().ToArray();
+                var protectedPlan = BoxImportPreview.Prepare(protectedInput, [Incoming(210)], 1, false, true, EntityImportSettings.None);
+                Check(protectedPlan.Summary.Written == 1 && protectedPlan.Summary.Overwritten == 0 &&
+                    protectedPlan.Summary.Outcomes.First().Status == "protected", "Preview counts actual writes and protected positions");
+                Check(Open(protectedPlan.Commit(protectedInput, false, false, false)).GetBoxSlotAtIndex(1, 0).PID == 100,
+                    "Preview keeps protected entity");
                 int reported = protectedSave.ImportPKMs([Incoming(210)], true, 1, EntityImportSettings.None);
                 Check(protectedSave.GetBoxSlotAtIndex(1, 0).PID == 100 && protectedSave.GetBoxSlotAtIndex(1, 1).PID == 210,
                     "Protected slots skipped even when overwrite is requested");
                 Check(reported == 2, "Core overwrite count includes skipped protected slots; Web must count actual writes");
             }
             Check(input.SequenceEqual(original), "Reference source bytes remain untouched");
-            Console.WriteLine($"PASS {version}: import order, overwrite semantics, clear range, empty-input deletion, compatibility, capacity and protected-slot count contract");
+            Console.WriteLine($"PASS {version}: Core import contract, preview byte parity, overwrite/deletion confirmation, detached commits, stale-source rejection and source preservation");
         }
     }
 }
