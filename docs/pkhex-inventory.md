@@ -381,7 +381,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | 待核对                                                             |
 | `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 待核对                                                             |
 | `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | 待核对                                                             |
-| `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | 已核对字段、修订与批量差异；分块检查已补充，入口待接入             |
+| `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | API 58：三语图鉴、三组形态、十语言、超级进化与批量编辑             |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 已接入旧版状态、形态、语言、显示及批量；工程检查通过，浏览器待核验 |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 已接入四组形态位及三地区显示、批量；工程检查通过，浏览器待核验     |
 | `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | 待核对                                                             |

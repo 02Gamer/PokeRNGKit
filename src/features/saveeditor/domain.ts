@@ -55,10 +55,11 @@ export interface SaveReport {
       | "bdsp"
       | "swsh"
       | "legends"
-      | "sv";
+      | "sv"
+      | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 57;
+  apiVersion: 58;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -743,6 +744,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  pokedex9a?: import("./zaPokedex").Dex9aCatalog;
   pokedex9?: import("./svPokedex").Dex9Catalog;
   pokedex8a?: import("./legendsPokedex").Dex8aCatalog;
   pokedex8?: import("./swshPokedex").Dex8Catalog;

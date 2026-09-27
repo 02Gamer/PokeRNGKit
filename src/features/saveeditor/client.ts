@@ -16,6 +16,8 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "pokedex9a"
+      | "pokedex9aEdit"
       | "pokedex9"
       | "pokedex9Edit"
       | "pokedex8a"
