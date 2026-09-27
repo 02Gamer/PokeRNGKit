@@ -256,6 +256,33 @@ export function SaveEditorPanel(
     if (working.current)
       client.current.discardBoxImport(working.current, token);
   }, []);
+  const discardBoxBinary = useCallback((token: string) => {
+    if (working.current)
+      client.current.discardBoxBinary(working.current, token);
+  }, []);
+  const previewBoxBinary = async (
+    file: File,
+    options: import("./boxBinary").BoxBinaryOptions,
+  ) => {
+    let response: import("./domain").SaveEditorResult | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      if (file.size === 0 || file.size > MAX_SAVE_BYTES)
+        throw new Error("Box binary file exceeds limits.");
+      const loaded = await readBatchFiles(
+        [file],
+        () => id === operation.current,
+      );
+      if (!loaded || id !== operation.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ ...options, data: loaded[0].data }),
+        "boxBinaryPreview",
+      );
+      if (id === operation.current) response = result;
+    });
+    return response;
+  };
   const previewBoxImport = async (
     files: File[],
     options: import("./boxImport").BoxImportOptions,
@@ -296,7 +323,7 @@ export function SaveEditorPanel(
   };
   const downloadArchive = async (
     payload: string,
-    kind: "fileExport" | "boxArchive",
+    kind: "fileExport" | "boxArchive" | "boxBinaryExport",
     filename: string,
   ) => {
     let downloaded = false;
@@ -304,9 +331,21 @@ export function SaveEditorPanel(
       if (!working.current) return;
       const result = await client.current.run(working.current, payload, kind);
       if (id !== operation.current) return;
-      if (!result.archive) throw new Error("File batch archive is missing.");
+      const bytes =
+        kind === "boxBinaryExport" ? result.boxBinary : result.archive;
+      if (!bytes)
+        throw new Error(
+          kind === "boxBinaryExport"
+            ? "Box binary export is missing."
+            : "File batch archive is missing.",
+        );
       const url = URL.createObjectURL(
-        new Blob([result.archive], { type: "application/zip" }),
+        new Blob([bytes], {
+          type:
+            kind === "boxBinaryExport"
+              ? "application/octet-stream"
+              : "application/zip",
+        }),
       );
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -330,6 +369,14 @@ export function SaveEditorPanel(
       JSON.stringify(request),
       "boxArchive",
       "PokeRNGKit-Boxes.zip",
+    );
+  const downloadBoxBinary = (request: { box: number; all: boolean }) =>
+    downloadArchive(
+      JSON.stringify(request),
+      "boxBinaryExport",
+      request.all
+        ? "PokeRNGKit-PC.bin"
+        : `PokeRNGKit-Box-${request.box + 1}.bin`,
     );
   const readInventory = async () => {
     let inventory: import("./domain").BagReport | undefined;
@@ -648,6 +695,7 @@ export function SaveEditorPanel(
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
+      | "boxBinaryCommit"
       | "boxImportCommit"
       | "propertyCommit"
       | "pokemon"
@@ -1078,6 +1126,12 @@ export function SaveEditorPanel(
                 applyWorkingEdit(confirmation, "boxImportCommit")
               }
               onDiscardBoxImport={discardBoxImport}
+              onPreviewBoxBinary={previewBoxBinary}
+              onApplyBoxBinary={(confirmation) =>
+                applyWorkingEdit(confirmation, "boxBinaryCommit")
+              }
+              onDiscardBoxBinary={discardBoxBinary}
+              onExportBoxBinary={downloadBoxBinary}
               legality={legality}
               onReadOrigin={readOrigin}
               onSuggestRelearn={suggestRelearn}

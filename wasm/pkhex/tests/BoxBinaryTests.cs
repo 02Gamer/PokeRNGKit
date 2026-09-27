@@ -23,7 +23,10 @@ internal static class BoxBinaryTests
             var box = BoxBinary.Export(input, 0, false);
             var pc = BoxBinary.Export(input, 0, true);
             Check(box.SequenceEqual(Open(input).GetBoxBinary(0)) && pc.SequenceEqual(Open(input).GetPCBinary()), "Binary export equals Core bytes and retains party tails");
-            foreach (var settings in new[] { default(EntityImportSettings), EntityImportSettings.None })
+            var combinations = from update in Enumerable.Range(0, 3)
+                from dex in Enumerable.Range(0, 3) from record in Enumerable.Range(0, 3)
+                select new EntityImportSettings((EntityImportOption)update, (EntityImportOption)dex, (EntityImportOption)record);
+            foreach (var settings in combinations)
             foreach (bool all in new[] { false, true })
             {
                 var data = all ? pc : box; var originalData = data.ToArray();
@@ -32,8 +35,10 @@ internal static class BoxBinaryTests
                 var prior = SaveFile.SetUpdateSettings;
                 try
                 {
-                    if (settings == EntityImportSettings.None)
-                        SaveFile.SetUpdatePKM = SaveFile.SetUpdateDex = SaveFile.SetUpdateRecords = EntityImportOption.Disable;
+                    // Preserve the actual defaults for "UseDefault"; do not install UseDefault as a global value.
+                    if (settings.UpdateToSaveFile != EntityImportOption.UseDefault) SaveFile.SetUpdatePKM = settings.UpdateToSaveFile;
+                    if (settings.UpdatePokeDex != EntityImportOption.UseDefault) SaveFile.SetUpdateDex = settings.UpdatePokeDex;
+                    if (settings.UpdateRecord != EntityImportOption.UseDefault) SaveFile.SetUpdateRecords = settings.UpdateRecord;
                     Check(all ? reference.SetPCBinary(data) : reference.SetBoxBinary(data, 1), "Core accepts reference binary");
                 }
                 finally
@@ -42,7 +47,7 @@ internal static class BoxBinaryTests
                 }
                 var output = plan.Commit(input, true, true, true);
                 Check(output.SequenceEqual(plan.Commit(input, true, true, true)), "Random generation is frozen in preview");
-                if (save.Generation == 6 && settings != EntityImportSettings.None)
+                if (save.Generation == 6 && settings.UpdateToSaveFile != EntityImportOption.Disable)
                 {
                     var actual = Open(output);
                     for (int i = 0; i < save.SlotCount; i++)
@@ -90,7 +95,7 @@ internal static class BoxBinaryTests
                 Reject(() => BoxBinary.Preview(protectedInput, pc, 0, true, default));
             }
             Check(input.SequenceEqual(original), "Original save remains unchanged");
-            Console.WriteLine($"PASS {version}: box/PC export and import parity (validated Gen6 random feelings aligned), None/default settings, frozen commits, empty-position deletion, party tails, protection and bounds");
+            Console.WriteLine($"PASS {version}: box/PC export and import parity (validated Gen6 random feelings aligned), all 27 settings, frozen commits, empty-position deletion, party tails, protection and bounds");
         }
     }
 }

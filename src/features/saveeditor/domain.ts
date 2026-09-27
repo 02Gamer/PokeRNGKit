@@ -59,7 +59,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 64;
+  apiVersion: 65;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -750,6 +750,8 @@ export interface RibbonCatalog {
 }
 export interface SaveEditorResult {
   boxImportPreview?: import("./boxImport").BoxImportTicket;
+  boxBinaryPreview?: import("./boxBinary").BoxBinaryTicket;
+  boxBinary?: Uint8Array<ArrayBuffer>;
   filePreview?: import("./fileBatch").FileBatchTicket;
   fileCatalog?: import("./propertyBatch").PropertyBatchCatalog[];
   archive?: Uint8Array<ArrayBuffer>;

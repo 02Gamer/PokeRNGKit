@@ -6,6 +6,10 @@ interface SaveExports {
     SaveEditor: {
       Program: {
         ConfigureBrowserCrypto(): void;
+        ExportBoxBinary(data: Uint8Array, json: string): Uint8Array;
+        PreviewBoxBinary(data: Uint8Array, json: string): string;
+        CommitBoxBinary(data: Uint8Array, json: string): Uint8Array;
+        DiscardBoxBinary(token: string): void;
         PreviewBoxImport(data: Uint8Array, json: string): string;
         CommitBoxImport(data: Uint8Array, json: string): Uint8Array;
         DiscardBoxImport(token: string): void;
@@ -87,6 +91,10 @@ self.addEventListener(
       bytes: Uint8Array;
       edit?: string;
       kind?:
+        | "boxBinaryPreview"
+        | "boxBinaryCommit"
+        | "boxBinaryDiscard"
+        | "boxBinaryExport"
         | "boxImportPreview"
         | "boxImportCommit"
         | "boxImportDiscard"
@@ -149,9 +157,37 @@ self.addEventListener(
         throw error;
       });
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
+      if (kind?.startsWith("boxBinary")) {
+        const before: SaveReport = JSON.parse(api.Inspect(bytes));
+        if (before.apiVersion !== 65)
+          throw new Error("Save editor API version mismatch.");
+        if (kind === "boxBinaryDiscard") api.DiscardBoxBinary(payload);
+        const output =
+          kind === "boxBinaryCommit"
+            ? new Uint8Array(api.CommitBoxBinary(bytes, payload))
+            : undefined;
+        const boxBinary =
+          kind === "boxBinaryExport"
+            ? new Uint8Array(api.ExportBoxBinary(bytes, payload))
+            : undefined;
+        self.postMessage(
+          {
+            id,
+            report: output ? JSON.parse(api.Inspect(output)) : before,
+            output,
+            boxBinary,
+            boxBinaryPreview:
+              kind === "boxBinaryPreview"
+                ? JSON.parse(api.PreviewBoxBinary(bytes, payload))
+                : undefined,
+          },
+          output ? [output.buffer] : boxBinary ? [boxBinary.buffer] : [],
+        );
+        return;
+      }
       if (kind?.startsWith("boxImport")) {
         const before: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (before.apiVersion !== 64)
+        if (before.apiVersion !== 65)
           throw new Error("Save editor API version mismatch.");
         if (kind === "boxImportDiscard") api.DiscardBoxImport(payload);
         const output =
@@ -174,7 +210,7 @@ self.addEventListener(
       }
       if (kind?.startsWith("file") || kind === "boxArchive") {
         const report: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (report.apiVersion !== 64)
+        if (report.apiVersion !== 65)
           throw new Error("Save editor API version mismatch.");
         if (kind === "fileDiscard") api.DiscardFileBatch(payload);
         const archive =
@@ -289,7 +325,7 @@ self.addEventListener(
                                                         ),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 64)
+      if (report.apiVersion !== 65)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined

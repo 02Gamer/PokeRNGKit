@@ -16,6 +16,10 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "boxBinaryPreview"
+      | "boxBinaryCommit"
+      | "boxBinaryDiscard"
+      | "boxBinaryExport"
       | "boxImportPreview"
       | "boxImportCommit"
       | "boxImportDiscard"
@@ -131,5 +135,10 @@ export class SaveEditorClient {
   discardBoxImport(bytes: Uint8Array, token: string) {
     if (this.worker)
       void this.run(bytes, token, "boxImportDiscard").catch(() => {});
+  }
+
+  discardBoxBinary(bytes: Uint8Array, token: string) {
+    if (this.worker)
+      void this.run(bytes, token, "boxBinaryDiscard").catch(() => {});
   }
 }

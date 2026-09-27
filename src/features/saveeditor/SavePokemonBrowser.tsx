@@ -16,6 +16,7 @@ import { StorageEditor } from "./StorageEditor";
 import { BoxEditor } from "./BoxEditor";
 import { BoxArchiveEditor } from "./BoxArchiveEditor";
 import { BoxImportEditor } from "./BoxImportEditor";
+import { BoxBinaryEditor, type BoxBinaryActions } from "./BoxBinaryEditor";
 import type { BoxImportOptions, BoxImportConfirmation } from "./boxImport";
 import type { BoxArchiveRequest } from "./boxArchive";
 import { PokemonLegality } from "./PokemonLegality";
@@ -55,6 +56,10 @@ export function SavePokemonBrowser({
   onPreviewBoxImport,
   onApplyBoxImport,
   onDiscardBoxImport,
+  onPreviewBoxBinary,
+  onApplyBoxBinary,
+  onDiscardBoxBinary,
+  onExportBoxBinary,
 }: {
   report: SaveReport;
   revision: number;
@@ -72,6 +77,10 @@ export function SavePokemonBrowser({
   ): Promise<import("./domain").SaveEditorResult | undefined>;
   onApplyBoxImport(confirmation: BoxImportConfirmation): Promise<void>;
   onDiscardBoxImport(token: string): void;
+  onPreviewBoxBinary: BoxBinaryActions["onPreviewBoxBinary"];
+  onApplyBoxBinary: BoxBinaryActions["onApplyBoxBinary"];
+  onDiscardBoxBinary: BoxBinaryActions["onDiscardBoxBinary"];
+  onExportBoxBinary: BoxBinaryActions["onExportBoxBinary"];
   legality?: PokemonLegalityReport;
   onSuggestRelearn(position: PokemonPosition): Promise<number[] | undefined>;
   onReadHistory(
@@ -177,6 +186,19 @@ export function SavePokemonBrowser({
           onPreview={onPreviewBoxImport}
           onApply={onApplyBoxImport}
           onDiscard={onDiscardBoxImport}
+        />
+      )}
+      {report.boxCount > 0 && report.checksumsValid && (
+        <BoxBinaryEditor
+          key={`${box}:${revision}:${lang}`}
+          box={box}
+          canEdit={report.canEdit}
+          busy={busy}
+          lang={lang}
+          onPreviewBoxBinary={onPreviewBoxBinary}
+          onApplyBoxBinary={onApplyBoxBinary}
+          onDiscardBoxBinary={onDiscardBoxBinary}
+          onExportBoxBinary={onExportBoxBinary}
         />
       )}
       <PokemonFileTools
