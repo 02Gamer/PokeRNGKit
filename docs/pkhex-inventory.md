@@ -24,8 +24,11 @@
 
 ## 当前工程证据
 
+API 55 接入剑／盾三个地区图鉴的独立记录、形态／语言／显示／次数和批量菜单。
+合成分块工程检查与产品功能分开记录；真实存档端到端及浏览器检查待完成。
+
 剑／盾新增合成分块序列化夹具，覆盖两版本与三种图鉴块组合的加密、重读及无关字节保持。
-未知块类型为测试设置，不视为真实游戏存档或产品入口验收；剑／盾图鉴界面仍待接入。
+未知块类型为测试设置，不视为真实游戏存档或产品入口验收；图鉴界面在 API 55 接入。
 
 API 54 接入 BDSP 图鉴状态、性别、九语言、普通／闪光形态及全国开关，工程检查通过。
 
@@ -351,7 +354,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 已接入 API 54；工程检查通过，浏览器待核验                    |
 | `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | 待核对                                                       |
-| `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | 待核对                                                       |
+| `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | API 55 已接入；真实存档与浏览器待核验                        |
 | `Subforms/Save Editors/Gen8/SAV_Raid8.cs`                                     | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | 待核对                                                       |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | 基础/性别/时间/语言/对应点数已接入；其他字段待接入           |

@@ -7,6 +7,8 @@ interface SaveExports {
       Program: {
         ConfigureBrowserCrypto(): void;
         Inspect(data: Uint8Array): string;
+        ReadPokedex8(data: Uint8Array): string;
+        EditPokedex8(data: Uint8Array, json: string): Uint8Array;
         ReadPokedex8b(data: Uint8Array): string;
         EditPokedex8b(data: Uint8Array, json: string): Uint8Array;
         ReadPokedex7(data: Uint8Array): string;
@@ -67,6 +69,8 @@ self.addEventListener(
       bytes: Uint8Array;
       edit?: string;
       kind?:
+        | "pokedex8"
+        | "pokedex8Edit"
         | "pokedex8b"
         | "pokedex8bEdit"
         | "pokedex7"
@@ -111,6 +115,7 @@ self.addEventListener(
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
       const output =
         (edit === undefined && kind !== "exportWorkingCopy") ||
+        kind === "pokedex8" ||
         kind === "pokedex8b" ||
         kind === "pokedex7" ||
         kind === "pokedex6" ||
@@ -130,38 +135,43 @@ self.addEventListener(
           : new Uint8Array(
               kind === "exportWorkingCopy"
                 ? api.ExportWorkingCopy(bytes)
-                : kind === "pokedex8bEdit"
-                  ? api.EditPokedex8b(bytes, payload)
-                  : kind === "pokedex7Edit"
-                    ? api.EditPokedex7(bytes, payload)
-                    : kind === "pokedex6Edit"
-                      ? api.EditPokedex6(bytes, payload)
-                      : kind === "pokedex5Edit"
-                        ? api.EditPokedex5(bytes, payload)
-                        : kind === "pokedex4Edit"
-                          ? api.EditPokedex4(bytes, payload)
-                          : kind === "pokedexEdit"
-                            ? api.EditPokedex(bytes, payload)
-                            : kind === "recordEdit"
-                              ? api.EditRecord(bytes, payload)
-                              : kind === "inventoryBatch"
-                                ? api.EditInventoryBatch(bytes, payload)
-                                : kind === "inventoryEdit"
-                                  ? api.EditInventory(bytes, payload)
-                                  : kind === "pokemonRaw"
-                                    ? api.EditPokemonRaw(bytes, payload)
-                                    : kind === "pokemon"
-                                      ? api.EditPokemon(bytes, payload)
-                                      : kind === "box"
-                                        ? api.EditBox(bytes, payload)
-                                        : kind === "storage"
-                                          ? api.EditStorage(bytes, payload)
-                                          : kind === "pokemonImport"
-                                            ? api.ImportPokemon(bytes, payload)
-                                            : api.Export(bytes, payload),
+                : kind === "pokedex8Edit"
+                  ? api.EditPokedex8(bytes, payload)
+                  : kind === "pokedex8bEdit"
+                    ? api.EditPokedex8b(bytes, payload)
+                    : kind === "pokedex7Edit"
+                      ? api.EditPokedex7(bytes, payload)
+                      : kind === "pokedex6Edit"
+                        ? api.EditPokedex6(bytes, payload)
+                        : kind === "pokedex5Edit"
+                          ? api.EditPokedex5(bytes, payload)
+                          : kind === "pokedex4Edit"
+                            ? api.EditPokedex4(bytes, payload)
+                            : kind === "pokedexEdit"
+                              ? api.EditPokedex(bytes, payload)
+                              : kind === "recordEdit"
+                                ? api.EditRecord(bytes, payload)
+                                : kind === "inventoryBatch"
+                                  ? api.EditInventoryBatch(bytes, payload)
+                                  : kind === "inventoryEdit"
+                                    ? api.EditInventory(bytes, payload)
+                                    : kind === "pokemonRaw"
+                                      ? api.EditPokemonRaw(bytes, payload)
+                                      : kind === "pokemon"
+                                        ? api.EditPokemon(bytes, payload)
+                                        : kind === "box"
+                                          ? api.EditBox(bytes, payload)
+                                          : kind === "storage"
+                                            ? api.EditStorage(bytes, payload)
+                                            : kind === "pokemonImport"
+                                              ? api.ImportPokemon(
+                                                  bytes,
+                                                  payload,
+                                                )
+                                              : api.Export(bytes, payload),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 54)
+      if (report.apiVersion !== 55)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined
@@ -195,6 +205,10 @@ self.addEventListener(
         {
           id,
           report,
+          pokedex8:
+            kind === "pokedex8"
+              ? JSON.parse(api.ReadPokedex8(bytes))
+              : undefined,
           pokedex8b:
             kind === "pokedex8b"
               ? JSON.parse(api.ReadPokedex8b(bytes))
