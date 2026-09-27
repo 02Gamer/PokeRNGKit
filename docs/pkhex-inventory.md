@@ -24,6 +24,9 @@
 
 ## 当前工程证据
 
+朱／紫图鉴已核对旧／新两种条目结构，增加两版本各三种修订的合成分块检查。
+产品读写入口尚未接入；未知块类型与历史块表仍为合成设置，不作为真实存档验收。
+
 API 56 接入阿尔宙斯图鉴与 30 项高级研究计数，覆盖形态、体型、任务和汇报流程。
 两种合成存档修订用于工程验证；真实存档端到端及浏览器验收待完成。
 
@@ -372,8 +375,8 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 待核对                                                       |
 | `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | 待核对                                                       |
 | `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | 待核对                                                       |
-| `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 待核对                                                       |
-| `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 待核对                                                       |
+| `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 已核对结构与输入；合成分块检查已补充，产品入口待接入         |
+| `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 已核对形态位及三地区显示；合成分块检查已补充，产品入口待接入 |
 | `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | 待核对                                                       |
 | `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | 待核对                                                       |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | 待核对                                                       |

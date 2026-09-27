@@ -3,6 +3,35 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 朱／紫图鉴接入准备（API 56 后续）
+
+已核对 `SAV_PokedexSV.cs`、`SAV_PokedexSVKitakami.cs` 及各自 Designer，
+对应 Core 为 `Zukan9`、`Zukan9Paldea`、`Zukan9Kitakami`、
+`PokeDexEntry9Paldea`、`PokeDexEntry9Kitakami` 和 `SaveBlockAccessor9SV`。
+此批增加 `SvBlockFixtureTests.cs`，尚未增加朱／紫图鉴产品入口，API 保持 56。
+
+| 项目       | 上游依据与接入约束                                                                                                                                                                                  |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 格式选择   | `SAV9SV.SaveRevision` 为 0／1／2；`Zukan9.GetRevision()` 为 0／1。后两种存档共用新图鉴结构，不能把三个地区当成三个独立图鉴块                                                                        |
+| 原版条目   | 块 `0x0DEAAEBD`，每条 `0x18` 字节；地址经 `SpeciesConverter.GetInternal9` 转换，不能按全国编号直接乘步长                                                                                            |
+| 更新后条目 | 块 `0xF5D7C0E2`，每条 `0x20` 字节；见过／获得／听说／查看各 32 位，三个地区各有形态、性别与闪光显示字段                                                                                             |
+| 原版状态   | Designer 下拉框 0–3：None／Heard Of／Seen／Captured；Core 原值是 uint32，未改异常值应保留                                                                                                           |
+| 性别与语言 | 三个见过性别位独立；显示性别菜单 0–2。九个语言 ID 为 1–5、7–10，避免把无效 ID 6 当成独立语言位                                                                                                      |
+| 形态       | 新版固定显示 32 项位标记，超出名称目录以编号显示；显示形态来自 Gen9 `FormConverter`。旧版霜奶仙专用形态目录可能超过 32，而 Core 位图只有 uint32，禁止把高位形态别名当成独立存储位                   |
+| 地区显示   | 新版三个显示组按各形态 `DexPaldea`／`DexKitakami`／`DexBlueberry` 是否非零启用；手动更改应保留未改组和非标准布尔原字节                                                                              |
+| 批量操作   | 上游提供当前种类全部、全图鉴见过无／全部、捕获无／全部、完成；Shift 控制闪光，Web 应显式呈现。需复核原版缺少新块时 `Zukan9.CaughtNone()` 对两个块的无条件访问，以及新版按基础形态设置地区字段的行为 |
+| 种类上限   | `SAV9SV.Initialize` 为 1010／1017／1025；新版 WinForms 的来源仅按当前 Personal 表过滤，适配层还须按存档上限验证，避免旧修订读取越界                                                                 |
+| 标量类型   | `BoxLayout9.CurrentBox` 和箱数为 byte；`MyStatus9.RuntimeLanguageId` 为 int32；金钱、LP、BP 为 uint32。以实际访问器为准，不能照搬 `KCurrentBox` 的 U32 注释                                         |
+
+合成夹具从当前 `BlankBlocks9` 构造，通过公开 SCBlock 线格式读取器设置所测字段的明确类型，
+移除用于修订判断的 DLC 块，覆盖朱／紫各三个修订。其余未知块为合成 Object／Bool 类型，
+不代表历史版本的完整块表；不补齐到真实存档长度，不绕过 `SaveUtil` 的长度与加密哈希识别。
+检查包括无改动完整加密输出、所有种类的内部地址、32 位边界、九语言、独立地区显示、
+未编辑图鉴块和其他块的类型／顺序／字节保持，以及损坏哈希检测。
+六组专项和完整原生套件通过，完整 `npm run verify` 通过（200 文件／736 项前端测试）。
+首轮原生编译的语言枚举名称错误已修正；保留已有 JSExport、Hook 和网页构建警告。
+真实游戏存档端到端、编辑适配层、界面及浏览器检查仍待后续完成。
+
 ## 完整接入扩展
 
 2026-09-26 所有者要求完整接入；范围追踪见 [PKHeX 清单](../pkhex-inventory.md)。
