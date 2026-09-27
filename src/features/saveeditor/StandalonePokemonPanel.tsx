@@ -26,6 +26,7 @@ import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
 import { PokemonCareEditor } from "./PokemonCareEditor";
 import { PokemonOriginEditor } from "./PokemonOriginEditor";
+import { StandaloneEggEditor } from "./StandaloneEggEditor";
 
 function download(bytes: Uint8Array<ArrayBuffer>, name: string) {
   const url = URL.createObjectURL(
@@ -128,7 +129,7 @@ export function StandalonePokemonPanel() {
       setRevision((value) => value + 1);
     });
   const applyRequest = (
-    change: Pick<StandalonePokemonRequest, "edit" | "raw">,
+    change: Pick<StandalonePokemonRequest, "edit" | "raw" | "eggTrainer">,
     kind: "entityEdit" | "entityRaw",
   ) =>
     perform(async (id) => {
@@ -152,6 +153,7 @@ export function StandalonePokemonPanel() {
         bytes: result.output,
         inputEncrypted: false,
         useFileFormat: true,
+        eggTrainer: change.eggTrainer ?? working.eggTrainer,
       });
       setLegality(undefined);
       setChanged(true);
@@ -516,6 +518,16 @@ export function StandalonePokemonPanel() {
                   readDetails("origin", undefined, undefined, version)
                 }
                 onApply={applyRaw}
+              />
+              <StandaloneEggEditor
+                key={`egg-${revision}`}
+                pokemon={report.pokemon}
+                disabled={busy}
+                initialTrainer={working?.eggTrainer}
+                onRead={() => readDetails("eggContext")}
+                onApply={(raw, eggTrainer) =>
+                  applyRequest({ raw, eggTrainer }, "entityRaw")
+                }
               />
               {report.canMemories && (
                 <PokemonMemoryEditor

@@ -111,7 +111,7 @@ internal static class StandalonePokemon
         return Serialize(p, party, encrypted);
     }
 
-    public static byte[] EditRaw(byte[] input, string filename, PokemonRawEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
+    public static byte[] EditRaw(byte[] input, string filename, PokemonRawEdit edit, bool inputEncrypted = false, bool useFileFormat = false, StandaloneEggTrainer? eggTrainer = null)
     {
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (!CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
@@ -119,8 +119,9 @@ internal static class StandalonePokemon
         var original = p.Clone();
         PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party, () =>
         {
-            if (edit.Action != "origin") throw new ArgumentException("Entity egg operations require a trainer context.");
-            PokemonOrigin.Apply(p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
+            if (edit.Action == "origin") PokemonOrigin.Apply(p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
+            else StandaloneEgg.Apply(p, edit.Egg ?? throw new ArgumentException("Entity egg edit is missing."),
+                eggTrainer ?? throw new ArgumentException("Entity egg operations require a trainer context."));
         });
         if (p is PB7 letsGo && original is PB7 prior)
         {

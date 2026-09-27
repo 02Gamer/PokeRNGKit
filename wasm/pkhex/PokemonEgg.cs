@@ -9,7 +9,7 @@ public sealed record EggInfo(int Cycles, int SuggestedMinimum);
 internal static class PokemonEgg
 {
     public static EggInfo? Read(PKM p) => p.IsEgg ? new(p.OriginalTrainerFriendship, EggStateLegality.GetMinimumEggHatchCycles(p)) : null;
-    private static void MakeEgg(SaveFile save, PKM p)
+    private static void MakeEgg(ITrainerInfo save, PKM p)
     {
         var alreadyMetAsEgg = EncounterStateUtil.IsMetAsEgg(p);
         p.IsEgg = true; // PK3 also applies the upstream Japanese egg language/name.
@@ -32,7 +32,7 @@ internal static class PokemonEgg
         if (!p.IsEgg) throw new ArgumentException("Pokemon egg state cannot be represented.");
     }
 
-    public static void Apply(SaveFile save, PKM p, EggEdit edit)
+    public static void Apply(ITrainerInfo save, PKM p, EggEdit edit)
     {
         if (edit.Action == "makeEgg" && edit.Cycles is null)
         {

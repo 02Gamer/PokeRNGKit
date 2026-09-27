@@ -9,12 +9,13 @@ import type {
   MemoryCatalog,
   CareField,
   OriginCatalog,
+  OriginChoice,
 } from "./domain";
 import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 69;
+  apiVersion: 70;
   format: string;
   extension: string;
   party: boolean;
@@ -38,8 +39,21 @@ export interface StandalonePokemonRequest {
   memory?: number;
   version?: number;
   useFileFormat?: boolean;
+  eggTrainer?: StandaloneEggTrainer;
+}
+export interface StandaloneEggTrainer {
+  version: number;
+  name: string;
+  tid: number;
+  sid: number;
+}
+export interface StandaloneEggCatalog {
+  games: OriginChoice[];
+  trainer: StandaloneEggTrainer;
+  maximumName: number;
 }
 export interface StandaloneAdvancedData {
+  eggContext?: StandaloneEggCatalog | null;
   origin?: OriginCatalog | null;
   ribbons?: RibbonCatalog | null;
   history?: HistoryCatalog | null;
@@ -67,4 +81,5 @@ export interface StandalonePokemonSnapshot {
   fileName: string;
   inputEncrypted: boolean;
   useFileFormat?: boolean;
+  eggTrainer?: StandaloneEggTrainer;
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { PokemonEntry, PokemonPosition, PokemonRawEdit } from "./domain";
 import type { saveEditorResources } from "./locales";
@@ -8,11 +8,13 @@ export function PokemonEggEditor({
   position,
   disabled,
   onApply,
+  children,
 }: {
   egg: PokemonEntry["eggInfo"];
   position: PokemonPosition;
   disabled: boolean;
   onApply(edit: PokemonRawEdit): Promise<void>;
+  children?: ReactNode;
 }) {
   const { t } = useTranslation();
   const words = t("saveEditor", {
@@ -37,6 +39,7 @@ export function PokemonEggEditor({
       <details className="save-pokemon-editor">
         <summary>{words.eggDetails}</summary>
         <p className="save-editor-note">{words.makeEggNote}</p>
+        {children}
         <div className="save-editor-toolbar">
           <button
             type="button"
@@ -57,6 +60,7 @@ export function PokemonEggEditor({
   return (
     <details className="save-pokemon-editor">
       <summary>{words.eggDetails}</summary>
+      {children}
       <p className="save-editor-note">
         {words.hatchCounterNote} {words.hatchMinimum}: {egg.suggestedMinimum}
       </p>

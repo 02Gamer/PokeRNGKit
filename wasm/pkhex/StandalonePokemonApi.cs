@@ -7,9 +7,9 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonRequest(string FileName, bool InputEncrypted = false, bool Party = false, bool Encrypted = false, PokemonEdit? Edit = null,
-    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null, int? Version = null, bool UseFileFormat = false);
+    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null, int? Version = null, bool UseFileFormat = false, StandaloneEggTrainer? EggTrainer = null);
 
-internal sealed record StandaloneAdvancedData(RibbonCatalog? Ribbons = null, HistoryCatalog? History = null, MemoryCatalog? Memory = null, ushort[]? Relearn = null, OriginCatalog? Origin = null);
+internal sealed record StandaloneAdvancedData(RibbonCatalog? Ribbons = null, HistoryCatalog? History = null, MemoryCatalog? Memory = null, ushort[]? Relearn = null, OriginCatalog? Origin = null, StandaloneEggCatalog? EggContext = null);
 
 internal static class StandalonePokemonRequests
 {
@@ -29,7 +29,7 @@ public static partial class Program
     [JSExport] public static byte[] EditStandalonePokemonRaw(byte[] data, string json)
     {
         var request = StandalonePokemonRequests.Read(json);
-        return StandalonePokemon.EditRaw(data, request.FileName, request.Raw ?? throw new ArgumentException("Entity file advanced edit is missing."), request.InputEncrypted, request.UseFileFormat);
+        return StandalonePokemon.EditRaw(data, request.FileName, request.Raw ?? throw new ArgumentException("Entity file advanced edit is missing."), request.InputEncrypted, request.UseFileFormat, request.EggTrainer);
     }
     [JSExport] public static string ReadStandalonePokemonAdvanced(byte[] data, string json)
     {
@@ -39,6 +39,7 @@ public static partial class Program
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         var result = request.ReadKind switch
         {
+            "eggContext" => new StandaloneAdvancedData(EggContext: StandaloneEgg.Read(p)),
             "origin" => new StandaloneAdvancedData(Origin: PokemonOrigin.Catalog(p, request.Version)),
             "ribbons" => new StandaloneAdvancedData(Ribbons: PokemonRibbons.Read(p, true)),
             "history" => new StandaloneAdvancedData(History: PokemonHistory.Read(p)),

@@ -179,7 +179,7 @@ self.addEventListener(
         const before: StandalonePokemonReport = JSON.parse(
           api.InspectStandalonePokemon(bytes, payload),
         );
-        if (before.apiVersion !== 69)
+        if (before.apiVersion !== 70)
           throw new Error("Save editor API version mismatch.");
         const output =
           kind === "entityRaw"
@@ -221,7 +221,7 @@ self.addEventListener(
       }
       if (kind?.startsWith("boxBinary")) {
         const before: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (before.apiVersion !== 69)
+        if (before.apiVersion !== 70)
           throw new Error("Save editor API version mismatch.");
         if (kind === "boxBinaryDiscard") api.DiscardBoxBinary(payload);
         const output =
@@ -249,7 +249,7 @@ self.addEventListener(
       }
       if (kind?.startsWith("boxImport")) {
         const before: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (before.apiVersion !== 69)
+        if (before.apiVersion !== 70)
           throw new Error("Save editor API version mismatch.");
         if (kind === "boxImportDiscard") api.DiscardBoxImport(payload);
         const output =
@@ -272,7 +272,7 @@ self.addEventListener(
       }
       if (kind?.startsWith("file") || kind === "boxArchive") {
         const report: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (report.apiVersion !== 69)
+        if (report.apiVersion !== 70)
           throw new Error("Save editor API version mismatch.");
         if (kind === "fileDiscard") api.DiscardFileBatch(payload);
         const archive =
@@ -387,7 +387,7 @@ self.addEventListener(
                                                         ),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 69)
+      if (report.apiVersion !== 70)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined

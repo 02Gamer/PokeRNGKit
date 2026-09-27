@@ -1,5 +1,11 @@
 export const standaloneWords = {
   zh: {
+    eggContext: "蛋操作使用的信息",
+    loadEggContext: "读取游戏与训练家信息",
+    targetGame: "目标游戏",
+    contextTrainer: "目标训练家姓名",
+    eggContextNote:
+      "以下信息用于判断交换与孵化，默认取自当前宝可梦，可在操作前修改；不会替换宝可梦的训练家资料。选择可写入的游戏不代表蛋在该游戏中合法。",
     formatMode: "格式识别",
     autoFormat: "自动识别",
     fileFormat: "按文件扩展名读取",
@@ -35,6 +41,12 @@ export const standaloneWords = {
     history: "保留最近 20 次编辑，可随时还原原件。",
   },
   en: {
+    eggContext: "Egg operation context",
+    loadEggContext: "Load game and trainer details",
+    targetGame: "Destination game",
+    contextTrainer: "Destination trainer name",
+    eggContextNote:
+      "These details determine trade and hatch behavior. They start from this Pokémon and can be changed before applying; they do not replace its trainer details. A writable game choice does not imply egg legality in that game.",
     formatMode: "Format detection",
     autoFormat: "Detect automatically",
     fileFormat: "Use file extension",
@@ -76,6 +88,12 @@ export const standaloneWords = {
       "The last 20 edits can be undone. You can always restore the original.",
   },
   ja: {
+    eggContext: "タマゴ操作に使用する情報",
+    loadEggContext: "ゲームとトレーナー情報を読み込む",
+    targetGame: "対象ゲーム",
+    contextTrainer: "対象トレーナー名",
+    eggContextNote:
+      "交換と孵化の判定に使用します。現在のポケモンの情報を初期値として、操作前に変更できます。ポケモンのトレーナー情報は置き換えません。選択可能なゲームでも、そのゲームでのタマゴの合法性を保証するものではありません。",
     formatMode: "形式の識別",
     autoFormat: "自動識別",
     fileFormat: "拡張子に従って読み込む",
