@@ -13,8 +13,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 46,
+  apiVersion: 47,
   trainer: {
+    appearance6: null,
     gameVersion: { value: 3, choices: [] },
     spatialPosition: [],
     dates: [],

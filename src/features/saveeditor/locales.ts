@@ -301,6 +301,8 @@ export const saveEditorResources = {
     trainerGameVersionNote:
       "仅修改版本标记，不转换存档格式或宝可梦来源。日月与究极日月格式不匹配时暂停配置联动。",
     trainerGameVersionError: "此存档不支持所选游戏版本。",
+    trainerAppearance6Error:
+      "昵称或外观值无效，或角色性别已变化。请检查范围，必要时重置昵称与外观草稿。",
     trainerLanguage: "存档语言",
     recordsTitle: "游戏记录",
     recordsRead: "读取游戏记录",
@@ -805,6 +807,8 @@ export const saveEditorResources = {
       "Changes the version marker only, without converting the save format or Pokémon origins. Profile linking is unavailable when the SM/USUM format does not match.",
     trainerGameVersionError:
       "This save does not support the selected game version.",
+    trainerAppearance6Error:
+      "Invalid nickname or appearance value, or the trainer gender changed. Check the limits or reset the nickname and appearance draft.",
     trainerLanguage: "Save language",
     recordsTitle: "Game records",
     recordsRead: "Read game records",
@@ -1331,6 +1335,8 @@ export const saveEditorResources = {
       "識別値のみ変更し、セーブ形式やポケモンの出身は変換しません。SM・USUM の形式が一致しない場合、プロフィール連携は利用できません。",
     trainerGameVersionError:
       "このセーブでは選択したゲームバージョンを使用できません。",
+    trainerAppearance6Error:
+      "ニックネーム・外見の値が無効、または性別が変更されています。範囲を確認し、必要なら下書きをリセットしてください。",
     trainerLanguage: "セーブの言語",
     recordsTitle: "ゲームの記録",
     recordsRead: "ゲームの記録を読み込む",
@@ -1568,6 +1574,8 @@ export function localizeSaveError(
   if (/Unrecognized/.test(message)) return words.fileError;
   if (/ZIP/.test(message)) return words.zipError;
   if (/Trainer name|trainer name|OT:/.test(message)) return words.nameError;
+  if (/Trainer nickname|Trainer appearance/.test(message))
+    return words.trainerAppearance6Error;
   if (/Trainer game version/.test(message))
     return words.trainerGameVersionError;
   if (/Trainer language/.test(message)) return words.trainerLanguageError;

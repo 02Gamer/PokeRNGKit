@@ -1,4 +1,11 @@
 import {
+  appearanceDraft,
+  rebaseAppearance,
+  validateAppearance,
+  type AppearanceDraft,
+  type TrainerAppearance6State,
+} from "./trainerAppearance6";
+import {
   TRAINER_SPATIAL_KEYS,
   validateSpatialPosition,
   type TrainerSpatialKey,
@@ -38,7 +45,7 @@ export interface TrainerDateField {
 }
 
 export interface SaveReport {
-  apiVersion: 46;
+  apiVersion: 47;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -61,6 +68,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    appearance6: TrainerAppearance6State | null;
     gameVersion: { value: number; choices: OriginChoice[] };
     spatialPosition: TrainerSpatialField[];
     dates: TrainerDateField[];
@@ -207,14 +215,17 @@ export interface PokemonEntry {
   evs: number[];
 }
 
-export interface TrainerDraft extends Record<
-  | TrainerCurrencyKey
-  | TrainerGameOptionKey
-  | TrainerSpatialKey
-  | TrainerPositionKey
-  | TrainerDateKey,
-  string
-> {
+export interface TrainerDraft
+  extends
+    AppearanceDraft,
+    Record<
+      | TrainerCurrencyKey
+      | TrainerGameOptionKey
+      | TrainerSpatialKey
+      | TrainerPositionKey
+      | TrainerDateKey,
+      string
+    > {
   gameVersion: string;
   badges: string;
   country: string;
@@ -233,6 +244,7 @@ export interface TrainerDraft extends Record<
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
+    ...appearanceDraft(report.trainer.appearance6),
     started: trainerDateValue(
       report.trainer.dates.find((f) => f.key === "started"),
     ),
@@ -290,6 +302,18 @@ export function trainerDraft(report: SaveReport): TrainerDraft {
   };
 }
 
+export function trainerDraftMatches(
+  draft: TrainerDraft,
+  report: SaveReport,
+): boolean {
+  const baseline = trainerDraft(report);
+  const keys = Object.keys(baseline) as (keyof TrainerDraft)[];
+  return (
+    Object.keys(draft).length === keys.length &&
+    keys.every((key) => draft[key] === baseline[key])
+  );
+}
+
 // Rebase applied values on undo without discarding a separate, unapplied draft.
 export function rebaseTrainerDraft(
   draft: TrainerDraft,
@@ -307,7 +331,12 @@ export function rebaseTrainerDraft(
   }
   if (TRAINER_SPATIAL_KEYS.some((key) => draft[key] !== old[key]))
     for (const key of TRAINER_SPATIAL_KEYS) result[key] = draft[key];
-  return result;
+  return rebaseAppearance(
+    draft,
+    before.trainer.appearance6,
+    after.trainer.appearance6,
+    result,
+  );
 }
 
 export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
@@ -401,6 +430,7 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
     position[key] = value;
   }
   return {
+    appearance6: validateAppearance(draft, report.trainer.appearance6),
     spatialPosition: validateSpatialPosition(
       draft,
       report.trainer.spatialPosition,

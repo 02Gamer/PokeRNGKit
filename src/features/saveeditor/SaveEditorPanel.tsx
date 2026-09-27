@@ -1,3 +1,4 @@
+import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
 import { TrainerDateFields } from "./TrainerDateFields";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +12,7 @@ import {
   saveGameChoices,
   reconcileSaveGame,
   trainerDraft,
+  trainerDraftMatches,
   rebaseTrainerDraft,
   validateTrainer,
   type OriginCatalog,
@@ -59,6 +61,8 @@ export function SaveEditorPanel(
     "pokemon" | "trainer" | "inventory" | "records"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
+    nickname: "",
+    fashionGender: "",
     gameVersion: "",
     saved: "",
     started: "",
@@ -857,6 +861,12 @@ export function SaveEditorPanel(
                 disabled={busy || !report.canEdit}
                 onChange={setDraft}
               />
+              <TrainerAppearance6Fields
+                report={report}
+                draft={draft}
+                disabled={busy || !report.canEdit}
+                onChange={setDraft}
+              />
               <TrainerDateFields
                 report={report}
                 draft={draft}
@@ -888,8 +898,7 @@ export function SaveEditorPanel(
                   disabled={
                     busy ||
                     !report.canEdit ||
-                    JSON.stringify(draft) ===
-                      JSON.stringify(trainerDraft(report))
+                    trainerDraftMatches(draft, report)
                   }
                   onClick={() =>
                     void applyWorkingEdit(

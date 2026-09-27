@@ -11,6 +11,7 @@
     <Compile Include="../../../third_party/pkhex/drawing/SpriteName.cs" Link="SpriteName.cs" />
     <Compile Include="../Program.cs" Link="SaveService.cs" />
     <Compile Include="../TrainerGameVersion.cs" Link="TrainerGameVersion.cs" />
+    <Compile Include="../TrainerAppearance6.cs" Link="TrainerAppearance6.cs" />
     <Compile Include="../TrainerEditing.cs" Link="TrainerEditing.cs" />
     <Compile Include="../TrainerBadges.cs" Link="TrainerBadges.cs" />
     <Compile Include="../TrainerCurrencies.cs" Link="TrainerCurrencies.cs" />
