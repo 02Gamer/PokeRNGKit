@@ -8,7 +8,7 @@ public sealed record TrainerEdit(string Ot, ushort Tid, ushort Sid, uint Money,
     int? Country = null, int? Region = null, int? ConsoleRegion = null, int? Badges = null, TrainerCurrencyEdit? Currencies = null, TrainerGameOptionEdit? GameOptions = null, TrainerPositionEdit? Position = null, TrainerDateEdit? Dates = null);
 public sealed record TrainerLocation(int Country, int Region, int? ConsoleRegion);
 public sealed record TrainerGeography(TrainerLocation Value, OriginChoice[] Countries, GeoRegions[] Regions, OriginChoice[] Consoles, bool KeepRegionWhenCountryZero);
-public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages, TrainerGeography? Geography, TrainerBadgeState? Badges, TrainerCurrencyField[] Currencies, bool CanRecords, TrainerGameOptionState? GameOptions, TrainerPositionState? Position, TrainerDateState? Dates);
+public sealed record TrainerOptions(bool CanGender, bool CanPlayTime, int Hours, int Minutes, int Seconds, OriginChoice[] Languages, TrainerGeography? Geography, TrainerBadgeState? Badges, TrainerCurrencyField[] Currencies, bool CanRecords, TrainerGameOptionState? GameOptions, TrainerPositionState? Position, TrainerDateField[] Dates);
 internal sealed record TrainerSnapshot(string Ot, ushort Tid, ushort Sid, uint Money, byte Gender, int Hours, int Minutes, int Seconds, string? Appearance, int Language, uint? RuntimeLanguage, TrainerLocation? Location, TrainerBadgeState? Badges, string Currencies, TrainerGameOptionState? GameOptions, TrainerPositionSnapshot? Position, TrainerDateSnapshot? Dates);
 
 internal static class TrainerEditing

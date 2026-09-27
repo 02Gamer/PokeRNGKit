@@ -1,4 +1,4 @@
-import { validateTrainerDates } from "./trainerDates";
+import { trainerDateValue, validateTrainerDates } from "./trainerDates";
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 export const TRAINER_CURRENCY_KEYS = [
   "bp",
@@ -21,15 +21,18 @@ export const trainerPositionRange = (key: TrainerPositionKey) => ({
   max: key === "map" ? 1000 : 65535,
 });
 
-export const TRAINER_DATE_KEYS = ["started", "fame"] as const;
+export const TRAINER_DATE_KEYS = ["started", "fame", "saved"] as const;
 export type TrainerDateKey = (typeof TRAINER_DATE_KEYS)[number];
-export interface TrainerDateState extends Record<TrainerDateKey, string> {
+export interface TrainerDateField {
+  key: TrainerDateKey;
+  value: string;
+  kind: "date" | "minute" | "second" | "utc";
   min: string;
   max: string;
 }
 
 export interface SaveReport {
-  apiVersion: 43;
+  apiVersion: 44;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -52,7 +55,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
-    dates: TrainerDateState | null;
+    dates: TrainerDateField[];
     position: Record<TrainerPositionKey, number> | null;
     gameOptions: Record<TrainerGameOptionKey, number> | null;
     canRecords: boolean;
@@ -220,8 +223,13 @@ export interface TrainerDraft extends Record<
 
 export function trainerDraft(report: SaveReport): TrainerDraft {
   return {
-    started: report.trainer.dates?.started ?? "",
-    fame: report.trainer.dates?.fame ?? "",
+    started: trainerDateValue(
+      report.trainer.dates.find((f) => f.key === "started"),
+    ),
+    fame: trainerDateValue(report.trainer.dates.find((f) => f.key === "fame")),
+    saved: trainerDateValue(
+      report.trainer.dates.find((f) => f.key === "saved"),
+    ),
     ...(Object.fromEntries(
       TRAINER_POSITION_KEYS.map((key) => [
         key,

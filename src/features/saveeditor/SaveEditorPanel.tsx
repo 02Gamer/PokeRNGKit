@@ -58,6 +58,7 @@ export function SaveEditorPanel(
     "pokemon" | "trainer" | "inventory" | "records"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
+    saved: "",
     started: "",
     fame: "",
     map: "",

@@ -12,9 +12,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 43,
+  apiVersion: 44,
   trainer: {
-    dates: null,
+    dates: [],
     position: null,
     gameOptions: { textSpeed: 1, battleStyle: 0, sound: 1, battleEffects: 1 },
     canRecords: false,
@@ -57,17 +57,102 @@ export const emeraldReport: SaveReport = {
 };
 
 describe("save editor boundaries", () => {
+  it("supports date-only and minute fields, explicit empty-date repair and independent undo", () => {
+    const report: SaveReport = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        dates: [
+          {
+            key: "started",
+            value: "2024-02-29",
+            kind: "date",
+            min: "2000-01-01",
+            max: "2060-12-31",
+          },
+          {
+            key: "saved",
+            value: "",
+            kind: "minute",
+            min: "1900-01-01T00:00:00",
+            max: "4095-12-31T23:59:00",
+          },
+        ],
+      },
+    };
+    const draft = trainerDraft(report);
+    expect(draft).toMatchObject({ started: "2024-02-29", fame: "", saved: "" });
+    expect(validateTrainer(draft, report).dates).toBeUndefined();
+    expect(
+      validateTrainer(
+        { ...draft, started: "2060-12-31", saved: "4095-12-31T23:59" },
+        report,
+      ).dates,
+    ).toEqual({ started: "2060-12-31", saved: "4095-12-31T23:59:00" });
+    for (const value of [
+      "",
+      "2023-02-29",
+      "2061-01-01",
+      "2024-02-29T00:00:00",
+      "2024-2-29",
+    ])
+      expect(() =>
+        validateTrainer({ ...draft, started: value }, report),
+      ).toThrow(/Trainer dates/);
+    for (const value of [
+      "1899-12-31T23:59:00",
+      "4096-01-01T00:00:00",
+      "2024-01-01T12:34:01",
+      "2023-02-29T00:00:00",
+    ])
+      expect(() => validateTrainer({ ...draft, saved: value }, report)).toThrow(
+        /Trainer dates/,
+      );
+    expect(() =>
+      validateTrainer({ ...draft, fame: "2024-01-01T00:00:00" }, report),
+    ).toThrow(/Trainer dates/);
+    const next: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        dates: report.trainer.dates.map((f) => ({
+          ...f,
+          value: f.key === "saved" ? "2025-01-01T00:00:00" : "2025-01-01",
+        })),
+      },
+    };
+    expect(
+      rebaseTrainerDraft(
+        { ...draft, saved: "2026-01-01T00:00:00" },
+        report,
+        next,
+      ),
+    ).toMatchObject({ started: "2025-01-01", saved: "2026-01-01T00:00:00" });
+    expect(() =>
+      validateTrainer({ ...trainerDraft(next), saved: "" }, next),
+    ).toThrow(/Trainer dates/);
+  });
   it("validates game-clock dates without timezone conversion and preserves independent drafts", () => {
     const report: SaveReport = {
       ...emeraldReport,
       trainer: {
         ...emeraldReport.trainer,
-        dates: {
-          started: "2024-01-01T00:00:00",
-          fame: "2024-02-01T12:34:56",
-          min: "2000-01-01T00:00:00",
-          max: "2099-12-31T23:59:59",
-        },
+        dates: [
+          {
+            key: "started",
+            value: "2024-01-01T00:00:00",
+            kind: "second",
+            min: "2000-01-01T00:00:00",
+            max: "2099-12-31T23:59:59",
+          },
+          {
+            key: "fame",
+            value: "2024-02-01T12:34:56",
+            kind: "second",
+            min: "2000-01-01T00:00:00",
+            max: "2099-12-31T23:59:59",
+          },
+        ],
       },
     };
     const draft = trainerDraft(report);
@@ -115,11 +200,11 @@ describe("save editor boundaries", () => {
       ...report,
       trainer: {
         ...report.trainer,
-        dates: {
-          ...report.trainer.dates!,
-          started: "2025-01-01T00:00:00",
-          fame: "2025-02-01T00:00:00",
-        },
+        dates: report.trainer.dates.map((f) => ({
+          ...f,
+          value:
+            f.key === "started" ? "2025-01-01T00:00:00" : "2025-02-01T00:00:00",
+        })),
       },
     };
     expect(
@@ -136,11 +221,11 @@ describe("save editor boundaries", () => {
       ...report,
       trainer: {
         ...report.trainer,
-        dates: {
-          ...report.trainer.dates!,
-          started: "2136-02-07T06:28:15",
+        dates: report.trainer.dates.map((f) => ({
+          ...f,
+          value: f.key === "started" ? "2136-02-07T06:28:15" : f.value,
           max: "2050-12-31T23:59:59",
-        },
+        })),
       },
     };
     expect(

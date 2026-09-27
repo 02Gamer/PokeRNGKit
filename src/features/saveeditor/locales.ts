@@ -327,9 +327,23 @@ export const saveEditorResources = {
     trainerCurrencyError: "请按当前存档支持的范围填写整数，不能留空。",
     trainerBadges: "徽章",
     trainerGameOptions: "游戏设置",
-    trainerDates: "冒险日期",
-    trainerDateNames: { started: "冒险开始", fame: "首次进入名人堂" },
-    trainerDateNote: "按游戏内时钟保存，精确到秒，不转换时区。可修改范围：",
+    trainerDates: "日期与时间",
+    trainerDateNames: {
+      started: "冒险开始",
+      fame: "首次进入名人堂",
+      saved: "最近保存",
+    },
+    trainerDatePrecision: {
+      date: "仅日期",
+      minute: "精确到分钟",
+      second: "精确到秒",
+      utc: "本地时间",
+    },
+    trainerDateEmpty: "原日期为空或无效；留空保持原数据，填写后替换。",
+    trainerDateUtcNote:
+      "按本机时区换算，应用时保留原有小数秒。夏令时回拨的重复时刻按浏览器规则选择，未改日期保持原时间戳。",
+    trainerDateNote:
+      "按游戏内时钟保存，不转换时区。各项按所示精度保存，未修改的原日期保持。",
     trainerDateError: "日期无效、超出允许范围或此存档不支持日期编辑。",
     trainerPosition: "地图与坐标",
     trainerPositionNames: {
@@ -801,13 +815,24 @@ export const saveEditorResources = {
       "Enter a whole number within this save's supported range. Do not leave it blank.",
     trainerBadges: "Badges",
     trainerGameOptions: "Game options",
-    trainerDates: "Adventure dates",
+    trainerDates: "Dates and times",
+    trainerDatePrecision: {
+      date: "Date only",
+      minute: "Minute precision",
+      second: "Second precision",
+      utc: "Local time",
+    },
+    trainerDateEmpty:
+      "Original date is empty or invalid. Leave blank to preserve it; enter a date to replace it.",
+    trainerDateUtcNote:
+      "Converted using this device’s timezone; original fractional seconds are preserved. Repeated DST times follow browser rules; unchanged dates keep their original timestamps.",
     trainerDateNames: {
       started: "Adventure started",
       fame: "First Hall of Fame",
+      saved: "Last saved",
     },
     trainerDateNote:
-      "Game clock values, precise to seconds; no timezone conversion. Editable range:",
+      "Game clock values without timezone conversion. Each field uses the indicated precision; unchanged original dates are preserved.",
     trainerDateError:
       "Invalid date, outside the allowed range, or unsupported save format.",
     trainerPosition: "Map position",
@@ -1286,10 +1311,24 @@ export const saveEditorResources = {
       "このセーブの対応範囲内の整数を入力してください。空欄にはできません。",
     trainerBadges: "バッジ",
     trainerGameOptions: "ゲーム設定",
-    trainerDates: "冒険の日付",
-    trainerDateNames: { started: "冒険の開始", fame: "初めての殿堂入り" },
+    trainerDates: "日付と時刻",
+    trainerDatePrecision: {
+      date: "日付のみ",
+      minute: "分単位",
+      second: "秒単位",
+      utc: "現地時刻",
+    },
+    trainerDateEmpty:
+      "元の日付が空または無効です。空欄のままなら保持し、入力すると置き換えます。",
+    trainerDateUtcNote:
+      "端末のタイムゾーンで変換し、元の秒未満の値は保持します。夏時間終了時の重複時刻はブラウザーの規則に従い、未変更の日付は元のタイムスタンプを保持します。",
+    trainerDateNames: {
+      started: "冒険の開始",
+      fame: "初めての殿堂入り",
+      saved: "最後の保存",
+    },
     trainerDateNote:
-      "ゲーム内時計の秒単位の値です。タイムゾーン変換は行いません。編集可能範囲：",
+      "ゲーム内時計の値です。タイムゾーン変換は行わず、表示された精度で保存します。未変更の日付は保持します。",
     trainerDateError: "無効な日付、範囲外の値、または未対応のセーブ形式です。",
     trainerPosition: "マップと座標",
     trainerPositionNames: {
