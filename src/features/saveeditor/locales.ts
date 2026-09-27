@@ -346,6 +346,24 @@ export const saveEditorResources = {
       "按游戏内时钟保存，不转换时区。各项按所示精度保存，未修改的原日期保持。",
     trainerDateError: "日期无效、超出允许范围或此存档不支持日期编辑。",
     trainerPosition: "地图与坐标",
+    trainerSpatialNames: {
+      map: "地图编号",
+      x: "X 坐标",
+      z: "Z 坐标",
+      y: "Y 坐标",
+      rotation: "旋转",
+      scaleX: "X 缩放",
+      scaleZ: "Z 缩放",
+      scaleY: "Y 缩放",
+    },
+    trainerSpatialPlaces: "最多 {value} 位小数",
+    trainerSpatialTruncate: "按上游保存规则，此值应用后为 {value}。",
+    trainerSpatialInvalid: "原值不是有限数；未修改时保留，填写有效数值可替换。",
+    trainerSpatialNote:
+      "只改实际变动的字段。浮点值按游戏精度保存，旋转转换为游戏格式，应用后显示回读结果。",
+    trainerSpatialGen6: "坐标按上游以 1/18 单位显示；改动字段同步其关联位置。",
+    trainerSpatialGen7:
+      "坐标按上游以 1/60 单位显示；改动位置时同步场景坐标，未改旋转保持原值。",
     trainerPositionNames: {
       map: "地图编号",
       x: "X 坐标",
@@ -836,6 +854,27 @@ export const saveEditorResources = {
     trainerDateError:
       "Invalid date, outside the allowed range, or unsupported save format.",
     trainerPosition: "Map position",
+    trainerSpatialNames: {
+      map: "Map ID",
+      x: "X coordinate",
+      z: "Z coordinate",
+      y: "Y coordinate",
+      rotation: "Rotation",
+      scaleX: "X scale",
+      scaleZ: "Z scale",
+      scaleY: "Y scale",
+    },
+    trainerSpatialPlaces: "Up to {value} decimal places",
+    trainerSpatialTruncate:
+      "Upstream storage truncates this value to {value} when applied.",
+    trainerSpatialInvalid:
+      "Original value is not finite. Leave unchanged to preserve it, or enter a valid replacement.",
+    trainerSpatialNote:
+      "Only changed fields are written. Floating-point precision and rotation follow the game format; applied values are read back.",
+    trainerSpatialGen6:
+      "Coordinates use upstream 1/18 units; changed fields update their linked positions.",
+    trainerSpatialGen7:
+      "Coordinates use upstream 1/60 units. Position edits synchronize overworld coordinates; unedited rotation is preserved.",
     trainerPositionNames: {
       map: "Map ID",
       x: "X coordinate",
@@ -1331,6 +1370,27 @@ export const saveEditorResources = {
       "ゲーム内時計の値です。タイムゾーン変換は行わず、表示された精度で保存します。未変更の日付は保持します。",
     trainerDateError: "無効な日付、範囲外の値、または未対応のセーブ形式です。",
     trainerPosition: "マップと座標",
+    trainerSpatialNames: {
+      map: "マップ番号",
+      x: "X 座標",
+      z: "Z 座標",
+      y: "Y 座標",
+      rotation: "回転",
+      scaleX: "X 拡大率",
+      scaleZ: "Z 拡大率",
+      scaleY: "Y 拡大率",
+    },
+    trainerSpatialPlaces: "小数点以下 {value} 桁まで",
+    trainerSpatialTruncate:
+      "上流の保存規則により、適用後の値は {value} になります。",
+    trainerSpatialInvalid:
+      "元の値が有限数ではありません。未変更なら保持し、有効な値を入力すると置き換えます。",
+    trainerSpatialNote:
+      "変更した項目のみ書き込みます。浮動小数点の精度と回転はゲームの形式に従い、適用後の値を読み戻して表示します。",
+    trainerSpatialGen6:
+      "座標は上流と同じ 1/18 単位です。変更した項目の関連座標も更新します。",
+    trainerSpatialGen7:
+      "座標は上流と同じ 1/60 単位です。位置変更時はフィールド座標も同期し、未変更の回転は保持します。",
     trainerPositionNames: {
       map: "マップ番号",
       x: "X 座標",
@@ -1506,6 +1566,10 @@ export function localizeSaveError(
   if (/Trainer position cannot be represented/.test(message))
     return words.trainerPositionRepresentError;
   if (/Trainer dates/.test(message)) return words.trainerDateError;
+  if (/Trainer spatial position.*cannot be represented/.test(message))
+    return words.trainerPositionRepresentError;
+  if (/Trainer spatial position/.test(message))
+    return words.trainerPositionError;
   if (/Trainer position/.test(message)) return words.trainerPositionError;
   if (/Trainer geography/.test(message)) return words.trainerGeographyError;
   if (/unrecognized skin color/.test(message)) return words.trainerSkinError;

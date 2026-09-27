@@ -15,6 +15,7 @@
     <Compile Include="../TrainerCurrencies.cs" Link="TrainerCurrencies.cs" />
     <Compile Include="../TrainerGameOptions.cs" Link="TrainerGameOptions.cs" />
     <Compile Include="../TrainerDates.cs" Link="TrainerDates.cs" />
+    <Compile Include="../TrainerSpatialPosition.cs" Link="TrainerSpatialPosition.cs" />
     <Compile Include="../TrainerPosition.cs" Link="TrainerPosition.cs" />
     <Compile Include="../SaveRecords.cs" Link="SaveRecords.cs" />
     <Compile Include="../InventoryReader.cs" Link="InventoryReader.cs" />

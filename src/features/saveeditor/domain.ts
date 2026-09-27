@@ -1,3 +1,9 @@
+import {
+  TRAINER_SPATIAL_KEYS,
+  validateSpatialPosition,
+  type TrainerSpatialKey,
+  type TrainerSpatialField,
+} from "./trainerSpatialPosition";
 import { trainerDateValue, validateTrainerDates } from "./trainerDates";
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 export const TRAINER_CURRENCY_KEYS = [
@@ -32,7 +38,7 @@ export interface TrainerDateField {
 }
 
 export interface SaveReport {
-  apiVersion: 44;
+  apiVersion: 45;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -55,6 +61,7 @@ export interface SaveReport {
   partyCount: number;
   playTime: string;
   trainer: {
+    spatialPosition: TrainerSpatialField[];
     dates: TrainerDateField[];
     position: Record<TrainerPositionKey, number> | null;
     gameOptions: Record<TrainerGameOptionKey, number> | null;
@@ -202,6 +209,7 @@ export interface PokemonEntry {
 export interface TrainerDraft extends Record<
   | TrainerCurrencyKey
   | TrainerGameOptionKey
+  | TrainerSpatialKey
   | TrainerPositionKey
   | TrainerDateKey,
   string
@@ -227,13 +235,26 @@ export function trainerDraft(report: SaveReport): TrainerDraft {
       report.trainer.dates.find((f) => f.key === "started"),
     ),
     fame: trainerDateValue(report.trainer.dates.find((f) => f.key === "fame")),
+    rotation:
+      report.trainer.spatialPosition.find((f) => f.key === "rotation")?.value ??
+      "",
+    scaleX:
+      report.trainer.spatialPosition.find((f) => f.key === "scaleX")?.value ??
+      "",
+    scaleZ:
+      report.trainer.spatialPosition.find((f) => f.key === "scaleZ")?.value ??
+      "",
+    scaleY:
+      report.trainer.spatialPosition.find((f) => f.key === "scaleY")?.value ??
+      "",
     saved: trainerDateValue(
       report.trainer.dates.find((f) => f.key === "saved"),
     ),
     ...(Object.fromEntries(
       TRAINER_POSITION_KEYS.map((key) => [
         key,
-        String(report.trainer.position?.[key] ?? ""),
+        report.trainer.spatialPosition.find((f) => f.key === key)?.value ??
+          String(report.trainer.position?.[key] ?? ""),
       ]),
     ) as Record<TrainerPositionKey, string>),
     ...(Object.fromEntries(
@@ -281,8 +302,8 @@ export function rebaseTrainerDraft(
     result.country = draft.country;
     result.region = draft.region;
   }
-  if (TRAINER_POSITION_KEYS.some((key) => draft[key] !== old[key]))
-    for (const key of TRAINER_POSITION_KEYS) result[key] = draft[key];
+  if (TRAINER_SPATIAL_KEYS.some((key) => draft[key] !== old[key]))
+    for (const key of TRAINER_SPATIAL_KEYS) result[key] = draft[key];
   return result;
 }
 
@@ -349,7 +370,9 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
     gameOptions[key] = Number(draft[key]);
   }
   const position: Partial<Record<TrainerPositionKey, number>> = {};
-  for (const key of TRAINER_POSITION_KEYS) {
+  for (const key of report.trainer.spatialPosition.length
+    ? []
+    : TRAINER_POSITION_KEYS) {
     const original = report.trainer.position?.[key];
     if (draft[key] === String(original ?? "")) continue;
     const { min, max } = trainerPositionRange(key),
@@ -365,6 +388,10 @@ export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
     position[key] = value;
   }
   return {
+    spatialPosition: validateSpatialPosition(
+      draft,
+      report.trainer.spatialPosition,
+    ),
     dates: validateTrainerDates(draft, report.trainer.dates),
     position: Object.keys(position).length ? position : undefined,
     gameOptions: Object.keys(gameOptions).length ? gameOptions : undefined,

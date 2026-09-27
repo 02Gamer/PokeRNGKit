@@ -12,8 +12,9 @@ import {
 } from "./domain";
 
 export const emeraldReport: SaveReport = {
-  apiVersion: 44,
+  apiVersion: 45,
   trainer: {
+    spatialPosition: [],
     dates: [],
     position: null,
     gameOptions: { textSpeed: 1, battleStyle: 0, sound: 1, battleEffects: 1 },
@@ -57,6 +58,81 @@ export const emeraldReport: SaveReport = {
 };
 
 describe("save editor boundaries", () => {
+  it("routes spatial formats separately from DS and rebases the full position group", () => {
+    const report: SaveReport = {
+      ...emeraldReport,
+      trainer: {
+        ...emeraldReport.trainer,
+        position: null,
+        spatialPosition: [
+          {
+            key: "map",
+            value: "9007199254740993",
+            min: "0",
+            max: "18446744073709551615",
+            places: 0,
+            truncate: false,
+          },
+          {
+            key: "x",
+            value: "1.123456",
+            min: "-99999999",
+            max: "99999999",
+            places: 6,
+            truncate: false,
+          },
+          {
+            key: "rotation",
+            value: "3",
+            min: "-99999999",
+            max: "99999999",
+            places: 6,
+            truncate: false,
+          },
+        ],
+      },
+    };
+    const draft = trainerDraft(report);
+    expect(draft).toMatchObject({
+      map: "9007199254740993",
+      x: "1.123456",
+      rotation: "3",
+      scaleX: "",
+    });
+    const validated = validateTrainer(
+      { ...draft, map: "18446744073709551615", x: "-1.234567" },
+      report,
+    );
+    expect(validated.position).toBeUndefined();
+    expect(validated.spatialPosition).toEqual({
+      map: "18446744073709551615",
+      x: "-1.234567",
+    });
+    const next: SaveReport = {
+      ...report,
+      trainer: {
+        ...report.trainer,
+        spatialPosition: report.trainer.spatialPosition.map((f) => ({
+          ...f,
+          value: "2",
+        })),
+      },
+    };
+    expect(
+      rebaseTrainerDraft({ ...draft, rotation: "45" }, report, next),
+    ).toMatchObject({ map: draft.map, x: draft.x, rotation: "45" });
+    expect(rebaseTrainerDraft(draft, report, next)).toMatchObject({
+      map: "2",
+      x: "2",
+      rotation: "2",
+    });
+    expect(() =>
+      validateTrainer(
+        { ...trainerDraft(emeraldReport), rotation: "0" },
+        emeraldReport,
+      ),
+    ).toThrow(/spatial position/);
+  });
   it("supports date-only and minute fields, explicit empty-date repair and independent undo", () => {
     const report: SaveReport = {
       ...emeraldReport,

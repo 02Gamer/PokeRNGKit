@@ -1,3 +1,4 @@
+import { TrainerSpatialFields } from "./TrainerSpatialFields";
 import { useTranslation } from "react-i18next";
 import {
   TRAINER_POSITION_KEYS,
@@ -23,6 +24,15 @@ export function TrainerPositionFields({
     returnObjects: true,
   }) as typeof saveEditorResources.en;
   const position = report.trainer.position;
+  if (report.trainer.spatialPosition.length)
+    return (
+      <TrainerSpatialFields
+        report={report}
+        draft={draft}
+        disabled={disabled}
+        onChange={onChange}
+      />
+    );
   if (!position) return null;
   const z = Number(draft.z);
   return (
