@@ -252,6 +252,30 @@ export function SaveEditorPanel(
     if (working.current)
       client.current.discardFilePreview(working.current, token);
   }, []);
+  const discardBoxImport = useCallback((token: string) => {
+    if (working.current)
+      client.current.discardBoxImport(working.current, token);
+  }, []);
+  const previewBoxImport = async (
+    files: File[],
+    options: import("./boxImport").BoxImportOptions,
+  ) => {
+    let response: import("./domain").SaveEditorResult | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const loaded = files.length
+        ? await readBatchFiles(files, () => id === operation.current)
+        : [];
+      if (!loaded || id !== operation.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ ...options, files: loaded }),
+        "boxImportPreview",
+      );
+      if (id === operation.current) response = result;
+    });
+    return response;
+  };
   const previewFileBatch = async (files: File[], text: string) => {
     let response: import("./domain").SaveEditorResult | undefined;
     await perform(async (id) => {
@@ -607,6 +631,7 @@ export function SaveEditorPanel(
       | PokemonRawEdit
       | BoxEdit
       | import("./propertyBatch").PropertyBatchConfirmation
+      | import("./boxImport").BoxImportConfirmation
       | import("./domain").BagEdit
       | import("./domain").BagOperation
       | import("./zaPokedex").Dex9aEdit
@@ -623,6 +648,7 @@ export function SaveEditorPanel(
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
+      | "boxImportCommit"
       | "propertyCommit"
       | "pokemon"
       | "pokemonRaw"
@@ -1047,6 +1073,11 @@ export function SaveEditorPanel(
               onImport={importPokemon}
               onExport={exportPokemon}
               onExportBoxes={downloadBoxes}
+              onPreviewBoxImport={previewBoxImport}
+              onApplyBoxImport={(confirmation) =>
+                applyWorkingEdit(confirmation, "boxImportCommit")
+              }
+              onDiscardBoxImport={discardBoxImport}
               legality={legality}
               onReadOrigin={readOrigin}
               onSuggestRelearn={suggestRelearn}

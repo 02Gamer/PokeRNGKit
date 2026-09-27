@@ -506,6 +506,7 @@
   background: var(--surface);
 }
 .save-property-batch fieldset,
+.save-box-import fieldset,
 .save-box-archive fieldset {
   display: grid;
   gap: 12px;
@@ -518,8 +519,36 @@
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
-.save-file-batch .save-file-path {
+.save-file-batch .save-file-path,
+.save-box-import .save-file-path {
   white-space: normal;
   overflow-wrap: anywhere;
   max-width: 30rem;
+}
+.save-box-import .save-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 15px;
+  line-height: 22px;
+}
+.save-box-import .save-check input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+.save-import-results {
+  max-height: min(45dvh, 24rem);
+  overflow: auto;
+  min-width: 0;
+}
+.save-import-results table {
+  width: 100%;
+}
+.save-import-results th,
+.save-import-results td {
+  padding: 8px;
+  text-align: start;
+  white-space: normal;
 }

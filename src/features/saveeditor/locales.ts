@@ -1,9 +1,11 @@
 import { saveEditorCopy } from "./copy";
 import { fileBatchWords } from "./fileBatch";
 import { boxArchiveWords } from "./boxArchive";
+import { boxImportWords } from "./boxImport";
 
 export const saveEditorResources = {
   zh: {
+    boxImportError: boxImportWords.zh.error,
     boxArchiveError: boxArchiveWords.zh.error,
     boxArchiveEmpty: boxArchiveWords.zh.empty,
     fileBatchError: fileBatchWords.zh.error,
@@ -534,6 +536,7 @@ export const saveEditorResources = {
     },
   },
   en: {
+    boxImportError: boxImportWords.en.error,
     boxArchiveError: boxArchiveWords.en.error,
     boxArchiveEmpty: boxArchiveWords.en.empty,
     fileBatchError: fileBatchWords.en.error,
@@ -1096,6 +1099,7 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    boxImportError: boxImportWords.ja.error,
     boxArchiveError: boxArchiveWords.ja.error,
     boxArchiveEmpty: boxArchiveWords.ja.empty,
     fileBatchError: fileBatchWords.ja.error,
@@ -1665,6 +1669,7 @@ export function localizeSaveError(
   message: string,
   words: typeof saveEditorResources.en,
 ) {
+  if (/Box import/.test(message)) return words.boxImportError;
   if (/^Entity file/.test(message)) return words.pokemonFileError;
   if (/Box archive contains no/.test(message)) return words.boxArchiveEmpty;
   if (/Box archive/.test(message)) return words.boxArchiveError;

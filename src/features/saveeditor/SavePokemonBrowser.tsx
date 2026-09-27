@@ -15,6 +15,8 @@ import { PokemonFormArgumentEditor } from "./PokemonFormArgumentEditor";
 import { StorageEditor } from "./StorageEditor";
 import { BoxEditor } from "./BoxEditor";
 import { BoxArchiveEditor } from "./BoxArchiveEditor";
+import { BoxImportEditor } from "./BoxImportEditor";
+import type { BoxImportOptions, BoxImportConfirmation } from "./boxImport";
 import type { BoxArchiveRequest } from "./boxArchive";
 import { PokemonLegality } from "./PokemonLegality";
 import { PokemonEditor, type PokemonEdit } from "./PokemonEditor";
@@ -50,6 +52,9 @@ export function SavePokemonBrowser({
   onImport,
   onExport,
   onExportBoxes,
+  onPreviewBoxImport,
+  onApplyBoxImport,
+  onDiscardBoxImport,
 }: {
   report: SaveReport;
   revision: number;
@@ -61,6 +66,12 @@ export function SavePokemonBrowser({
   onImport(position: PokemonPosition, file: File): Promise<void>;
   onExport(position: PokemonPosition): Promise<void>;
   onExportBoxes(request: BoxArchiveRequest): Promise<boolean>;
+  onPreviewBoxImport(
+    files: File[],
+    options: BoxImportOptions,
+  ): Promise<import("./domain").SaveEditorResult | undefined>;
+  onApplyBoxImport(confirmation: BoxImportConfirmation): Promise<void>;
+  onDiscardBoxImport(token: string): void;
   legality?: PokemonLegalityReport;
   onSuggestRelearn(position: PokemonPosition): Promise<number[] | undefined>;
   onReadHistory(
@@ -154,6 +165,18 @@ export function SavePokemonBrowser({
           box={box}
           busy={busy}
           onExport={onExportBoxes}
+        />
+      )}
+      {report.boxCount > 0 && report.canEdit && report.checksumsValid && (
+        <BoxImportEditor
+          key={`${box}:${revision}:${lang}`}
+          report={report}
+          box={box}
+          busy={busy}
+          lang={lang}
+          onPreview={onPreviewBoxImport}
+          onApply={onApplyBoxImport}
+          onDiscard={onDiscardBoxImport}
         />
       )}
       <PokemonFileTools
