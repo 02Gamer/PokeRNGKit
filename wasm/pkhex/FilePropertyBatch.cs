@@ -82,7 +82,7 @@ internal static class FilePropertyBatch
                 if (!PokemonFiles.TryRead(files[i].Data, extension, context, out var pk)) { entry.Status = "unrecognized"; continue; }
                 entry.Pokemon = pk;
                 if (PokemonFiles.HasFormatConflict(extension, pk)) { entry.Status = "formatConflict"; continue; }
-                if (!pk.Valid) { entry.Status = "invalid"; continue; }
+                if (!pk.Valid || !pk.ChecksumValid) { entry.Status = "invalid"; continue; }
                 if (pk.Species == 0) { entry.Status = "empty"; continue; }
                 entry.Slot = new SlotCache(new SlotInfoFileSingle(entry.Path), pk);
             }
@@ -104,7 +104,7 @@ internal static class FilePropertyBatch
                     if (entry.Slot is null || entry.Status == "exportFailed") continue;
                     var pk = entry.Pokemon!;
                     if (pk.Species == 0) { entry.Outcomes.Add(new(group, "empty", false)); continue; }
-                    if (!pk.Valid) { entry.Outcomes.Add(new(group, "invalid", true)); continue; }
+                    if (!pk.Valid || !pk.ChecksumValid) { entry.Outcomes.Add(new(group, "invalid", true)); continue; }
                     if (!EntityBatchEditor.IsFilterMatchMeta(meta, entry.Slot)) { entry.Outcomes.Add(new(group, "filtered", false)); continue; }
                     if (set.Instructions.Count == 0)
                     {
@@ -123,7 +123,7 @@ internal static class FilePropertyBatch
                         pk.RefreshChecksum(); pk.ForcePartyData();
                         var output = new byte[pk.SIZE_PARTY]; pk.WriteDecryptedDataParty(output);
                         if (!FileUtil.TryGetPKM(output.ToArray(), out var reopened, "." + pk.Extension, context) ||
-                            reopened.GetType() != pk.GetType() || !reopened.Valid)
+                            reopened.GetType() != pk.GetType() || !reopened.Valid || !reopened.ChecksumValid)
                             throw new InvalidOperationException("File batch export could not reopen.");
                         var check = new byte[reopened.SIZE_PARTY]; reopened.WriteDecryptedDataParty(check);
                         if (!output.SequenceEqual(check)) throw new InvalidOperationException("File batch export content changed.");

@@ -46,7 +46,7 @@ internal static class BoxImportPreview
         for (int source = 0; source < entities.Count; source++)
         {
             var entity = entities[source].Clone();
-            if (!entity.Valid) { outcomes.Add(new(source, -1, -1, "invalid")); continue; }
+            if (!entity.Valid || !entity.ChecksumValid) { outcomes.Add(new(source, -1, -1, "invalid")); continue; }
             var compatible = save.GetCompatible([entity]).FirstOrDefault();
             if (compatible is null) { outcomes.Add(new(source, -1, -1, "incompatible")); continue; }
             while (cursor < save.SlotCount)

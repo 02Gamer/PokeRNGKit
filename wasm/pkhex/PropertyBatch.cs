@@ -57,6 +57,9 @@ internal static class PropertyBatch
         var commands = PropertyBatchCommands.Parse(request.Text, request.Language);
         var sets = commands.Sets;
         var slots = new List<SlotCache>();
+        if (request.Scope == "party" && Enumerable.Range(0, 6).Any(i =>
+            { var entity = save.GetPartySlotAtIndex(i); return !entity.Valid || !entity.ChecksumValid; }))
+            throw new ArgumentException("Property batch party contains invalid data.");
         if (request.Scope == "party") SlotInfoLoader.AddPartyData(save, slots);
         else SlotInfoLoader.AddBoxData(save, slots);
         if (request.Scope == "box") slots.RemoveAll(s => s.Source is not SlotInfoBox b || b.Box != request.Box);
@@ -77,10 +80,10 @@ internal static class PropertyBatch
                 for (int index = 0; index < slots.Count; index++)
                 {
                     var entry = slots[index]; var p = entry.Entity; int box = entry.Source is SlotInfoBox b ? b.Box : -1;
-                    if (p.Species == 0) continue;
+                    if (p.Species == 0 && p.Valid && p.ChecksumValid) continue;
                     string result; bool error = false;
                     if (box >= 0 && save.IsBoxSlotOverwriteProtected(box, entry.Source.Slot)) result = "protected";
-                    else if (p.Species > save.MaxSpeciesID || !p.Valid) result = "invalid";
+                    else if (p.Species > save.MaxSpeciesID || !p.Valid || !p.ChecksumValid) result = "invalid";
                     else if (!EntityBatchEditor.IsFilterMatchMeta(meta, entry)) result = "filtered";
                     else
                     {
