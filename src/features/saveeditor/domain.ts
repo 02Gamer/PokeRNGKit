@@ -54,10 +54,11 @@ export interface SaveReport {
       | "gen7"
       | "bdsp"
       | "swsh"
-      | "legends";
+      | "legends"
+      | "sv";
     canEdit: boolean;
   } | null;
-  apiVersion: 56;
+  apiVersion: 57;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -742,6 +743,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  pokedex9?: import("./svPokedex").Dex9Catalog;
   pokedex8a?: import("./legendsPokedex").Dex8aCatalog;
   pokedex8?: import("./swshPokedex").Dex8Catalog;
   pokedex8b?: import("./bdspPokedex").Dex8bCatalog;

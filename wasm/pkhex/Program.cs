@@ -21,6 +21,10 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadPokedex9(byte[] data) => SaveService.ReadPokedex9(data);
+    [JSExport]
+    public static byte[] EditPokedex9(byte[] data, string json) => SaveService.EditPokedex9(data, json);
+    [JSExport]
     public static string ReadPokedex8a(byte[] data) => SaveService.ReadPokedex8a(data);
     [JSExport]
     public static byte[] EditPokedex8a(byte[] data,string json) => SaveService.EditPokedex8a(data,json);
@@ -123,6 +127,16 @@ public static partial class Program
 public static class SaveService
 {
     public const int MaximumSize = 32 * 1024 * 1024;
+    public static string ReadPokedex9(byte[] data) => JsonSerializer.Serialize(SvPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9Catalog);
+    public static byte[] EditPokedex9(byte[] data, string json)
+    {
+        var save = Open(data);
+        if (save is not SAV9SV || !save.State.Exportable || !SaveChecksums.Valid(save)) throw new ArgumentException("Pokedex editing requires a supported valid save.");
+        var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.Dex9Edit) ?? throw new ArgumentException("Pokedex edit is missing.");
+        var expected = SvPokedex.Apply(save, edit); var output = save.Write().ToArray(); var check = Open(output);
+        if (check is not SAV9SV after || !SaveChecksums.Valid(check) || SvPokedex.Snapshot(after) != expected) throw new InvalidOperationException("Pokedex export verification failed.");
+        return output;
+    }
 
     public static string ReadPokedex8a(byte[] data) => JsonSerializer.Serialize(LegendsPokedex.Read(Open(data)),SaveJsonContext.Default.Dex8aCatalog);
     public static byte[] EditPokedex8a(byte[] data,string json)
@@ -216,7 +230,7 @@ public static class SaveService
     public static byte[] ExportWorkingCopy(byte[] data)
     {
         var save = Open(data);
-        if ((!CanEdit(save) && !SimplePokedex.Supports(save) && save is not (SAV7b or SAV8LA)) || !save.State.Exportable || !SaveChecksums.Valid(save))
+        if ((!CanEdit(save) && !SimplePokedex.Supports(save) && save is not (SAV7b or SAV8LA or SAV9SV)) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Export requires a supported save with valid checksums.");
         // Every edit already recomputes checksums and verifies a reload. Preserve those exact verified bytes.
         return data.ToArray();
@@ -350,14 +364,14 @@ public static class SaveService
         var save = Open(data);
         var valid = SaveChecksums.Valid(save);
         var report = new SaveReport(
-            56, save.GetType().Name, save.Generation, save.Version.ToString(),
+            57, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
             save.BoxCount, save.PartyCount, save.PlayTimeString, valid,
             valid && CanEdit(save) && save.State.Exportable,
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
-            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), save is SAV8LA ? new PokedexCapability("legends", valid && save.State.Exportable) : save is SAV8SWSH ? new PokedexCapability("swsh", valid && save.State.Exportable) : save is SAV8BS ? new PokedexCapability("bdsp", valid && save.State.Exportable) : save is SAV7 or SAV7b ? new PokedexCapability("gen7", valid && save.State.Exportable) : save is SAV6XY or SAV6AO ? new PokedexCapability("gen6", valid && save.State.Exportable) : save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
+            PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), save is SAV9SV ? new PokedexCapability("sv", valid && save.State.Exportable) : save is SAV8LA ? new PokedexCapability("legends", valid && save.State.Exportable) : save is SAV8SWSH ? new PokedexCapability("swsh", valid && save.State.Exportable) : save is SAV8BS ? new PokedexCapability("bdsp", valid && save.State.Exportable) : save is SAV7 or SAV7b ? new PokedexCapability("gen7", valid && save.State.Exportable) : save is SAV6XY or SAV6AO ? new PokedexCapability("gen6", valid && save.State.Exportable) : save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -467,6 +481,8 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(Dex9Catalog))]
+[JsonSerializable(typeof(Dex9Edit))]
 [JsonSerializable(typeof(Dex8aCatalog))]
 [JsonSerializable(typeof(Dex8aEdit))]
 [JsonSerializable(typeof(Dex8Catalog))]
