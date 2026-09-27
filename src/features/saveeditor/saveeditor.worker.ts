@@ -48,6 +48,7 @@ interface SaveExports {
         EditStorage(data: Uint8Array, json: string): Uint8Array;
         ImportPokemon(data: Uint8Array, json: string): Uint8Array;
         ExportPokemon(data: Uint8Array, json: string): string;
+        ExportBoxes(data: Uint8Array, json: string): Uint8Array;
         ReadHistory(data: Uint8Array, json: string): string;
         ReadMemory(data: Uint8Array, json: string): string;
         ReadRibbons(data: Uint8Array, json: string): string;
@@ -83,6 +84,7 @@ self.addEventListener(
       bytes: Uint8Array;
       edit?: string;
       kind?:
+        | "boxArchive"
         | "filePreview"
         | "fileExport"
         | "fileDiscard"
@@ -141,15 +143,17 @@ self.addEventListener(
         throw error;
       });
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
-      if (kind?.startsWith("file")) {
+      if (kind?.startsWith("file") || kind === "boxArchive") {
         const report: SaveReport = JSON.parse(api.Inspect(bytes));
-        if (report.apiVersion !== 62)
+        if (report.apiVersion !== 63)
           throw new Error("Save editor API version mismatch.");
         if (kind === "fileDiscard") api.DiscardFileBatch(payload);
         const archive =
-          kind === "fileExport"
-            ? new Uint8Array(api.ExportFileBatch(payload))
-            : undefined;
+          kind === "boxArchive"
+            ? new Uint8Array(api.ExportBoxes(bytes, payload))
+            : kind === "fileExport"
+              ? new Uint8Array(api.ExportFileBatch(payload))
+              : undefined;
         self.postMessage(
           {
             id,
@@ -256,7 +260,7 @@ self.addEventListener(
                                                         ),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 62)
+      if (report.apiVersion !== 63)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined

@@ -270,15 +270,15 @@ export function SaveEditorPanel(
     });
     return response;
   };
-  const downloadFileBatch = async (confirmation: FileBatchConfirmation) => {
+  const downloadArchive = async (
+    payload: string,
+    kind: "fileExport" | "boxArchive",
+    filename: string,
+  ) => {
     let downloaded = false;
     await perform(async (id) => {
       if (!working.current) return;
-      const result = await client.current.run(
-        working.current,
-        JSON.stringify(confirmation),
-        "fileExport",
-      );
+      const result = await client.current.run(working.current, payload, kind);
       if (id !== operation.current) return;
       if (!result.archive) throw new Error("File batch archive is missing.");
       const url = URL.createObjectURL(
@@ -286,7 +286,7 @@ export function SaveEditorPanel(
       );
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "PokeRNGKit-Pokemon.zip";
+      anchor.download = filename;
       document.body.append(anchor);
       anchor.click();
       anchor.remove();
@@ -295,6 +295,18 @@ export function SaveEditorPanel(
     });
     return downloaded;
   };
+  const downloadFileBatch = (confirmation: FileBatchConfirmation) =>
+    downloadArchive(
+      JSON.stringify(confirmation),
+      "fileExport",
+      "PokeRNGKit-Pokemon.zip",
+    );
+  const downloadBoxes = (request: import("./boxArchive").BoxArchiveRequest) =>
+    downloadArchive(
+      JSON.stringify(request),
+      "boxArchive",
+      "PokeRNGKit-Boxes.zip",
+    );
   const readInventory = async () => {
     let inventory: import("./domain").BagReport | undefined;
     await perform(async (id) => {
@@ -1034,6 +1046,7 @@ export function SaveEditorPanel(
               onStorage={(edit) => applyWorkingEdit(edit, "storage")}
               onImport={importPokemon}
               onExport={exportPokemon}
+              onExportBoxes={downloadBoxes}
               legality={legality}
               onReadOrigin={readOrigin}
               onSuggestRelearn={suggestRelearn}

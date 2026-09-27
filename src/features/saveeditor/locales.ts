@@ -1,8 +1,11 @@
 import { saveEditorCopy } from "./copy";
 import { fileBatchWords } from "./fileBatch";
+import { boxArchiveWords } from "./boxArchive";
 
 export const saveEditorResources = {
   zh: {
+    boxArchiveError: boxArchiveWords.zh.error,
+    boxArchiveEmpty: boxArchiveWords.zh.empty,
     fileBatchError: fileBatchWords.zh.error,
     fileBatchLimits: fileBatchWords.zh.limits,
     fileBatchPaths: fileBatchWords.zh.paths,
@@ -531,6 +534,8 @@ export const saveEditorResources = {
     },
   },
   en: {
+    boxArchiveError: boxArchiveWords.en.error,
+    boxArchiveEmpty: boxArchiveWords.en.empty,
     fileBatchError: fileBatchWords.en.error,
     fileBatchLimits: fileBatchWords.en.limits,
     fileBatchPaths: fileBatchWords.en.paths,
@@ -1091,6 +1096,8 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    boxArchiveError: boxArchiveWords.ja.error,
+    boxArchiveEmpty: boxArchiveWords.ja.empty,
     fileBatchError: fileBatchWords.ja.error,
     fileBatchLimits: fileBatchWords.ja.limits,
     fileBatchPaths: fileBatchWords.ja.paths,
@@ -1659,6 +1666,8 @@ export function localizeSaveError(
   words: typeof saveEditorResources.en,
 ) {
   if (/^Entity file/.test(message)) return words.pokemonFileError;
+  if (/Box archive contains no/.test(message)) return words.boxArchiveEmpty;
+  if (/Box archive/.test(message)) return words.boxArchiveError;
   if (/File batch.*(?:limit|too large)/.test(message))
     return words.fileBatchLimits;
   if (/File batch path/.test(message)) return words.fileBatchPaths;

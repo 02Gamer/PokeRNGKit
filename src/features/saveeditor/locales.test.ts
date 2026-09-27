@@ -26,6 +26,12 @@ describe("save editor localization", () => {
         saveEditorResources[lang].games["ultra-sun"],
       );
       expect(words.trainerName).toBe(saveEditorResources[lang].trainerName);
+      expect(
+        localizeSaveError("Box archive contains no eligible Pokemon.", words),
+      ).toBe(words.boxArchiveEmpty);
+      expect(localizeSaveError("Box archive options are invalid.", words)).toBe(
+        words.boxArchiveError,
+      );
       expect(localizeSaveError("Unrecognized save file.", words)).toBe(
         words.fileError,
       );

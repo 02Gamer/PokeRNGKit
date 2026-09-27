@@ -3,6 +3,30 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 箱子 ZIP 导出（API 63）
+
+宝可梦页新增可折叠“导出箱子”，支持当前／全部箱子、平铺／逐箱目录、三种目录名称、
+四种文件编号前缀和包含空格／无效实体选项。入口不受编辑白名单限制，要求已识别存档有箱子且校验有效。
+使用当前工作副本中已应用的数据；未应用的编辑草稿不进入文件，不改变工作副本或撤销记录。
+语言、禁用／忙碌、错误与下载反馈支持中文／英文／日文，沿用中性主题和 44px 控件。
+
+上游依据：WinForms/Subforms/BoxExporter.cs、Core/Editing/Saves/Slots/Exporting/BoxExport.cs、
+BoxExportSettings.cs 和 Core/PKM/Util/EntityFileNamer.cs。使用默认 Core 命名器；桌面插件命名器不在浏览器中加载。
+按箱、格位遍历，最后一个不完整箱按 SlotCount 截取；默认跳过空格和无效实体。
+箱内及全部格位前缀从 0 开始，箱号从 1 开始，与 Core 一致。
+箱子已有完整队伍格式时保留其数值，否则 ForcePartyData 后写出解密队伍格式；Core 写出会重新计算实体校验。
+选择包含无效实体并不表示修复合法性，界面明确说明这一行为。
+
+JSExport ExportBoxes 接收 box、all、folderMode（0–1）、folderNaming（0–2）、emptySlots（0–1）、
+indexPrefix（0–3）；当前箱为 0..BoxCount-1，全部范围忽略当前箱。整数与枚举值在核心再次校验。
+原存档输入上限沿用 32 MiB，Web 适配限制最多 10000 个仓储格位；不从占位符推断边界。
+仅在内存生成 ZIP，经 Worker archive 字段传输及 Blob 下载，不能进入存档写回链。
+目录和文件使用可移植字符／NFC，处理 Windows 保留名与末尾点空格；重名追加后缀，不复用桌面覆盖行为。
+没有可导出文件时报错，不触发空 ZIP 下载。桌面路径选择改为浏览器下载，声音／静默通知改为行内结果。
+
+新增 11 格式 ZIP 路径及字节对照原生 BoxExport，覆盖全部编号前缀、范围、目录、空格、同名文件、
+重复／保留目录名、请求边界、JSExport 和原存档保持。工程与浏览器检查状态见进度。
+
 ## 加密 DS 实体文件读取修复
 
 单只导入与文件批量预览共用 PokemonFiles.TryRead。对于明确使用 `.pk4`／`.pk5` 扩展名、

@@ -16,6 +16,7 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "boxArchive"
       | "filePreview"
       | "fileExport"
       | "fileDiscard"

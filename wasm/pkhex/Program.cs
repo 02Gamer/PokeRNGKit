@@ -110,6 +110,9 @@ public static partial class Program
     public static string ExportPokemon(byte[] data, string json) => SaveService.ExportPokemon(data, json);
 
     [JSExport]
+    public static byte[] ExportBoxes(byte[] data, string json) => SaveService.ExportBoxes(data, json);
+
+    [JSExport]
     public static string ReadHistory(byte[] data, string json) => SaveService.ReadHistory(data, json);
 
     [JSExport]
@@ -378,7 +381,7 @@ public static class SaveService
         var save = Open(data);
         var valid = SaveChecksums.Valid(save);
         var report = new SaveReport(
-            62, save.GetType().Name, save.Generation, save.Version.ToString(),
+            63, save.GetType().Name, save.Generation, save.Version.ToString(),
             save.OT, save.TID16, save.SID16, save.DisplayTID, save.DisplaySID,
             save.Language, save.Gender, save.Money, save.MaxMoney,
             save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer,
@@ -395,6 +398,15 @@ public static class SaveService
         var position = JsonSerializer.Deserialize(json, SaveJsonContext.Default.PokemonPosition)
             ?? throw new ArgumentException("Missing Pokemon position.");
         return JsonSerializer.Serialize(PokemonFiles.Export(save, position), SaveJsonContext.Default.PokemonFile);
+    }
+
+    public static byte[] ExportBoxes(byte[] data, string json)
+    {
+        var save = Open(data);
+        if (!SaveChecksums.Valid(save)) throw new ArgumentException("Box archive requires valid save checksums.");
+        var request = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BoxArchiveRequest)
+            ?? throw new ArgumentException("Box archive options are missing.");
+        return BoxArchive.Export(save, request);
     }
 
     public static byte[] ImportPokemon(byte[] data, string json)
@@ -537,6 +549,7 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(StorageEdit))]
 [JsonSerializable(typeof(PokemonImport))]
 [JsonSerializable(typeof(PokemonFile))]
+[JsonSerializable(typeof(BoxArchiveRequest))]
 [JsonSerializable(typeof(PokemonPosition))]
 [JsonSerializable(typeof(PokemonLegalityReport))]
 internal partial class SaveJsonContext : JsonSerializerContext;

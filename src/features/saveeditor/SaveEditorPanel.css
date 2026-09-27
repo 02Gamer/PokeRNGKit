@@ -505,7 +505,8 @@
   color: var(--text);
   background: var(--surface);
 }
-.save-property-batch fieldset {
+.save-property-batch fieldset,
+.save-box-archive fieldset {
   display: grid;
   gap: 12px;
   min-width: 0;
