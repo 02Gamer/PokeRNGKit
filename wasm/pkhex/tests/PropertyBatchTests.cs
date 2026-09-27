@@ -25,6 +25,27 @@ internal static class PropertyBatchTests
             }
             byte[] input = setup.Write().ToArray(), original = input.ToArray();
             var priorStrings = GameInfo.Strings;
+            var catalog = PropertyBatchSession.Catalog(input);
+            File.WriteAllText($".tmp/pkhex-property-catalog-{version}.json", PokeRNGKit.SaveEditor.Program.ReadPropertyBatchCatalog(input));
+            Check(catalog.Format == setup.PKMType.Name && catalog.Fields.Any(f => f.Name == "IV_HP") && catalog.Fields.Any(f => f.Name == "Box"), "Catalog includes format properties and source filters");
+            var firstTicket = PropertyBatchSession.Prepare(input, new(".IV_HP=30", "box", 1, "en"));
+            var secondTicket = PropertyBatchSession.Prepare(input, new(".IV_HP=31", "box", 1, "en"));
+            Rejected(() => PropertyBatchSession.Commit(input, new(firstTicket.Token, false, false, false)));
+            PropertyBatchSession.Discard(firstTicket.Token);
+            Check(Open(PropertyBatchSession.Commit(input, new(secondTicket.Token, false, false, false))).GetBoxSlotAtIndex(1, 0).IV_HP == 31, "Discarding stale ticket cannot discard current preview");
+            Rejected(() => PropertyBatchSession.Commit(input, new(secondTicket.Token, false, false, false)));
+            var cancelled = PropertyBatchSession.Prepare(input, new(".IV_HP=31", "box", 1, "en"));
+            PropertyBatchSession.Discard(cancelled.Token);
+            Rejected(() => PropertyBatchSession.Commit(input, new(cancelled.Token, false, false, false)));
+            var beforeFailure = PropertyBatchSession.Prepare(input, new(".IV_HP=31", "box", 1, "en"));
+            Rejected(() => PropertyBatchSession.Prepare(input, new("", "box", 1, "en")));
+            Rejected(() => PropertyBatchSession.Commit(input, new(beforeFailure.Token, false, false, false)));
+            var json = PokeRNGKit.SaveEditor.Program.PreviewPropertyBatch(input, "{\"text\":\".IV_HP=31\",\"scope\":\"box\",\"box\":1,\"language\":\"en\"}");
+            using (var document = System.Text.Json.JsonDocument.Parse(json))
+            {
+                Check(document.RootElement.GetProperty("summary").GetProperty("changedSlots").GetInt32() == 3, "Browser JSON contract uses camelCase");
+                PropertyBatchSession.Discard(document.RootElement.GetProperty("token").GetString()!);
+            }
             var plan = PropertyBatch.Preview(input, new("=Species=25\n.IV_HP=31", "box", 1, "zh"));
             Check(ReferenceEquals(priorStrings, GameInfo.Strings), "Preview restores shared language");
             Check(plan.Summary.ChangedSlots == 1 && plan.Summary.Groups == 1 && plan.Summary.Instructions == 1, "Preview reports exact changed slots");
@@ -83,5 +104,9 @@ internal static class PropertyBatchTests
             Check(input.SequenceEqual(original), "Every preview preserves original bytes");
             Console.WriteLine($"PASS {version}: property preview exact export, frozen randomness, stale rejection, confirmations, party compaction and original preservation");
         }
+        var roots = System.Xml.Linq.XDocument.Load("wasm/pkhex/PropertyBatchRoots.xml").Descendants("type").Select(e => (string?)e.Attribute("fullname")).ToHashSet();
+        foreach (var type in EntityBatchEditor.Instance.Types)
+        for (Type? current = type; current is not null && typeof(PKM).IsAssignableFrom(current); current = current.BaseType)
+            Check(roots.Contains(current.FullName), "Every batch entity and inherited property container is explicitly rooted for trimming");
     }
 }

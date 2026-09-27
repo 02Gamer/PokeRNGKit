@@ -16,6 +16,10 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "propertyCatalog"
+      | "propertyPreview"
+      | "propertyCommit"
+      | "propertyDiscard"
       | "pokedex9a"
       | "pokedex9aEdit"
       | "pokedex9"
@@ -105,5 +109,10 @@ export class SaveEditorClient {
       request.reject(new Error(message));
     }
     this.pending.clear();
+  }
+
+  discardPropertyPreview(bytes: Uint8Array, token: string) {
+    if (this.worker)
+      void this.run(bytes, token, "propertyDiscard").catch(() => {});
   }
 }

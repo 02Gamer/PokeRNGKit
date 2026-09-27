@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../PropertyBatch.cs" Link="PropertyBatch.cs" />
+    <Compile Include="../PropertyBatchApi.cs" Link="PropertyBatchApi.cs" />
     <Compile Include="../../../third_party/pkhex/drawing/SpriteName.cs" Link="SpriteName.cs" />
     <Compile Include="../Program.cs" Link="SaveService.cs" />
     <Compile Include="../TrainerGameVersion.cs" Link="TrainerGameVersion.cs" />

@@ -183,6 +183,8 @@ export const saveEditorResources = {
     boxName: "盒子名称",
     wallpaper: "壁纸",
     boxBatchError: "所选操作、范围或宝可梦数据无法完成批量处理，未应用修改。",
+    propertyBatchError:
+      "通用批量编辑未能完成。请检查指令和范围，或重新生成预览；工作副本未改变。",
     boxLayoutError: "请检查解锁箱数、箱子标记和交换目标。",
     boxValueError: "盒子名称或壁纸无效，请检查长度、字符和选项。",
     ...saveEditorCopy.zh,
@@ -711,6 +713,8 @@ export const saveEditorResources = {
     wallpaper: "Wallpaper",
     boxBatchError:
       "The operation, range or Pokémon data cannot be processed. No changes were applied.",
+    propertyBatchError:
+      "Property batch editing could not finish. Check the instructions and scope, or generate a new preview. The working copy is unchanged.",
     boxLayoutError: "Check the unlocked box count, box flags and swap target.",
     boxValueError:
       "Invalid box name or wallpaper. Check the length, characters and selection.",
@@ -1266,6 +1270,8 @@ export const saveEditorResources = {
     wallpaper: "壁紙",
     boxBatchError:
       "操作・範囲・ポケモンのデータを処理できません。変更は適用されていません。",
+    propertyBatchError:
+      "一括編集を完了できませんでした。命令と範囲を確認するか、プレビューを作り直してください。作業コピーは変更されていません。",
     boxLayoutError: "解放数・ボックスフラグ・交換先を確認してください。",
     boxValueError:
       "ボックス名または壁紙が無効です。文字数、文字、選択を確認してください。",
@@ -1643,6 +1649,8 @@ export function localizeSaveError(
   words: typeof saveEditorResources.en,
 ) {
   if (/^Entity file/.test(message)) return words.pokemonFileError;
+  if (/Property batch|Invalid property batch/.test(message))
+    return words.propertyBatchError;
   if (/^Storage /.test(message)) return words.storageError;
   if (/Box batch|Invalid box batch values/.test(message))
     return words.boxBatchError;

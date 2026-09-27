@@ -9,7 +9,9 @@ import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
 import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
 import { TrainerDateFields } from "./TrainerDateFields";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { PropertyBatchEditor } from "./PropertyBatchEditor";
+import { propertyBatchWords } from "./propertyBatch";
 import { useTranslation } from "react-i18next";
 import { Download, FileUp, RotateCcw, Unplug } from "lucide-react";
 import { Select } from "../shared/Select";
@@ -67,7 +69,7 @@ export function SaveEditorPanel(
   const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [section, setSection] = useState<
-    "pokemon" | "trainer" | "inventory" | "records" | "pokedex"
+    "pokemon" | "trainer" | "inventory" | "records" | "pokedex" | "batch"
   >("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
     nickname: "",
@@ -168,6 +170,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "batch" && !result.report.canEdit) ||
         (previous === "pokedex" && !result.report.pokedex) ||
         (previous === "records" && !result.report.trainer.canRecords)
           ? "trainer"
@@ -212,6 +215,27 @@ export function SaveEditorPanel(
       setStatus("exported");
     });
 
+  const batchLang = i18n.language.startsWith("zh")
+    ? "zh"
+    : i18n.language.startsWith("ja")
+      ? "ja"
+      : "en";
+  const discardPropertyPreview = useCallback((token: string) => {
+    if (working.current)
+      client.current.discardPropertyPreview(working.current, token);
+  }, []);
+  const readPropertyBatch = async (
+    kind: "propertyCatalog" | "propertyPreview",
+    payload?: string,
+  ) => {
+    let response: import("./domain").SaveEditorResult | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(working.current, payload, kind);
+      if (id === operation.current) response = result;
+    });
+    return response;
+  };
   const readInventory = async () => {
     let inventory: import("./domain").BagReport | undefined;
     await perform(async (id) => {
@@ -511,6 +535,7 @@ export function SaveEditorPanel(
       | PokemonEdit
       | PokemonRawEdit
       | BoxEdit
+      | import("./propertyBatch").PropertyBatchConfirmation
       | import("./domain").BagEdit
       | import("./domain").BagOperation
       | import("./zaPokedex").Dex9aEdit
@@ -527,6 +552,7 @@ export function SaveEditorPanel(
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
+      | "propertyCommit"
       | "pokemon"
       | "pokemonRaw"
       | "box"
@@ -764,6 +790,15 @@ export function SaveEditorPanel(
             >
               {words.inventory}
             </button>
+            {report.canEdit && (
+              <button
+                type="button"
+                aria-pressed={section === "batch"}
+                onClick={() => setSection("batch")}
+              >
+                {propertyBatchWords[batchLang].title}
+              </button>
+            )}
             {report.pokedex && (
               <button
                 type="button"
@@ -783,7 +818,25 @@ export function SaveEditorPanel(
               </button>
             )}
           </div>
-          {section === "pokedex" && report.pokedex?.kind === "za" ? (
+          {section === "batch" && report.canEdit ? (
+            <PropertyBatchEditor
+              key={
+                name +
+                ":" +
+                fileRevision +
+                ":" +
+                workingRevision +
+                ":" +
+                batchLang
+              }
+              report={report}
+              busy={busy}
+              lang={batchLang}
+              onRead={readPropertyBatch}
+              onDiscard={discardPropertyPreview}
+              onApply={(edit) => applyWorkingEdit(edit, "propertyCommit")}
+            />
+          ) : section === "pokedex" && report.pokedex?.kind === "za" ? (
             <ZaPokedexEditor
               key={name + ":" + fileRevision}
               revision={workingRevision}

@@ -1,0 +1,30 @@
+<!-- PKHeX EntityBatchEditor.Types and inherited PKM properties are accessed by name. -->
+<linker>
+  <assembly fullname="PKHeX.Core">
+    <type fullname="PKHeX.Core.PKM" preserve="all" />
+    <type fullname="PKHeX.Core.GBPKM" preserve="all" />
+    <type fullname="PKHeX.Core.GBPKML" preserve="all" />
+    <type fullname="PKHeX.Core.G3PKM" preserve="all" />
+    <type fullname="PKHeX.Core.G4PKM" preserve="all" />
+    <type fullname="PKHeX.Core.G6PKM" preserve="all" />
+    <type fullname="PKHeX.Core.G8PKM" preserve="all" />
+    <type fullname="PKHeX.Core.PK9" preserve="all" />
+    <type fullname="PKHeX.Core.PA9" preserve="all" />
+    <type fullname="PKHeX.Core.PK8" preserve="all" />
+    <type fullname="PKHeX.Core.PA8" preserve="all" />
+    <type fullname="PKHeX.Core.PB8" preserve="all" />
+    <type fullname="PKHeX.Core.PB7" preserve="all" />
+    <type fullname="PKHeX.Core.PK7" preserve="all" />
+    <type fullname="PKHeX.Core.PK6" preserve="all" />
+    <type fullname="PKHeX.Core.PK5" preserve="all" />
+    <type fullname="PKHeX.Core.PK4" preserve="all" />
+    <type fullname="PKHeX.Core.BK4" preserve="all" />
+    <type fullname="PKHeX.Core.RK4" preserve="all" />
+    <type fullname="PKHeX.Core.PK3" preserve="all" />
+    <type fullname="PKHeX.Core.XK3" preserve="all" />
+    <type fullname="PKHeX.Core.CK3" preserve="all" />
+    <type fullname="PKHeX.Core.PK2" preserve="all" />
+    <type fullname="PKHeX.Core.SK2" preserve="all" />
+    <type fullname="PKHeX.Core.PK1" preserve="all" />
+  </assembly>
+</linker>

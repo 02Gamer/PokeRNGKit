@@ -3,9 +3,18 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
-## 通用属性批量编辑：接入契约核对
+## 通用属性批量编辑（API 61）
 
-新增内部 `PropertyBatch.Preview` 与保留结果的 `PropertyBatchPlan.Commit`，尚未开放 Worker／界面入口，API 60 不变。
+通过 `PropertyBatch.Preview` 与保留结果的 `PropertyBatchPlan.Commit` 接入 Worker 和“通用批量编辑”页签。
+页签仅在已有编辑白名单和有效校验下显示，支持三语范围选择、属性目录、指令构建与编辑、结果分页和确认应用。
+目录按当前 PKM 类型从 Core 获取属性名／类型及自定义筛选项，标识不自行翻译；结果每页 50 条，不截断后台处理。
+Worker 内仅保留一个预览，生成新预览即替换旧预览；取消按票据匹配释放，成功提交后不可重复应用。
+离开页面、切换语言或工作副本修订时释放旧票据；后台终止和超时沿用原有取消机制。
+`PropertyBatchRoots.xml` 显式保留全部 Core 批量实体类型及继承容器，新增源码清单覆盖检查。
+构建后以 PKHEX_TEST_FOCUS=property-trim 运行追加检查：读取完整与裁剪 DLL 的 PE 元数据，25 个类型的属性签名、访问器可见性和方法体存在性一致。
+不能直接在桌面 CoreCLR 执行浏览器裁剪程序集来验收（首次尝试出现 IEnumerator.Reset 类型加载异常）；元数据证据不替代浏览器行为。
+PKHEX_TEST_FOCUS=property-preview 同时输出 11 格式原生属性目录到 .tmp，供浏览器逐项对照；发布后实际加载目录仍须核验。
+接口为 `ReadPropertyBatchCatalog`、`PreviewPropertyBatch`、`CommitPropertyBatch`、`DiscardPropertyBatch`；输入和 JSON 字段由独立源生成上下文定义。
 预览复制输入后执行 Core 指令，记录每组每格的处理状态与失败标志、未识别行号和空赋值。
 提交分别确认部分失败、空值和忽略行，并核对源文件 SHA-256；只返回预览保存的结果副本，不重新生成随机值。
 支持当前箱、全部箱子和队伍，沿用现有存档白名单。只写变化格位；队伍删除统一压缩后写回，保留其余成员顺序。
@@ -13,9 +22,11 @@
 活动语言只在同步计算期间设置，并在 finally 中还原；本实现未来必须在同一 Worker 内同步执行。
 内部适配检查覆盖 11 种格式的完整文件对照、随机结果固定、过期拒绝、确认门槛、队伍重排与原件保持。
 保护格位、损坏实体及多组来源筛选的增补检查通过；完整原生套件、核心构建及 verify 均通过，前端 203 文件／748 项测试通过。
-属性目录的浏览器裁剪保留、预览生命周期与三语界面仍待实现，不能据此宣称通用批量编辑已经可用。
+新增票据替换、取消、重复提交拒绝、失败预览清理、JSON 大小写和属性目录工程检查；浏览器与真实存档验收待完成。
+API 61 最终完整原生套件、核心构建与 verify 通过，前端 203 文件／748 项测试通过。
+授权 Chrome 页面当前加载旧资源，和本轮最终构建不一致；未以旧页面结果验收新入口，具体资源记录见进度文档。
 
-产品入口尚未接入，API 60 不变。此项对应上游 `PKHeX.WinForms/Subforms/PKM Editors/BatchEditor.cs`、
+此项对应上游 `PKHeX.WinForms/Subforms/PKM Editors/BatchEditor.cs`、
 `Controls/PKM Editor/EntityInstructionBuilder` 及 Core `Editing/Bulk/Base`、`Editing/Bulk/Entity`；
 不能以箱子预设菜单代替任意属性指令编辑。
 
@@ -36,7 +47,7 @@
 
 新增 `PropertyBatchContractTests` 覆盖 11 种现有合成格式及上述指令语义，定向与完整原生检查通过。
 完整 npm run verify 通过：203 文件／748 项前端测试及网页／PWA 构建；API 与产品入口未变化。
-下一步将预览／提交适配器接入 Worker 生命周期，补齐属性目录保留与三语指令构建器，再接入本地文件流程。
+下一步核对发布后属性目录与界面行为，再继续本地文件／目录批量流程。
 
 ## 箱子批量菜单（API 60）
 

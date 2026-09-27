@@ -16,6 +16,7 @@ internal static class SaveEditorTests
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "box-batch") { BoxBatchTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "property-batch") { PropertyBatchContractTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "property-preview") { PropertyBatchTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "property-trim") { PropertyBatchTrimTests.Run(); return; }
         foreach (var version in new[] { GameVersion.E, GameVersion.D, GameVersion.Pt, GameVersion.HG, GameVersion.B, GameVersion.B2, GameVersion.X, GameVersion.OR, GameVersion.SN, GameVersion.US, GameVersion.BD })
         {
             var save = CreateFixture(version);
@@ -46,7 +47,7 @@ internal static class SaveEditorTests
             var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
             Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
             Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
-            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 60, $"{version}: API version");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 61, $"{version}: API version");
             Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
             var boxes = document.RootElement.GetProperty("boxes");
             Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");

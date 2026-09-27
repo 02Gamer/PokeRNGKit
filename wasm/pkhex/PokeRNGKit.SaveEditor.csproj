@@ -12,6 +12,7 @@
     <WasmMainJSPath>main.js</WasmMainJSPath>
   </PropertyGroup>
   <ItemGroup>
+    <TrimmerRootDescriptor Include="PropertyBatchRoots.xml" />
     <Compile Include="../../third_party/pkhex/drawing/SpriteName.cs" Link="SpriteName.cs" />
     <Compile Remove="tests/**" />
     <ProjectReference Include="../../third_party/pkhex/PKHeX.Core/PKHeX.Core.csproj" />
