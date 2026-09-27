@@ -154,7 +154,7 @@ self.addEventListener(
                                           : api.Export(bytes, payload),
             );
       const report: SaveReport = JSON.parse(api.Inspect(output ?? bytes));
-      if (report.apiVersion !== 52)
+      if (report.apiVersion !== 53)
         throw new Error("Save editor API version mismatch.");
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined

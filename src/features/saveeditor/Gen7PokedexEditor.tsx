@@ -4,6 +4,8 @@ import { Select } from "../shared/Select";
 import { speciesImage } from "./art";
 import { localizeSaveError, type saveEditorResources } from "./locales";
 import { dex5Labels } from "./gen5PokedexLabels";
+import { letsGoLabels, toggleSizeUsed } from "./letsGoPokedex";
+import { LetsGoCaptureEditor } from "./LetsGoCaptureEditor";
 import {
   dex7Labels,
   toggleDex7,
@@ -38,6 +40,7 @@ export function Gen7PokedexEditor({
   const [catalog, setCatalog] = useState<Dex7Catalog>();
   const [selected, setSelected] = useState(0);
   const [draft, setDraft] = useState<Dex7State>();
+  const [captureDirty, setCaptureDirty] = useState(false);
   const [action, setAction] = useState<Dex7Action>("give");
   const [error, setError] = useState("");
   const reader = useRef(onRead);
@@ -61,7 +64,8 @@ export function Gen7PokedexEditor({
   const state = draft ?? entry?.state;
   const dirty =
     !!draft && JSON.stringify(draft) !== JSON.stringify(entry?.state);
-  const disabled = busy || !catalog?.canEdit;
+  const disabled = busy || !catalog?.canEdit || captureDirty;
+  const gg = letsGoLabels[lang];
   const apply = async (edit: Dex7Edit) => {
     setError("");
     try {
@@ -73,8 +77,8 @@ export function Gen7PokedexEditor({
     }
   };
   const actions: [Dex7Action, string][] = [
-    ["give", seven.give],
-    ["giveNone", seven.giveNone],
+    ["give", catalog?.captures ? gg.give : seven.give],
+    ["giveNone", catalog?.captures ? gg.giveNone : seven.giveNone],
     ["complete", labels.complete],
     ["seen", labels.seenAll],
     ["clear", seven.clear],
@@ -103,7 +107,7 @@ export function Gen7PokedexEditor({
             <label className="field">
               <span>{labels.species}</span>
               <Select
-                disabled={busy || dirty}
+                disabled={busy || dirty || captureDirty}
                 value={entry?.species ?? 1}
                 onChange={(e) => choose(Number(e.target.value) - 1)}
               >
@@ -119,7 +123,7 @@ export function Gen7PokedexEditor({
             <label className="field">
               <span>{seven.form}</span>
               <Select
-                disabled={busy || dirty}
+                disabled={busy || dirty || captureDirty}
                 value={selected}
                 onChange={(e) => choose(Number(e.target.value))}
               >
@@ -225,6 +229,90 @@ export function Gen7PokedexEditor({
                   </div>
                 </fieldset>
               )}
+              {state.sizes && (
+                <fieldset disabled={disabled}>
+                  <legend>{gg.sizes}</legend>
+                  <div className="save-pokedex-table-wrap">
+                    <table className="save-inventory-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">{gg.sizes}</th>
+                          <th scope="col">{gg.used}</th>
+                          <th scope="col">{gg.height}</th>
+                          <th scope="col">{gg.weight}</th>
+                          <th scope="col">{gg.flag}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {state.sizes.map((s, index) => (
+                          <tr key={index}>
+                            <th scope="row">{gg.groups[index]}</th>
+                            <td>
+                              <Flag
+                                label={gg.groups[index] + " · " + gg.used}
+                                hideText
+                                value={s.used}
+                                onChange={(used) =>
+                                  setDraft({
+                                    ...state,
+                                    sizes: state.sizes!.map((v, i) =>
+                                      i === index ? toggleSizeUsed(v, used) : v,
+                                    ),
+                                  })
+                                }
+                              />
+                            </td>
+                            {(["height", "weight"] as const).map((key) => (
+                              <td key={key}>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={255}
+                                  step={1}
+                                  disabled={!s.used}
+                                  aria-label={
+                                    gg.groups[index] + " · " + gg[key]
+                                  }
+                                  value={s[key]}
+                                  onChange={(e) =>
+                                    setDraft({
+                                      ...state,
+                                      sizes: state.sizes!.map((v, i) =>
+                                        i === index
+                                          ? {
+                                              ...v,
+                                              [key]: Number(e.target.value),
+                                            }
+                                          : v,
+                                      ),
+                                    })
+                                  }
+                                />
+                              </td>
+                            ))}
+                            <td>
+                              <Flag
+                                label={gg.groups[index] + " · " + gg.flag}
+                                hideText
+                                value={s.flagged}
+                                onChange={(flagged) =>
+                                  setDraft({
+                                    ...state,
+                                    sizes: state.sizes!.map((v, i) =>
+                                      i === index ? { ...v, flagged } : v,
+                                    ),
+                                  })
+                                }
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="save-editor-note">{gg.sizeNote}</p>
+                </fieldset>
+              )}
               <div className="save-editor-toolbar">
                 <button
                   type="button"
@@ -255,7 +343,7 @@ export function Gen7PokedexEditor({
               </div>
             </>
           )}
-          {dirty && <p role="status">{labels.dirty}</p>}
+          {(dirty || captureDirty) && <p role="status">{labels.dirty}</p>}
           <fieldset disabled={disabled || dirty}>
             <legend>{labels.action}</legend>
             <label className="field">
@@ -284,7 +372,26 @@ export function Gen7PokedexEditor({
               {labels.run}
             </button>
           </fieldset>
-          <p className="save-editor-note">{seven.note}</p>
+          <p className="save-editor-note">
+            {catalog.captures ? gg.note : seven.note}
+          </p>
+          {catalog.captures && (
+            <LetsGoCaptureEditor
+              catalog={catalog.captures}
+              lang={lang}
+              disabled={busy || dirty || !catalog.canEdit}
+              onDirty={setCaptureDirty}
+              onApply={(capture) => apply({ action: "capture", capture })}
+              onError={(e) =>
+                setError(
+                  localizeSaveError(
+                    e instanceof Error ? e.message : String(e),
+                    words,
+                  ),
+                )
+              }
+            />
+          )}
         </>
       )}
       {error && (

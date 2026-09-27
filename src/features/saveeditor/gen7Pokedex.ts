@@ -1,3 +1,4 @@
+import type { Dex7Size, Capture7Catalog, Capture7Edit } from "./letsGoPokedex";
 import type { LocalizedText } from "./domain";
 export interface Dex7State {
   index: number;
@@ -5,6 +6,7 @@ export interface Dex7State {
   seen: boolean[];
   displayed: boolean[];
   languages: boolean[];
+  sizes?: Dex7Size[] | null;
 }
 export interface Dex7Entry {
   state: Dex7State;
@@ -17,11 +19,14 @@ export interface Dex7Entry {
 export interface Dex7Catalog {
   canEdit: boolean;
   entries: Dex7Entry[];
+  captures?: Capture7Catalog | null;
 }
 export type Dex7Action =
   "give" | "giveNone" | "clear" | "seen" | "caught" | "uncaught" | "complete";
 export type Dex7Edit =
-  { action: "entry"; entry: Dex7State } | { action: Dex7Action; index: number };
+  | { action: "entry"; entry: Dex7State }
+  | { action: Dex7Action; index: number }
+  | { action: "capture"; capture: Capture7Edit };
 export function toggleDex7(
   state: Dex7State,
   region: number,
@@ -46,6 +51,21 @@ export function toggleDex7(
 export function validateDex7(state: Dex7State, entry: Dex7Entry): Dex7Edit {
   const old = entry.state;
   if (
+    (old.sizes
+      ? !state.sizes ||
+        state.sizes.length !== 4 ||
+        state.sizes.some(
+          (s) =>
+            typeof s.used !== "boolean" ||
+            typeof s.flagged !== "boolean" ||
+            !Number.isInteger(s.height) ||
+            !Number.isInteger(s.weight) ||
+            s.height < 0 ||
+            s.height > 255 ||
+            s.weight < 0 ||
+            s.weight > 255,
+        )
+      : state.sizes != null) ||
     state.index !== old.index ||
     state.seen.length !== 4 ||
     state.displayed.length !== 4 ||

@@ -49,7 +49,7 @@ export interface SaveReport {
     kind: "simple" | "gen4" | "gen5" | "gen6" | "gen7";
     canEdit: boolean;
   } | null;
-  apiVersion: 52;
+  apiVersion: 53;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
