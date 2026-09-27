@@ -1,4 +1,4 @@
-import { Gen5PokedexEditor } from "./Gen5PokedexEditor";
+import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
 import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
@@ -222,6 +222,22 @@ export function SaveEditorPanel(
     return inventory;
   };
 
+  const readPokedex6 = async () => {
+    let catalog: import("./gen5Pokedex").Dex5Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "pokedex6",
+      );
+      if (id !== operation.current) return;
+      if (!result.pokedex6)
+        throw new Error("Pokedex catalog was not returned.");
+      catalog = result.pokedex6;
+    });
+    return catalog;
+  };
   const readPokedex5 = async () => {
     let catalog: import("./gen5Pokedex").Dex5Catalog | undefined;
     await perform(async (id) => {
@@ -410,6 +426,7 @@ export function SaveEditorPanel(
       | "pokemonImport"
       | "inventoryEdit"
       | "inventoryBatch"
+      | "pokedex6Edit"
       | "pokedex5Edit"
       | "pokedex4Edit"
       | "pokedexEdit"
@@ -652,8 +669,18 @@ export function SaveEditorPanel(
               </button>
             )}
           </div>
-          {section === "pokedex" && report.pokedex?.kind === "gen5" ? (
-            <Gen5PokedexEditor
+          {section === "pokedex" && report.pokedex?.kind === "gen6" ? (
+            <FlagPokedexEditor
+              key={`${name}:${fileRevision}`}
+              kind={report.format === "SAV6AO" ? "oras" : "xy"}
+              revision={workingRevision}
+              busy={busy}
+              saveLanguage={report.language}
+              onRead={readPokedex6}
+              onApply={(edit) => applyWorkingEdit(edit, "pokedex6Edit")}
+            />
+          ) : section === "pokedex" && report.pokedex?.kind === "gen5" ? (
+            <FlagPokedexEditor
               key={`${name}:${fileRevision}`}
               revision={workingRevision}
               busy={busy}

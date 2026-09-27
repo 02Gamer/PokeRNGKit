@@ -6,6 +6,9 @@ export interface Dex5State {
   displayed: boolean[];
   languages: boolean[];
   forms: boolean[][];
+  foreign?: boolean | null;
+  countSeen?: string | null;
+  countObtained?: string | null;
 }
 export interface Dex5Entry {
   state: Dex5State;
@@ -34,7 +37,9 @@ export type Dex5Action =
   | "complete"
   | "formsClear"
   | "formsFirst"
-  | "formsAll";
+  | "formsAll"
+  | "dexNavAll"
+  | "dexNavClear";
 export type Dex5Edit =
   | { action: "entry"; entry: Dex5State }
   | { action: "globals"; globals: Dex5Globals }
@@ -85,7 +90,11 @@ export function toggleDex5Form(
   }
   return { ...state, forms };
 }
-export function validateDex5(state: Dex5State, entry: Dex5Entry): Dex5Edit {
+export function validateDex5(
+  state: Dex5State,
+  entry: Dex5Entry,
+  languageMax = 493,
+): Dex5Edit {
   const arrays = [state.seen, state.displayed, state.languages, ...state.forms];
   if (
     state.species !== entry.state.species ||
@@ -96,7 +105,7 @@ export function validateDex5(state: Dex5State, entry: Dex5Entry): Dex5Edit {
     state.forms.length !== 4 ||
     state.forms.some((r) => r.length !== entry.formChoices.length) ||
     arrays.some((a) => a.some((v) => typeof v !== "boolean")) ||
-    (state.species > 493 && state.languages.some(Boolean)) ||
+    (state.species > languageMax && state.languages.some(Boolean)) ||
     entry.allowedRegions.some(
       (allowed, i) =>
         !allowed &&

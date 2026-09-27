@@ -24,6 +24,9 @@
 
 ## 当前工程证据
 
+API 51 接入 XY／ORAS 图鉴、旧世代来源、遇见／获得计数和 DexNav 批量设置，复用第五／六世代界面。
+两种格式的完整输出对照通过；上游索引、性别表及末项范围差异已记录，浏览器待核验。
+
 API 50 接入 SAV_Pokedex5 的黑白／黑白2图鉴、普通／闪光显示、形态、七语言、全国模式及图案值。
 批量修饰选项显式呈现，两种布局原生保存对照通过，浏览器待核验。
 
@@ -315,8 +318,8 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen6/SAV_Link6.cs`                                     | 待核对                                                       |
 | `Subforms/Save Editors/Gen6/SAV_OPower.cs`                                    | 待核对                                                       |
 | `Subforms/Save Editors/Gen6/SAV_PokeBlockORAS.cs`                             | 待核对                                                       |
-| `Subforms/Save Editors/Gen6/SAV_PokedexORAS.cs`                               | 待核对                                                       |
-| `Subforms/Save Editors/Gen6/SAV_PokedexXY.cs`                                 | 待核对                                                       |
+| `Subforms/Save Editors/Gen6/SAV_PokedexORAS.cs`                               | 已接入；字段及批量工程检查通过，浏览器待核验                 |
+| `Subforms/Save Editors/Gen6/SAV_PokedexXY.cs`                                 | 已接入；字段及批量工程检查通过，浏览器待核验                 |
 | `Subforms/Save Editors/Gen6/SAV_Pokepuff.cs`                                  | 待核对                                                       |
 | `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | 待核对                                                       |
 | `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | 待核对                                                       |

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
 import { speciesImage } from "./art";
 import { localizeSaveError, type saveEditorResources } from "./locales";
+import { dex6Labels, validateDex6 } from "./gen6Pokedex";
 import { dex5Labels } from "./gen5PokedexLabels";
 import {
   dex5Shiny,
@@ -16,13 +17,15 @@ import {
   type Dex5Globals,
   type Dex5Action,
 } from "./gen5Pokedex";
-export function Gen5PokedexEditor({
+export function FlagPokedexEditor({
+  kind = "gen5",
   revision,
   busy,
   saveLanguage,
   onRead,
   onApply,
 }: {
+  kind?: "gen5" | "xy" | "oras";
   revision: number;
   busy: boolean;
   saveLanguage: number;
@@ -39,6 +42,9 @@ export function Gen5PokedexEditor({
       ? "ja"
       : "en";
   const labels = dex5Labels[lang];
+  const six = dex6Labels[lang];
+  const gen6 = kind !== "gen5";
+  const languageMax = gen6 ? 721 : 493;
   const [catalog, setCatalog] = useState<Dex5Catalog>();
   const [selected, setSelected] = useState(0);
   const [draft, setDraft] = useState<Dex5State>();
@@ -66,7 +72,8 @@ export function Gen5PokedexEditor({
     };
   }, [revision]);
   const initial = catalog?.globals.initialSpecies ?? 1;
-  const species = selected || (initial >= 1 && initial <= 649 ? initial : 1);
+  const species =
+    selected || (initial >= 1 && initial <= (gen6 ? 721 : 649) ? initial : 1);
   const entry = catalog?.entries.find((e) => e.state.species === species);
   const state = draft ?? entry?.state;
   const globals = globalDraft ?? catalog?.globals;
@@ -99,6 +106,11 @@ export function Gen5PokedexEditor({
     ["formsFirst", labels.formsFirst],
     ["formsAll", labels.formsAll],
   ];
+  if (kind === "oras")
+    actions.push(
+      ["dexNavAll", six.dexNavAll],
+      ["dexNavClear", six.dexNavClear],
+    );
   return (
     <section>
       <h3>{words.pokedexTitle}</h3>
@@ -165,7 +177,7 @@ export function Gen5PokedexEditor({
                 <span>{labels.spinda}</span>
                 <input
                   type="text"
-                  maxLength={8}
+                  maxLength={gen6 ? 32767 : 8}
                   spellCheck={false}
                   value={globals.spinda}
                   onChange={(e) =>
@@ -176,7 +188,7 @@ export function Gen5PokedexEditor({
                   }
                 />
               </label>
-              <p className="save-editor-note">{labels.hex}</p>
+              <p className="save-editor-note">{gen6 ? six.hex : labels.hex}</p>
             </fieldset>
             <div className="save-editor-toolbar">
               <button
@@ -278,7 +290,49 @@ export function Gen5PokedexEditor({
                   </tbody>
                 </table>
               </div>
-              <fieldset disabled={disabled || globalsDirty || species > 493}>
+              {gen6 && state.foreign != null && (
+                <Flag
+                  disabled={disabled || globalsDirty}
+                  label={six.foreign}
+                  value={state.foreign}
+                  onChange={(foreign) => setDraft({ ...state, foreign })}
+                />
+              )}
+              {kind === "oras" && (
+                <fieldset
+                  disabled={disabled || globalsDirty}
+                  className="save-editor-fields"
+                >
+                  <label className="field">
+                    <span>{six.countSeen}</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={5}
+                      value={state.countSeen ?? ""}
+                      onChange={(e) =>
+                        setDraft({ ...state, countSeen: e.target.value })
+                      }
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{six.countObtained}</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={5}
+                      value={state.countObtained ?? ""}
+                      onChange={(e) =>
+                        setDraft({ ...state, countObtained: e.target.value })
+                      }
+                    />
+                  </label>
+                  <p className="save-editor-note">{six.counts}</p>
+                </fieldset>
+              )}
+              <fieldset
+                disabled={disabled || globalsDirty || species > languageMax}
+              >
                 <legend>{labels.languages}</legend>
                 <div className="save-editor-toolbar">
                   {[
@@ -303,7 +357,7 @@ export function Gen5PokedexEditor({
                   ))}
                 </div>
               </fieldset>
-              {species > 493 && (
+              {species > languageMax && (
                 <p className="save-editor-note">{labels.noLanguages}</p>
               )}
               {!!entry.formChoices.length && (
@@ -363,7 +417,11 @@ export function Gen5PokedexEditor({
                   }
                   onClick={() => {
                     try {
-                      void apply(validateDex5(state, entry));
+                      void apply(
+                        gen6
+                          ? validateDex6(state, entry, kind === "oras")
+                          : validateDex5(state, entry),
+                      );
                     } catch (e) {
                       setError(
                         localizeSaveError(
@@ -431,7 +489,13 @@ export function Gen5PokedexEditor({
               </button>
             </div>
           </fieldset>
-          <p className="save-editor-note">{labels.note}</p>
+          <p className="save-editor-note">
+            {kind === "xy"
+              ? six.noteXY
+              : kind === "oras"
+                ? six.noteOR
+                : labels.note}
+          </p>
           {saveLanguage === 8 && (
             <p className="save-editor-note">{labels.korean}</p>
           )}
