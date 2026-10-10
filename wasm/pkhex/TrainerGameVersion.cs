@@ -11,6 +11,7 @@ internal static class TrainerGameVersion
     private static GameVersion[] Allowed(SaveFile save) => save switch
     {
         SAV7SM or SAV7USUM => [GameVersion.SN, GameVersion.MN, GameVersion.US, GameVersion.UM],
+        SAV7b => [GameVersion.GP, GameVersion.GE],
         SAV8SWSH => [GameVersion.SW, GameVersion.SH],
         SAV8BS => [GameVersion.BD, GameVersion.SP],
         _ => [],

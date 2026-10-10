@@ -402,7 +402,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 已接入 API 53；工程检查通过，浏览器待核验                                       |
 | `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 已接入 API 52；形态、九语言及批量操作                                           |
 | `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | API 123 全窗口工程检查通过；六位 ID、地图／服装／废字节及冻结保存，浏览器待验收 |
-| `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | 待核对                                                                          |
+| `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | API 124：完整训练家／1000 格 GP1／文件及 ZIP 工程检查通过，浏览器待验收         |
 | `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | API 121：95／100 格、三语、储存／收集及来源保存全量工程通过；浏览器待验收       |
 | `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                                          |
 | `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | 待核对                                                                          |

@@ -183,6 +183,16 @@ public static partial class Program
     [JSExport]
     public static string ReadTrainer7(byte[] data) => SaveService.ReadTrainer7(data);
     [JSExport]
+    public static string ReadTrainerGG(byte[] data) => SaveService.ReadTrainerGG(data);
+    [JSExport]
+    public static string PreviewTrainerGG(byte[] data,string json) => SaveService.PreviewTrainerGG(data,json);
+    [JSExport]
+    public static byte[] EditTrainerGG(byte[] data,string json) => SaveService.EditTrainerGG(data,json);
+    [JSExport]
+    public static string ExportGoPark(byte[] data,int index) => SaveService.ExportGoPark(data,index);
+    [JSExport]
+    public static byte[] ExportGoParkArchive(byte[] data) => SaveService.ExportGoParkArchive(data);
+    [JSExport]
     public static string PreviewTrainer7(byte[] data,string json) => SaveService.PreviewTrainer7(data,json);
     [JSExport]
     public static byte[] EditTrainer7(byte[] data,string json) => SaveService.EditTrainer7(data,json);
@@ -378,7 +388,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 123;
+    public const int ApiVersion = 124;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -834,6 +844,10 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(Zygarde7Catalog))]
 [JsonSerializable(typeof(Hall7Catalog))]
 [JsonSerializable(typeof(Tr7Catalog))]
+[JsonSerializable(typeof(TrGGCatalog))]
+[JsonSerializable(typeof(TrGGEdit))]
+[JsonSerializable(typeof(TrGGPreview))]
+[JsonSerializable(typeof(GoParkExport[]))]
 [JsonSerializable(typeof(Tr7Edit))]
 [JsonSerializable(typeof(Tr7Preview))]
 [JsonSerializable(typeof(Hall7Edit))]

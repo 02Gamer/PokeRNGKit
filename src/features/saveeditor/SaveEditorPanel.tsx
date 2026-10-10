@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { TrainerGGEditor } from "./TrainerGGEditor";
+import { supportsTrainerGG } from "./trainerGG";
+import { trainerGGWords } from "./trainerGGWords";
 import { Trainer7Editor } from "./Trainer7Editor";
 import { supportsTrainer7 } from "./trainer7";
 import { Trainer6Editor } from "./Trainer6Editor";
@@ -199,6 +202,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "trainerGG"
     | "hall7"
     | "unityTower5"
     | "globalLink5"
@@ -362,6 +366,8 @@ export function SaveEditorPanel(
         (previous === "link6" && !supportsLink6(result.report.format)) ||
         (previous === "hall6" && !supportsHall6(result.report.format)) ||
         (previous === "zygarde7" && !supportsZygarde7(result.report.format)) ||
+        (previous === "trainerGG" &&
+          !supportsTrainerGG(result.report.format)) ||
         (previous === "hall7" && !supportsHall7(result.report.format)) ||
         (previous === "unityTower5" &&
           !supportsUnityTower5(result.report.format)) ||
@@ -1363,6 +1369,74 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readTrainerGG = async () => {
+    let c: import("./trainerGG").TrGGCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "trainerGG",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainerGG) throw Error("No TrainerGG catalog was returned.");
+      c = result.trainerGG;
+    });
+    return c;
+  };
+  const previewTrainerGG = async (edit: import("./trainerGG").TrGGEdit) => {
+    let p: import("./trainerGG").TrGGPreview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "trainerGGPreview",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainerGGPreview)
+        throw Error("No TrainerGG preview was returned.");
+      p = result.trainerGGPreview;
+    });
+    return p;
+  };
+  const exportTrainerGG = async (index?: number) => {
+    let downloaded = false;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        index === undefined ? undefined : String(index),
+        index === undefined ? "trainerGGArchive" : "trainerGGExport",
+      );
+      if (id !== operation.current) return;
+      const file = result.goParkFiles?.[0];
+      const data =
+        index === undefined
+          ? result.archive
+          : file
+            ? Uint8Array.from(atob(file.data), (c) => c.charCodeAt(0))
+            : undefined;
+      if (!data) throw Error("TrainerGG export is missing.");
+      const url = URL.createObjectURL(
+        new Blob([data], {
+          type:
+            index === undefined
+              ? "application/zip"
+              : "application/octet-stream",
+        }),
+      );
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = index === undefined ? "PokeRNGKit-GO-Park.zip" : file!.name;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      downloaded = true;
+    });
+    return downloaded;
+  };
   const readTrainer7 = async () => {
     let c: import("./trainer7").Tr7Catalog | undefined;
     await perform(async (id) => {
@@ -2119,6 +2193,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./trainerGG").TrGGEdit
       | import("./trainer7").Tr7Edit
       | import("./trainer6").Tr6Edit
       | import("./zygarde7").Zygarde7Edit
@@ -2187,6 +2262,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "trainerGGEdit"
       | "trainer7Edit"
       | "trainer6Edit"
       | "zygarde7Edit"
@@ -2777,6 +2853,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsTrainerGG(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "trainerGG"}
+                onClick={() => setSection("trainerGG")}
+              >
+                {trainerGGWords[batchLang].title}
+              </button>
+            )}
             {supportsHall7(report.format) && (
               <button
                 type="button"
@@ -3289,6 +3374,17 @@ export function SaveEditorPanel(
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
             />
+          ) : section === "trainerGG" && supportsTrainerGG(report.format) ? (
+            <TrainerGGEditor
+              key={report.format}
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readTrainerGG}
+              onPreview={previewTrainerGG}
+              onApply={(edit) => applyWorkingEdit(edit, "trainerGGEdit")}
+              onExport={exportTrainerGG}
+            />
           ) : section === "hall7" && supportsHall7(report.format) ? (
             <Hall7Editor
               key={report.format}
@@ -3580,11 +3676,13 @@ export function SaveEditorPanel(
                       ? br4GearWords[batchLang].scoped
                       : report.format === "SAV1"
                         ? words.pokedexResetOnly
-                        : ["SAV2", "SAV7b"].includes(report.format)
-                          ? words.pokedexEventsOnly
-                          : report.pokedex?.canEdit
-                            ? words.pokedexOnly
-                            : words.readonly}
+                        : report.format === "SAV7b"
+                          ? trainerGGWords[batchLang].scope
+                          : report.format === "SAV2"
+                            ? words.pokedexEventsOnly
+                            : report.pokedex?.canEdit
+                              ? words.pokedexOnly
+                              : words.readonly}
                 </p>
               )}
               <fieldset

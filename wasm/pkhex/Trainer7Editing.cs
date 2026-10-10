@@ -42,7 +42,7 @@ internal static class Trainer7Editing
         return result.ToArray();
     }
     internal static Tr7Catalog Read(SaveFile save,string hash){var s=Save(save);return new(s.State.Exportable&&SaveChecksums.Valid(s),hash,Fields(s),TrainerEditing.Options(s),new(s.OT,s.TID16,s.SID16,s.Money,s.Gender),Convert.ToHexString(s.MyStatus.OriginalTrainerTrash),Trainer7Position.Read(s),Hall6TrashEditing.Chars,Hall6TrashEditing.Species.Value,Hall6TrashEditing.Languages.Value,new(s.GetTrainerTID7(),s.GetTrainerSID7(),s.ID32,s.GetTSV(7)));}
-    internal static void Ids(SAV7 s,Tr7Value[] rows)
+    internal static void Ids(ITrainerID32 s,Tr7Value[] rows)
     {
         if(rows.Length!=2||rows.Select(v=>v.Key).Distinct().Count()!=2||rows.Any(v=>v.Key is not("tid" or "sid")||v.Value is null||v.Value.Length>(v.Key=="tid"?6:4)||v.Value.Any(c=>!char.IsAsciiDigit(c))))throw new ArgumentException("Invalid Trainer7 ID controls.");
         uint Value(string key)=>uint.TryParse(rows.Single(v=>v.Key==key).Value,out var n)?n:0;
@@ -97,12 +97,14 @@ internal static class Trainer7Editing
         if(saved is {} d)s.Played.LastSavedDate=new(d.Year,d.Month,d.Day,d.Hour,d.Minute,0);
     }
     internal static void Trash(SAV7 s,Hall6Trash e)
+        =>Trash(s,s.MyStatus.OriginalTrainerTrash,s.OT,v=>s.OT=v,e);
+    internal static void Trash(SaveFile s,Span<byte> target,string old,Action<string> set,Hall6Trash e)
     {
-        var bytes=s.MyStatus.OriginalTrainerTrash.ToArray();string old=s.OT;s.SetString(bytes,old,12,StringConverterOption.None);
+        var bytes=target.ToArray();
         byte[] Encode(string text){var data=new byte[26];int length=s.SetString(data,text,text.Length,StringConverterOption.None);return data[..length];}
         if(e.Action!="layer"&&(e.Species is not null||e.Language is not null||e.Generation is not null||e.UiLanguage is not null)||e.Action!="hex"&&e.Hex is not null||e.Action!="text"&&e.Text is not null)throw new ArgumentException("Invalid Trainer7 trash fields.");
-        switch(e.Action){case "prepare":break;case "hex":if(e.Hex is null||e.Hex.Length!=52||e.Hex.Any(c=>!char.IsAsciiHexDigit(c)))throw new ArgumentException("Invalid Trainer7 name hex.");bytes=Convert.FromHexString(e.Hex);break;case "text":if(e.Text is null||e.Text.Length>12)throw new ArgumentException("Invalid Trainer7 name text.");Encode(e.Text).CopyTo(bytes,0);break;case "clear":int start=Encode(old).Length;Array.Clear(bytes,start,26-start);break;case "layer":if(e.Species is null||!Hall6TrashEditing.Species.Value.Any(v=>v.Id==e.Species)||e.Language is null||!Hall6TrashEditing.Languages.Value.Any(v=>v.Id==e.Language)||e.Generation is null or <0 or >100||e.UiLanguage is not("zh" or "en" or "ja"))throw new ArgumentException("Invalid Trainer7 trash layer.");string name=SpeciesName.GetSpeciesNameGeneration((ushort)e.Species.Value,e.Language.Value,(byte)e.Generation.Value);if(name.Length==0){var v=Hall6TrashEditing.Species.Value.Single(v=>v.Id==e.Species);name=e.UiLanguage=="zh"?v.Name.Zh:e.UiLanguage=="ja"?v.Name.Ja:v.Name.En;}var layer=Encode(name);int from=Encode(old).Length;if(layer.Length<=from||layer.Length>26)throw new ArgumentException("Trainer7 trash layer is hidden or too long.");layer.AsSpan(from).CopyTo(bytes.AsSpan(from));break;default:throw new ArgumentException("Invalid Trainer7 trash action.");}
-        string next=s.GetString(bytes);if(next!=old)s.OT=next;bytes.CopyTo(s.MyStatus.OriginalTrainerTrash);
+        switch(e.Action){case "prepare":Encode(old).CopyTo(bytes,0);break;case "hex":if(e.Hex is null||e.Hex.Length!=52||e.Hex.Any(c=>!char.IsAsciiHexDigit(c)))throw new ArgumentException("Invalid Trainer7 name hex.");bytes=Convert.FromHexString(e.Hex);break;case "text":if(e.Text is null||e.Text.Length>12)throw new ArgumentException("Invalid Trainer7 name text.");Encode(e.Text).CopyTo(bytes,0);break;case "clear":int start=Encode(old).Length;Array.Clear(bytes,start,26-start);break;case "layer":if(e.Species is null||!Hall6TrashEditing.Species.Value.Any(v=>v.Id==e.Species)||e.Language is null||!Hall6TrashEditing.Languages.Value.Any(v=>v.Id==e.Language)||e.Generation is null or <0 or >100||e.UiLanguage is not("zh" or "en" or "ja"))throw new ArgumentException("Invalid Trainer7 trash layer.");string name=SpeciesName.GetSpeciesNameGeneration((ushort)e.Species.Value,e.Language.Value,(byte)e.Generation.Value);if(name.Length==0){var v=Hall6TrashEditing.Species.Value.Single(v=>v.Id==e.Species);name=e.UiLanguage=="zh"?v.Name.Zh:e.UiLanguage=="ja"?v.Name.Ja:v.Name.En;}var layer=Encode(name);int from=Encode(old).Length;if(layer.Length<=from||layer.Length>26)throw new ArgumentException("Trainer7 trash layer is hidden or too long.");layer.AsSpan(from).CopyTo(bytes.AsSpan(from));break;default:throw new ArgumentException("Invalid Trainer7 trash action.");}
+        string next=s.GetString(bytes);if(next!=old)set(next);bytes.CopyTo(target);
     }
     internal static byte[] Prepare(SaveFile save,Tr7Edit e,string hash,int length,out string[] ignored)
     {

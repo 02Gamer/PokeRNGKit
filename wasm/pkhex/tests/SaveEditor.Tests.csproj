@@ -8,6 +8,10 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../TrainerGGEditing.cs" Link="TrainerGGEditing.cs" />
+    <Compile Include="../TrainerGGPosition.cs" Link="TrainerGGPosition.cs" />
+    <Compile Include="../TrainerGGNames.cs" Link="TrainerGGNames.cs" />
+    <Compile Include="../GoParkEditing.cs" Link="GoParkEditing.cs" />
     <Compile Include="../Trainer7Editing.cs" Link="Trainer7Editing.cs" />
     <Compile Include="../Trainer7Position.cs" Link="Trainer7Position.cs" />
     <Compile Include="../Trainer7Names.cs" Link="Trainer7Names.cs" />

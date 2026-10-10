@@ -146,6 +146,39 @@ describe("save player context across Worker lifecycle", () => {
     }
     client.dispose();
   });
+  it("keeps TrainerGG read, frozen edit and GP1 export requests distinct", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "trainerGG",
+      "trainerGGPreview",
+      "trainerGGEdit",
+      "trainerGGExport",
+      "trainerGGArchive",
+    ] as const) {
+      const payload =
+        kind === "trainerGGExport"
+          ? "999"
+          : kind === "trainerGGPreview" || kind === "trainerGGEdit"
+            ? JSON.stringify({
+                action: "parkClear",
+                sourceHash: "A".repeat(64),
+                targetHash:
+                  kind === "trainerGGEdit" ? "B".repeat(64) : undefined,
+              })
+            : undefined;
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes).not.toBe(source);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({ data: { id: message.id, report: {} } });
+      await pending;
+    }
+    client.dispose();
+  });
   it("keeps the prior player after a rejected selection", async () => {
     const client = new SaveEditorClient();
     const start = client.run(new Uint8Array([1])),
