@@ -1,5 +1,6 @@
 import { trainer6Words } from "./trainer6Words";
 import { zygarde7Words } from "./zygarde7Words";
+import { hall7Words } from "./hall7Words";
 import { st6Words } from "./superTrain6Words";
 import { sb6Words } from "./secretBase6Words";
 import { link6Words } from "./link6Words";
@@ -39,6 +40,8 @@ export const saveEditorResources = {
     avenue5Stale: avenue5Words.zh.stale,
     trainer6Error: trainer6Words.zh.invalid,
     zygarde7Error: zygarde7Words.zh.invalid,
+    hall7Error: hall7Words.zh.invalid,
+    hall7Stale: hall7Words.zh.stale,
     zygarde7Stale: zygarde7Words.zh.stale,
     trainer6Stale: trainer6Words.zh.stale,
     superTrain6Error: st6Words.zh.invalid,
@@ -638,6 +641,8 @@ export const saveEditorResources = {
     avenue5Stale: avenue5Words.en.stale,
     trainer6Error: trainer6Words.en.invalid,
     zygarde7Error: zygarde7Words.en.invalid,
+    hall7Error: hall7Words.en.invalid,
+    hall7Stale: hall7Words.en.stale,
     zygarde7Stale: zygarde7Words.en.stale,
     trainer6Stale: trainer6Words.en.stale,
     superTrain6Error: st6Words.en.invalid,
@@ -1279,6 +1284,8 @@ export const saveEditorResources = {
     avenue5Stale: avenue5Words.ja.stale,
     trainer6Error: trainer6Words.ja.invalid,
     zygarde7Error: zygarde7Words.ja.invalid,
+    hall7Error: hall7Words.ja.invalid,
+    hall7Stale: hall7Words.ja.stale,
     zygarde7Stale: zygarde7Words.ja.stale,
     trainer6Stale: trainer6Words.ja.stale,
     superTrain6Error: st6Words.ja.invalid,
@@ -1951,6 +1958,8 @@ export function localizeSaveError(
   if (/BerryField6XY/i.test(message)) return words.berry6xyError;
   if (/Avenue5.*stale/i.test(message)) return words.avenue5Stale;
   if (/Avenue5/i.test(message)) return words.avenue5Error;
+  if (/Hall7.*stale/i.test(message)) return words.hall7Stale;
+  if (/Hall7/i.test(message)) return words.hall7Error;
   if (/(?:Collectibles7|Zygarde7).*stale/i.test(message))
     return words.zygarde7Stale;
   if (/Collectibles7|Zygarde7/i.test(message)) return words.zygarde7Error;

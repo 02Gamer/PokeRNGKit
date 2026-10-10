@@ -8,6 +8,7 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Hall7Editing.cs" Link="Hall7Editing.cs" />
     <Compile Include="../Zygarde7Editing.cs" Link="Zygarde7Editing.cs" />
     <Compile Include="../Zygarde7Locations.cs" Link="Zygarde7Locations.cs" />
     <Compile Include="../Trainer6Editing.cs" Link="Trainer6Editing.cs" />
