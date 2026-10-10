@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Underground8bEditor } from "./Underground8bEditor";
+import { supportsUnderground8b } from "./underground8b";
+import { underground8bWords } from "./underground8bWords";
 import { Seal8bEditor } from "./Seal8bEditor";
 import { supportsSeal8b } from "./seal8b";
 import { seal8bWords } from "./seal8bWords";
@@ -208,6 +211,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "underground8b"
     | "seal8b"
     | "misc8b"
     | "trainerGG"
@@ -335,6 +339,8 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "underground8b" &&
+          !supportsUnderground8b(result.report.format)) ||
         (previous === "seal8b" && !supportsSeal8b(result.report.format)) ||
         (previous === "misc8b" && !supportsMisc8b(result.report.format)) ||
         (previous === "batch" && !result.report.canEdit) ||
@@ -1379,6 +1385,40 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readUnderground8b = async () => {
+    let c: import("./underground8b").Ug8bCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "underground8b",
+      );
+      if (id !== operation.current) return;
+      if (!result.underground8b)
+        throw Error("No Underground8b catalog was returned.");
+      c = result.underground8b;
+    });
+    return c;
+  };
+  const previewUnderground8b = async (
+    edit: import("./underground8b").Ug8bEdit,
+  ) => {
+    let p: import("./underground8b").Ug8bPreview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "underground8bPreview",
+      );
+      if (id !== operation.current) return;
+      if (!result.underground8bPreview)
+        throw Error("No Underground8b preview was returned.");
+      p = result.underground8bPreview;
+    });
+    return p;
+  };
   const readSeal8b = async () => {
     let c: import("./seal8b").Seal8bCatalog | undefined;
     await perform(async (id) => {
@@ -2263,6 +2303,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./underground8b").Ug8bEdit
       | import("./seal8b").Seal8bEdit
       | import("./misc8b").Misc8bEdit
       | import("./trainerGG").TrGGEdit
@@ -2334,6 +2375,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "underground8bEdit"
       | "seal8bEdit"
       | "misc8bEdit"
       | "trainerGGEdit"
@@ -2927,6 +2969,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsUnderground8b(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "underground8b"}
+                onClick={() => setSection("underground8b")}
+              >
+                {underground8bWords[batchLang].title}
+              </button>
+            )}
             {supportsSeal8b(report.format) && (
               <button
                 type="button"
@@ -3465,6 +3516,17 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "underground8b" &&
+            supportsUnderground8b(report.format) ? (
+            <Underground8bEditor
+              key={report.format}
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readUnderground8b}
+              onPreview={previewUnderground8b}
+              onApply={(e) => applyWorkingEdit(e, "underground8bEdit")}
             />
           ) : section === "seal8b" && supportsSeal8b(report.format) ? (
             <Seal8bEditor

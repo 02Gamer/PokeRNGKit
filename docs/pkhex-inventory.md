@@ -418,7 +418,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | 基础/性别/时间/语言/对应点数已接入；其他字段待接入                              |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | 待核对                                                                          |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | 基础/性别/时间/语言/徽章/对应点数已接入；其他字段待接入                         |
-| `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | 待核对                                                                          |
+| `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | API 127：631 可见物品完整读写、批量、冻结预览及工程检查通过，浏览器待验收       |
 | `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | 待核对                                                                          |
 | `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | 待核对                                                                          |
 | `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | 待核对                                                                          |

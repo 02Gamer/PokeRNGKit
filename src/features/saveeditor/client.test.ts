@@ -179,6 +179,35 @@ describe("save player context across Worker lifecycle", () => {
     }
     client.dispose();
   });
+  it("transfers Underground8b read, preview and edits without changing the original buffer", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "underground8b",
+      "underground8bPreview",
+      "underground8bEdit",
+    ] as const) {
+      const payload =
+        kind === "underground8b"
+          ? undefined
+          : JSON.stringify({
+              action: "all",
+              sourceHash: "A".repeat(64),
+              targetHash:
+                kind === "underground8bEdit" ? "B".repeat(64) : undefined,
+            });
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes).not.toBe(source);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({ data: { id: message.id, report: {} } });
+      await pending;
+    }
+    client.dispose();
+  });
   it("transfers Seal8b read, preview and edits without changing the original buffer", async () => {
     const client = new SaveEditorClient(),
       source = new Uint8Array([1, 2, 3]);

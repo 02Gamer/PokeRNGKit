@@ -185,6 +185,12 @@ public static partial class Program
     [JSExport]
     public static string ReadTrainerGG(byte[] data) => SaveService.ReadTrainerGG(data);
     [JSExport]
+    public static string ReadUnderground8b(byte[] data) => SaveService.ReadUnderground8b(data);
+    [JSExport]
+    public static string PreviewUnderground8b(byte[] data,string json) => SaveService.PreviewUnderground8b(data,json);
+    [JSExport]
+    public static byte[] EditUnderground8b(byte[] data,string json) => SaveService.EditUnderground8b(data,json);
+    [JSExport]
     public static string ReadSeal8b(byte[] data) => SaveService.ReadSeal8b(data);
     [JSExport]
     public static string PreviewSeal8b(byte[] data,string json) => SaveService.PreviewSeal8b(data,json);
@@ -400,7 +406,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 126;
+    public const int ApiVersion = 127;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -859,6 +865,9 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(TrGGCatalog))]
 [JsonSerializable(typeof(Misc8bCatalog))]
 [JsonSerializable(typeof(Seal8bCatalog))]
+[JsonSerializable(typeof(Ug8bCatalog))]
+[JsonSerializable(typeof(Ug8bEdit))]
+[JsonSerializable(typeof(Ug8bPreview))]
 [JsonSerializable(typeof(Seal8bEdit))]
 [JsonSerializable(typeof(Seal8bPreview))]
 [JsonSerializable(typeof(Misc8bEdit))]

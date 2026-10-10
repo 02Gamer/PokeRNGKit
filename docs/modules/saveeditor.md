@@ -3,6 +3,17 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 晶灿钻石／明亮珍珠地下物品（API 127，工程检查通过）
+
+来源为 PKHeX 26.08.26 `SAV_Underground8b.cs`／Designer、`UndergroundItemList8b.cs`、`UndergroundItem8b.cs`、`UgItemUtil.cs`／`UgItemType.cs`、`SAV8BS.cs` 与 `text_ug_item` 三语资源。窗口负责地下物品库存，并非地下 NPC 或遭遇数据。产品显示真实物品 ID、来源类型、本地名称、数量、新获得及收藏；来源类型 None 的记录不开放编辑。
+
+- 块地址 `0x111BC`，999 条，每条 12 字节，共 `0x2ED4`。偏移 0 是 Int32 数量，偏移 4 是 UInt32 HideNew，偏移 8 是 UInt32 Favorite；两标记仅原值 1 为真。“新获得”与 HideNew 反向，不能直接保存复选框值。
+- 源 DataGridView 普通文本数量列没有最大字符数、非负限制或最大值钳制；保存以 `int.TryParse` 解析十进制 Int32，空值／无效／溢出归零。领域复用已核对的 Int32 文本解析，Worker 强制精确整数。单项允许负数和超过批量最大值，不新增跨字段约束。
+- 全部仅将可见条目数量设为来源 MaxValue：Sphere／Item 999，Statue／Pedestal 99；新获得和收藏维持当前草稿。清空将可见数量归零、新获得设真、收藏设假。先应用当前草稿，再执行批量，支持原版保存。
+- `WriteItems` 重写全部 999 条，两标记连隐藏记录也规范为 0／1；隐藏数量保留。冻结预览展示可见数量及两个原始标记，并提供所有 ID 的规范化变化。应用校验来源／目标完整哈希，导出回读检查格式／版本／布局／完整数据／校验，原件及既有撤销保持。
+
+BD／SP × 四布局八组合原生独立地址专项通过，确认 631 个可见物品、999 条物理记录及四种类型最大值；覆盖 Int32 极值、草稿与全部／清空、双标记及隐藏规范化、完整导出、精确变化地址和冻结／校验拒绝。完整前端 258 文件／1066 项通过，包含地下物品 Worker 路由；全仓格式、Lint、类型、API 127 核心构建、裁剪后 26 类属性及最新核心网页／PWA 打包通过，预缓存 252 项。原有 Gen3StaticPanel Hook 与反射裁剪警告保留；本轮外部 Chrome 读取超时，页面与真实存档未验收。
+
 ## 晶灿钻石／明亮珍珠贴纸（API 126，工程检查通过）
 
 已核对 PKHeX 26.08.26 `SAV_SealStickers8b.cs`／Designer、`SealList8b.cs`、`SealSticker8b.cs`、`SAV8BS.cs` 及 `text_stickers` 三语资源。产品入口位于存档悬浮面板，支持名称／ID 搜索、当前数量、累计数量、已取得、全部、清空、原版保存、冻结预览、工作副本与既有撤销／导出。
