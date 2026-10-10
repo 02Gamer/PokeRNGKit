@@ -407,7 +407,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                                          |
 | `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | 待核对                                                                          |
 | `Subforms/Save Editors/Gen8/SAV_FlagWork8b.cs`                                | API 83：八布局普通／系统标记、Int32 数值及比较已接入，浏览器待核验              |
-| `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | 待核对                                                                          |
+| `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | API 125：十项操作、冻结预览及完整工程检查通过，浏览器与真实存档待验收           |
 | `Subforms/Save Editors/Gen8/SAV_Poffin8b.cs`                                  | API 75：逐格／批量与三语目录已接入；工程检查通过，浏览器待核验                  |
 | `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 已接入 API 54；工程检查通过，浏览器待核验                                       |
 | `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | API 56 已接入；真实存档与浏览器待核验                                           |

@@ -179,6 +179,30 @@ describe("save player context across Worker lifecycle", () => {
     }
     client.dispose();
   });
+  it("transfers Misc8b source actions without changing the original buffer", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of ["misc8b", "misc8bPreview", "misc8bEdit"] as const) {
+      const payload =
+        kind === "misc8b"
+          ? undefined
+          : JSON.stringify({
+              action: "arceus",
+              sourceHash: "A".repeat(64),
+              targetHash: kind === "misc8bEdit" ? "B".repeat(64) : undefined,
+            });
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes).not.toBe(source);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({ data: { id: message.id, report: {} } });
+      await pending;
+    }
+    client.dispose();
+  });
   it("keeps the prior player after a rejected selection", async () => {
     const client = new SaveEditorClient();
     const start = client.run(new Uint8Array([1])),

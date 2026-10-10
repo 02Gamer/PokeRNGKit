@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Misc8bEditor } from "./Misc8bEditor";
+import { supportsMisc8b } from "./misc8b";
+import { misc8bWords } from "./misc8bWords";
 import { TrainerGGEditor } from "./TrainerGGEditor";
 import { supportsTrainerGG } from "./trainerGG";
 import { trainerGGWords } from "./trainerGGWords";
@@ -202,6 +205,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "misc8b"
     | "trainerGG"
     | "hall7"
     | "unityTower5"
@@ -1369,6 +1373,36 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readMisc8b = async () => {
+    let c: import("./misc8b").Misc8bCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "misc8b",
+      );
+      if (id !== operation.current) return;
+      if (!result.misc8b) throw Error("No Misc8b catalog was returned.");
+      c = result.misc8b;
+    });
+    return c;
+  };
+  const previewMisc8b = async (edit: import("./misc8b").Misc8bEdit) => {
+    let p: import("./misc8b").Misc8bPreview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "misc8bPreview",
+      );
+      if (id !== operation.current) return;
+      if (!result.misc8bPreview) throw Error("No Misc8b preview was returned.");
+      p = result.misc8bPreview;
+    });
+    return p;
+  };
   const readTrainerGG = async () => {
     let c: import("./trainerGG").TrGGCatalog | undefined;
     await perform(async (id) => {
@@ -2193,6 +2227,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./misc8b").Misc8bEdit
       | import("./trainerGG").TrGGEdit
       | import("./trainer7").Tr7Edit
       | import("./trainer6").Tr6Edit
@@ -2262,6 +2297,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "misc8bEdit"
       | "trainerGGEdit"
       | "trainer7Edit"
       | "trainer6Edit"
@@ -2853,6 +2889,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsMisc8b(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "misc8b"}
+                onClick={() => setSection("misc8b")}
+              >
+                {misc8bWords[batchLang].title}
+              </button>
+            )}
             {supportsTrainerGG(report.format) && (
               <button
                 type="button"
@@ -3373,6 +3418,16 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "misc8b" && supportsMisc8b(report.format) ? (
+            <Misc8bEditor
+              key={report.format}
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readMisc8b}
+              onPreview={previewMisc8b}
+              onApply={(e) => applyWorkingEdit(e, "misc8bEdit")}
             />
           ) : section === "trainerGG" && supportsTrainerGG(report.format) ? (
             <TrainerGGEditor
