@@ -52,7 +52,7 @@ internal static class TrainerEditing
     {
         var options = Options(save);
         var maxName = save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer;
-        int minName = save is SAV6XY or SAV6AO or SAV6AODemo ? 0 : 1;
+        int minName = save is SAV6XY or SAV6AO or SAV6AODemo or SAV7SM or SAV7USUM ? 0 : 1;
         if (edit.Ot is null || edit.Ot.Length < minName || edit.Ot.Length > maxName || edit.Ot.Any(char.IsControl))
             throw new ArgumentException($"Trainer name must contain {minName}–{maxName} supported characters.");
         if (edit.Money > save.MaxMoney) throw new ArgumentException($"Money must be between 0 and {save.MaxMoney}.");
@@ -114,6 +114,12 @@ internal static class TrainerEditing
                 save.Gender = (byte)gender;
                 // SAV_Trainer8.CB_Gender_SelectedIndexChanged / ResetAppearance.
                 swsh.MyStatus.ResetAppearance((PlayerSkinColor8)((color & ~1) | gender));
+            }
+            else if(save is SAV7SM or SAV7USUM)
+            {
+                var gen7=(SAV7)save;
+                save.Gender=(byte)gender;
+                gen7.MyStatus.DressUpSkinColor=(gen7.MyStatus.DressUpSkinColor&~1)|gender;
             }
             else save.Gender = (byte)gender;
         }

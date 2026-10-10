@@ -114,6 +114,38 @@ describe("save player context across Worker lifecycle", () => {
     }
     client.dispose();
   });
+  it("transfers Trainer7 requests without mutating original bytes", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "trainer7",
+      "trainer7Preview",
+      "trainer7Edit",
+    ] as const) {
+      const edit =
+        kind === "trainer7"
+          ? undefined
+          : JSON.stringify({
+              action: "ids",
+              sourceHash: "A".repeat(64),
+              targetHash: kind === "trainer7Edit" ? "B".repeat(64) : undefined,
+              fields: [
+                { key: "tid", value: "999999" },
+                { key: "sid", value: "4294" },
+              ],
+            });
+      const pending = client.run(source, edit, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(edit);
+      expect(message.bytes).not.toBe(source);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({ data: { id: message.id, report: {} } });
+      await pending;
+    }
+    client.dispose();
+  });
   it("keeps the prior player after a rejected selection", async () => {
     const client = new SaveEditorClient();
     const start = client.run(new Uint8Array([1])),

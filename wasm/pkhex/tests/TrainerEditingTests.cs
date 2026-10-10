@@ -24,7 +24,16 @@ internal static class TrainerEditingTests
             foreach(var edit in cases)
             {
                 var expected = SaveUtil.GetSaveFile(data.ToArray())!;
-                if(edit.Gender is int gender) expected.Gender=(byte)gender;
+                if(edit.Gender is int gender)
+                {
+                    if(gender!=expected.Gender&&expected is SAV7SM or SAV7USUM)
+                    {
+                        // SAV_Trainer7 gender event changes only the skin parity bit (status bit 2).
+                        var gen7=(SAV7)expected;
+                        gen7.MyStatus.Data[0x54]=(byte)((gen7.MyStatus.Data[0x54]&~4)|(gender<<2));
+                    }
+                    expected.Gender=(byte)gender;
+                }
                 if(edit.Hours is int hours) expected.PlayedHours=hours;
                 if(edit.Minutes is int minutes) expected.PlayedMinutes=minutes%60;
                 if(edit.Seconds is int seconds) expected.PlayedSeconds=seconds%60;

@@ -60,7 +60,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 122;
+  apiVersion: 123;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -370,7 +370,13 @@ export function rebaseTrainerDraft(
 export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
   if (!(report.canEdit || report.trainerOnly) || !report.checksumsValid)
     throw new Error("This save is read-only.");
-  const minName = ["SAV6XY", "SAV6AO", "SAV6AODemo"].includes(report.format)
+  const minName = [
+    "SAV6XY",
+    "SAV6AO",
+    "SAV6AODemo",
+    "SAV7SM",
+    "SAV7USUM",
+  ].includes(report.format)
     ? 0
     : 1;
   if (
@@ -835,6 +841,8 @@ export interface SaveEditorResult {
   avenue5?: import("./avenue5").Avenue5Catalog;
   avenue5Preview?: import("./avenue5").Avenue5Preview;
   avenue5File?: Uint8Array<ArrayBuffer>;
+  trainer7?: import("./trainer7").Tr7Catalog;
+  trainer7Preview?: import("./trainer7").Tr7Preview;
   trainer6?: import("./trainer6").Tr6Catalog;
   zygarde7?: import("./zygarde7").Zygarde7Catalog;
   hall7?: import("./hall7").Hall7Catalog;

@@ -37,6 +37,8 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Trainer7Editor } from "./Trainer7Editor";
+import { supportsTrainer7 } from "./trainer7";
 import { Trainer6Editor } from "./Trainer6Editor";
 import { trainer6Words } from "./trainer6Words";
 import { Zygarde7Editor } from "./Zygarde7Editor";
@@ -1361,6 +1363,37 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readTrainer7 = async () => {
+    let c: import("./trainer7").Tr7Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "trainer7",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainer7) throw Error("No Trainer7 catalog was returned.");
+      c = result.trainer7;
+    });
+    return c;
+  };
+  const previewTrainer7 = async (edit: import("./trainer7").Tr7Edit) => {
+    let p: import("./trainer7").Tr7Preview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "trainer7Preview",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainer7Preview)
+        throw Error("No Trainer7 preview was returned.");
+      p = result.trainer7Preview;
+    });
+    return p;
+  };
   const readTrainer6 = async () => {
     let c: import("./trainer6").Tr6Catalog | undefined;
     await perform(async (id) => {
@@ -2086,6 +2119,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./trainer7").Tr7Edit
       | import("./trainer6").Tr6Edit
       | import("./zygarde7").Zygarde7Edit
       | import("./hall7").Hall7Edit
@@ -2153,6 +2187,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "trainer7Edit"
       | "trainer6Edit"
       | "zygarde7Edit"
       | "hall7Edit"
@@ -3880,6 +3915,18 @@ export function SaveEditorPanel(
                   <RotateCcw size={18} aria-hidden="true" /> {words.reset}
                 </button>
               </div>
+              {supportsTrainer7(report.format) && (
+                <Trainer7Editor
+                  key={`${name}:${fileRevision}:${report.format}`}
+                  revision={workingRevision}
+                  busy={busy || !trainerDraftMatches(draft, report)}
+                  lang={batchLang}
+                  onRead={readTrainer7}
+                  onPreview={previewTrainer7}
+                  onApply={(edit) => applyWorkingEdit(edit, "trainer7Edit")}
+                  onDirtyChange={setTrainer6Draft}
+                />
+              )}
               {supportsTrainer6(report.format) && (
                 <Trainer6Editor
                   key={`${name}:${fileRevision}:${report.format}`}
