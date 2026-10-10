@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Seal8bEditor } from "./Seal8bEditor";
+import { supportsSeal8b } from "./seal8b";
+import { seal8bWords } from "./seal8bWords";
 import { Misc8bEditor } from "./Misc8bEditor";
 import { supportsMisc8b } from "./misc8b";
 import { misc8bWords } from "./misc8bWords";
@@ -205,6 +208,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "seal8b"
     | "misc8b"
     | "trainerGG"
     | "hall7"
@@ -331,6 +335,8 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "seal8b" && !supportsSeal8b(result.report.format)) ||
+        (previous === "misc8b" && !supportsMisc8b(result.report.format)) ||
         (previous === "batch" && !result.report.canEdit) ||
         (previous === "pokedex" && !result.report.pokedex) ||
         (previous === "records" && !result.report.trainer.canRecords) ||
@@ -1373,6 +1379,36 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readSeal8b = async () => {
+    let c: import("./seal8b").Seal8bCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "seal8b",
+      );
+      if (id !== operation.current) return;
+      if (!result.seal8b) throw Error("No Seal8b catalog was returned.");
+      c = result.seal8b;
+    });
+    return c;
+  };
+  const previewSeal8b = async (edit: import("./seal8b").Seal8bEdit) => {
+    let p: import("./seal8b").Seal8bPreview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "seal8bPreview",
+      );
+      if (id !== operation.current) return;
+      if (!result.seal8bPreview) throw Error("No Seal8b preview was returned.");
+      p = result.seal8bPreview;
+    });
+    return p;
+  };
   const readMisc8b = async () => {
     let c: import("./misc8b").Misc8bCatalog | undefined;
     await perform(async (id) => {
@@ -2227,6 +2263,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./seal8b").Seal8bEdit
       | import("./misc8b").Misc8bEdit
       | import("./trainerGG").TrGGEdit
       | import("./trainer7").Tr7Edit
@@ -2297,6 +2334,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "seal8bEdit"
       | "misc8bEdit"
       | "trainerGGEdit"
       | "trainer7Edit"
@@ -2889,6 +2927,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsSeal8b(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "seal8b"}
+                onClick={() => setSection("seal8b")}
+              >
+                {seal8bWords[batchLang].title}
+              </button>
+            )}
             {supportsMisc8b(report.format) && (
               <button
                 type="button"
@@ -3418,6 +3465,16 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "seal8b" && supportsSeal8b(report.format) ? (
+            <Seal8bEditor
+              key={report.format}
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readSeal8b}
+              onPreview={previewSeal8b}
+              onApply={(e) => applyWorkingEdit(e, "seal8bEdit")}
             />
           ) : section === "misc8b" && supportsMisc8b(report.format) ? (
             <Misc8bEditor

@@ -414,7 +414,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | API 56 已接入全部 30 项计数；真实存档与浏览器待核验                             |
 | `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | API 55 已接入；真实存档与浏览器待核验                                           |
 | `Subforms/Save Editors/Gen8/SAV_Raid8.cs`                                     | 待核对                                                                          |
-| `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | 待核对                                                                          |
+| `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | API 126：完整读写、批量、冻结预览及工程检查通过，浏览器与真实存档待验收         |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | 基础/性别/时间/语言/对应点数已接入；其他字段待接入                              |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | 待核对                                                                          |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | 基础/性别/时间/语言/徽章/对应点数已接入；其他字段待接入                         |
