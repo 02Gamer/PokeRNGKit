@@ -14,6 +14,10 @@
     <Compile Include="../Raid8Editing.cs" Link="Raid8Editing.cs" />
     <Compile Include="../Trainer8bEditing.cs" Link="Trainer8bEditing.cs" />
     <Compile Include="../Trainer8aEditing.cs" Link="Trainer8aEditing.cs" />
+    <Compile Include="../Trainer8Teams.cs" Link="Trainer8Teams.cs" />
+    <Compile Include="../Trainer8Editing.cs" Link="Trainer8Editing.cs" />
+    <Compile Include="../Trainer8Position.cs" Link="Trainer8Position.cs" />
+    <Compile Include="../Trainer8Diglett.cs" Link="Trainer8Diglett.cs" />
     <Compile Include="../TrainerGGEditing.cs" Link="TrainerGGEditing.cs" />
     <Compile Include="../TrainerGGPosition.cs" Link="TrainerGGPosition.cs" />
     <Compile Include="../TrainerGGNames.cs" Link="TrainerGGNames.cs" />

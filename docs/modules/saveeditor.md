@@ -3,6 +3,29 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 剑／盾训练家窗口（API 131，工程检查通过）
+
+已核对 `SAV_Trainer8.cs`／Designer、`TrainerCard8.cs`、`TitleScreen8.cs`、`MyStatus8.cs`、`FashionUnlock8.cs`、`PlayerSkinColor8.cs`、`Coordinates8.cs`、`PlayTime7b.cs`、`Epoch1900DateTimeValue.cs`、`Records.cs` 与 `TrainerStat.cs`。API 131 已接悬浮面板专属三语入口、独立 Worker 与冻结预览，工程检查通过；页面／真实存档仍待所有者验收。
+
+界面分为概览／联盟卡／训练家 ID／地图／记录／联盟卡队伍／标题画面队伍／外观与服装／姓名字节。两队伍各六格本地图片，全部来源属性和原始记录可读写；长期字段分组，记录可搜索并内部滚动，控件保持 44px、标签 15px、正文 14px、说明 13px。姓名特殊字符、清理／层叠／完整字节操作及两名称目标齐备。所有修改需先预览，按源／目标完整哈希冻结后应用现有工作副本，原件、20 步／64 MiB 撤销与导出保留。
+
+预览展示字段、ID、八位置值、实际保存日期、18 项外观标识、双队伍名称／图像／属性／原始记录，以及所有变化数据块的键／类型／原始数据。布尔块即使数据长度零，也展示 Bool1／Bool2 类型变化，不能遗漏地鼠标记。服装清理范围、累计记录与原版保存的附带变化均进入预览；全部图片复用本地许可资源，无运行时 CDN。
+
+- 联盟卡块 `874DA6FA`，六条记录从 `0xC8` 开始，各 `0x1C`；标题画面块 `E9BE28BF`，六条记录从零开始，各 `0x28`。缺失或不足长度拒绝，不补零块。
+- 两类 PropertyGrid 均开放 Species UInt16、Form／Gender Byte、IsShiny Boolean、EncryptionConstant UInt32 与 FormArgument Int32；卡片还有 Unknown UInt32，标题还有 Unknown18／1C／20／24 UInt32。限制按 CLR 类型完整范围，不收窄成游戏物种、形态或性别枚举。文本沿 PropertyGrid 默认 32767 字符，使用具体 .NET 数字／布尔 TypeConverter 与明确文化区；数字转换器也接受原版支持的 `0x` 写法，不能仅按十进制文本推断。无效值拒绝，并先完整解析请求，避免后项失败留下前项写入。
+- Species／Form／Gender setter 重写四字节整数并清上部字节；IsShiny 只写 `+0xC`，不覆盖后三字节。卡片 EC／Unknown／FormArgument 位于 `+0x10／14／18`，标题 EC／FormArgument／四未知字段位于 `+0x10／14／18／1C／20／24`。读取提供逐条原始 bytes、三语物种名和既有本地 SpriteName 资源键，未知物种保留原 ID。
+- 原版队伍复制调用 `SetPartyData`：已占用槽只改六项已知字段，保留未知字段；甜冷美后的形态参数来自 IFormArgument，其余设为 −1；剩余槽清空整条记录。图像命名按该窗口原版调用，SpriteName 的 formarg 参数固定零，存档实际 FormArgument 独立保留。
+
+训练家核心新增 71 项字段（源最后保存控件能加载时），含 50 条训练家记录。记录上限取 `max(当前值, GetRecordMax)`，只改变化的记录；两个对战塔胜场字段另同步记录 47／48，连胜掩码三位但保存上限 300。金钱／瓦特七位、联盟卡 ID 六位、越野赛五位；越野赛同步 `38548020`，瓦特大于累计值时更新记录 22。BP 0–9999，加载采用 min，空 NumericUpDown 沿用已加载值；小时五位／UInt16，空值因原版 ushort.Parse 无处理而拒绝；分秒两位，Change255 将空输入改为零，保存模 60。训练家及联盟卡姓名各最多 12 UTF-16 字符、各 26 字节；姓名不变时保留废字节。号码 TextBox 12 字符，但 status `+1` 与 card `+0x39` 只写前三个字符的低字节并补零。
+
+位置块 `16AAA7FA`：地图 UInt64 在 `+0x6000`，十进制字符串／decimal 处理，禁止网页 Number 截断。X／Z／Y 在 `+0x10／14／18`，SX／SZ／SY 在 `+0x20／24／28`，RX／RZ／RY／RW 在 `+0x30／34／38／3C`。八控件全部绑定 ChangeMapValue，原版没有 Loading guard；地图也为 NumericUpDown，不能套用 PLA 的地图 TextBox 规则。全零加载且数值不变时不写入；非零加载或任何数值变化时重写整组，RX／RY 置零，RZ／RW 为半角 sin／cos。异常旧坐标禁用，空／无效文本保留旧数值。
+
+开始日期位于联盟卡 `+0x170／172／173`，日期控件 2000–2060，没有时间。最后保存位于 `8CBBFD90 +4` 四字节 Epoch1900 位编码，未存秒且不转换时区。最后保存日期控件默认最小 1753、最大 4095-12-31 00:00，时间控件 2000-01-01–2060-12-31 00:00；两 Designer.Value 都是 2000-01-01。实际 WinForms 控件探针确认：加载 2061-02-03 04:05 时日期保留、时间归零；4095-12-31 23:59 第一项加载失败，重保存为 2000-01-01；1900-01-01 12:34 日期保留、时间归零。控件隐藏后原版 Save 仍按 HasValue 回写，因此重保存必须显示这个附带变化；内部目录额外提供实际 SavedValue，不把异常旧值提前改掉。无效日历返回 null 不创建日期；有效日历但异常时钟导致原版加载异常，重保存拒绝。
+
+肤色八项来源 PlayerSkinColor8，修改同时写 Skin／MomSkin；性别改变采用 `(原肤色索引 & ~1) | 性别` 重置所有外观，保留其他 status 字节。三服装模式按源先 Clear，再 Reset／UnlockAllLegal／UnlockAll；Clear 只清服装区域，不清前六类区域。地鼠只在 DLC 修订且全部来源命名布尔块和 UInt32 计数块完整时开放，写入继续调用原版 UnlockAllDiglett，不创建缺失生产块。空白模板缺少某些命名块，专项夹具只为明确来源字段增加类型化工程数据，不补造 SaveUtil 长度或降低检测。
+
+六组队伍与十二组训练家组合专项通过，完整原生最终退出码 0。扩大覆盖隐藏控件日期、缺失地鼠块、空值、全零地图、双队伍动作及布尔类型变化预览。夹具曾漏写图片资源下划线、地图 UI 语言，布尔专项曾误假定空白模板具有 Bool1／Bool2；均按真实来源修正，不在生产创建缺失块。类型首轮测试元数据 decimals 改为既有 places；控制字符校验改用字符编码范围，不关闭 Lint 规则。完整前端 262 文件／1111 项、全仓 Lint、最终类型、API 131 浏览器核心、裁剪后 26 类属性和网页／PWA 打包通过，预缓存 252 项。既有 Hook、反射裁剪与包大小警告保留。最后文档格式收尾；Chrome 仍返回 nodeRepl.fetch request failed，页面及真实存档尚未验收，整体 PKHeX 库存继续推进。
+
 ## 传说 阿尔宙斯训练家窗口（API 130，工程检查通过）
 
 已核对 PKHeX 26.08.26 `SAV_Trainer8a.cs`／Designer、`MyStatus8a.cs`、`Coordinates8a.cs`、`SaveBlockAccessor8LA.cs`、`SAV8LA.cs`、`Epoch1970Value.cs`、`Epoch1900DateTimeValue.cs` 与共用姓名 TrashEditor。API 130 已接独立三语窗口及 Worker，按概览／ID／地图／姓名字节分组，所有操作先冻结预览，再进入工作副本，保留原件与既有撤销／导出。

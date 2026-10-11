@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Trainer8Editor } from "./Trainer8Editor";
+import { supportsTrainer8 } from "./trainer8";
+import { trainer8Words } from "./trainer8Words";
 import { Trainer8aEditor } from "./Trainer8aEditor";
 import { supportsTrainer8a } from "./trainer8a";
 import { trainer8aWords } from "./trainer8aWords";
@@ -220,6 +223,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "trainer8"
     | "trainer8a"
     | "trainer8b"
     | "raid8"
@@ -351,6 +355,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "trainer8" && !supportsTrainer8(result.report.format)) ||
         (previous === "trainer8a" &&
           !supportsTrainer8a(result.report.format)) ||
         (previous === "trainer8b" &&
@@ -1402,6 +1407,37 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readTrainer8 = async () => {
+    let c: import("./trainer8").Tr8Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "trainer8",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainer8) throw Error("No Trainer8 catalog was returned.");
+      c = result.trainer8;
+    });
+    return c;
+  };
+  const previewTrainer8 = async (edit: import("./trainer8").Tr8Edit) => {
+    let p: import("./trainer8").Tr8Preview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "trainer8Preview",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainer8Preview)
+        throw Error("No Trainer8 preview was returned.");
+      p = result.trainer8Preview;
+    });
+    return p;
+  };
   const readTrainer8a = async () => {
     let c: import("./trainer8a").Tr8aCatalog | undefined;
     await perform(async (id) => {
@@ -2412,6 +2448,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./trainer8").Tr8Edit
       | import("./trainer8a").Tr8aEdit
       | import("./trainer8b").Tr8bEdit
       | import("./raid8").Raid8Edit
@@ -2487,6 +2524,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "trainer8Edit"
       | "trainer8aEdit"
       | "trainer8bEdit"
       | "raid8Edit"
@@ -3084,6 +3122,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsTrainer8(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "trainer8"}
+                onClick={() => setSection("trainer8")}
+              >
+                {trainer8Words[batchLang].title}
+              </button>
+            )}
             {supportsTrainer8a(report.format) && (
               <button
                 type="button"
@@ -3658,6 +3705,16 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "trainer8" && supportsTrainer8(report.format) ? (
+            <Trainer8Editor
+              key={report.format}
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readTrainer8}
+              onPreview={previewTrainer8}
+              onApply={(e) => applyWorkingEdit(e, "trainer8Edit")}
             />
           ) : section === "trainer8a" && supportsTrainer8a(report.format) ? (
             <Trainer8aEditor

@@ -1,3 +1,4 @@
+import { trainer8Words } from "./trainer8Words";
 import { trainer8aWords } from "./trainer8aWords";
 import { trainer8bWords } from "./trainer8bWords";
 import { raid8Words } from "./raid8Words";
@@ -46,6 +47,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.zh.invalid,
     avenue5Error: avenue5Words.zh.invalid,
     avenue5Stale: avenue5Words.zh.stale,
+    trainer8Error: trainer8Words.zh.invalid,
+    trainer8Stale: trainer8Words.zh.stale,
     trainer8aError: trainer8aWords.zh.invalid,
     trainer8aStale: trainer8aWords.zh.stale,
     trainer8bError: trainer8bWords.zh.invalid,
@@ -663,6 +666,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.en.invalid,
     avenue5Error: avenue5Words.en.invalid,
     avenue5Stale: avenue5Words.en.stale,
+    trainer8Error: trainer8Words.en.invalid,
+    trainer8Stale: trainer8Words.en.stale,
     trainer8aError: trainer8aWords.en.invalid,
     trainer8aStale: trainer8aWords.en.stale,
     trainer8bError: trainer8bWords.en.invalid,
@@ -1322,6 +1327,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.ja.invalid,
     avenue5Error: avenue5Words.ja.invalid,
     avenue5Stale: avenue5Words.ja.stale,
+    trainer8Error: trainer8Words.ja.invalid,
+    trainer8Stale: trainer8Words.ja.stale,
     trainer8aError: trainer8aWords.ja.invalid,
     trainer8aStale: trainer8aWords.ja.stale,
     trainer8bError: trainer8bWords.ja.invalid,
@@ -2023,6 +2030,8 @@ export function localizeSaveError(
   if (/Trainer8a/i.test(message)) return words.trainer8aError;
   if (/Trainer8b.*stale/i.test(message)) return words.trainer8bStale;
   if (/Trainer8b/i.test(message)) return words.trainer8bError;
+  if (/Trainer8.*stale/i.test(message)) return words.trainer8Stale;
+  if (/Trainer8/i.test(message)) return words.trainer8Error;
   if (/Raid8.*stale/i.test(message)) return words.raid8Stale;
   if (/Raid8/i.test(message)) return words.raid8Error;
   if (/Underground8b.*stale/i.test(message)) return words.underground8bStale;

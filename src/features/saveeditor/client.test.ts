@@ -179,6 +179,37 @@ describe("save player context across Worker lifecycle", () => {
     }
     client.dispose();
   });
+  it("transfers Trainer8 read, preview and frozen edits without changing original bytes", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "trainer8",
+      "trainer8Preview",
+      "trainer8Edit",
+    ] as const) {
+      const payload =
+        kind === "trainer8"
+          ? undefined
+          : JSON.stringify({
+              action: "team",
+              sourceHash: "A".repeat(64),
+              team: "card",
+              uiLanguage: "zh",
+              members: [{ index: 5, property: "ec", value: "0xFFFFFFFF" }],
+              targetHash: kind === "trainer8Edit" ? "B".repeat(64) : undefined,
+            });
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes).not.toBe(source);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({ data: { id: message.id, report: {} } });
+      await pending;
+    }
+    client.dispose();
+  });
   it("transfers Trainer8a read, preview and frozen edits without changing original bytes", async () => {
     const client = new SaveEditorClient(),
       source = new Uint8Array([1, 2, 3]);
