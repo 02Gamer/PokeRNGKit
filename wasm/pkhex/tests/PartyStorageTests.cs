@@ -43,6 +43,9 @@ internal static class PartyStorageTests
                 ("swap", new(-1, 0), box, [400,101,102], box, 100),
                 ("move", new(-1, 0), new(-1, 5), [101,102,100], null, 0),
                 ("copy", new(-1, 0), new(-1, 5), [100,101,102,100], null, 0),
+                ("overwrite", new(-1, 1), new(-1, 2), [100,101], null, 0),
+                ("overwrite", box, new(-1, 1), [100,400,102], box, 0),
+                ("overwrite", new(-1, 0), box, [101,102], box, 100),
             };
             foreach (var test in cases)
             {

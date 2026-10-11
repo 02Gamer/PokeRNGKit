@@ -29,7 +29,7 @@ internal static class StorageEditing
 
     public static PokemonPosition[] Apply(SaveFile save, StorageEdit edit)
     {
-        if (edit.Action is not ("move" or "swap" or "copy" or "delete"))
+        if (edit.Action is not ("move" or "swap" or "copy" or "overwrite" or "delete"))
             throw new ArgumentException("Storage operation is invalid.");
         if (edit.Source.Box == -1 && (uint)edit.Source.Slot >= 6)
             throw new ArgumentException("Storage party position is invalid.");

@@ -7,7 +7,7 @@ import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonEggEditor } from "./PokemonEggEditor";
 import { PokemonOriginEditor } from "./PokemonOriginEditor";
 import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonFileTools } from "./PokemonFileTools";
 import { PokemonRawEditor } from "./PokemonRawEditor";
@@ -21,7 +21,17 @@ import type { BoxImportOptions, BoxImportConfirmation } from "./boxImport";
 import type { BoxArchiveRequest } from "./boxArchive";
 import { PokemonLegality } from "./PokemonLegality";
 import { PokemonEditor, type PokemonEdit } from "./PokemonEditor";
-import { boxWallpaper, pokemonImage } from "./art";
+import { pokemonImage } from "./art";
+import { SaveBoxGrid } from "./SaveBoxGrid";
+import { SaveBoxGallery } from "./SaveBoxGallery";
+import {
+  BOX_SLOT_DRAG_TYPE,
+  boxDropEdit,
+  decodeBoxDrag,
+  type GalleryDropMode,
+  type GalleryModifiers,
+} from "./boxGallery";
+import { boxGalleryWords } from "./boxGalleryWords";
 import { Select } from "../shared/Select";
 import type {
   OriginCatalog,
@@ -120,6 +130,81 @@ export function SavePokemonBrowser({
         ? Math.min(slot ?? selected?.slot ?? 0, report.partyCount)
         : (slot ?? selected?.slot ?? 0),
   };
+  const galleryWords = boxGalleryWords[lang];
+  const [view, setView] = useState<"single" | "all">("single");
+  const [mode, setMode] = useState<GalleryDropMode>("auto");
+  const [pending, setPending] = useState(false),
+    [galleryError, setGalleryError] = useState<
+      "" | "dragError" | "readonly" | "swapError"
+    >("");
+  const [scope] = useState(() => {
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  });
+  const flight = useRef(false),
+    alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+  const gallery = view === "all" && report.boxCount > 0,
+    locked = busy || pending;
+  const selectedPosition = { box, slot: slot ?? selected?.slot ?? 0 };
+  const select = (position: PokemonPosition) => {
+    setBox(position.box);
+    setSlot(position.slot);
+  };
+  async function swap(edit: BoxEdit) {
+    if (locked || flight.current) return;
+    flight.current = true;
+    setPending(true);
+    setGalleryError("");
+    try {
+      await onApplyBox(edit);
+    } catch {
+      if (alive.current) setGalleryError("swapError");
+    } finally {
+      flight.current = false;
+      if (alive.current) setPending(false);
+    }
+  }
+  async function drop(
+    target: PokemonPosition,
+    transfer: DataTransfer,
+    keys: GalleryModifiers,
+  ) {
+    if (locked || flight.current) return;
+    if (!report.canEdit || !report.checksumsValid) {
+      setGalleryError("readonly");
+      return;
+    }
+    const payload = transfer.getData(BOX_SLOT_DRAG_TYPE),
+      files = Array.from(transfer.files);
+    flight.current = true;
+    setPending(true);
+    setGalleryError("");
+    try {
+      if (payload) {
+        const source = decodeBoxDrag(payload, scope, revision, report);
+        const edit = boxDropEdit(report, source, target, mode, keys);
+        if (edit) {
+          select(target);
+          await onStorage(edit);
+        }
+      } else if (files[0]) {
+        select(target);
+        await onImport(target, files[0]);
+      } else throw Error("Invalid box drop.");
+    } catch {
+      if (alive.current) setGalleryError("dragError");
+    } finally {
+      flight.current = false;
+      if (alive.current) setPending(false);
+    }
+  }
   const stats = [
     words.hp,
     words.attack,
@@ -132,12 +217,37 @@ export function SavePokemonBrowser({
     <section className="save-pokemon-browser" aria-label={words.pokemon}>
       <h3>{words.pokemon}</h3>
       <p className="save-editor-note">{words.readPokemon}</p>
+      {report.boxCount > 0 && (
+        <div
+          className="save-editor-toolbar save-box-view-modes"
+          role="group"
+          aria-label={words.box}
+        >
+          <button
+            type="button"
+            disabled={locked}
+            aria-pressed={!gallery}
+            onClick={() => setView("single")}
+          >
+            {galleryWords.current}
+          </button>
+          <button
+            type="button"
+            disabled={locked}
+            aria-pressed={gallery}
+            onClick={() => setView("all")}
+          >
+            {galleryWords.all}
+          </button>
+        </div>
+      )}
       <label className="field">
         <span>
           {words.party} / {words.box}
         </span>
         <Select
           value={box}
+          disabled={locked}
           onChange={(e) => {
             setBox(Number(e.target.value));
             setSlot(undefined);
@@ -154,6 +264,31 @@ export function SavePokemonBrowser({
           ))}
         </Select>
       </label>
+      {report.boxCount > 0 && (gallery || box >= 0) && (
+        <div className="save-box-drop-control">
+          <label>
+            <span>{galleryWords.mode}</span>
+            <Select
+              value={mode}
+              disabled={locked || !report.canEdit || !report.checksumsValid}
+              onChange={(e) => setMode(e.target.value as GalleryDropMode)}
+            >
+              {(["auto", "copy", "overwrite"] as const).map((m) => (
+                <option key={m} value={m}>
+                  {galleryWords.modes[m]}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <p>{galleryWords.hint}</p>
+        </div>
+      )}
+      {pending && <p role="status">{galleryWords.pending}</p>}
+      {galleryError && (
+        <p role="alert" className="save-editor-error">
+          {galleryWords[galleryError]}
+        </p>
+      )}
       <div className="save-storage-tools">
         {box >= 0 && report.canEdit && (
           <BoxEditor
@@ -215,71 +350,39 @@ export function SavePokemonBrowser({
           onExport={onExport}
         />
       </div>
-      <div className="save-pokemon-workspace">
+      <div className="save-pokemon-workspace" data-gallery={gallery}>
         <div className="save-pokemon-storage">
-          <div
-            className="save-pokemon-slots"
-            data-party={box === -1}
-            style={
-              box === -1
-                ? undefined
-                : ({
-                    "--box-wallpaper": `url("${boxWallpaper(report, box)}")`,
-                    "--box-columns": Math.max(
-                      1,
-                      Math.floor(report.boxSlotCount / 5),
-                    ),
-                  } as CSSProperties)
-            }
-            aria-label={words.slot}
-          >
-            {Array.from(
-              {
-                length:
-                  box === -1
-                    ? Math.max(6, report.partyCount)
-                    : report.boxSlotCount,
-              },
-              (_, position) => {
-                const p = entries.find((entry) => entry.slot === position);
-                const label = `${position + 1}. ${p ? name(p.speciesName) : words.empty}`;
-                return (
-                  <button
-                    type="button"
-                    key={position}
-                    aria-label={label}
-                    title={label}
-                    aria-pressed={
-                      selected?.slot === position || slot === position
-                    }
-                    onClick={() => setSlot(position)}
-                  >
-                    <span className="save-pokemon-slot-number">
-                      {position + 1}
-                    </span>
-                    {p && (
-                      <>
-                        <img
-                          src={pokemonImage(p)}
-                          alt=""
-                          draggable={false}
-                          width={68}
-                          height={56}
-                        />
-                        <span className="save-pokemon-slot-state">
-                          {!p.valid ? "!" : ""}
-                          {p.shiny ? "★" : ""}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                );
-              },
-            )}
-          </div>
-          <p className="save-editor-note">
-            {entries.length} / {box === -1 ? 6 : report.boxSlotCount}
-          </p>
+          {gallery ? (
+            <SaveBoxGallery
+              report={report}
+              revision={revision}
+              scope={scope}
+              selected={selectedPosition}
+              busy={locked}
+              lang={lang}
+              onSelect={select}
+              onSwap={swap}
+              onDrop={drop}
+            />
+          ) : (
+            <SaveBoxGrid
+              report={report}
+              box={box}
+              entries={entries}
+              selected={selectedPosition}
+              busy={locked}
+              lang={lang}
+              revision={revision}
+              scope={scope}
+              onSelect={select}
+              onDrop={drop}
+            />
+          )}
+          {!gallery && (
+            <p className="save-editor-note">
+              {entries.length} / {box === -1 ? 6 : report.boxSlotCount}
+            </p>
+          )}
         </div>
         <div className="save-pokemon-detail">
           {!selected && <p>{words.empty}</p>}

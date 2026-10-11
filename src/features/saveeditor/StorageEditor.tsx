@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
 import type { PokemonEntry, SaveReport, StorageEdit } from "./domain";
 import type { saveEditorResources } from "./locales";
+import { boxGalleryWords } from "./boxGalleryWords";
 
 export function StorageEditor({
   report,
@@ -114,6 +115,13 @@ export function StorageEditor({
           onClick={() => void perform("delete")}
         >
           {words.deletePokemon}
+        </button>
+        <button
+          type="button"
+          disabled={busy || !source.valid || same}
+          onClick={() => void perform("overwrite")}
+        >
+          {boxGalleryWords[lang].overwrite}
         </button>
       </div>
     </details>

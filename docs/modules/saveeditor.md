@@ -48,11 +48,19 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
-## 仓储查看器覆盖复核（来源核对，未补实现）
+## 仓储查看器覆盖复核（BoxList API 137 工程通过，第二箱与注册队伍待接）
 
-已读取同版本 `SAV_BoxList.cs`、`SAV_BoxViewer.cs`、`SAV_GroupViewer.cs`，对照现有 `SavePokemonBrowser.tsx`、`BoxEditor.tsx`、`StorageEditor.tsx` 与 SaveReport。当前主仓储一次显示队伍或一个箱子的真实格位、图像、壁纸和详情，提供目标整箱交换及单体操作。原版 BoxList 同时创建全部箱子视图，左右按钮交换相邻箱；BoxViewer 为第二个独立箱子视图，可与主箱交换并支持拖放。上述同时查看与拖放路径仍缺失，不能以已有单箱或交换 API 标为完整。
+已读取同版本 `SAV_BoxList.cs`／Designer、`SAV_BoxViewer.cs`、`SAV_GroupViewer.cs`、`Controls/SAV Editor/BoxEditor.cs`、`SlotChangeManager.cs` 与 `Controls/Slots/SlotUtil.cs`。BoxList 同时创建全部箱子视图，左右按钮交换相邻箱并首尾循环；槽数与列数来自 Core BoxSlotCount／5，不按固定 30 格假定所有格式。BoxViewer 是第二个独立箱子视图，仍待实现，不能以新增全箱页面代替它。
 
-GroupViewer 使用独立 SlotGroup，自动选择首个非空组，按组槽数重建网格，提供图片、悬停详情、合法性标记与选择详情，左右循环并可跳到首尾。当前通用 SaveReport／PokemonReader 路径没有独立 SlotGroup 目录；各专属模块的队伍显示不能代替所有特殊组。三项库存保持部分接入／待实现，后续独立模块须核对 SlotGroup 来源与真实输入范围后实现。
+API 137 已在 SavePokemonBrowser 接入当前箱子／队伍与全部箱子切换。SaveBoxGallery 同时呈现全部物理箱子，包括空箱；SaveBoxGrid 复用真实位置、原版壁纸及本地宝可梦图像，支持点击详情、槽号／状态／悬停摘要、方向键与 Home／End 定位。全部视图保持同步，修改继续使用工作副本／撤销／导出，不修改原件。相邻整箱交换直接复用已验证的 Core SwapBox 路径，禁止不可编辑或受保护数据，不额外写入名称／壁纸草稿。
+
+跨箱拖放按源规则：默认空位移动、已有格位交换；Shift 单键复制，Alt 单键覆盖并清空来源。其他组合不作为单键修饰符。显式操作选择及详情中的普通按钮提供触屏／键盘替代。覆盖是 Core StorageEditing 的单次原子操作，不串联两个写请求。拖放来源携带本次组件随机标识与工作副本修订，拒绝其他窗口或过期来源；外部文件按上游 TryLoadFiles 取首个文件，通过既有导入链处理。队伍操作沿用详情按钮；原生 OS 文件拖出以显式导出下载替代，文件夹批量导入沿用已有文件夹选择入口，不读取任意系统路径。
+
+页面按实际箱数及槽数生成全部格位，不分页裁掉空格。普通 30 格箱子至少保留 44px 点击范围；全箱结果区滚动、图片按需解码，窄屏收紧边距而不缩小文字或点击范围。默认拖放不会自行增加格位、修改箱子解锁数量或处理未知原始数据。前端五项包含三箱 90 个真实／空格位输出、相邻循环、精确修饰符、来源范围／修订与键盘几何。
+
+2026-10-12 完整原生 48249、完整 verify 14683、API 137 核心发布 3862、裁剪与最新网页 29002 均退出码 0；268 文件／1147 项、26 类裁剪元数据和最新网页／PWA 已通过。覆盖与队伍专项 36644 保留完整文件字节对照，SAV7 测试解析复制后的输出数组，避免解析器自身清除 MemeCrypto 签名污染比较。外部 Chrome 仍返回通信错误，工程通过不等同页面或真实存档验收。所有者已认可独立存档工作区布局方向及统一控件要求，随后按 docs/ui-design.md 迁移。
+
+GroupViewer 使用独立 SlotGroup，自动选择首个非空组，按组槽数重建网格，提供图片、悬停详情、合法性标记与选择详情，左右循环并可跳到首尾。当前通用 SaveReport／PokemonReader 路径没有独立 SlotGroup 目录；各专属模块的队伍显示不能代替所有特殊组。BoxViewer／GroupViewer 的剩余覆盖继续保留，后续独立实现。
 
 2026-10-11 继续核对实际调用点 `Controls/SAV Editor/SAVEditor.cs:B_OtherSlots_Click`，该版本只对 `SAV_STADIUM.GetRegisteredTeams()` 打开 GroupViewer，不是任意游戏的特殊槽统一入口。`SAV1StadiumJ` 返回 16 组，每组六只，交错的备份队伍不另列；`SAV1Stadium` 日文返回 108 组，国际版从 90 组移除两类各 10 组的未使用队伍，显示 70 组；`SAV2Stadium` 返回 60 组，每组六只。组名与实际顺序必须由 Core 返回，不能用显示索引自行重算物理队伍偏移。
 

@@ -434,8 +434,8 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | 待核对                                                                            |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs`                                 | 待核对                                                                            |
 | `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | 待核对                                                                            |
-| `Subforms/Save Editors/SAV_BoxList.cs`                                        | 已核对：全箱同时查看／相邻整箱交换界面未实现，不能以现有单箱页替代                |
-| `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | 部分接入：单箱图片／壁纸与整箱交换已有；独立第二箱并行查看及拖放待实现            |
+| `Subforms/Save Editors/SAV_BoxList.cs`                                        | API 137：全箱／真实格位／相邻循环交换／跨箱拖放与详情已接；工程通过，页面待核验   |
+| `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | 部分接入：共用单箱图片／壁纸／拖放及交换已有；独立第二箱并行查看待实现            |
 | `Subforms/Save Editors/SAV_Chatter.cs`                                        | 待核对                                                                            |
 | `Subforms/Save Editors/SAV_EventFlags.cs`                                     | API 80：Gen3–7 标记／数值／预设／双存档比较已接入，浏览器待核验                   |
 | `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | API 81：五布局事件标记／byte 数值／预设／比较已接入，浏览器待核验                 |

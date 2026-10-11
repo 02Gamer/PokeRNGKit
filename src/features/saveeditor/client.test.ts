@@ -242,7 +242,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 136 } },
+        data: { id: message.id, report: { apiVersion: 137 } },
       });
       await pending;
     }
@@ -288,7 +288,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 136 } },
+        data: { id: message.id, report: { apiVersion: 137 } },
       });
       await pending;
     }
@@ -573,7 +573,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 136 } },
+        data: { id: message.id, report: { apiVersion: 137 } },
       });
       await pending;
     }

@@ -60,7 +60,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 136;
+  apiVersion: 137;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -1051,7 +1051,7 @@ export interface BoxEdit {
 }
 
 export interface StorageEdit {
-  action: "move" | "swap" | "copy" | "delete";
+  action: "move" | "swap" | "copy" | "overwrite" | "delete";
   source: PokemonPosition;
   target: PokemonPosition | null;
 }
