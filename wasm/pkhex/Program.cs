@@ -185,6 +185,14 @@ public static partial class Program
     [JSExport]
     public static string ReadTrainerGG(byte[] data) => SaveService.ReadTrainerGG(data);
     [JSExport]
+    public static string ReadRaid9(byte[] data) => SaveService.ReadRaid9(data);
+    [JSExport]
+    public static string PreviewRaid9(byte[] data,string json) => SaveService.PreviewRaid9(data,json);
+    [JSExport]
+    public static byte[] CommitRaid9(byte[] data,string json) => SaveService.CommitRaid9(data,json);
+    [JSExport]
+    public static void DiscardRaid9(string token) => SaveService.DiscardRaid9(token);
+    [JSExport]
     public static string ReadFashion9(byte[] data,string json) => SaveService.ReadFashion9(data,json);
     [JSExport]
     public static string PreviewFashion9(byte[] data,string json) => SaveService.PreviewFashion9(data,json);
@@ -458,7 +466,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 134;
+    public const int ApiVersion = 135;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -925,6 +933,10 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(Dn9aCatalog))]
 [JsonSerializable(typeof(Ew9aCatalog))]
 [JsonSerializable(typeof(F9Catalog))]
+[JsonSerializable(typeof(R9Catalog))]
+[JsonSerializable(typeof(R9Edit))]
+[JsonSerializable(typeof(R9Ticket))]
+[JsonSerializable(typeof(R9Confirmation))]
 [JsonSerializable(typeof(F9ReadQuery))]
 [JsonSerializable(typeof(F9Page))]
 [JsonSerializable(typeof(F9Edit))]

@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Raid9Editor } from "./Raid9Editor";
+import { supportsRaid9, isRaid9Catalog } from "./raid9";
+import { raid9Words } from "./raid9Words";
 import { Fashion9Editor } from "./Fashion9Editor";
 import { supportsFashion9, isFashion9Page } from "./fashion9";
 import { fashion9Words } from "./fashion9Words";
@@ -232,6 +235,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "raid9"
     | "fashion9"
     | "event9a"
     | "donut9a"
@@ -367,6 +371,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "raid9" && !supportsRaid9(result.report.format)) ||
         (previous === "fashion9" && !supportsFashion9(result.report.format)) ||
         (previous === "event9a" && !supportsEvent9a(result.report.format)) ||
         (previous === "donut9a" && !supportsDonut9a(result.report.format)) ||
@@ -1421,6 +1426,59 @@ export function SaveEditorPanel(
       p = result.zygarde7Preview;
     });
     return p;
+  };
+  const readRaid9 = async () => {
+    let catalog: import("./raid9").R9Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "raid9",
+      );
+      if (id !== operation.current) return;
+      if (!isRaid9Catalog(result.raid9))
+        throw Error("Raid9 catalog missing or invalid.");
+      catalog = result.raid9;
+    });
+    return catalog;
+  };
+  const previewRaid9 = async (edit: import("./raid9").R9Edit) => {
+    let ticket: import("./raid9").R9Ticket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const source = working.current;
+      const result = await client.current.run(
+        source,
+        JSON.stringify(edit),
+        "raid9Preview",
+      );
+      if (id !== operation.current) {
+        if (result.raid9Ticket) {
+          try {
+            await client.current.run(
+              source,
+              result.raid9Ticket.token,
+              "raid9Discard",
+            );
+          } catch {
+            /* A disposed Worker has already released its preview. */
+          }
+        }
+        return;
+      }
+      if (!result.raid9Ticket) throw Error("Raid9 preview missing.");
+      ticket = result.raid9Ticket;
+    });
+    return ticket;
+  };
+  const discardRaid9 = async (token: string) => {
+    try {
+      if (working.current)
+        await client.current.run(working.current, token, "raid9Discard");
+    } catch {
+      /* A disposed Worker has already released its preview. */
+    }
   };
   const readFashion9 = async (query: import("./fashion9").F9ReadQuery) => {
     let page: import("./fashion9").F9Page | undefined;
@@ -2658,6 +2716,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./raid9").R9Confirmation
       | import("./fashion9").F9Confirmation
       | import("./event9a").Ew9aConfirmation
       | import("./donut9a").Dn9aConfirmation
@@ -2737,6 +2796,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "raid9Commit"
       | "fashion9Commit"
       | "event9aCommit"
       | "donut9aCommit"
@@ -3336,6 +3396,15 @@ export function SaveEditorPanel(
                 {report.format === "SAV7USUM"
                   ? zygarde7Words[batchLang].stickers
                   : zygarde7Words[batchLang].cells}
+              </button>
+            )}
+            {supportsRaid9(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "raid9"}
+                onClick={() => setSection("raid9")}
+              >
+                {raid9Words[batchLang].title}
               </button>
             )}
             {supportsFashion9(report.format) && (
@@ -3948,6 +4017,16 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "raid9" && supportsRaid9(report.format) ? (
+            <Raid9Editor
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readRaid9}
+              onPreview={previewRaid9}
+              onApply={(e) => applyWorkingEdit(e, "raid9Commit")}
+              onDiscard={discardRaid9}
             />
           ) : section === "fashion9" && supportsFashion9(report.format) ? (
             <Fashion9Editor

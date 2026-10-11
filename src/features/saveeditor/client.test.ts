@@ -242,7 +242,53 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 134 } },
+        data: { id: message.id, report: { apiVersion: 135 } },
+      });
+      await pending;
+    }
+    expect(vi.getTimerCount()).toBe(0);
+    client.dispose();
+  });
+  it("transfers raid catalogs, ordered previews, frozen commits and cancellation without detaching original bytes", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "raid9",
+      "raid9Preview",
+      "raid9Commit",
+      "raid9Discard",
+    ] as const) {
+      const payload =
+        kind === "raid9"
+          ? undefined
+          : kind === "raid9Discard"
+            ? "raid9:1"
+            : JSON.stringify({
+                sourceHash: "A".repeat(64),
+                operations: [
+                  {
+                    action: "seeds",
+                    origin: "Paldea",
+                    today: "FFFFFFFFFFFFFFFF",
+                  },
+                  {
+                    action: "propagate",
+                    origin: "Paldea",
+                    index: 0,
+                    seedToo: true,
+                  },
+                ],
+              });
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes.buffer).not.toBe(source.buffer);
+      expect(source.byteLength).toBe(3);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({
+        data: { id: message.id, report: { apiVersion: 135 } },
       });
       await pending;
     }

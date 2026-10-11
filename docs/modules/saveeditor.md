@@ -74,7 +74,7 @@ Fashion9Editing／Session 已接 API 134 的四种 JSExport／Worker 请求和�
 
 界面使用分组选择与主表格内部滚动，输入／共享 Select 保持 44px，标签 15px、正文 14px、辅助文字 13px。跨页／跨组草稿先按分组收集，在导入或拥有操作前加入有序队列；所有操作先冻结完整预览，返回编辑后以 Core 变化行显示已排队结果，再叠加后续字段草稿。筛选明确使用已载入存档的编号，不以尚未应用的值替代查询源。可定位全部物理槽、导入首个精确大小文件、显示完整变化记录和尾部／元数据块对照，并下载预览 JSON。取消／关闭释放缓存，迟到读取不覆盖新页，语言变化保留票据；确认后沿用原件、20 步／64 MiB 撤销和导出。
 
-## 朱／紫团体战窗口（来源核对，未实现）
+## 朱／紫团体战窗口（普通 API 135 工程检查通过，七星未接）
 
 2026-10-11 已读取 `SAV_Raid9.cs`／Designer、`SAV_RaidSevenStar9.cs`、Core `RaidSpawnList9.cs`、`RaidSevenStar9.cs`、`SaveBlockAccessor9SV.cs` 与 `ValueTypeTypeConverter.cs`。普通与七星窗口是独立模型，不套用剑／盾结构。
 
@@ -83,11 +83,23 @@ Fashion9Editing／Session 已接 API 134 的四种 JSExport／Worker 请求和�
 - Propagate 只遍历该区域 CountUsed，跳过目标 AreaID=0，复制启用／内容／已领取联盟支付点三项；仅 `ModifierKeys == Keys.Shift` 时额外复制 Seed。不复制位置、LotteryGroup、Unused 或区域的两项 UInt64 Seed。网页应提供显式“包含 Seed”选择，以 Core 执行完整传播并冻结输出。
 - 七星捕获块 `8B14392F`，每条 8 字节，UInt32 Identifier `+0`、Captured byte `+4`、旧版 Defeated byte `+5`，其余保留；新版击败块 `A4BA4848` 前四字节头部保留，每条八字节，Identifier `+0`、Defeated byte `+4`。两个 Bool getter 恰好等于 1，不能套普通团体战的非零语义。CountAll 来自捕获块；新版 GetRaid 按相同索引关联击败记录，Identifier setter 同时写两块；击败块缺失时回落到捕获记录 `+5`，不得新建块或把旧版字段清零。
 
-两个窗口 Save 均先 `Origin.CopyChangesFrom(SAV)`，再 ValidateChildren／Validate。区域 Seed 有 Validated 事件，后续实现须核对焦点验证与保存顺序，不能假定 Save 会把未验证文本自动写回。上述仅来源与范围核对，尚无产品、工程或真实页面／存档验收证据。
+两个窗口 Save 均先 `Origin.CopyChangesFrom(SAV)`，再 ValidateChildren／Validate。区域 Seed 有 Validated 事件，焦点验证与保存顺序见下方实际流程探针，不能假定 Save 会把未验证文本自动写回。来源核对与工程检查不作为真实页面／存档验收。
 
 独立控件探针 54990 使用已编译只读 Core 与 .NET 10 WinForms，在内存中创建同类型 PropertyGrid，退出码 0。实际 `GridViewTextBox.MaxLength=32767`；ScenePointName 为只读，Seed 的描述器转换器确为 TypeConverterU32。`0xFFFFFFFF`／`ffffffff` 得 UInt32 最大值，` 0x1` 得 0，`0x 1` 得 1，空／invalid 得 0，确认不能提前 Trim 或套区域 Seed 的 Undo 规则。
 
 Content 描述器为 EnumConverter，标准值 Base05／Black6／Distribution／Might7，`GetStandardValuesExclusive=true`；普通 UI 应按标准选项呈现并保留已载入的未知值。底层转换实测仍接受 `123`、`4294967295` 和 `Base05, Black6`（结果 1），`-1` 抛 FormatException，不能把转换器本身描述成只有四项的数值范围。区域 TextBox 的焦点验证与复制顺序尚未完成实际探针；这些元数据及转换结果是工程来源证据，不是新产品接线或验收。
+
+种子流程探针 79197 直接编译只读上游 SAV_Raid9.cs／Designer，使用 Core 生成的类型化工程数据，仅替代图标／翻译／提示依赖；未显示窗口。实际控件 MaxLength=16、CharacterCasing=Upper。手动触发真实 Validated 事件后，合法值写入内部克隆、原件不变，空／非法值不写；Save 复制已验证值。直接调用真实 Save handler、没有提前验证的场景中，Origin 保持旧值，而后续 ValidateChildren 把新文本写入内部克隆，确认复制发生在后续验证之前。这证明事件及复制的数据顺序，未把隐藏表单的调用等同于用户鼠标／键盘焦点验收。
+
+普通团体战核心与三语入口已接，七星仍未接。Raid9Editing 使用 Core 的三区域与 Propagate，不修改源码或以蓝莓声明块替代实际共享切片。只开放窗口 CountUsed，保存保留全部其他区域／尾部／未改的非标准 Bool 和未命名枚举；属性变更使用原版 CLR／自定义转换器，派生场景名只读。区域种子操作只表示已发生的 Validated 事件，不在保存时解析未验证文本。512 个有序操作／8 Mi JSON 是浏览器接口资源限额，属性文本 32767、区域文本 16 按实际控件匹配。
+
+API 135 四种 JSExport／Worker 请求与三语产品入口已接，完整原生与完整 verify 均通过。六种类型化版本／修订专项覆盖三文化区、八属性完整文件字节预期、两种种子语义、传播可选 Seed／空洞／自身规范化、其他区域和蓝莓尾部保护、冻结、原件、JSON 及失败 Open／替换／过期确认。完整前端 266 文件／1137 项通过；最新浏览器核心、26 类裁剪元数据检查及最新网页／PWA 253 项预缓存通过，保留既有警告。工程合成夹具不作为真实存档或页面验收，外部浏览器与真实存档仍待核验。
+
+界面沿用 44px 控件、15px 标签／14px 正文／13px 辅助文字，属性在桌面三列、窄屏两列／一列重排，稀用区域种子和传播操作折叠。区域／记录选择保留跨记录草稿，未命名 Content 先按已载入值显示，普通新选择使用四项源标准值。区域种子按真实 Validated 事件入队，显式验证与失焦读取即时引用；没有验证的文本不会被保存过程隐式解析。Core 返回预览后显示其实际结果，继续编辑保留有序操作，确认才写工作副本。完整区域种子前后、变化记录的全部属性／场景／raw、所有变化块元数据和 bytes 可核对并下载 JSON。取消、关闭及迟到预览释放缓存，语言变化保留票据。
+
+七星控件独立探针 42461 使用真实 SevenStarRaidDetail 与 WinForms PropertyGrid，退出码 0。三项均可编辑：Identifier 为 UInt32Converter，Captured／Defeated 为 BooleanConverter 且标准选项独占。Identifier 完整范围 0–4294967295，0xFFFFFFFF 同样转换为最大值；空、−1、4294967296 都抛 ArgumentException，不得套记录 Seed 的非法归零规则。编辑器 MaxLength 实测 32767，不因描述中的配信日期将 Identifier 收窄为日期。
+
+探针以真实 Core setters 验证非标准字节 2 读取为 false；Identifier 同时写捕获和新版击败记录，新版 Defeated 只写击败记录 +4，保留捕获 +5；缺失新版记录时写捕获 +5。其余填充 bytes 保留。仍未接七星 JSExport／Worker／UI 或完整工程，不作产品与真实存档验收。
 
 ## 剑／盾训练家窗口（API 131，工程检查通过）
 
