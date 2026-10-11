@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Raid8Editor } from "./Raid8Editor";
+import { supportsRaid8 } from "./raid8";
+import { raid8Words } from "./raid8Words";
 import { Underground8bEditor } from "./Underground8bEditor";
 import { supportsUnderground8b } from "./underground8b";
 import { underground8bWords } from "./underground8bWords";
@@ -211,6 +214,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "raid8"
     | "underground8b"
     | "seal8b"
     | "misc8b"
@@ -339,6 +343,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "raid8" && !supportsRaid8(result.report.format)) ||
         (previous === "underground8b" &&
           !supportsUnderground8b(result.report.format)) ||
         (previous === "seal8b" && !supportsSeal8b(result.report.format)) ||
@@ -1385,6 +1390,36 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readRaid8 = async () => {
+    let c: import("./raid8").Raid8Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "raid8",
+      );
+      if (id !== operation.current) return;
+      if (!result.raid8) throw Error("No Raid8 catalog was returned.");
+      c = result.raid8;
+    });
+    return c;
+  };
+  const previewRaid8 = async (edit: import("./raid8").Raid8Edit) => {
+    let p: import("./raid8").Raid8Preview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "raid8Preview",
+      );
+      if (id !== operation.current) return;
+      if (!result.raid8Preview) throw Error("No Raid8 preview was returned.");
+      p = result.raid8Preview;
+    });
+    return p;
+  };
   const readUnderground8b = async () => {
     let c: import("./underground8b").Ug8bCatalog | undefined;
     await perform(async (id) => {
@@ -2303,6 +2338,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./raid8").Raid8Edit
       | import("./underground8b").Ug8bEdit
       | import("./seal8b").Seal8bEdit
       | import("./misc8b").Misc8bEdit
@@ -2375,6 +2411,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "raid8Edit"
       | "underground8bEdit"
       | "seal8bEdit"
       | "misc8bEdit"
@@ -2969,6 +3006,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsRaid8(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "raid8"}
+                onClick={() => setSection("raid8")}
+              >
+                {raid8Words[batchLang].title}
+              </button>
+            )}
             {supportsUnderground8b(report.format) && (
               <button
                 type="button"
@@ -3516,6 +3562,16 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "raid8" && supportsRaid8(report.format) ? (
+            <Raid8Editor
+              key={report.format}
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readRaid8}
+              onPreview={previewRaid8}
+              onApply={(e) => applyWorkingEdit(e, "raid8Edit")}
             />
           ) : section === "underground8b" &&
             supportsUnderground8b(report.format) ? (

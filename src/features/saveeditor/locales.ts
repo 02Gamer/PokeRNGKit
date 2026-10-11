@@ -1,3 +1,4 @@
+import { raid8Words } from "./raid8Words";
 import { underground8bWords } from "./underground8bWords";
 import { seal8bWords } from "./seal8bWords";
 import { misc8bWords } from "./misc8bWords";
@@ -43,6 +44,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.zh.invalid,
     avenue5Error: avenue5Words.zh.invalid,
     avenue5Stale: avenue5Words.zh.stale,
+    raid8Error: raid8Words.zh.invalid,
+    raid8Stale: raid8Words.zh.stale,
     underground8bError: underground8bWords.zh.invalid,
     underground8bStale: underground8bWords.zh.stale,
     seal8bError: seal8bWords.zh.invalid,
@@ -654,6 +657,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.en.invalid,
     avenue5Error: avenue5Words.en.invalid,
     avenue5Stale: avenue5Words.en.stale,
+    raid8Error: raid8Words.en.invalid,
+    raid8Stale: raid8Words.en.stale,
     underground8bError: underground8bWords.en.invalid,
     underground8bStale: underground8bWords.en.stale,
     seal8bError: seal8bWords.en.invalid,
@@ -1307,6 +1312,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.ja.invalid,
     avenue5Error: avenue5Words.ja.invalid,
     avenue5Stale: avenue5Words.ja.stale,
+    raid8Error: raid8Words.ja.invalid,
+    raid8Stale: raid8Words.ja.stale,
     underground8bError: underground8bWords.ja.invalid,
     underground8bStale: underground8bWords.ja.stale,
     seal8bError: seal8bWords.ja.invalid,
@@ -1998,6 +2005,8 @@ export function localizeSaveError(
   if (/(?:Collectibles7|Zygarde7).*stale/i.test(message))
     return words.zygarde7Stale;
   if (/Collectibles7|Zygarde7/i.test(message)) return words.zygarde7Error;
+  if (/Raid8.*stale/i.test(message)) return words.raid8Stale;
+  if (/Raid8/i.test(message)) return words.raid8Error;
   if (/Underground8b.*stale/i.test(message)) return words.underground8bStale;
   if (/Underground8b/i.test(message)) return words.underground8bError;
   if (/Seal8b.*stale/i.test(message)) return words.seal8bStale;

@@ -3,6 +3,17 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 剑／盾极巨巢穴参数（API 128，工程检查通过）
+
+已核对 PKHeX 26.08.26 `SAV_Raid8.cs`／Designer、`RaidSpawnList8.cs`／`RaidSpawnDetail`、`SaveBlockAccessor8SWSH.cs`、`SAV8SWSH.cs` 与 `ValueTypeTypeConverter.cs`。源窗口为三个区域的 PropertyGrid，伽勒尔／铠岛／雪原分别显示 100／90／86 个巢穴；其余物理记录不开放编辑，缺失或不足长度的 DLC 块禁用，不创建补零块。
+
+- 三块键为 `9033EB7B`／`158DA896`／`148DA703`，每记录 `0x18` 字节。Hash UInt64 位于 0，Seed UInt64 位于 8，Stars／RandRoll／DenType／Flags 位于 `0x10–0x13`，尾部四字节保留。
+- Hash／Seed 使用来源 TypeConverterU64：显示大写 16 位十六进制，可选前导 0x；无效、空或超过 UInt64 归零。网页始终字符串／BigInt，禁止经 Number 截断。Stars／RandRoll／Flags 为 byte 0–255，Description 中星级 0–4、抽签值 1–100 不是 PropertyGrid 输入限制。DenType 是 byte 枚举 0–6，可保存来源允许的原始 byte 值；不把未知旧值变成默认项。
+- IsActive 只读；IsRare／IsWishingPiece／WattsHarvested／IsEvent 可编辑。DenType 和派生 setter 会同步事件 bit 1，WattsHarvested 仅改 bit 0，其他 Flags 位保留。CommonWish 允许活动标记，Event=false 可将 Event 类型变成 Common。多个修改必须保持源 PropertyGrid 的应用顺序，不能以无序对象覆盖联动。
+- 产品按地区／巢穴／属性选择，每次追加一项到有序修改序列后预览，可撤回上一项、丢弃或冻结应用，支持空序列原版保存。当前记录显示全部一般／派生状态及原始 bytes，原件、工作副本、撤销／导出保留。冻结完整来源／目标哈希，导出以已确认类型回读加密块并逐块核对键、类型、子类型和数据；生产入口仍采用 SaveUtil 严格格式检测。
+
+前端专项及六组原生类型化合成块专项通过，最终完整前端 259 文件／1071 项通过。首轮完整运行 C-Gear 数据传输单项超时，三文件复查及低负载完整重跑通过，生产代码与默认超时未改。全仓格式／Lint、最终控件 ESLint、稳定文件类型检查、API 128 核心构建／裁剪后 26 类属性及最新核心网页／PWA 打包通过。类型检查曾发现共享 Select 接口及前后标签问题，已修正并重跑通过。合成文件只证明工程数据语义，不放宽生产 SaveUtil；页面与真实存档未验收。
+
 ## 晶灿钻石／明亮珍珠地下物品（API 127，工程检查通过）
 
 来源为 PKHeX 26.08.26 `SAV_Underground8b.cs`／Designer、`UndergroundItemList8b.cs`、`UndergroundItem8b.cs`、`UgItemUtil.cs`／`UgItemType.cs`、`SAV8BS.cs` 与 `text_ug_item` 三语资源。窗口负责地下物品库存，并非地下 NPC 或遭遇数据。产品显示真实物品 ID、来源类型、本地名称、数量、新获得及收藏；来源类型 None 的记录不开放编辑。
