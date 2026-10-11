@@ -149,8 +149,9 @@ Poke Pelago 生成已按 3DSRNGTool `Stationary7` 的特殊分支纳入 `Station
 按项目所有者确认的共有主线同步调整世代组内顺序：`存档信息/ID -> Seed 相关 -> 定点 ->
 野生（DexNav / Poke Radar / Underground 等） -> 蛋 -> 事件 -> 其他辅助扩展`。Main RNG、
 时间线和时间反查属于 Seed 相关入口；SOS、Hidden Grotto 等按野生分支就近排列。全局 Profile
-Manager、Researcher、TSV List、IV Template 和存档工具继续保留在右下角悬浮菜单，不重复
-出现在世代导航中。
+Manager、Researcher、TSV List、IV Template 和轻量存档信息工具继续保留在右下角悬浮菜单，
+不重复出现在世代导航中。2026-10-12 所有者认可 PKHeX 独立存档工作区布局；完整存档编辑
+迁入主导航，原悬浮按钮保留为快捷入口，仍复用统一控件及既有档案联动。
 
 ### 去重边界
 

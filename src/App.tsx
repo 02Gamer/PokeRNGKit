@@ -1,3 +1,7 @@
+import {
+  saveWorkspaceWords,
+  type PrimaryWorkspace,
+} from "./features/saveeditor/saveWorkspace";
 import { RESULT_TABLE_HEADER_HEIGHT } from "./features/shared/tableLayout";
 import { AppUpdateButton } from "./AppUpdateButton";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -627,7 +631,8 @@ function App() {
   const [ivToolsExpanded, setIvToolsExpanded] = useState(false);
   const [gen3WorkflowExpanded, setGen3WorkflowExpanded] = useState(false);
   const [floatingToolsExpanded, setFloatingToolsExpanded] = useState(false);
-  const [saveEditorExpanded, setSaveEditorExpanded] = useState(false);
+  const [primaryWorkspace, setPrimaryWorkspace] =
+    useState<PrimaryWorkspace>("rng");
   const [gen5AdjacentSeedsContext, setGen5AdjacentSeedsContext] =
     useState<Gen5AdjacentSeedsInitialContext>();
   const gen5AdjacentSeedsRequestId = useRef(0);
@@ -1125,34 +1130,31 @@ function App() {
       setSponsorshipExpanded(false);
     }
   };
-  const activeFloatingTool = saveEditorExpanded
-    ? "saveEditor"
-    : sponsorshipExpanded
-      ? "sponsorship"
-      : contributionsExpanded
-        ? "contributions"
-        : ivCalculatorExpanded
-          ? "iv"
-          : encounterLookupExpanded
-            ? "encounter"
-            : researcherExpanded
-              ? "researcher"
-              : keyBvExpanded
-                ? "keybv"
-                : miscRngExpanded
-                  ? "miscRng"
-                  : tsvListExpanded
-                    ? "tsvList"
-                    : ivToolsExpanded
-                      ? "ivTools"
-                      : gen3WorkflowExpanded
-                        ? "gen3Workflow"
-                        : profileTools && unifiedProfileExpanded
-                          ? "profile"
-                          : undefined;
+  const activeFloatingTool = sponsorshipExpanded
+    ? "sponsorship"
+    : contributionsExpanded
+      ? "contributions"
+      : ivCalculatorExpanded
+        ? "iv"
+        : encounterLookupExpanded
+          ? "encounter"
+          : researcherExpanded
+            ? "researcher"
+            : keyBvExpanded
+              ? "keybv"
+              : miscRngExpanded
+                ? "miscRng"
+                : tsvListExpanded
+                  ? "tsvList"
+                  : ivToolsExpanded
+                    ? "ivTools"
+                    : gen3WorkflowExpanded
+                      ? "gen3Workflow"
+                      : profileTools && unifiedProfileExpanded
+                        ? "profile"
+                        : undefined;
 
   const closeFloatingTools = () => {
-    setSaveEditorExpanded(false);
     setEncounterLookupExpanded(false);
     setIvCalculatorExpanded(false);
     setContributionsExpanded(false);
@@ -1165,6 +1167,19 @@ function App() {
     setIvToolsExpanded(false);
     setGen3WorkflowExpanded(false);
     closeProfilePanels();
+  };
+
+  const workspaceWords = saveWorkspaceWords[language];
+  const changeWorkspace = (next: PrimaryWorkspace) => {
+    closeFloatingTools();
+    setModuleRailOpen(false);
+    setFloatingToolsExpanded(false);
+    setPrimaryWorkspace(next);
+    requestAnimationFrame(() =>
+      document
+        .getElementById(next === "save" ? "save-workspace" : "rng-workspace")
+        ?.focus(),
+    );
   };
 
   const toolRailUsesHover = () =>
@@ -1212,7 +1227,7 @@ function App() {
     setModuleRailOpen(false);
     closeFloatingTools();
     if (!expanded) return;
-    if (tool === "saveEditor") setSaveEditorExpanded(true);
+    if (tool === "saveEditor") changeWorkspace("save");
     else if (tool === "sponsorship") setSponsorshipExpanded(true);
     else if (tool === "contributions") setContributionsExpanded(true);
     else if (tool === "encounter") setEncounterLookupExpanded(true);
@@ -1232,7 +1247,7 @@ function App() {
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-primary-workspace={primaryWorkspace}>
       <header className="topbar">
         <div className="topbar-leading">
           <button
@@ -1248,6 +1263,7 @@ function App() {
                   : "openModules",
             )}
             className="module-menu-button"
+            hidden={primaryWorkspace === "save"}
             onClick={() => {
               if (wideViewport) {
                 setModuleRailCollapsed((current) => !current);
@@ -1290,6 +1306,27 @@ function App() {
             </div>
           </div>
         </div>
+        <nav
+          className="primary-workspace-tabs"
+          aria-label={workspaceWords.primary}
+        >
+          <button
+            type="button"
+            aria-pressed={primaryWorkspace === "rng"}
+            aria-controls="rng-workspace"
+            onClick={() => changeWorkspace("rng")}
+          >
+            {workspaceWords.rng}
+          </button>
+          <button
+            type="button"
+            aria-pressed={primaryWorkspace === "save"}
+            aria-controls="save-workspace"
+            onClick={() => changeWorkspace("save")}
+          >
+            {workspaceWords.save}
+          </button>
+        </nav>
         <div className="topbar-meta">
           <AppUpdateButton>
             <span className="app-status">
@@ -1350,7 +1387,28 @@ function App() {
         </div>
       </header>
 
-      <div className="workspace">
+      <main
+        className="save-primary-workspace"
+        id="save-workspace"
+        tabIndex={-1}
+        aria-label={workspaceWords.save}
+        hidden={primaryWorkspace !== "save"}
+        inert={primaryWorkspace !== "save" ? true : undefined}
+      >
+        <SaveToolsPanel
+          gen3={profiles}
+          gen4={gen4Profiles}
+          gen8={gen8Profiles}
+          threeDs={threeDsProfiles}
+        />
+      </main>
+      <div
+        className="workspace"
+        id="rng-workspace"
+        tabIndex={-1}
+        hidden={primaryWorkspace !== "rng"}
+        inert={primaryWorkspace !== "rng" ? true : undefined}
+      >
         {moduleRailOpen && !wideViewport && (
           <button
             aria-label={t("closeModules")}
@@ -4161,26 +4219,6 @@ function App() {
           }}
         />
         <FloatingToolPanel
-          className="save-editor-float-panel"
-          closeLabel={t("collapse")}
-          expanded={activeFloatingTool === "saveEditor"}
-          id="save-editor-panel"
-          label={t("saveEditor.title")}
-          onExpandedChange={(expanded) => {
-            closeFloatingTools();
-            setSaveEditorExpanded(expanded);
-          }}
-          tone="brand"
-          triggerId="save-editor-trigger"
-        >
-          <SaveToolsPanel
-            gen3={profiles}
-            gen4={gen4Profiles}
-            gen8={gen8Profiles}
-            threeDs={threeDsProfiles}
-          />
-        </FloatingToolPanel>
-        <FloatingToolPanel
           className="unified-profile-float-panel"
           closeLabel={t("collapse")}
           expanded={activeFloatingTool === "profile"}
@@ -4214,13 +4252,10 @@ function App() {
             id="floating-tool-actions"
           >
             <button
-              aria-controls="save-editor-panel"
-              aria-expanded={activeFloatingTool === "saveEditor"}
-              aria-haspopup="dialog"
+              aria-controls="save-workspace"
+              aria-pressed={primaryWorkspace === "save"}
               aria-label={t("saveEditor.title")}
-              className={
-                activeFloatingTool === "saveEditor" ? "active" : undefined
-              }
+              className={primaryWorkspace === "save" ? "active" : undefined}
               id="save-editor-trigger"
               onClick={() => {
                 if (!toolRailUsesHover()) setFloatingToolsExpanded(true);

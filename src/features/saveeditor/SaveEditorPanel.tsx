@@ -1,3 +1,5 @@
+import { SaveSectionNavigation } from "./SaveSectionNavigation";
+import type { SaveSection, SaveSectionItem } from "./saveWorkspace";
 import { SuperTrain6Editor } from "./SuperTrain6Editor";
 import { supportsSuperTrain6 } from "./superTrain6";
 import { st6Words } from "./superTrain6Words";
@@ -210,70 +212,7 @@ export function SaveEditorPanel(
   const [report, setReport] = useState<SaveReport>();
   const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
-  const [section, setSection] = useState<
-    | "pokemon"
-    | "trainer"
-    | "inventory"
-    | "events"
-    | "gsBall2"
-    | "hall3"
-    | "hall1"
-    | "eventReset"
-    | "ferry3"
-    | "misc3"
-    | "secretBase3"
-    | "pokegear4"
-    | "pokeathlon4"
-    | "battlePass4"
-    | "brTrainer4"
-    | "battleVideo4"
-    | "geonet4"
-    | "misc4"
-    | "misc5"
-    | "medals5"
-    | "berryField6xy"
-    | "avenue5"
-    | "superTrain6"
-    | "secretBase6"
-    | "link6"
-    | "hall6"
-    | "zygarde7"
-    | "sevenstar9"
-    | "raid9"
-    | "fashion9"
-    | "event9a"
-    | "donut9a"
-    | "trainer8"
-    | "trainer8a"
-    | "trainer8b"
-    | "raid8"
-    | "underground8b"
-    | "seal8b"
-    | "misc8b"
-    | "trainerGG"
-    | "hall7"
-    | "unityTower5"
-    | "globalLink5"
-    | "dlc5"
-    | "cgear5"
-    | "underground4"
-    | "honeyTree4"
-    | "br4Gear"
-    | "joyful3"
-    | "frontier3"
-    | "gameRecords3"
-    | "paintings3"
-    | "decorations3"
-    | "roamer3"
-    | "roamer"
-    | "rtc"
-    | "opowers"
-    | "food"
-    | "records"
-    | "pokedex"
-    | "batch"
-    | "files"
-  >("pokemon");
+  const [section, setSection] = useState<SaveSection>("pokemon");
   const [draft, setDraft] = useState<TrainerDraft>({
     nickname: "",
     fashionGender: "",
@@ -3058,9 +2997,409 @@ export function SaveEditorPanel(
       setFileRevision((previous) => previous + 1);
     });
 
+  const profileLinkPanel = report ? (
+    <section className="save-editor-profile" aria-label={t("profile")}>
+      <h3>{t("profile")}</h3>
+      <p className="save-editor-note">{words.link}</p>
+      {choices.length === 0 ? (
+        <p>{words.unsupported}</p>
+      ) : (
+        <>
+          {choices.length > 1 && <p>{words.ambiguous}</p>}
+          <div className="save-editor-fields">
+            <label className="field">
+              <span>{t("game")}</span>
+              <Select
+                value={version}
+                disabled={busy}
+                onChange={(e) => {
+                  setVersion(e.target.value);
+                  setTarget("new");
+                }}
+              >
+                <option value="">—</option>
+                {choices.map((game) => (
+                  <option key={game} value={game}>
+                    {words.games[game as keyof typeof words.games] ?? game}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            <label className="field">
+              <span>{t("profile")}</span>
+              <Select
+                value={target}
+                disabled={busy || !link || link.loading}
+                onChange={(e) => setTarget(e.target.value)}
+              >
+                <option value="new">{t("newProfile")}</option>
+                {link?.profiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.name}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            {target === "new" && (
+              <label className="field">
+                <span>{words.profileName}</span>
+                <input
+                  value={profileName}
+                  disabled={busy}
+                  onChange={(e) => setProfileName(e.target.value)}
+                />
+              </label>
+            )}
+          </div>
+          {target === "new" && (
+            <>
+              <p className="save-editor-note">{words.defaults}</p>
+              <label className="save-editor-review">
+                <input
+                  type="checkbox"
+                  checked={reviewDefaults}
+                  disabled={busy}
+                  onChange={(e) => setReviewDefaults(e.target.checked)}
+                />
+                {words.acknowledge}
+              </label>
+            </>
+          )}
+          <button
+            type="button"
+            disabled={
+              busy ||
+              !link ||
+              link.loading ||
+              (target === "new" && (!reviewDefaults || !profileName.trim()))
+            }
+            onClick={() =>
+              void perform(async (id) => {
+                await link!.save(target, profileName);
+                if (id === operation.current) setStatus("linked");
+              }, false)
+            }
+          >
+            {words.apply}
+          </button>
+        </>
+      )}
+    </section>
+  ) : null;
+
+  const sectionItems: SaveSectionItem[] = report
+    ? [
+        { id: "pokemon", label: words.pokemon, available: Boolean(true) },
+        { id: "trainer", label: words.trainer, available: Boolean(true) },
+        { id: "inventory", label: words.inventory, available: Boolean(true) },
+        {
+          id: "batch",
+          label: propertyBatchWords[batchLang].title,
+          available: Boolean(report.canEdit),
+        },
+        {
+          id: "files",
+          label: fileBatchWords[batchLang].title,
+          available: Boolean(true),
+        },
+        {
+          id: "pokedex",
+          label: words.pokedexTitle,
+          available: Boolean(report.pokedex),
+        },
+        {
+          id: "events",
+          label: eventWords[batchLang].title,
+          available: Boolean(supportsEvents(report.format)),
+        },
+        {
+          id: "gsBall2",
+          label: gsBall2Words[batchLang].title,
+          available: Boolean(supportsGsBall2(report.format, report.version)),
+        },
+        {
+          id: "hall3",
+          label: hall3Words[batchLang].title,
+          available: Boolean(supportsHall3(report.format)),
+        },
+        {
+          id: "hall1",
+          label: hall1Words[batchLang].title,
+          available: Boolean(supportsHall1(report.format)),
+        },
+        {
+          id: "eventReset",
+          label: eventResetWords[batchLang].title,
+          available: Boolean(supportsEventReset(report.format)),
+        },
+        {
+          id: "ferry3",
+          label: ferry3Words[batchLang].title,
+          available: Boolean(supportsFerry3(report.format)),
+        },
+        {
+          id: "misc3",
+          label: misc3Words[batchLang].title,
+          available: Boolean(supportsMisc3(report.format)),
+        },
+        {
+          id: "secretBase3",
+          label: secretBase3Words[batchLang].title,
+          available: Boolean(supportsSecretBase3(report.format)),
+        },
+        {
+          id: "pokegear4",
+          label: pokegear4Words[batchLang].title,
+          available: Boolean(supportsPokeGear4(report.format)),
+        },
+        {
+          id: "pokeathlon4",
+          label: pokeathlon4Words[batchLang].title,
+          available: Boolean(supportsPokeathlon4(report.format)),
+        },
+        {
+          id: "battlePass4",
+          label: battlePass4Words[batchLang].title,
+          available: Boolean(supportsBr4Gear(report.format)),
+        },
+        {
+          id: "brTrainer4",
+          label: brTrainer4Words[batchLang].title,
+          available: Boolean(supportsBr4Gear(report.format)),
+        },
+        {
+          id: "battleVideo4",
+          label: video4Words[batchLang].title,
+          available: Boolean(supportsBattleVideo4(report.format)),
+        },
+        {
+          id: "geonet4",
+          label: geonet4Words[batchLang].title,
+          available: Boolean(supportsGeonet4(report.format)),
+        },
+        {
+          id: "misc4",
+          label: misc4Words[batchLang].title,
+          available: Boolean(supportsMisc4(report.format)),
+        },
+        {
+          id: "misc5",
+          label: misc5Labels[batchLang].title,
+          available: Boolean(supportsMisc5(report.format)),
+        },
+        {
+          id: "medals5",
+          label: medals5Labels[batchLang].title,
+          available: Boolean(supportsMedals5(report.format)),
+        },
+        {
+          id: "berryField6xy",
+          label: berry6xyWords[batchLang].title,
+          available: Boolean(supportsBerryField6XY(report.format)),
+        },
+        {
+          id: "avenue5",
+          label: avenue5Words[batchLang].title,
+          available: Boolean(supportsAvenue5(report.format)),
+        },
+        {
+          id: "superTrain6",
+          label: st6Words[batchLang].title,
+          available: Boolean(supportsSuperTrain6(report.format)),
+        },
+        {
+          id: "secretBase6",
+          label: sb6Words[batchLang].title,
+          available: Boolean(supportsSecretBase6(report.format)),
+        },
+        {
+          id: "link6",
+          label: link6Words[batchLang].title,
+          available: Boolean(supportsLink6(report.format)),
+        },
+        {
+          id: "hall6",
+          label: hall6Words[batchLang].title,
+          available: Boolean(supportsHall6(report.format)),
+        },
+        {
+          id: "zygarde7",
+          label:
+            report.format === "SAV7USUM"
+              ? zygarde7Words[batchLang].stickers
+              : zygarde7Words[batchLang].cells,
+          available: Boolean(supportsZygarde7(report.format)),
+        },
+        {
+          id: "sevenstar9",
+          label: sevenStar9Words[batchLang].title,
+          available: Boolean(supportsSevenStar9(report.format)),
+        },
+        {
+          id: "raid9",
+          label: raid9Words[batchLang].title,
+          available: Boolean(supportsRaid9(report.format)),
+        },
+        {
+          id: "fashion9",
+          label: fashion9Words[batchLang].title,
+          available: Boolean(supportsFashion9(report.format)),
+        },
+        {
+          id: "event9a",
+          label: event9aWords[batchLang].title,
+          available: Boolean(supportsEvent9a(report.format)),
+        },
+        {
+          id: "donut9a",
+          label: donut9aWords[batchLang].title,
+          available: Boolean(supportsDonut9a(report.format)),
+        },
+        {
+          id: "trainer8",
+          label: trainer8Words[batchLang].title,
+          available: Boolean(supportsTrainer8(report.format)),
+        },
+        {
+          id: "trainer8a",
+          label: trainer8aWords[batchLang].title,
+          available: Boolean(supportsTrainer8a(report.format)),
+        },
+        {
+          id: "trainer8b",
+          label: trainer8bWords[batchLang].title,
+          available: Boolean(supportsTrainer8b(report.format)),
+        },
+        {
+          id: "raid8",
+          label: raid8Words[batchLang].title,
+          available: Boolean(supportsRaid8(report.format)),
+        },
+        {
+          id: "underground8b",
+          label: underground8bWords[batchLang].title,
+          available: Boolean(supportsUnderground8b(report.format)),
+        },
+        {
+          id: "seal8b",
+          label: seal8bWords[batchLang].title,
+          available: Boolean(supportsSeal8b(report.format)),
+        },
+        {
+          id: "misc8b",
+          label: misc8bWords[batchLang].title,
+          available: Boolean(supportsMisc8b(report.format)),
+        },
+        {
+          id: "trainerGG",
+          label: trainerGGWords[batchLang].title,
+          available: Boolean(supportsTrainerGG(report.format)),
+        },
+        {
+          id: "hall7",
+          label: hall7Words[batchLang].title,
+          available: Boolean(supportsHall7(report.format)),
+        },
+        {
+          id: "unityTower5",
+          label: tower5Words[batchLang].title,
+          available: Boolean(supportsUnityTower5(report.format)),
+        },
+        {
+          id: "globalLink5",
+          label: gl5Words[batchLang].title,
+          available: Boolean(supportsGlobalLink5(report.format)),
+        },
+        {
+          id: "dlc5",
+          label: dlc5Words[batchLang].title,
+          available: Boolean(supportsDlc5(report.format)),
+        },
+        {
+          id: "cgear5",
+          label: cgear5Words[batchLang].title,
+          available: Boolean(supportsCGear5(report.format)),
+        },
+        {
+          id: "underground4",
+          label: ug4Words[batchLang].title,
+          available: Boolean(supportsUnderground4(report.format)),
+        },
+        {
+          id: "honeyTree4",
+          label: honey4Words[batchLang].title,
+          available: Boolean(supportsHoneyTree4(report.format)),
+        },
+        {
+          id: "br4Gear",
+          label: br4GearWords[batchLang].title,
+          available: Boolean(supportsBr4Gear(report.format)),
+        },
+        {
+          id: "joyful3",
+          label: joyful3Words[batchLang].title,
+          available: Boolean(supportsJoyful3(report.format)),
+        },
+        {
+          id: "frontier3",
+          label: frontier3Words[batchLang].title,
+          available: Boolean(supportsFrontier3(report.format)),
+        },
+        {
+          id: "gameRecords3",
+          label: gameRecords3Words[batchLang].title,
+          available: Boolean(supportsGameRecords3(report.format)),
+        },
+        {
+          id: "paintings3",
+          label: paintings3Words[batchLang].title,
+          available: Boolean(supportsPaintings3(report.format)),
+        },
+        {
+          id: "decorations3",
+          label: decorations3Words[batchLang].title,
+          available: Boolean(supportsDecorations3(report.format)),
+        },
+        {
+          id: "roamer3",
+          label: roamer3Words[batchLang].title,
+          available: Boolean(supportsRoamer3(report.format)),
+        },
+        {
+          id: "roamer",
+          label: roamerWords[batchLang].title,
+          available: Boolean(supportsRoamer(report.format)),
+        },
+        {
+          id: "rtc",
+          label: rtcWords[batchLang].title,
+          available: Boolean(supportsRtc(report.format)),
+        },
+        {
+          id: "opowers",
+          label: opowerWords[batchLang].title,
+          available: Boolean(supportsOPowers(report.format)),
+        },
+        {
+          id: "food",
+          label: foodWords[batchLang].title,
+          available: Boolean(supportsFood(report.format)),
+        },
+        {
+          id: "records",
+          label: words.recordsTitle,
+          available: Boolean(report.trainer.canRecords),
+        },
+      ]
+    : [];
+
   return (
-    <div className="save-editor-panel" aria-busy={busy}>
-      <p>{words.intro}</p>
+    <div
+      className="save-editor-panel save-file-workspace"
+      data-open={Boolean(report)}
+      aria-busy={busy}
+    >
+      {!report && <p>{words.intro}</p>}
       <div className="save-editor-toolbar">
         {report && (
           <button
@@ -3165,7 +3504,7 @@ export function SaveEditorPanel(
         </>
       )}
 
-      <p className="save-editor-note">{words.choose}</p>
+      {!report && <p className="save-editor-note">{words.choose}</p>}
       {busy && <p role="status">{words.loading}</p>}
       {error && (
         <p role="alert" className="save-editor-error">
@@ -3179,1798 +3518,1191 @@ export function SaveEditorPanel(
       )}
       {report && (
         <>
-          <h3>{name}</h3>
+          <p className="save-open-file">{name}</p>
           {!report.checksumsValid && (
             <p role="alert" className="save-editor-error">
               {words.invalid}
             </p>
           )}
-          <div
-            className="save-editor-toolbar"
-            role="group"
-            aria-label={words.title}
-          >
-            <button
-              type="button"
-              aria-pressed={section === "pokemon"}
-              onClick={() => setSection("pokemon")}
+          <div className="save-editor-body">
+            <SaveSectionNavigation
+              items={sectionItems}
+              selected={section}
+              busy={busy}
+              lang={batchLang}
+              onSelect={setSection}
+            />
+            <div
+              className="save-section-content"
+              id="save-section-content"
+              role="region"
+              aria-label={
+                sectionItems.find((item) => item.id === section)?.label ??
+                words.title
+              }
             >
-              {words.pokemon}
-            </button>
-            <button
-              type="button"
-              aria-pressed={section === "trainer"}
-              onClick={() => setSection("trainer")}
-            >
-              {words.trainer}
-            </button>
-            <button
-              type="button"
-              aria-pressed={section === "inventory"}
-              onClick={() => setSection("inventory")}
-            >
-              {words.inventory}
-            </button>
-            {report.canEdit && (
-              <button
-                type="button"
-                aria-pressed={section === "batch"}
-                onClick={() => setSection("batch")}
-              >
-                {propertyBatchWords[batchLang].title}
-              </button>
-            )}
-            <button
-              type="button"
-              aria-pressed={section === "files"}
-              onClick={() => setSection("files")}
-            >
-              {fileBatchWords[batchLang].title}
-            </button>
-            {report.pokedex && (
-              <button
-                type="button"
-                aria-pressed={section === "pokedex"}
-                onClick={() => setSection("pokedex")}
-              >
-                {words.pokedexTitle}
-              </button>
-            )}
-            {supportsEvents(report.format) && (
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={section === "events"}
-                onClick={() => setSection("events")}
-              >
-                {eventWords[batchLang].title}
-              </button>
-            )}
-            {supportsGsBall2(report.format, report.version) && (
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={section === "gsBall2"}
-                onClick={() => setSection("gsBall2")}
-              >
-                {gsBall2Words[batchLang].title}
-              </button>
-            )}
-            {supportsHall3(report.format) && (
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={section === "hall3"}
-                onClick={() => setSection("hall3")}
-              >
-                {hall3Words[batchLang].title}
-              </button>
-            )}
-            {supportsHall1(report.format) && (
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={section === "hall1"}
-                onClick={() => setSection("hall1")}
-              >
-                {hall1Words[batchLang].title}
-              </button>
-            )}
-            {supportsEventReset(report.format) && (
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={section === "eventReset"}
-                onClick={() => setSection("eventReset")}
-              >
-                {eventResetWords[batchLang].title}
-              </button>
-            )}
-            {supportsFerry3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "ferry3"}
-                onClick={() => setSection("ferry3")}
-              >
-                {ferry3Words[batchLang].title}
-              </button>
-            )}
-            {supportsMisc3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "misc3"}
-                onClick={() => setSection("misc3")}
-              >
-                {misc3Words[batchLang].title}
-              </button>
-            )}
-            {supportsSecretBase3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "secretBase3"}
-                onClick={() => setSection("secretBase3")}
-              >
-                {secretBase3Words[batchLang].title}
-              </button>
-            )}
-            {supportsPokeGear4(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "pokegear4"}
-                onClick={() => setSection("pokegear4")}
-              >
-                {pokegear4Words[batchLang].title}
-              </button>
-            )}
-            {supportsPokeathlon4(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "pokeathlon4"}
-                onClick={() => setSection("pokeathlon4")}
-              >
-                {pokeathlon4Words[batchLang].title}
-              </button>
-            )}
-            {supportsBr4Gear(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "battlePass4"}
-                onClick={() => setSection("battlePass4")}
-              >
-                {battlePass4Words[batchLang].title}
-              </button>
-            )}
-            {supportsBr4Gear(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "brTrainer4"}
-                onClick={() => setSection("brTrainer4")}
-              >
-                {brTrainer4Words[batchLang].title}
-              </button>
-            )}
-            {supportsBattleVideo4(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "battleVideo4"}
-                onClick={() => setSection("battleVideo4")}
-              >
-                {video4Words[batchLang].title}
-              </button>
-            )}
-            {supportsGeonet4(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "geonet4"}
-                onClick={() => setSection("geonet4")}
-              >
-                {geonet4Words[batchLang].title}
-              </button>
-            )}
-            {supportsMisc4(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "misc4"}
-                onClick={() => setSection("misc4")}
-              >
-                {misc4Words[batchLang].title}
-              </button>
-            )}
-            {supportsMisc5(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "misc5"}
-                onClick={() => setSection("misc5")}
-              >
-                {misc5Labels[batchLang].title}
-              </button>
-            )}
-            {supportsMedals5(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "medals5"}
-                onClick={() => setSection("medals5")}
-              >
-                {medals5Labels[batchLang].title}
-              </button>
-            )}
-            {supportsBerryField6XY(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "berryField6xy"}
-                onClick={() => setSection("berryField6xy")}
-              >
-                {berry6xyWords[batchLang].title}
-              </button>
-            )}
-            {supportsAvenue5(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "avenue5"}
-                onClick={() => setSection("avenue5")}
-              >
-                {avenue5Words[batchLang].title}
-              </button>
-            )}
-            {supportsSuperTrain6(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "superTrain6"}
-                onClick={() => setSection("superTrain6")}
-              >
-                {st6Words[batchLang].title}
-              </button>
-            )}
-            {supportsSecretBase6(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "secretBase6"}
-                onClick={() => setSection("secretBase6")}
-              >
-                {sb6Words[batchLang].title}
-              </button>
-            )}
-            {supportsLink6(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "link6"}
-                onClick={() => setSection("link6")}
-              >
-                {link6Words[batchLang].title}
-              </button>
-            )}
-            {supportsHall6(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "hall6"}
-                onClick={() => setSection("hall6")}
-              >
-                {hall6Words[batchLang].title}
-              </button>
-            )}
-            {supportsZygarde7(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "zygarde7"}
-                onClick={() => setSection("zygarde7")}
-              >
-                {report.format === "SAV7USUM"
-                  ? zygarde7Words[batchLang].stickers
-                  : zygarde7Words[batchLang].cells}
-              </button>
-            )}
-            {supportsSevenStar9(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "sevenstar9"}
-                onClick={() => setSection("sevenstar9")}
-              >
-                {sevenStar9Words[batchLang].title}
-              </button>
-            )}
-            {supportsRaid9(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "raid9"}
-                onClick={() => setSection("raid9")}
-              >
-                {raid9Words[batchLang].title}
-              </button>
-            )}
-            {supportsFashion9(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "fashion9"}
-                onClick={() => setSection("fashion9")}
-              >
-                {fashion9Words[batchLang].title}
-              </button>
-            )}
-            {supportsEvent9a(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "event9a"}
-                onClick={() => setSection("event9a")}
-              >
-                {event9aWords[batchLang].title}
-              </button>
-            )}
-            {supportsDonut9a(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "donut9a"}
-                onClick={() => setSection("donut9a")}
-              >
-                {donut9aWords[batchLang].title}
-              </button>
-            )}
-            {supportsTrainer8(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "trainer8"}
-                onClick={() => setSection("trainer8")}
-              >
-                {trainer8Words[batchLang].title}
-              </button>
-            )}
-            {supportsTrainer8a(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "trainer8a"}
-                onClick={() => setSection("trainer8a")}
-              >
-                {trainer8aWords[batchLang].title}
-              </button>
-            )}
-            {supportsTrainer8b(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "trainer8b"}
-                onClick={() => setSection("trainer8b")}
-              >
-                {trainer8bWords[batchLang].title}
-              </button>
-            )}
-            {supportsRaid8(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "raid8"}
-                onClick={() => setSection("raid8")}
-              >
-                {raid8Words[batchLang].title}
-              </button>
-            )}
-            {supportsUnderground8b(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "underground8b"}
-                onClick={() => setSection("underground8b")}
-              >
-                {underground8bWords[batchLang].title}
-              </button>
-            )}
-            {supportsSeal8b(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "seal8b"}
-                onClick={() => setSection("seal8b")}
-              >
-                {seal8bWords[batchLang].title}
-              </button>
-            )}
-            {supportsMisc8b(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "misc8b"}
-                onClick={() => setSection("misc8b")}
-              >
-                {misc8bWords[batchLang].title}
-              </button>
-            )}
-            {supportsTrainerGG(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "trainerGG"}
-                onClick={() => setSection("trainerGG")}
-              >
-                {trainerGGWords[batchLang].title}
-              </button>
-            )}
-            {supportsHall7(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "hall7"}
-                onClick={() => setSection("hall7")}
-              >
-                {hall7Words[batchLang].title}
-              </button>
-            )}
-            {supportsUnityTower5(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "unityTower5"}
-                onClick={() => setSection("unityTower5")}
-              >
-                {tower5Words[batchLang].title}
-              </button>
-            )}
-            {supportsGlobalLink5(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "globalLink5"}
-                onClick={() => setSection("globalLink5")}
-              >
-                {gl5Words[batchLang].title}
-              </button>
-            )}
-            {supportsDlc5(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "dlc5"}
-                onClick={() => setSection("dlc5")}
-              >
-                {dlc5Words[batchLang].title}
-              </button>
-            )}
-            {supportsCGear5(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "cgear5"}
-                onClick={() => setSection("cgear5")}
-              >
-                {cgear5Words[batchLang].title}
-              </button>
-            )}
-            {supportsUnderground4(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "underground4"}
-                onClick={() => setSection("underground4")}
-              >
-                {ug4Words[batchLang].title}
-              </button>
-            )}
-            {supportsHoneyTree4(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "honeyTree4"}
-                onClick={() => setSection("honeyTree4")}
-              >
-                {honey4Words[batchLang].title}
-              </button>
-            )}
-            {supportsBr4Gear(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "br4Gear"}
-                onClick={() => setSection("br4Gear")}
-              >
-                {br4GearWords[batchLang].title}
-              </button>
-            )}
-            {supportsJoyful3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "joyful3"}
-                onClick={() => setSection("joyful3")}
-              >
-                {joyful3Words[batchLang].title}
-              </button>
-            )}
-            {supportsFrontier3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "frontier3"}
-                onClick={() => setSection("frontier3")}
-              >
-                {frontier3Words[batchLang].title}
-              </button>
-            )}
-            {supportsGameRecords3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "gameRecords3"}
-                onClick={() => setSection("gameRecords3")}
-              >
-                {gameRecords3Words[batchLang].title}
-              </button>
-            )}
-            {supportsPaintings3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "paintings3"}
-                onClick={() => setSection("paintings3")}
-              >
-                {paintings3Words[batchLang].title}
-              </button>
-            )}
-            {supportsDecorations3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "decorations3"}
-                onClick={() => setSection("decorations3")}
-              >
-                {decorations3Words[batchLang].title}
-              </button>
-            )}
-            {supportsRoamer3(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "roamer3"}
-                onClick={() => setSection("roamer3")}
-              >
-                {roamer3Words[batchLang].title}
-              </button>
-            )}
-            {supportsRoamer(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "roamer"}
-                onClick={() => setSection("roamer")}
-              >
-                {roamerWords[batchLang].title}
-              </button>
-            )}
-            {supportsRtc(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "rtc"}
-                onClick={() => setSection("rtc")}
-              >
-                {rtcWords[batchLang].title}
-              </button>
-            )}
-            {supportsOPowers(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "opowers"}
-                onClick={() => setSection("opowers")}
-              >
-                {opowerWords[batchLang].title}
-              </button>
-            )}
-            {supportsFood(report.format) && (
-              <button
-                type="button"
-                aria-pressed={section === "food"}
-                onClick={() => setSection("food")}
-              >
-                {foodWords[batchLang].title}
-              </button>
-            )}
-            {report.trainer.canRecords && (
-              <button
-                type="button"
-                aria-pressed={section === "records"}
-                onClick={() => setSection("records")}
-              >
-                {words.recordsTitle}
-              </button>
-            )}
-          </div>
-          {section === "files" ? (
-            <FileBatchEditor
-              key={
-                name +
-                ":" +
-                fileRevision +
-                ":" +
-                workingRevision +
-                ":" +
-                batchLang
-              }
-              busy={busy}
-              lang={batchLang}
-              onCatalog={() => readPropertyBatch("fileCatalog")}
-              onPreview={previewFileBatch}
-              onDownload={downloadFileBatch}
-              onDiscard={discardFilePreview}
-            />
-          ) : section === "batch" && report.canEdit ? (
-            <PropertyBatchEditor
-              key={
-                name +
-                ":" +
-                fileRevision +
-                ":" +
-                workingRevision +
-                ":" +
-                batchLang
-              }
-              report={report}
-              busy={busy}
-              lang={batchLang}
-              onRead={readPropertyBatch}
-              onDiscard={discardPropertyPreview}
-              onApply={(edit) => applyWorkingEdit(edit, "propertyCommit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "za" ? (
-            <ZaPokedexEditor
-              key={name + ":" + fileRevision}
-              revision={workingRevision}
-              busy={busy}
-              onRead={readPokedex9a}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex9aEdit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "sv" ? (
-            <SvPokedexEditor
-              key={name + ":" + fileRevision}
-              revision={workingRevision}
-              busy={busy}
-              onRead={readPokedex9}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex9Edit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "legends" ? (
-            <LegendsPokedexEditor
-              key={name + ":" + fileRevision}
-              revision={workingRevision}
-              busy={busy}
-              onRead={readPokedex8a}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex8aEdit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "swsh" ? (
-            <SwshPokedexEditor
-              key={name + ":" + fileRevision}
-              revision={workingRevision}
-              busy={busy}
-              onRead={readPokedex8}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex8Edit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "bdsp" ? (
-            <BdspPokedexEditor
-              key={`${name}:${fileRevision}`}
-              revision={workingRevision}
-              busy={busy}
-              onRead={readPokedex8b}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex8bEdit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "gen7" ? (
-            <Gen7PokedexEditor
-              key={`${name}:${fileRevision}`}
-              revision={workingRevision}
-              busy={busy}
-              onRead={readPokedex7}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex7Edit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "gen6" ? (
-            <FlagPokedexEditor
-              key={`${name}:${fileRevision}`}
-              kind={report.format === "SAV6AO" ? "oras" : "xy"}
-              revision={workingRevision}
-              busy={busy}
-              saveLanguage={report.language}
-              onRead={readPokedex6}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex6Edit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "gen5" ? (
-            <FlagPokedexEditor
-              key={`${name}:${fileRevision}`}
-              revision={workingRevision}
-              busy={busy}
-              saveLanguage={report.language}
-              onRead={readPokedex5}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex5Edit")}
-            />
-          ) : section === "pokedex" && report.pokedex?.kind === "gen4" ? (
-            <Gen4PokedexEditor
-              key={`${name}:${fileRevision}`}
-              revision={workingRevision}
-              busy={busy}
-              onRead={readPokedex4}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedex4Edit")}
-            />
-          ) : section === "pokedex" && report.pokedex ? (
-            <SimplePokedexEditor
-              key={`${name}:${fileRevision}`}
-              revision={workingRevision}
-              fileName={name}
-              busy={busy}
-              onRead={readPokedex}
-              onApply={(edit) => applyWorkingEdit(edit, "pokedexEdit")}
-            />
-          ) : section === "events" && supportsEvents(report.format) ? (
-            <EventEditor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readEvents}
-              onApply={(edit) => applyWorkingEdit(edit, "eventsEdit")}
-              onCompare={compareEvents}
-            />
-          ) : section === "gsBall2" &&
-            supportsGsBall2(report.format, report.version) ? (
-            <GsBall2Editor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readGsBall2}
-              onEnable={() =>
-                applyWorkingEdit({ action: "enableGsBall" }, "gsBall2Edit")
-              }
-            />
-          ) : section === "hall3" && supportsHall3(report.format) ? (
-            <Hall3Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readHall3}
-              onApply={(edit) => applyWorkingEdit(edit, "hall3Edit")}
-            />
-          ) : section === "hall1" && supportsHall1(report.format) ? (
-            <Hall1Editor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readHall1}
-              onApply={(edit) => applyWorkingEdit(edit, "hall1Edit")}
-            />
-          ) : section === "eventReset" && supportsEventReset(report.format) ? (
-            <EventResetEditor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readEventReset}
-              onApply={(edit) => applyWorkingEdit(edit, "eventResetEdit")}
-            />
-          ) : section === "ferry3" && supportsFerry3(report.format) ? (
-            <Ferry3Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readFerry3}
-              onApply={(edit) => applyWorkingEdit(edit, "ferry3Edit")}
-            />
-          ) : section === "misc3" && supportsMisc3(report.format) ? (
-            <Misc3Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readMisc3}
-              onApply={(edit) => applyWorkingEdit(edit, "misc3Edit")}
-            />
-          ) : section === "secretBase3" &&
-            supportsSecretBase3(report.format) ? (
-            <SecretBase3Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readSecretBase3}
-              onSuggest={suggestSecretBase3}
-              onApply={(edit) => applyWorkingEdit(edit, "secretBase3Edit")}
-            />
-          ) : section === "pokegear4" && supportsPokeGear4(report.format) ? (
-            <PokeGear4Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readPokeGear4}
-              onApply={(edit) => applyWorkingEdit(edit, "pokegear4Edit")}
-            />
-          ) : section === "pokeathlon4" &&
-            supportsPokeathlon4(report.format) ? (
-            <Pokeathlon4Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readPokeathlon4}
-              onApply={(edit) => applyWorkingEdit(edit, "pokeathlon4Edit")}
-            />
-          ) : section === "battlePass4" && supportsBr4Gear(report.format) ? (
-            <BattlePass4Editor
-              key={report.brProfiles?.active}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readBattlePass4}
-              onPreview={previewBattlePass4}
-              onApply={(edit) => applyWorkingEdit(edit, "battlePass4Edit")}
-              onExport={exportBattlePass4}
-            />
-          ) : section === "brTrainer4" && supportsBr4Gear(report.format) ? (
-            <BrTrainer4Editor
-              key={report.brProfiles?.active}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readBrTrainer4}
-              onApply={(edit) => applyWorkingEdit(edit, "brTrainer4Edit")}
-            />
-          ) : section === "battleVideo4" &&
-            supportsBattleVideo4(report.format) ? (
-            <BattleVideo4Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readBattleVideo4}
-              onPreview={previewVideo4}
-              onApply={(edit) => applyWorkingEdit(edit, "video4Import")}
-              onExport={exportVideo4}
-            />
-          ) : section === "geonet4" && supportsGeonet4(report.format) ? (
-            <Geonet4Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readGeonet4}
-              onApply={(edit) => applyWorkingEdit(edit, "geonet4Edit")}
-            />
-          ) : section === "misc4" && supportsMisc4(report.format) ? (
-            <Misc4Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readMisc4}
-              onPreview={previewMisc4}
-              onApply={(edit) => applyWorkingEdit(edit, "misc4Edit")}
-              onRelated={setSection}
-            />
-          ) : section === "misc5" && supportsMisc5(report.format) ? (
-            <Misc5Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readMisc5}
-              onPreview={previewMisc5}
-              onExport={exportMisc5}
-              onApply={(edit) => applyWorkingEdit(edit, "misc5Edit")}
-            />
-          ) : section === "medals5" && supportsMedals5(report.format) ? (
-            <Medals5Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readMedals5}
-              onPreview={previewMedals5}
-              onExport={exportMedals5}
-              onApply={(edit) => applyWorkingEdit(edit, "medals5Edit")}
-            />
-          ) : section === "berryField6xy" &&
-            supportsBerryField6XY(report.format) ? (
-            <BerryField6XYViewer
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readBerryField6XY}
-            />
-          ) : section === "avenue5" && supportsAvenue5(report.format) ? (
-            <Avenue5Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readAvenue5}
-              onPreview={previewAvenue5}
-              onApply={(edit) => applyWorkingEdit(edit, "avenue5Edit")}
-              onExport={exportAvenue5}
-            />
-          ) : section === "superTrain6" &&
-            supportsSuperTrain6(report.format) ? (
-            <SuperTrain6Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readSuperTrain6}
-              onPreview={previewSuperTrain6}
-              onApply={(edit) => applyWorkingEdit(edit, "superTrain6Edit")}
-            />
-          ) : section === "secretBase6" &&
-            supportsSecretBase6(report.format) ? (
-            <SecretBase6Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readSecretBase6}
-              onPreview={previewSecretBase6}
-              onApply={(edit) => applyWorkingEdit(edit, "secretBase6Edit")}
-              onExport={exportSecretBase6}
-            />
-          ) : section === "link6" && supportsLink6(report.format) ? (
-            <Link6Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readLink6}
-              onPreview={previewLink6}
-              onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
-              onExport={exportLink6}
-            />
-          ) : section === "sevenstar9" && supportsSevenStar9(report.format) ? (
-            <SevenStar9Editor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readSevenStar9}
-              onPreview={previewSevenStar9}
-              onApply={(e) => applyWorkingEdit(e, "sevenstar9Commit")}
-              onDiscard={discardSevenStar9}
-            />
-          ) : section === "raid9" && supportsRaid9(report.format) ? (
-            <Raid9Editor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readRaid9}
-              onPreview={previewRaid9}
-              onApply={(e) => applyWorkingEdit(e, "raid9Commit")}
-              onDiscard={discardRaid9}
-            />
-          ) : section === "fashion9" && supportsFashion9(report.format) ? (
-            <Fashion9Editor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readFashion9}
-              onPreview={previewFashion9}
-              onApply={(e) => applyWorkingEdit(e, "fashion9Commit")}
-              onDiscard={discardFashion9}
-            />
-          ) : section === "event9a" && supportsEvent9a(report.format) ? (
-            <Event9aEditor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readEvent9a}
-              onPreview={previewEvent9a}
-              onApply={(e) => applyWorkingEdit(e, "event9aCommit")}
-              onDiscard={discardEvent9a}
-              onCompare={compareEvent9a}
-            />
-          ) : section === "donut9a" && supportsDonut9a(report.format) ? (
-            <Donut9aEditor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readDonut9a}
-              onPreview={previewDonut9a}
-              onApply={(e) => applyWorkingEdit(e, "donut9aCommit")}
-              onDiscard={discardDonut9a}
-              onExport={exportDonut9a}
-            />
-          ) : section === "trainer8" && supportsTrainer8(report.format) ? (
-            <Trainer8Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readTrainer8}
-              onPreview={previewTrainer8}
-              onApply={(e) => applyWorkingEdit(e, "trainer8Edit")}
-            />
-          ) : section === "trainer8a" && supportsTrainer8a(report.format) ? (
-            <Trainer8aEditor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readTrainer8a}
-              onPreview={previewTrainer8a}
-              onApply={(e) => applyWorkingEdit(e, "trainer8aEdit")}
-            />
-          ) : section === "trainer8b" && supportsTrainer8b(report.format) ? (
-            <Trainer8bEditor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readTrainer8b}
-              onPreview={previewTrainer8b}
-              onApply={(e) => applyWorkingEdit(e, "trainer8bEdit")}
-            />
-          ) : section === "raid8" && supportsRaid8(report.format) ? (
-            <Raid8Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readRaid8}
-              onPreview={previewRaid8}
-              onApply={(e) => applyWorkingEdit(e, "raid8Edit")}
-            />
-          ) : section === "underground8b" &&
-            supportsUnderground8b(report.format) ? (
-            <Underground8bEditor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readUnderground8b}
-              onPreview={previewUnderground8b}
-              onApply={(e) => applyWorkingEdit(e, "underground8bEdit")}
-            />
-          ) : section === "seal8b" && supportsSeal8b(report.format) ? (
-            <Seal8bEditor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readSeal8b}
-              onPreview={previewSeal8b}
-              onApply={(e) => applyWorkingEdit(e, "seal8bEdit")}
-            />
-          ) : section === "misc8b" && supportsMisc8b(report.format) ? (
-            <Misc8bEditor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readMisc8b}
-              onPreview={previewMisc8b}
-              onApply={(e) => applyWorkingEdit(e, "misc8bEdit")}
-            />
-          ) : section === "trainerGG" && supportsTrainerGG(report.format) ? (
-            <TrainerGGEditor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readTrainerGG}
-              onPreview={previewTrainerGG}
-              onApply={(edit) => applyWorkingEdit(edit, "trainerGGEdit")}
-              onExport={exportTrainerGG}
-            />
-          ) : section === "hall7" && supportsHall7(report.format) ? (
-            <Hall7Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readHall7}
-              onPreview={previewHall7}
-              onApply={(edit) => applyWorkingEdit(edit, "hall7Edit")}
-            />
-          ) : section === "zygarde7" && supportsZygarde7(report.format) ? (
-            <Zygarde7Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readZygarde7}
-              onPreview={previewZygarde7}
-              onApply={(edit) => applyWorkingEdit(edit, "zygarde7Edit")}
-            />
-          ) : section === "hall6" && supportsHall6(report.format) ? (
-            <Hall6Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readHall6}
-              onPreview={previewHall6}
-              onApply={(edit) => applyWorkingEdit(edit, "hall6Edit")}
-            />
-          ) : section === "unityTower5" &&
-            supportsUnityTower5(report.format) ? (
-            <UnityTower5Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readUnityTower5}
-              onPreview={previewUnityTower5}
-              onApply={(edit) => applyWorkingEdit(edit, "unityTower5Edit")}
-            />
-          ) : section === "globalLink5" &&
-            supportsGlobalLink5(report.format) ? (
-            <GlobalLink5Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readGlobalLink5}
-              onPreview={previewGlobalLink5}
-              onApply={(edit) => applyWorkingEdit(edit, "globalLink5Edit")}
-            />
-          ) : section === "dlc5" && supportsDlc5(report.format) ? (
-            <Dlc5Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readDlc5}
-              onPreview={previewDlc5}
-              onApply={(edit) => applyWorkingEdit(edit, "dlc5Edit")}
-              onExport={exportDlc5}
-              onCGear={() => setSection("cgear5")}
-            />
-          ) : section === "cgear5" && supportsCGear5(report.format) ? (
-            <CGear5Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readCGear5}
-              onPreview={previewCGear5}
-              onApply={(edit) => applyWorkingEdit(edit, "cgear5Edit")}
-              onExport={exportCGear5}
-            />
-          ) : section === "underground4" &&
-            supportsUnderground4(report.format) ? (
-            <Underground4Editor
-              key={report.format + "." + batchLang}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readUnderground4}
-              onPreview={previewUnderground4}
-              onApply={(edit) => applyWorkingEdit(edit, "underground4Edit")}
-            />
-          ) : section === "honeyTree4" && supportsHoneyTree4(report.format) ? (
-            <HoneyTree4Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readHoneyTree4}
-              onApply={(edit) => applyWorkingEdit(edit, "honeyTree4Edit")}
-            />
-          ) : section === "br4Gear" && supportsBr4Gear(report.format) ? (
-            <Br4GearEditor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readBr4Gear}
-              onApply={(edit) => applyWorkingEdit(edit, "br4GearEdit")}
-            />
-          ) : section === "joyful3" && supportsJoyful3(report.format) ? (
-            <Joyful3Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readJoyful3}
-              onApply={(edit) => applyWorkingEdit(edit, "joyful3Edit")}
-            />
-          ) : section === "frontier3" && supportsFrontier3(report.format) ? (
-            <Frontier3Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readFrontier3}
-              onApply={(edit) => applyWorkingEdit(edit, "frontier3Edit")}
-            />
-          ) : section === "gameRecords3" &&
-            supportsGameRecords3(report.format) ? (
-            <GameRecords3Editor
-              key={report.format}
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readGameRecords3}
-              onApply={(edit) => applyWorkingEdit(edit, "gameRecords3Edit")}
-            />
-          ) : section === "paintings3" && supportsPaintings3(report.format) ? (
-            <Paintings3Editor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readPaintings3}
-              onApply={(edit) => applyWorkingEdit(edit, "paintings3Edit")}
-            />
-          ) : section === "decorations3" &&
-            supportsDecorations3(report.format) ? (
-            <Decorations3Editor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readDecorations3}
-              onApply={(edit) => applyWorkingEdit(edit, "decorations3Edit")}
-            />
-          ) : section === "roamer3" && supportsRoamer3(report.format) ? (
-            <Roamer3Editor
-              revision={workingRevision}
-              busy={busy}
-              lang={batchLang}
-              onRead={readRoamer3}
-              onApply={(edit) => applyWorkingEdit(edit, "roamer3Edit")}
-            />
-          ) : section === "roamer" && supportsRoamer(report.format) ? (
-            <RoamerEditor
-              revision={workingRevision}
-              busy={busy}
-              canEdit={report.canEdit}
-              lang={batchLang}
-              onRead={readRoamer}
-              onApply={(edit) => applyWorkingEdit(edit, "roamerEdit")}
-            />
-          ) : section === "rtc" && supportsRtc(report.format) ? (
-            <RtcEditor
-              revision={workingRevision}
-              busy={busy}
-              canEdit={report.canEdit}
-              lang={batchLang}
-              onRead={readRtc}
-              onApply={(edit) => applyWorkingEdit(edit, "rtcEdit")}
-            />
-          ) : section === "opowers" && supportsOPowers(report.format) ? (
-            <OPowerEditor
-              revision={workingRevision}
-              busy={busy}
-              canEdit={report.canEdit}
-              lang={batchLang}
-              onRead={readOPowers}
-              onApply={(edit) => applyWorkingEdit(edit, "opowersEdit")}
-            />
-          ) : section === "food" && supportsFood(report.format) ? (
-            <SaveFoodEditor
-              key={`${name}:${fileRevision}`}
-              revision={workingRevision}
-              busy={busy}
-              canEdit={report.canEdit}
-              lang={batchLang}
-              onRead={readFood}
-              onApply={(edit) => applyWorkingEdit(edit, "foodEdit")}
-            />
-          ) : section === "records" && report.trainer.canRecords ? (
-            <SaveRecordEditor
-              key={`${name}:${fileRevision}`}
-              revision={workingRevision}
-              busy={busy}
-              canEdit={report.canEdit || !!report.trainerOnly}
-              onRead={readRecords}
-              onApply={(edit) => applyWorkingEdit(edit, "recordEdit")}
-            />
-          ) : section === "inventory" ? (
-            <SaveInventoryBrowser
-              key={workingRevision}
-              busy={busy}
-              onRead={readInventory}
-              onBatch={(edit) => applyWorkingEdit(edit, "inventoryBatch")}
-              canEdit={report.canEdit}
-              onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
-            />
-          ) : section === "pokemon" ? (
-            <SavePokemonBrowser
-              key={`${name}:${fileRevision}`}
-              report={report}
-              revision={workingRevision}
-              busy={busy}
-              onApply={(edit) => applyWorkingEdit(edit, "pokemon")}
-              onApplyRaw={(edit) => applyWorkingEdit(edit, "pokemonRaw")}
-              onApplyBox={(edit) => applyWorkingEdit(edit, "box")}
-              onStorage={(edit) => applyWorkingEdit(edit, "storage")}
-              onImport={importPokemon}
-              onExport={exportPokemon}
-              onExportBoxes={downloadBoxes}
-              onPreviewBoxImport={previewBoxImport}
-              onApplyBoxImport={(confirmation) =>
-                applyWorkingEdit(confirmation, "boxImportCommit")
-              }
-              onDiscardBoxImport={discardBoxImport}
-              onPreviewBoxBinary={previewBoxBinary}
-              onApplyBoxBinary={(confirmation) =>
-                applyWorkingEdit(confirmation, "boxBinaryCommit")
-              }
-              onDiscardBoxBinary={discardBoxBinary}
-              onExportBoxBinary={downloadBoxBinary}
-              legality={legality}
-              onReadOrigin={readOrigin}
-              onSuggestRelearn={suggestRelearn}
-              onReadRibbons={readRibbons}
-              onReadHistory={readHistory}
-              onReadMemory={readMemory}
-              onAnalyze={analyzePokemon}
-            />
-          ) : (
-            <>
-              <dl className="save-editor-summary">
-                <div>
-                  <dt>{t("game")}</dt>
-                  <dd>
-                    {choices
-                      .map(
-                        (game) =>
-                          words.games[game as keyof typeof words.games] ?? game,
-                      )
-                      .join(" / ") ||
-                      (report.format === "SAV4BR"
-                        ? words.br4Game
-                        : report.version)}{" "}
-                    · {words.generation} {report.generation}
-                  </dd>
-                </div>
-                <div>
-                  <dt>{words.checksums}</dt>
-                  <dd>{report.checksumsValid ? words.valid : words.invalid}</dd>
-                </div>
-                <div>
-                  <dt>{words.displayIds}</dt>
-                  <dd>
-                    {report.displayTid} / {report.displaySid}
-                  </dd>
-                </div>
-                <div>
-                  <dt>{words.playTime}</dt>
-                  <dd>{report.playTime}</dd>
-                </div>
-                <div>
-                  <dt>{words.partyBoxes}</dt>
-                  <dd>
-                    {report.partyCount} / {report.boxCount}
-                  </dd>
-                </div>
-              </dl>
-              {report.checksumsValid && !report.canEdit && (
-                <p>
-                  {report.trainerOnly
-                    ? trainer6Words[batchLang].demoScope
-                    : report.format === "SAV4BR"
-                      ? br4GearWords[batchLang].scoped
-                      : report.format === "SAV1"
-                        ? words.pokedexResetOnly
-                        : report.format === "SAV7b"
-                          ? trainerGGWords[batchLang].scope
-                          : report.format === "SAV2"
-                            ? words.pokedexEventsOnly
-                            : report.pokedex?.canEdit
-                              ? words.pokedexOnly
-                              : words.readonly}
-                </p>
-              )}
-              <fieldset
-                disabled={
-                  busy ||
-                  !(report.canEdit || report.trainerOnly) ||
-                  trainer6Draft
-                }
-                className="save-editor-fields"
-              >
-                <legend>{words.trainer}</legend>
-                <label className="field">
-                  <span>{words.trainerName}</span>
-                  <input
-                    value={draft.ot}
-                    maxLength={report.maxNameLength}
-                    onChange={(e) => setDraft({ ...draft, ot: e.target.value })}
-                  />
-                </label>
-                {(
-                  [
-                    ["tid", words.tid, 65535],
-                    ["sid", words.sid, 65535],
-                    ["money", words.money, report.maxMoney],
-                  ] as const
-                ).map(([key, label, max]) => (
-                  <label
-                    className={
-                      key === "money" && supportsTrainer6(report.format)
-                        ? "field save-trainer6-money"
-                        : "field"
-                    }
-                    key={key}
-                  >
-                    <span>{label}</span>
-                    <input
-                      inputMode="numeric"
-                      value={draft[key]}
-                      maxLength={String(max).length}
-                      title={
-                        supportsTrainer6(report.format) && key !== "money"
-                          ? `TSV: ${tr6Tsv(draft.tid, draft.sid)}`
-                          : undefined
-                      }
-                      onChange={(e) =>
-                        setDraft({
-                          ...draft,
-                          [key]:
-                            supportsTrainer6(report.format) && key !== "money"
-                              ? tr6IdInput(e.target.value)
-                              : e.target.value,
-                        })
-                      }
-                    />
-                    {key === "money" && supportsTrainer6(report.format) && (
-                      <button
-                        type="button"
-                        aria-label={`${label}: ${max}`}
-                        onClick={() =>
-                          setDraft({ ...draft, money: String(max) })
-                        }
-                      >
-                        +
-                      </button>
-                    )}
-                  </label>
-                ))}
-                {report.trainer.gameVersion.choices.length > 0 && (
-                  <label className="field">
-                    <span>{words.trainerGameVersion}</span>
-                    <Select
-                      value={draft.gameVersion}
-                      onChange={(e) =>
-                        setDraft({ ...draft, gameVersion: e.target.value })
-                      }
-                    >
-                      {!report.trainer.gameVersion.choices.some(
-                        (c) => String(c.id) === draft.gameVersion,
-                      ) && (
-                        <option value={draft.gameVersion}>
-                          #{draft.gameVersion}
-                        </option>
-                      )}
-                      {report.trainer.gameVersion.choices.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {
-                            c.name[
-                              i18n.language.startsWith("zh")
-                                ? "zh"
-                                : i18n.language.startsWith("ja")
-                                  ? "ja"
-                                  : "en"
-                            ]
-                          }
-                        </option>
-                      ))}
-                    </Select>
-                    <span className="save-editor-note">
-                      {words.trainerGameVersionNote}
-                    </span>
-                  </label>
-                )}
-                {report.trainer.languages.length > 0 && (
-                  <label className="field">
-                    <span>{words.trainerLanguage}</span>
-                    <Select
-                      value={draft.language}
-                      onChange={(e) =>
-                        setDraft({ ...draft, language: e.target.value })
-                      }
-                    >
-                      {!report.trainer.languages.some(
-                        (choice) => String(choice.id) === draft.language,
-                      ) && (
-                        <option value={draft.language}>
-                          #{draft.language}
-                        </option>
-                      )}
-                      {report.trainer.languages.map((choice) => (
-                        <option key={choice.id} value={choice.id}>
-                          {
-                            choice.name[
-                              i18n.language.startsWith("zh")
-                                ? "zh"
-                                : i18n.language.startsWith("ja")
-                                  ? "ja"
-                                  : "en"
-                            ]
-                          }
-                        </option>
-                      ))}
-                    </Select>
-                  </label>
-                )}
-                {report.trainer.currencies.map((field) => (
-                  <label className="field" key={field.key}>
-                    <span>
-                      {words.trainerCurrencyNames[field.key]} · 0–{field.max}
-                    </span>
-                    <input
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={String(field.max).length}
-                      value={draft[field.key]}
-                      onChange={(e) =>
-                        setDraft({ ...draft, [field.key]: e.target.value })
-                      }
-                    />
-                    {words.trainerCurrencyNotes[field.key] && (
-                      <span className="save-editor-note">
-                        {words.trainerCurrencyNotes[field.key]}
-                      </span>
-                    )}
-                  </label>
-                ))}
-                <TrainerGeographyFields
-                  key={`${name}:${fileRevision}:${workingRevision}:${geographyReset}`}
-                  report={report}
-                  draft={draft}
-                  disabled={
-                    busy ||
-                    !(report.canEdit || report.trainerOnly) ||
-                    trainer6Draft
+              {section === "files" ? (
+                <FileBatchEditor
+                  key={
+                    name +
+                    ":" +
+                    fileRevision +
+                    ":" +
+                    workingRevision +
+                    ":" +
+                    batchLang
                   }
-                  onChange={setDraft}
+                  busy={busy}
+                  lang={batchLang}
+                  onCatalog={() => readPropertyBatch("fileCatalog")}
+                  onPreview={previewFileBatch}
+                  onDownload={downloadFileBatch}
+                  onDiscard={discardFilePreview}
                 />
-                {report.trainer.canGender && (
-                  <label className="field">
-                    <span>{words.gender}</span>
-                    <Select
-                      value={draft.gender}
-                      onChange={(e) =>
-                        setDraft({ ...draft, gender: e.target.value })
-                      }
-                    >
-                      {!["0", "1"].includes(draft.gender) && (
-                        <option value={draft.gender}>#{draft.gender}</option>
-                      )}
-                      <option value="0">{words.trainerMale}</option>
-                      <option value="1">{words.trainerFemale}</option>
-                    </Select>
-                  </label>
-                )}
-                {report.trainer.canPlayTime &&
-                  (
-                    [
-                      ["hours", words.trainerHours, 65535],
-                      ["minutes", words.trainerMinutes, 99],
-                      ["seconds", words.trainerSeconds, 99],
-                    ] as const
-                  ).map(([key, label, max]) => (
-                    <label className="field" key={key}>
-                      <span>
-                        {label} · 0–{max}
-                      </span>
+              ) : section === "batch" && report.canEdit ? (
+                <PropertyBatchEditor
+                  key={
+                    name +
+                    ":" +
+                    fileRevision +
+                    ":" +
+                    workingRevision +
+                    ":" +
+                    batchLang
+                  }
+                  report={report}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readPropertyBatch}
+                  onDiscard={discardPropertyPreview}
+                  onApply={(edit) => applyWorkingEdit(edit, "propertyCommit")}
+                />
+              ) : section === "pokedex" && report.pokedex?.kind === "za" ? (
+                <ZaPokedexEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  onRead={readPokedex9a}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex9aEdit")}
+                />
+              ) : section === "pokedex" && report.pokedex?.kind === "sv" ? (
+                <SvPokedexEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  onRead={readPokedex9}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex9Edit")}
+                />
+              ) : section === "pokedex" &&
+                report.pokedex?.kind === "legends" ? (
+                <LegendsPokedexEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  onRead={readPokedex8a}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex8aEdit")}
+                />
+              ) : section === "pokedex" && report.pokedex?.kind === "swsh" ? (
+                <SwshPokedexEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  onRead={readPokedex8}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex8Edit")}
+                />
+              ) : section === "pokedex" && report.pokedex?.kind === "bdsp" ? (
+                <BdspPokedexEditor
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  busy={busy}
+                  onRead={readPokedex8b}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex8bEdit")}
+                />
+              ) : section === "pokedex" && report.pokedex?.kind === "gen7" ? (
+                <Gen7PokedexEditor
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  busy={busy}
+                  onRead={readPokedex7}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex7Edit")}
+                />
+              ) : section === "pokedex" && report.pokedex?.kind === "gen6" ? (
+                <FlagPokedexEditor
+                  key={`${name}:${fileRevision}`}
+                  kind={report.format === "SAV6AO" ? "oras" : "xy"}
+                  revision={workingRevision}
+                  busy={busy}
+                  saveLanguage={report.language}
+                  onRead={readPokedex6}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex6Edit")}
+                />
+              ) : section === "pokedex" && report.pokedex?.kind === "gen5" ? (
+                <FlagPokedexEditor
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  busy={busy}
+                  saveLanguage={report.language}
+                  onRead={readPokedex5}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex5Edit")}
+                />
+              ) : section === "pokedex" && report.pokedex?.kind === "gen4" ? (
+                <Gen4PokedexEditor
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  busy={busy}
+                  onRead={readPokedex4}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedex4Edit")}
+                />
+              ) : section === "pokedex" && report.pokedex ? (
+                <SimplePokedexEditor
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  fileName={name}
+                  busy={busy}
+                  onRead={readPokedex}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokedexEdit")}
+                />
+              ) : section === "events" && supportsEvents(report.format) ? (
+                <EventEditor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readEvents}
+                  onApply={(edit) => applyWorkingEdit(edit, "eventsEdit")}
+                  onCompare={compareEvents}
+                />
+              ) : section === "gsBall2" &&
+                supportsGsBall2(report.format, report.version) ? (
+                <GsBall2Editor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readGsBall2}
+                  onEnable={() =>
+                    applyWorkingEdit({ action: "enableGsBall" }, "gsBall2Edit")
+                  }
+                />
+              ) : section === "hall3" && supportsHall3(report.format) ? (
+                <Hall3Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readHall3}
+                  onApply={(edit) => applyWorkingEdit(edit, "hall3Edit")}
+                />
+              ) : section === "hall1" && supportsHall1(report.format) ? (
+                <Hall1Editor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readHall1}
+                  onApply={(edit) => applyWorkingEdit(edit, "hall1Edit")}
+                />
+              ) : section === "eventReset" &&
+                supportsEventReset(report.format) ? (
+                <EventResetEditor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readEventReset}
+                  onApply={(edit) => applyWorkingEdit(edit, "eventResetEdit")}
+                />
+              ) : section === "ferry3" && supportsFerry3(report.format) ? (
+                <Ferry3Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readFerry3}
+                  onApply={(edit) => applyWorkingEdit(edit, "ferry3Edit")}
+                />
+              ) : section === "misc3" && supportsMisc3(report.format) ? (
+                <Misc3Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readMisc3}
+                  onApply={(edit) => applyWorkingEdit(edit, "misc3Edit")}
+                />
+              ) : section === "secretBase3" &&
+                supportsSecretBase3(report.format) ? (
+                <SecretBase3Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readSecretBase3}
+                  onSuggest={suggestSecretBase3}
+                  onApply={(edit) => applyWorkingEdit(edit, "secretBase3Edit")}
+                />
+              ) : section === "pokegear4" &&
+                supportsPokeGear4(report.format) ? (
+                <PokeGear4Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readPokeGear4}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokegear4Edit")}
+                />
+              ) : section === "pokeathlon4" &&
+                supportsPokeathlon4(report.format) ? (
+                <Pokeathlon4Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readPokeathlon4}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokeathlon4Edit")}
+                />
+              ) : section === "battlePass4" &&
+                supportsBr4Gear(report.format) ? (
+                <BattlePass4Editor
+                  key={report.brProfiles?.active}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readBattlePass4}
+                  onPreview={previewBattlePass4}
+                  onApply={(edit) => applyWorkingEdit(edit, "battlePass4Edit")}
+                  onExport={exportBattlePass4}
+                />
+              ) : section === "brTrainer4" && supportsBr4Gear(report.format) ? (
+                <BrTrainer4Editor
+                  key={report.brProfiles?.active}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readBrTrainer4}
+                  onApply={(edit) => applyWorkingEdit(edit, "brTrainer4Edit")}
+                />
+              ) : section === "battleVideo4" &&
+                supportsBattleVideo4(report.format) ? (
+                <BattleVideo4Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readBattleVideo4}
+                  onPreview={previewVideo4}
+                  onApply={(edit) => applyWorkingEdit(edit, "video4Import")}
+                  onExport={exportVideo4}
+                />
+              ) : section === "geonet4" && supportsGeonet4(report.format) ? (
+                <Geonet4Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readGeonet4}
+                  onApply={(edit) => applyWorkingEdit(edit, "geonet4Edit")}
+                />
+              ) : section === "misc4" && supportsMisc4(report.format) ? (
+                <Misc4Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readMisc4}
+                  onPreview={previewMisc4}
+                  onApply={(edit) => applyWorkingEdit(edit, "misc4Edit")}
+                  onRelated={setSection}
+                />
+              ) : section === "misc5" && supportsMisc5(report.format) ? (
+                <Misc5Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readMisc5}
+                  onPreview={previewMisc5}
+                  onExport={exportMisc5}
+                  onApply={(edit) => applyWorkingEdit(edit, "misc5Edit")}
+                />
+              ) : section === "medals5" && supportsMedals5(report.format) ? (
+                <Medals5Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readMedals5}
+                  onPreview={previewMedals5}
+                  onExport={exportMedals5}
+                  onApply={(edit) => applyWorkingEdit(edit, "medals5Edit")}
+                />
+              ) : section === "berryField6xy" &&
+                supportsBerryField6XY(report.format) ? (
+                <BerryField6XYViewer
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readBerryField6XY}
+                />
+              ) : section === "avenue5" && supportsAvenue5(report.format) ? (
+                <Avenue5Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readAvenue5}
+                  onPreview={previewAvenue5}
+                  onApply={(edit) => applyWorkingEdit(edit, "avenue5Edit")}
+                  onExport={exportAvenue5}
+                />
+              ) : section === "superTrain6" &&
+                supportsSuperTrain6(report.format) ? (
+                <SuperTrain6Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readSuperTrain6}
+                  onPreview={previewSuperTrain6}
+                  onApply={(edit) => applyWorkingEdit(edit, "superTrain6Edit")}
+                />
+              ) : section === "secretBase6" &&
+                supportsSecretBase6(report.format) ? (
+                <SecretBase6Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readSecretBase6}
+                  onPreview={previewSecretBase6}
+                  onApply={(edit) => applyWorkingEdit(edit, "secretBase6Edit")}
+                  onExport={exportSecretBase6}
+                />
+              ) : section === "link6" && supportsLink6(report.format) ? (
+                <Link6Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readLink6}
+                  onPreview={previewLink6}
+                  onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
+                  onExport={exportLink6}
+                />
+              ) : section === "sevenstar9" &&
+                supportsSevenStar9(report.format) ? (
+                <SevenStar9Editor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readSevenStar9}
+                  onPreview={previewSevenStar9}
+                  onApply={(e) => applyWorkingEdit(e, "sevenstar9Commit")}
+                  onDiscard={discardSevenStar9}
+                />
+              ) : section === "raid9" && supportsRaid9(report.format) ? (
+                <Raid9Editor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readRaid9}
+                  onPreview={previewRaid9}
+                  onApply={(e) => applyWorkingEdit(e, "raid9Commit")}
+                  onDiscard={discardRaid9}
+                />
+              ) : section === "fashion9" && supportsFashion9(report.format) ? (
+                <Fashion9Editor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readFashion9}
+                  onPreview={previewFashion9}
+                  onApply={(e) => applyWorkingEdit(e, "fashion9Commit")}
+                  onDiscard={discardFashion9}
+                />
+              ) : section === "event9a" && supportsEvent9a(report.format) ? (
+                <Event9aEditor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readEvent9a}
+                  onPreview={previewEvent9a}
+                  onApply={(e) => applyWorkingEdit(e, "event9aCommit")}
+                  onDiscard={discardEvent9a}
+                  onCompare={compareEvent9a}
+                />
+              ) : section === "donut9a" && supportsDonut9a(report.format) ? (
+                <Donut9aEditor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readDonut9a}
+                  onPreview={previewDonut9a}
+                  onApply={(e) => applyWorkingEdit(e, "donut9aCommit")}
+                  onDiscard={discardDonut9a}
+                  onExport={exportDonut9a}
+                />
+              ) : section === "trainer8" && supportsTrainer8(report.format) ? (
+                <Trainer8Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readTrainer8}
+                  onPreview={previewTrainer8}
+                  onApply={(e) => applyWorkingEdit(e, "trainer8Edit")}
+                />
+              ) : section === "trainer8a" &&
+                supportsTrainer8a(report.format) ? (
+                <Trainer8aEditor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readTrainer8a}
+                  onPreview={previewTrainer8a}
+                  onApply={(e) => applyWorkingEdit(e, "trainer8aEdit")}
+                />
+              ) : section === "trainer8b" &&
+                supportsTrainer8b(report.format) ? (
+                <Trainer8bEditor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readTrainer8b}
+                  onPreview={previewTrainer8b}
+                  onApply={(e) => applyWorkingEdit(e, "trainer8bEdit")}
+                />
+              ) : section === "raid8" && supportsRaid8(report.format) ? (
+                <Raid8Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readRaid8}
+                  onPreview={previewRaid8}
+                  onApply={(e) => applyWorkingEdit(e, "raid8Edit")}
+                />
+              ) : section === "underground8b" &&
+                supportsUnderground8b(report.format) ? (
+                <Underground8bEditor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readUnderground8b}
+                  onPreview={previewUnderground8b}
+                  onApply={(e) => applyWorkingEdit(e, "underground8bEdit")}
+                />
+              ) : section === "seal8b" && supportsSeal8b(report.format) ? (
+                <Seal8bEditor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readSeal8b}
+                  onPreview={previewSeal8b}
+                  onApply={(e) => applyWorkingEdit(e, "seal8bEdit")}
+                />
+              ) : section === "misc8b" && supportsMisc8b(report.format) ? (
+                <Misc8bEditor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readMisc8b}
+                  onPreview={previewMisc8b}
+                  onApply={(e) => applyWorkingEdit(e, "misc8bEdit")}
+                />
+              ) : section === "trainerGG" &&
+                supportsTrainerGG(report.format) ? (
+                <TrainerGGEditor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readTrainerGG}
+                  onPreview={previewTrainerGG}
+                  onApply={(edit) => applyWorkingEdit(edit, "trainerGGEdit")}
+                  onExport={exportTrainerGG}
+                />
+              ) : section === "hall7" && supportsHall7(report.format) ? (
+                <Hall7Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readHall7}
+                  onPreview={previewHall7}
+                  onApply={(edit) => applyWorkingEdit(edit, "hall7Edit")}
+                />
+              ) : section === "zygarde7" && supportsZygarde7(report.format) ? (
+                <Zygarde7Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readZygarde7}
+                  onPreview={previewZygarde7}
+                  onApply={(edit) => applyWorkingEdit(edit, "zygarde7Edit")}
+                />
+              ) : section === "hall6" && supportsHall6(report.format) ? (
+                <Hall6Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readHall6}
+                  onPreview={previewHall6}
+                  onApply={(edit) => applyWorkingEdit(edit, "hall6Edit")}
+                />
+              ) : section === "unityTower5" &&
+                supportsUnityTower5(report.format) ? (
+                <UnityTower5Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readUnityTower5}
+                  onPreview={previewUnityTower5}
+                  onApply={(edit) => applyWorkingEdit(edit, "unityTower5Edit")}
+                />
+              ) : section === "globalLink5" &&
+                supportsGlobalLink5(report.format) ? (
+                <GlobalLink5Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readGlobalLink5}
+                  onPreview={previewGlobalLink5}
+                  onApply={(edit) => applyWorkingEdit(edit, "globalLink5Edit")}
+                />
+              ) : section === "dlc5" && supportsDlc5(report.format) ? (
+                <Dlc5Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readDlc5}
+                  onPreview={previewDlc5}
+                  onApply={(edit) => applyWorkingEdit(edit, "dlc5Edit")}
+                  onExport={exportDlc5}
+                  onCGear={() => setSection("cgear5")}
+                />
+              ) : section === "cgear5" && supportsCGear5(report.format) ? (
+                <CGear5Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readCGear5}
+                  onPreview={previewCGear5}
+                  onApply={(edit) => applyWorkingEdit(edit, "cgear5Edit")}
+                  onExport={exportCGear5}
+                />
+              ) : section === "underground4" &&
+                supportsUnderground4(report.format) ? (
+                <Underground4Editor
+                  key={report.format + "." + batchLang}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readUnderground4}
+                  onPreview={previewUnderground4}
+                  onApply={(edit) => applyWorkingEdit(edit, "underground4Edit")}
+                />
+              ) : section === "honeyTree4" &&
+                supportsHoneyTree4(report.format) ? (
+                <HoneyTree4Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readHoneyTree4}
+                  onApply={(edit) => applyWorkingEdit(edit, "honeyTree4Edit")}
+                />
+              ) : section === "br4Gear" && supportsBr4Gear(report.format) ? (
+                <Br4GearEditor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readBr4Gear}
+                  onApply={(edit) => applyWorkingEdit(edit, "br4GearEdit")}
+                />
+              ) : section === "joyful3" && supportsJoyful3(report.format) ? (
+                <Joyful3Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readJoyful3}
+                  onApply={(edit) => applyWorkingEdit(edit, "joyful3Edit")}
+                />
+              ) : section === "frontier3" &&
+                supportsFrontier3(report.format) ? (
+                <Frontier3Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readFrontier3}
+                  onApply={(edit) => applyWorkingEdit(edit, "frontier3Edit")}
+                />
+              ) : section === "gameRecords3" &&
+                supportsGameRecords3(report.format) ? (
+                <GameRecords3Editor
+                  key={report.format}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readGameRecords3}
+                  onApply={(edit) => applyWorkingEdit(edit, "gameRecords3Edit")}
+                />
+              ) : section === "paintings3" &&
+                supportsPaintings3(report.format) ? (
+                <Paintings3Editor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readPaintings3}
+                  onApply={(edit) => applyWorkingEdit(edit, "paintings3Edit")}
+                />
+              ) : section === "decorations3" &&
+                supportsDecorations3(report.format) ? (
+                <Decorations3Editor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readDecorations3}
+                  onApply={(edit) => applyWorkingEdit(edit, "decorations3Edit")}
+                />
+              ) : section === "roamer3" && supportsRoamer3(report.format) ? (
+                <Roamer3Editor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readRoamer3}
+                  onApply={(edit) => applyWorkingEdit(edit, "roamer3Edit")}
+                />
+              ) : section === "roamer" && supportsRoamer(report.format) ? (
+                <RoamerEditor
+                  revision={workingRevision}
+                  busy={busy}
+                  canEdit={report.canEdit}
+                  lang={batchLang}
+                  onRead={readRoamer}
+                  onApply={(edit) => applyWorkingEdit(edit, "roamerEdit")}
+                />
+              ) : section === "rtc" && supportsRtc(report.format) ? (
+                <RtcEditor
+                  revision={workingRevision}
+                  busy={busy}
+                  canEdit={report.canEdit}
+                  lang={batchLang}
+                  onRead={readRtc}
+                  onApply={(edit) => applyWorkingEdit(edit, "rtcEdit")}
+                />
+              ) : section === "opowers" && supportsOPowers(report.format) ? (
+                <OPowerEditor
+                  revision={workingRevision}
+                  busy={busy}
+                  canEdit={report.canEdit}
+                  lang={batchLang}
+                  onRead={readOPowers}
+                  onApply={(edit) => applyWorkingEdit(edit, "opowersEdit")}
+                />
+              ) : section === "food" && supportsFood(report.format) ? (
+                <SaveFoodEditor
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  busy={busy}
+                  canEdit={report.canEdit}
+                  lang={batchLang}
+                  onRead={readFood}
+                  onApply={(edit) => applyWorkingEdit(edit, "foodEdit")}
+                />
+              ) : section === "records" && report.trainer.canRecords ? (
+                <SaveRecordEditor
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  busy={busy}
+                  canEdit={report.canEdit || !!report.trainerOnly}
+                  onRead={readRecords}
+                  onApply={(edit) => applyWorkingEdit(edit, "recordEdit")}
+                />
+              ) : section === "inventory" ? (
+                <SaveInventoryBrowser
+                  key={workingRevision}
+                  busy={busy}
+                  onRead={readInventory}
+                  onBatch={(edit) => applyWorkingEdit(edit, "inventoryBatch")}
+                  canEdit={report.canEdit}
+                  onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
+                />
+              ) : section === "pokemon" ? (
+                <SavePokemonBrowser
+                  profileLink={profileLinkPanel}
+                  key={`${name}:${fileRevision}`}
+                  report={report}
+                  revision={workingRevision}
+                  busy={busy}
+                  onApply={(edit) => applyWorkingEdit(edit, "pokemon")}
+                  onApplyRaw={(edit) => applyWorkingEdit(edit, "pokemonRaw")}
+                  onApplyBox={(edit) => applyWorkingEdit(edit, "box")}
+                  onStorage={(edit) => applyWorkingEdit(edit, "storage")}
+                  onImport={importPokemon}
+                  onExport={exportPokemon}
+                  onExportBoxes={downloadBoxes}
+                  onPreviewBoxImport={previewBoxImport}
+                  onApplyBoxImport={(confirmation) =>
+                    applyWorkingEdit(confirmation, "boxImportCommit")
+                  }
+                  onDiscardBoxImport={discardBoxImport}
+                  onPreviewBoxBinary={previewBoxBinary}
+                  onApplyBoxBinary={(confirmation) =>
+                    applyWorkingEdit(confirmation, "boxBinaryCommit")
+                  }
+                  onDiscardBoxBinary={discardBoxBinary}
+                  onExportBoxBinary={downloadBoxBinary}
+                  legality={legality}
+                  onReadOrigin={readOrigin}
+                  onSuggestRelearn={suggestRelearn}
+                  onReadRibbons={readRibbons}
+                  onReadHistory={readHistory}
+                  onReadMemory={readMemory}
+                  onAnalyze={analyzePokemon}
+                />
+              ) : (
+                <>
+                  <dl className="save-editor-summary">
+                    <div>
+                      <dt>{t("game")}</dt>
+                      <dd>
+                        {choices
+                          .map(
+                            (game) =>
+                              words.games[game as keyof typeof words.games] ??
+                              game,
+                          )
+                          .join(" / ") ||
+                          (report.format === "SAV4BR"
+                            ? words.br4Game
+                            : report.version)}{" "}
+                        · {words.generation} {report.generation}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{words.checksums}</dt>
+                      <dd>
+                        {report.checksumsValid ? words.valid : words.invalid}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{words.displayIds}</dt>
+                      <dd>
+                        {report.displayTid} / {report.displaySid}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{words.playTime}</dt>
+                      <dd>{report.playTime}</dd>
+                    </div>
+                    <div>
+                      <dt>{words.partyBoxes}</dt>
+                      <dd>
+                        {report.partyCount} / {report.boxCount}
+                      </dd>
+                    </div>
+                  </dl>
+                  {report.checksumsValid && !report.canEdit && (
+                    <p>
+                      {report.trainerOnly
+                        ? trainer6Words[batchLang].demoScope
+                        : report.format === "SAV4BR"
+                          ? br4GearWords[batchLang].scoped
+                          : report.format === "SAV1"
+                            ? words.pokedexResetOnly
+                            : report.format === "SAV7b"
+                              ? trainerGGWords[batchLang].scope
+                              : report.format === "SAV2"
+                                ? words.pokedexEventsOnly
+                                : report.pokedex?.canEdit
+                                  ? words.pokedexOnly
+                                  : words.readonly}
+                    </p>
+                  )}
+                  <fieldset
+                    disabled={
+                      busy ||
+                      !(report.canEdit || report.trainerOnly) ||
+                      trainer6Draft
+                    }
+                    className="save-editor-fields"
+                  >
+                    <legend>{words.trainer}</legend>
+                    <label className="field">
+                      <span>{words.trainerName}</span>
                       <input
-                        inputMode="numeric"
-                        maxLength={String(max).length}
-                        value={draft[key]}
+                        value={draft.ot}
+                        maxLength={report.maxNameLength}
                         onChange={(e) =>
-                          setDraft({ ...draft, [key]: e.target.value })
+                          setDraft({ ...draft, ot: e.target.value })
                         }
                       />
                     </label>
-                  ))}
-              </fieldset>
-              {report.trainer.badges && (
-                <fieldset
-                  className="save-editor-fields save-trainer-badges"
-                  disabled={
-                    busy ||
-                    !(report.canEdit || report.trainerOnly) ||
-                    trainer6Draft
-                  }
-                >
-                  <legend>{words.trainerBadges}</legend>
-                  {Array.from(
-                    { length: report.trainer.badges.count },
-                    (_, index) => (
-                      <label className="save-editor-checkbox" key={index}>
+                    {(
+                      [
+                        ["tid", words.tid, 65535],
+                        ["sid", words.sid, 65535],
+                        ["money", words.money, report.maxMoney],
+                      ] as const
+                    ).map(([key, label, max]) => (
+                      <label
+                        className={
+                          key === "money" && supportsTrainer6(report.format)
+                            ? "field save-trainer6-money"
+                            : "field"
+                        }
+                        key={key}
+                      >
+                        <span>{label}</span>
                         <input
-                          type="checkbox"
-                          checked={(Number(draft.badges) & (1 << index)) !== 0}
+                          inputMode="numeric"
+                          value={draft[key]}
+                          maxLength={String(max).length}
+                          title={
+                            supportsTrainer6(report.format) && key !== "money"
+                              ? `TSV: ${tr6Tsv(draft.tid, draft.sid)}`
+                              : undefined
+                          }
                           onChange={(e) =>
                             setDraft({
                               ...draft,
-                              badges: String(
-                                e.target.checked
-                                  ? Number(draft.badges) | (1 << index)
-                                  : Number(draft.badges) & ~(1 << index),
-                              ),
+                              [key]:
+                                supportsTrainer6(report.format) &&
+                                key !== "money"
+                                  ? tr6IdInput(e.target.value)
+                                  : e.target.value,
                             })
                           }
                         />
-                        <span>
-                          {words.trainerBadge.replace("{n}", String(index + 1))}
+                        {key === "money" && supportsTrainer6(report.format) && (
+                          <button
+                            type="button"
+                            aria-label={`${label}: ${max}`}
+                            onClick={() =>
+                              setDraft({ ...draft, money: String(max) })
+                            }
+                          >
+                            +
+                          </button>
+                        )}
+                      </label>
+                    ))}
+                    {report.trainer.gameVersion.choices.length > 0 && (
+                      <label className="field">
+                        <span>{words.trainerGameVersion}</span>
+                        <Select
+                          value={draft.gameVersion}
+                          onChange={(e) =>
+                            setDraft({ ...draft, gameVersion: e.target.value })
+                          }
+                        >
+                          {!report.trainer.gameVersion.choices.some(
+                            (c) => String(c.id) === draft.gameVersion,
+                          ) && (
+                            <option value={draft.gameVersion}>
+                              #{draft.gameVersion}
+                            </option>
+                          )}
+                          {report.trainer.gameVersion.choices.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {
+                                c.name[
+                                  i18n.language.startsWith("zh")
+                                    ? "zh"
+                                    : i18n.language.startsWith("ja")
+                                      ? "ja"
+                                      : "en"
+                                ]
+                              }
+                            </option>
+                          ))}
+                        </Select>
+                        <span className="save-editor-note">
+                          {words.trainerGameVersionNote}
                         </span>
                       </label>
-                    ),
-                  )}
-                  <p className="save-editor-note">{words.trainerBadgesNote}</p>
-                </fieldset>
-              )}
-              <TrainerGameOptionFields
-                report={report}
-                draft={draft}
-                disabled={
-                  busy ||
-                  !(report.canEdit || report.trainerOnly) ||
-                  trainer6Draft
-                }
-                onChange={setDraft}
-              />
-              <TrainerAppearance6Fields
-                report={report}
-                draft={draft}
-                disabled={
-                  busy ||
-                  !(report.canEdit || report.trainerOnly) ||
-                  trainer6Draft
-                }
-                onChange={setDraft}
-              />
-              <TrainerDateFields
-                report={report}
-                draft={draft}
-                disabled={
-                  busy ||
-                  !(report.canEdit || report.trainerOnly) ||
-                  trainer6Draft
-                }
-                onChange={setDraft}
-              />
-              <TrainerPositionFields
-                report={report}
-                draft={draft}
-                disabled={
-                  busy ||
-                  !(report.canEdit || report.trainerOnly) ||
-                  trainer6Draft
-                }
-                onChange={setDraft}
-              />
-              <p className="save-editor-note">{words.ids}</p>
-              {report.trainer.languages.length > 0 && (
-                <p className="save-editor-note">{words.trainerLanguageNote}</p>
-              )}
-              {report.trainer.canPlayTime && (
-                <p className="save-editor-note">{words.trainerTimeNote}</p>
-              )}
-              {report.format === "SAV8SWSH" && (
-                <p className="save-editor-note">
-                  {words.trainerAppearanceNote}
-                </p>
-              )}
-              <div className="save-editor-toolbar">
-                <button
-                  type="button"
-                  className="primary"
-                  disabled={
-                    busy ||
-                    !(report.canEdit || report.trainerOnly) ||
-                    trainer6Draft ||
-                    trainerDraftMatches(draft, report)
-                  }
-                  onClick={() =>
-                    void applyWorkingEdit(
-                      async () => validateTrainer(draft, report),
-                      "trainer",
-                    )
-                  }
-                >
-                  {words.applyTrainer}
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    busy ||
-                    !(report.canEdit || report.trainerOnly) ||
-                    trainer6Draft
-                  }
-                  onClick={() => {
-                    setDraft(trainerDraft(report));
-                    setGeographyReset((value) => value + 1);
-                    setError("");
-                  }}
-                >
-                  <RotateCcw size={18} aria-hidden="true" /> {words.reset}
-                </button>
-              </div>
-              {supportsTrainer7(report.format) && (
-                <Trainer7Editor
-                  key={`${name}:${fileRevision}:${report.format}`}
-                  revision={workingRevision}
-                  busy={busy || !trainerDraftMatches(draft, report)}
-                  lang={batchLang}
-                  onRead={readTrainer7}
-                  onPreview={previewTrainer7}
-                  onApply={(edit) => applyWorkingEdit(edit, "trainer7Edit")}
-                  onDirtyChange={setTrainer6Draft}
-                />
-              )}
-              {supportsTrainer6(report.format) && (
-                <Trainer6Editor
-                  key={`${name}:${fileRevision}:${report.format}`}
-                  revision={workingRevision}
-                  busy={busy || !trainerDraftMatches(draft, report)}
-                  lang={batchLang}
-                  onRead={readTrainer6}
-                  onPreview={previewTrainer6}
-                  onApply={(edit) => applyWorkingEdit(edit, "trainer6Edit")}
-                  onDirtyChange={setTrainer6Draft}
-                />
-              )}
-              <section
-                className="save-editor-profile"
-                aria-label={t("profile")}
-              >
-                <h3>{t("profile")}</h3>
-                <p className="save-editor-note">{words.link}</p>
-                {choices.length === 0 ? (
-                  <p>{words.unsupported}</p>
-                ) : (
-                  <>
-                    {choices.length > 1 && <p>{words.ambiguous}</p>}
-                    <div className="save-editor-fields">
+                    )}
+                    {report.trainer.languages.length > 0 && (
                       <label className="field">
-                        <span>{t("game")}</span>
+                        <span>{words.trainerLanguage}</span>
                         <Select
-                          value={version}
-                          disabled={busy}
-                          onChange={(e) => {
-                            setVersion(e.target.value);
-                            setTarget("new");
-                          }}
+                          value={draft.language}
+                          onChange={(e) =>
+                            setDraft({ ...draft, language: e.target.value })
+                          }
                         >
-                          <option value="">—</option>
-                          {choices.map((game) => (
-                            <option key={game} value={game}>
-                              {words.games[game as keyof typeof words.games] ??
-                                game}
+                          {!report.trainer.languages.some(
+                            (choice) => String(choice.id) === draft.language,
+                          ) && (
+                            <option value={draft.language}>
+                              #{draft.language}
+                            </option>
+                          )}
+                          {report.trainer.languages.map((choice) => (
+                            <option key={choice.id} value={choice.id}>
+                              {
+                                choice.name[
+                                  i18n.language.startsWith("zh")
+                                    ? "zh"
+                                    : i18n.language.startsWith("ja")
+                                      ? "ja"
+                                      : "en"
+                                ]
+                              }
                             </option>
                           ))}
                         </Select>
                       </label>
+                    )}
+                    {report.trainer.currencies.map((field) => (
+                      <label className="field" key={field.key}>
+                        <span>
+                          {words.trainerCurrencyNames[field.key]} · 0–
+                          {field.max}
+                        </span>
+                        <input
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={String(field.max).length}
+                          value={draft[field.key]}
+                          onChange={(e) =>
+                            setDraft({ ...draft, [field.key]: e.target.value })
+                          }
+                        />
+                        {words.trainerCurrencyNotes[field.key] && (
+                          <span className="save-editor-note">
+                            {words.trainerCurrencyNotes[field.key]}
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                    <TrainerGeographyFields
+                      key={`${name}:${fileRevision}:${workingRevision}:${geographyReset}`}
+                      report={report}
+                      draft={draft}
+                      disabled={
+                        busy ||
+                        !(report.canEdit || report.trainerOnly) ||
+                        trainer6Draft
+                      }
+                      onChange={setDraft}
+                    />
+                    {report.trainer.canGender && (
                       <label className="field">
-                        <span>{t("profile")}</span>
+                        <span>{words.gender}</span>
                         <Select
-                          value={target}
-                          disabled={busy || !link || link.loading}
-                          onChange={(e) => setTarget(e.target.value)}
+                          value={draft.gender}
+                          onChange={(e) =>
+                            setDraft({ ...draft, gender: e.target.value })
+                          }
                         >
-                          <option value="new">{t("newProfile")}</option>
-                          {link?.profiles.map((profile) => (
-                            <option key={profile.id} value={profile.id}>
-                              {profile.name}
+                          {!["0", "1"].includes(draft.gender) && (
+                            <option value={draft.gender}>
+                              #{draft.gender}
                             </option>
-                          ))}
+                          )}
+                          <option value="0">{words.trainerMale}</option>
+                          <option value="1">{words.trainerFemale}</option>
                         </Select>
                       </label>
-                      {target === "new" && (
-                        <label className="field">
-                          <span>{words.profileName}</span>
+                    )}
+                    {report.trainer.canPlayTime &&
+                      (
+                        [
+                          ["hours", words.trainerHours, 65535],
+                          ["minutes", words.trainerMinutes, 99],
+                          ["seconds", words.trainerSeconds, 99],
+                        ] as const
+                      ).map(([key, label, max]) => (
+                        <label className="field" key={key}>
+                          <span>
+                            {label} · 0–{max}
+                          </span>
                           <input
-                            value={profileName}
-                            disabled={busy}
-                            onChange={(e) => setProfileName(e.target.value)}
-                          />
-                        </label>
-                      )}
-                    </div>
-                    {target === "new" && (
-                      <>
-                        <p className="save-editor-note">{words.defaults}</p>
-                        <label className="save-editor-review">
-                          <input
-                            type="checkbox"
-                            checked={reviewDefaults}
-                            disabled={busy}
+                            inputMode="numeric"
+                            maxLength={String(max).length}
+                            value={draft[key]}
                             onChange={(e) =>
-                              setReviewDefaults(e.target.checked)
+                              setDraft({ ...draft, [key]: e.target.value })
                             }
                           />
-                          {words.acknowledge}
                         </label>
-                      </>
-                    )}
+                      ))}
+                  </fieldset>
+                  {report.trainer.badges && (
+                    <fieldset
+                      className="save-editor-fields save-trainer-badges"
+                      disabled={
+                        busy ||
+                        !(report.canEdit || report.trainerOnly) ||
+                        trainer6Draft
+                      }
+                    >
+                      <legend>{words.trainerBadges}</legend>
+                      {Array.from(
+                        { length: report.trainer.badges.count },
+                        (_, index) => (
+                          <label className="save-editor-checkbox" key={index}>
+                            <input
+                              type="checkbox"
+                              checked={
+                                (Number(draft.badges) & (1 << index)) !== 0
+                              }
+                              onChange={(e) =>
+                                setDraft({
+                                  ...draft,
+                                  badges: String(
+                                    e.target.checked
+                                      ? Number(draft.badges) | (1 << index)
+                                      : Number(draft.badges) & ~(1 << index),
+                                  ),
+                                })
+                              }
+                            />
+                            <span>
+                              {words.trainerBadge.replace(
+                                "{n}",
+                                String(index + 1),
+                              )}
+                            </span>
+                          </label>
+                        ),
+                      )}
+                      <p className="save-editor-note">
+                        {words.trainerBadgesNote}
+                      </p>
+                    </fieldset>
+                  )}
+                  <TrainerGameOptionFields
+                    report={report}
+                    draft={draft}
+                    disabled={
+                      busy ||
+                      !(report.canEdit || report.trainerOnly) ||
+                      trainer6Draft
+                    }
+                    onChange={setDraft}
+                  />
+                  <TrainerAppearance6Fields
+                    report={report}
+                    draft={draft}
+                    disabled={
+                      busy ||
+                      !(report.canEdit || report.trainerOnly) ||
+                      trainer6Draft
+                    }
+                    onChange={setDraft}
+                  />
+                  <TrainerDateFields
+                    report={report}
+                    draft={draft}
+                    disabled={
+                      busy ||
+                      !(report.canEdit || report.trainerOnly) ||
+                      trainer6Draft
+                    }
+                    onChange={setDraft}
+                  />
+                  <TrainerPositionFields
+                    report={report}
+                    draft={draft}
+                    disabled={
+                      busy ||
+                      !(report.canEdit || report.trainerOnly) ||
+                      trainer6Draft
+                    }
+                    onChange={setDraft}
+                  />
+                  <p className="save-editor-note">{words.ids}</p>
+                  {report.trainer.languages.length > 0 && (
+                    <p className="save-editor-note">
+                      {words.trainerLanguageNote}
+                    </p>
+                  )}
+                  {report.trainer.canPlayTime && (
+                    <p className="save-editor-note">{words.trainerTimeNote}</p>
+                  )}
+                  {report.format === "SAV8SWSH" && (
+                    <p className="save-editor-note">
+                      {words.trainerAppearanceNote}
+                    </p>
+                  )}
+                  <div className="save-editor-toolbar">
+                    <button
+                      type="button"
+                      className="primary"
+                      disabled={
+                        busy ||
+                        !(report.canEdit || report.trainerOnly) ||
+                        trainer6Draft ||
+                        trainerDraftMatches(draft, report)
+                      }
+                      onClick={() =>
+                        void applyWorkingEdit(
+                          async () => validateTrainer(draft, report),
+                          "trainer",
+                        )
+                      }
+                    >
+                      {words.applyTrainer}
+                    </button>
                     <button
                       type="button"
                       disabled={
                         busy ||
-                        !link ||
-                        link.loading ||
-                        (target === "new" &&
-                          (!reviewDefaults || !profileName.trim()))
+                        !(report.canEdit || report.trainerOnly) ||
+                        trainer6Draft
                       }
-                      onClick={() =>
-                        void perform(async (id) => {
-                          await link!.save(target, profileName);
-                          if (id === operation.current) setStatus("linked");
-                        }, false)
-                      }
+                      onClick={() => {
+                        setDraft(trainerDraft(report));
+                        setGeographyReset((value) => value + 1);
+                        setError("");
+                      }}
                     >
-                      {words.apply}
+                      <RotateCcw size={18} aria-hidden="true" /> {words.reset}
                     </button>
-                  </>
-                )}
-              </section>
-            </>
-          )}
+                  </div>
+                  {supportsTrainer7(report.format) && (
+                    <Trainer7Editor
+                      key={`${name}:${fileRevision}:${report.format}`}
+                      revision={workingRevision}
+                      busy={busy || !trainerDraftMatches(draft, report)}
+                      lang={batchLang}
+                      onRead={readTrainer7}
+                      onPreview={previewTrainer7}
+                      onApply={(edit) => applyWorkingEdit(edit, "trainer7Edit")}
+                      onDirtyChange={setTrainer6Draft}
+                    />
+                  )}
+                  {supportsTrainer6(report.format) && (
+                    <Trainer6Editor
+                      key={`${name}:${fileRevision}:${report.format}`}
+                      revision={workingRevision}
+                      busy={busy || !trainerDraftMatches(draft, report)}
+                      lang={batchLang}
+                      onRead={readTrainer6}
+                      onPreview={previewTrainer6}
+                      onApply={(edit) => applyWorkingEdit(edit, "trainer6Edit")}
+                      onDirtyChange={setTrainer6Draft}
+                    />
+                  )}
+                  {profileLinkPanel}
+                </>
+              )}
+            </div>
+          </div>
         </>
       )}
       <p className="save-editor-note">

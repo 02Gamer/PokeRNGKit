@@ -7,7 +7,7 @@ import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonEggEditor } from "./PokemonEggEditor";
 import { PokemonOriginEditor } from "./PokemonOriginEditor";
 import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonFileTools } from "./PokemonFileTools";
 import { PokemonRawEditor } from "./PokemonRawEditor";
@@ -46,6 +46,7 @@ import type {
 import type { saveEditorResources } from "./locales";
 
 export function SavePokemonBrowser({
+  profileLink,
   report,
   revision,
   busy,
@@ -71,6 +72,7 @@ export function SavePokemonBrowser({
   onDiscardBoxBinary,
   onExportBoxBinary,
 }: {
+  profileLink?: ReactNode;
   report: SaveReport;
   revision: number;
   busy: boolean;
@@ -594,6 +596,7 @@ export function SavePokemonBrowser({
               </div>
             </>
           )}
+          {profileLink}
         </div>
       </div>
     </section>
