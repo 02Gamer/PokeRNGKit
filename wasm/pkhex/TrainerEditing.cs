@@ -50,6 +50,7 @@ internal static class TrainerEditing
 
     public static void Apply(SaveFile save, TrainerEdit edit)
     {
+        var originalBdsp=save is SAV8BS original?(SAV8BS)original.Clone():null;
         var options = Options(save);
         var maxName = save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer;
         int minName = save is SAV6XY or SAV6AO or SAV6AODemo or SAV7SM or SAV7USUM ? 0 : 1;
@@ -127,5 +128,6 @@ internal static class TrainerEditing
         if (edit.Minutes is int minutes && minutes % 60 != save.PlayedMinutes) save.PlayedMinutes = minutes % 60;
         if (edit.Seconds is int seconds && seconds % 60 != save.PlayedSeconds) save.PlayedSeconds = seconds % 60;
         if (save.OT != edit.Ot) throw new ArgumentException("This game cannot represent the requested trainer name.");
+        if(save is SAV8BS bdsp && originalBdsp is not null){if(bdsp.ID32==0)bdsp.SID16=1;if(bdsp.HasFirstSaveFileExpansion&&(bdsp.OT!=originalBdsp.OT||bdsp.ID32!=originalBdsp.ID32))bdsp.RecordAdd.ReplaceOT(originalBdsp,bdsp);}
     }
 }

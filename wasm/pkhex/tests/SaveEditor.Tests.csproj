@@ -12,6 +12,7 @@
     <Compile Include="../Seal8bEditing.cs" Link="Seal8bEditing.cs" />
     <Compile Include="../Underground8bEditing.cs" Link="Underground8bEditing.cs" />
     <Compile Include="../Raid8Editing.cs" Link="Raid8Editing.cs" />
+    <Compile Include="../Trainer8bEditing.cs" Link="Trainer8bEditing.cs" />
     <Compile Include="../TrainerGGEditing.cs" Link="TrainerGGEditing.cs" />
     <Compile Include="../TrainerGGPosition.cs" Link="TrainerGGPosition.cs" />
     <Compile Include="../TrainerGGNames.cs" Link="TrainerGGNames.cs" />
