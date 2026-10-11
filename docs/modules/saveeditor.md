@@ -18,17 +18,55 @@
 
 385 张未修改本地资源共 1847336 bytes，含源 GetItemSpriteA 使用的全部 66 张树果 Artwork。脚本 `scripts/import-pkhex-donut-art.mjs`、资源键／源路径／SHA-256 使用既有 artwork manifest；归属见 UPSTREAM，不改 vendored Core 或引入 CDN。三个 ZA 类型化修订专项已通过，覆盖独立完整文件字节对照、时间与空值、前缀导入、999 格克隆、范围外当前格、冻结随机、失败清理和异常日期。API 132 三文件前端领域／资源／客户端专项共 44 项通过，完整原生、核心发布与裁剪后 26 类属性通过。完整 npm run verify 通过：263 文件／1118 项、格式、Lint、类型、网页与 PWA 252 项预缓存。Lint 的导入脚本 URL 与多余正则转义均已修正，保留既有 Hook、反射裁剪和包大小警告。界面增加变化格位搜索，效果图片跟随草稿选择。生产 SaveUtil 识别未放宽；外部 Chrome 仍连接失败，页面及真实存档待验收。
 
-## 后续 Z-A 事件窗口（仅来源核对，未实现）
+## Z-A 事件窗口（API 133，工程检查通过）
 
-> 后续 Z-A 事件窗口仍未实现。已先读取只读来源 `SAV_FlagWork9a.cs`、`EventWorkGrid64.cs`、Core `SaveBlockAccessor9ZA.cs`／`EventWorkStorage64.cs`，待当前甜甜圈收尾后独立接入。原版包含 Flags、Event、Work、Quest、WorkMable、CountMable、CountTitle、Report、WorkSpawn、InfiniteRank、Spawner2、Spawner4、Obstruction、FieldItems、FieldObjectInteractable 共 15 组；Load 读取全部物理 Count，保存逐行写入并 Compress，不只显示 CountUsed 或擅自 Sort。
->
-> 64 位值与所有键须以字符串传输，不能使用 JavaScript Number。Report／Spawner2／Obstruction 的第二键按 Int64 显示、转换回 UInt64 位模式；Spawner4 为双名称／哈希键，FieldObjectInteractable 为三键。名称解析先查自定义表，再按十六进制解析，最后 FNV1a64；仅 64 位单键 Save 会 Trim 名称，其余不 Trim。加载可选本地 key-list 文件应以浏览器文件选择替代桌面固定路径。双文件研究原版仅比较 9 组；其删除循环读取 updated.GetKey 而非 previous.GetKey 的疑点仍需独立夹具核对，不在本批代码中改动或据此标记完成。
+已读取只读来源 `SAV_FlagWork9a.cs`、`EventWorkGrid64.cs`、Core `SaveBlockAccessor9ZA.cs`／`EventWorkStorage64.cs`。原版包含 Flags、Event、Work、Quest、WorkMable、CountMable、CountTitle、Report、WorkSpawn、InfiniteRank、Spawner2、Spawner4、Obstruction、FieldItems、FieldObjectInteractable 共 15 组；Load 读取全部物理 Count，保存逐行写入并 Compress，不只显示 CountUsed 或擅自 Sort。
+
+64 位值与所有键须以字符串传输，不能使用 JavaScript Number。Report／Spawner2／Obstruction 的第二键按 Int64 显示、转换回 UInt64 位模式；Spawner4 为双名称／哈希键，FieldObjectInteractable 为三键。名称解析先查自定义表，再按十六进制解析，最后 FNV1a64；仅 64 位单键 Save 会 Trim 名称，其余不 Trim。加载可选本地 key-list 文件以浏览器文件选择替代桌面固定路径。双文件研究原版仅比较 9 组；专项已确认其删除循环读取 updated.GetKey 而非 previous.GetKey 导致遗漏或越界，保留源报告并额外提供完整逐槽及块对照。
+
+API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览／确认／取消／比较请求。初稿核心、最终扩大及 API 133 三个修订类型化合成专项通过；六项领域与三文件 45 项接线专项、新增文件 Lint 和最终类型通过。完整原生与完整 verify 已通过，前端 264 文件／1125 项；最新核心发布、裁剪后 26 类属性检查和最新资源网页打包通过，网页／PWA 253 项预缓存。保留既有 Hook、反射裁剪和构建提示。生产 SaveUtil 识别未放宽，不构成页面／真实存档验收。
+
+界面显示 15 组与全部物理槽计数，Core 分页名称搜索及物理编号跳转；键和值按来源文本输入、跨页草稿保留，名称表切换在有草稿时禁用。整窗保存先冻结预览，按页核对全部行与所有变化块的元数据／bytes；取消和关闭释放令牌、恢复动作焦点。名称表提供文件／文本输入，双存档比较提供文件选择／拖放后的旧新分配、完整三语对照、原版原文报告和完整 JSON 下载。比较文件范围 1 byte–32 MiB，不复用旧事件 1 MiB 限额。控件 44px、标签 15px、正文 14px、说明 13px，表格为主要内部滚动区。
+
+| 数据组                                          | 块键                                   | 每条布局                                                 |
+| ----------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
+| Flags／Event                                    | ED6F46E7／58505C5E                     | UInt64 键、UInt64 布尔值，共 16 字节                     |
+| Work／Quest／WorkMable                          | FADA7742／B9B223B9／03913534           | UInt64 键、UInt64 值，共 16 字节                         |
+| CountMable／CountTitle／WorkSpawn／InfiniteRank | 8D80EC0F／2C2C6964／53FD0223／7C896A83 | UInt64 键、UInt64 值，共 16 字节                         |
+| Report／Spawner2／Obstruction                   | AF2165F0／79ABCB0B／4C26C29B           | UInt64 名称键、Int64 显示的第二键、UInt64 值，共 24 字节 |
+| Spawner4                                        | D1A3FF7B                               | 两个 UInt64 名称键、UInt64 值，共 24 字节                |
+| FieldItems                                      | 2482AD60                               | UInt64 键、UInt64 布尔值，共 16 字节                     |
+| FieldObjectInteractable                         | 7147C953                               | 三个 UInt64 名称键、UInt64 值，共 32 字节                |
+
+物理 Count 按实际块长度除条目长度，不从注释猜测修订版数量；完整读取包含首个空键之后的记录，尾部不足一条的 bytes 保留。键和值使用整个 CLR UInt64 范围；第二键数字按整个 Int64 范围显示，再以同一位模式写回。布尔加载为非零 true，整窗保存会将全部非零值写成 1。数值输入在 ValidateCell／ValidateU64／ValidateValue 失败时恢复源存档加载值，不能改成零或只跳过整行。原版 Save 再解析行并调用 Core.Compress，按原顺序移动非空行、清除移动源，不调用 Sort，也不把所有空行残留值预先清零。
+
+实际 .NET 10 WinForms 控件探针（27931）确认名称与数值 DataGridViewTextBoxColumn.MaxInputLength、搜索 TextBox.MaxLength 均为 32767；控件源在 EventWorkGrid64.cs。搜索只查名称键，OrdinalIgnoreCase，不搜索数值或编号；tuple 仅查 Key A，hash2／hash3 查所有名称键。浏览器读取增加 1–200 条分页传输、默认 50 条，过滤仍由 Core 执行，物理槽数与完整保存范围不减少；分页专项已通过。
+
+自定义名称表调用原版 SCBlockMetadata.AddExtraKeyNames64：按 TAB 分开十六进制键／名称，无法解析行跳过，同键第一项保留；空 FNV 键预留空名称，不覆写；反向表同名称重复时拒绝，与原版 EventWorkLookup 一致。4 Mi 字符名称表、8 Mi 字符读／写请求、50 Mi 字符双文件请求及最多 200 条单页为浏览器资源限制。预览先清旧缓存，完整解析后写入克隆；记录全部变化块的元数据／bytes、全部逐槽差异与完整文件哈希。确认只提交缓存一次，取消、替换、失败与过期保护原件。
+
+独立专项已确认原版九组报告的删除循环会遗漏删除；两份块数量不同还可能越界。保留原版报告及错误信息，同时独立提供 15 组完整物理槽 raw 对照，包含未列入原版报告的复合键、孔洞和布尔原始编码变化；不会把原版无报告理解为完整文件无差异。
+
+扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
 ## 仓储查看器覆盖复核（来源核对，未补实现）
 
 已读取同版本 `SAV_BoxList.cs`、`SAV_BoxViewer.cs`、`SAV_GroupViewer.cs`，对照现有 `SavePokemonBrowser.tsx`、`BoxEditor.tsx`、`StorageEditor.tsx` 与 SaveReport。当前主仓储一次显示队伍或一个箱子的真实格位、图像、壁纸和详情，提供目标整箱交换及单体操作。原版 BoxList 同时创建全部箱子视图，左右按钮交换相邻箱；BoxViewer 为第二个独立箱子视图，可与主箱交换并支持拖放。上述同时查看与拖放路径仍缺失，不能以已有单箱或交换 API 标为完整。
 
 GroupViewer 使用独立 SlotGroup，自动选择首个非空组，按组槽数重建网格，提供图片、悬停详情、合法性标记与选择详情，左右循环并可跳到首尾。当前通用 SaveReport／PokemonReader 路径没有独立 SlotGroup 目录；各专属模块的队伍显示不能代替所有特殊组。三项库存保持部分接入／待实现，后续独立模块须核对 SlotGroup 来源与真实输入范围后实现。
+
+2026-10-11 继续核对实际调用点 `Controls/SAV Editor/SAVEditor.cs:B_OtherSlots_Click`，该版本只对 `SAV_STADIUM.GetRegisteredTeams()` 打开 GroupViewer，不是任意游戏的特殊槽统一入口。`SAV1StadiumJ` 返回 16 组，每组六只，交错的备份队伍不另列；`SAV1Stadium` 日文返回 108 组，国际版从 90 组移除两类各 10 组的未使用队伍，显示 70 组；`SAV2Stadium` 返回 60 组，每组六只。组名与实际顺序必须由 Core 返回，不能用显示索引自行重算物理队伍偏移。
+
+来源为 Core `SAV_STADIUM.cs`、`SAV1StadiumJ.cs`、`SAV1Stadium.cs`、`SAV2Stadium.cs`、`SlotGroup.cs` 和 WinForms `SAV_GroupViewer.cs`。原窗口 Ctrl 点击／查看菜单调用 `PopulateFields(slot, false)`，此查看器没有队伍写回路径；首个非空组、所有空格、合法性标记和悬停摘要均要保留。网页实现可用普通点击与键盘进入详情，并提供首尾按钮替代 Ctrl 修饰键，但不能把普通箱子或 Battle Revolution 战斗通行证当成该窗口的组目录。本段仅完成来源与范围核对，尚未实现。
+
+## 第九世代服装窗口（来源核对，未实现）
+
+2026-10-11 已读取 `Gen9/SAV_Fashion9.cs`／Designer、Core `FashionItem9.cs`、`FashionItem9a.cs`、`HairMakeItem9a.cs` 和两种 `SaveBlockAccessor9`。朱／紫提供 Eyewear、Gloves、Bag、Footwear、Headwear、Legwear、Clothing、PhoneCase 共 8 组；Z-A 提供 10 组服装与 HairMake00–14 共 15 组发型／妆容。所有记录均为 8 字节：UInt32 Value 和 UInt32 Flags；实际行数取块长度整除 8，读取全部物理槽，写回保留尾部及未开放的 Flags 位。不依据块注释中的道具类别范围缩小 UInt32 输入。
+
+朱／紫服装与 Z-A 发型／妆容只开放 Value、IsNew；Z-A 服装另外开放 IsNewShop、IsNewGroup、IsEquipped、IsOwned。Value 使用 `uint.TryParse`，完整范围 0–4294967295，None 为 65535；空白／无效编辑会取消并设为 None，整窗 Save 的无效值也归 None。独立控件探针 53556 在 .NET 10.0.12／WinForms 10.0.0.0 实际创建同配置列，确认 ValueType=UInt32、默认 MaxInputLength=32767。
+
+“全部拥有”只在 Z-A 显示：普通作用于当前标签，Shift 作用于全部标签，Alt 改为取消拥有。服装组先保存当前行状态，再调用 `FashionItem9a.ModifyAll`，只对 Value != None 的记录修改 IsOwned；发型／妆容组此方法为空操作，不能额外添加不存在的拥有标记。网页应把修饰键动作做成显式范围和状态选择，保留这套数据语义。
+
+拖放只取首个文件，文件不得超过 65536 字节，且必须恰好等于目标块的 Raw.Length；导入替换该块后重载控件，再在整窗 Save 时保存所有组。取消不复制修改，保存才 `Origin.CopyChangesFrom(SAV)`。实现须保留导入／行编辑／拥有操作的顺序和完整冻结输出，不用局部字段修改替代整窗规范化。本段尚无产品接线、工程或浏览器验收证据。
 
 ## 剑／盾训练家窗口（API 131，工程检查通过）
 

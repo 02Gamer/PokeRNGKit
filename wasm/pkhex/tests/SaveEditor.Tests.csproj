@@ -21,6 +21,8 @@
     <Compile Include="../Donut9aEditing.cs" Link="Donut9aEditing.cs" />
     <Compile Include="../Donut9aControls.cs" Link="Donut9aControls.cs" />
     <Compile Include="../Donut9aSession.cs" Link="Donut9aSession.cs" />
+    <Compile Include="../Event9aEditing.cs" Link="Event9aEditing.cs" />
+    <Compile Include="../Event9aSession.cs" Link="Event9aSession.cs" />
     <Compile Include="../TrainerGGEditing.cs" Link="TrainerGGEditing.cs" />
     <Compile Include="../TrainerGGPosition.cs" Link="TrainerGGPosition.cs" />
     <Compile Include="../TrainerGGNames.cs" Link="TrainerGGNames.cs" />

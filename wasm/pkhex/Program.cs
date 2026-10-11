@@ -185,6 +185,16 @@ public static partial class Program
     [JSExport]
     public static string ReadTrainerGG(byte[] data) => SaveService.ReadTrainerGG(data);
     [JSExport]
+    public static string ReadEvent9a(byte[] data,string json) => SaveService.ReadEvent9a(data,json);
+    [JSExport]
+    public static string PreviewEvent9a(byte[] data,string json) => SaveService.PreviewEvent9a(data,json);
+    [JSExport]
+    public static byte[] CommitEvent9a(byte[] data,string json) => SaveService.CommitEvent9a(data,json);
+    [JSExport]
+    public static void DiscardEvent9a(string token) => SaveService.DiscardEvent9a(token);
+    [JSExport]
+    public static string CompareEvent9a(byte[] data,string json) => SaveService.CompareEvent9a(data,json);
+    [JSExport]
     public static string ReadDonut9a(byte[] data) => SaveService.ReadDonut9a(data);
     [JSExport]
     public static string PreviewDonut9a(byte[] data,string json) => SaveService.PreviewDonut9a(data,json);
@@ -440,7 +450,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 132;
+    public const int ApiVersion = 133;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -905,6 +915,14 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(Tr8aCatalog))]
 [JsonSerializable(typeof(Tr8Catalog))]
 [JsonSerializable(typeof(Dn9aCatalog))]
+[JsonSerializable(typeof(Ew9aCatalog))]
+[JsonSerializable(typeof(Ew9aReadQuery))]
+[JsonSerializable(typeof(Ew9aPage))]
+[JsonSerializable(typeof(Ew9aEdit))]
+[JsonSerializable(typeof(Ew9aTicket))]
+[JsonSerializable(typeof(Ew9aConfirmation))]
+[JsonSerializable(typeof(Ew9aCompareQuery))]
+[JsonSerializable(typeof(Ew9aComparison))]
 [JsonSerializable(typeof(Dn9aEdit))]
 [JsonSerializable(typeof(Dn9aTicket))]
 [JsonSerializable(typeof(Dn9aConfirmation))]

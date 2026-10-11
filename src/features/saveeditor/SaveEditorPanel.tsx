@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Event9aEditor } from "./Event9aEditor";
+import { supportsEvent9a } from "./event9a";
+import { event9aWords } from "./event9aWords";
 import { Donut9aEditor } from "./Donut9aEditor";
 import { supportsDonut9a } from "./donut9a";
 import { donut9aWords } from "./donut9aWords";
@@ -226,6 +229,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "event9a"
     | "donut9a"
     | "trainer8"
     | "trainer8a"
@@ -359,6 +363,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "event9a" && !supportsEvent9a(result.report.format)) ||
         (previous === "donut9a" && !supportsDonut9a(result.report.format)) ||
         (previous === "trainer8" && !supportsTrainer8(result.report.format)) ||
         (previous === "trainer8a" &&
@@ -1411,6 +1416,76 @@ export function SaveEditorPanel(
       p = result.zygarde7Preview;
     });
     return p;
+  };
+  const readEvent9a = async (query: import("./event9a").Ew9aReadQuery) => {
+    let page: import("./event9a").Ew9aPage | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(query),
+        "event9a",
+      );
+      if (id !== operation.current) return;
+      if (!result.event9a) throw Error("Event9a page missing.");
+      page = result.event9a;
+    });
+    return page;
+  };
+  const previewEvent9a = async (edit: import("./event9a").Ew9aEdit) => {
+    let ticket: import("./event9a").Ew9aTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "event9aPreview",
+      );
+      if (id !== operation.current) return;
+      if (!result.event9aTicket) throw Error("Event9a preview missing.");
+      ticket = result.event9aTicket;
+    });
+    return ticket;
+  };
+  const discardEvent9a = async (token: string) => {
+    try {
+      if (working.current)
+        await client.current.run(working.current, token, "event9aDiscard");
+    } catch {
+      /* Disposed Workers have already released their preview. */
+    }
+  };
+  const compareEvent9a = async (old: File, newer: File, names: string) => {
+    let comparison: import("./event9a").Ew9aComparison | undefined;
+    await perform(async (id) => {
+      if (
+        [old, newer].some(
+          (file) =>
+            !Number.isSafeInteger(file.size) ||
+            file.size < 1 ||
+            file.size > MAX_SAVE_BYTES,
+        )
+      )
+        throw Error(
+          "Event9a comparison files must be between 1 byte and 32 MiB.",
+        );
+      const files = await readBatchFiles(
+        [newer],
+        () => id === operation.current,
+      );
+      if (!files || id !== operation.current) return;
+      const bytes = new Uint8Array(await old.arrayBuffer());
+      if (id !== operation.current) return;
+      const result = await client.current.run(
+        bytes,
+        JSON.stringify({ updatedData: files[0].data, names }),
+        "event9aCompare",
+      );
+      if (id !== operation.current) return;
+      if (!result.event9aComparison) throw Error("Event9a comparison missing.");
+      comparison = result.event9aComparison;
+    });
+    return comparison;
   };
   const readDonut9a = async () => {
     let c: import("./donut9a").Dn9aCatalog | undefined;
@@ -2525,6 +2600,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./event9a").Ew9aConfirmation
       | import("./donut9a").Dn9aConfirmation
       | import("./trainer8").Tr8Edit
       | import("./trainer8a").Tr8aEdit
@@ -2602,6 +2678,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "event9aCommit"
       | "donut9aCommit"
       | "trainer8Edit"
       | "trainer8aEdit"
@@ -3201,6 +3278,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsEvent9a(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "event9a"}
+                onClick={() => setSection("event9a")}
+              >
+                {event9aWords[batchLang].title}
+              </button>
+            )}
             {supportsDonut9a(report.format) && (
               <button
                 type="button"
@@ -3793,6 +3879,17 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "event9a" && supportsEvent9a(report.format) ? (
+            <Event9aEditor
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readEvent9a}
+              onPreview={previewEvent9a}
+              onApply={(e) => applyWorkingEdit(e, "event9aCommit")}
+              onDiscard={discardEvent9a}
+              onCompare={compareEvent9a}
             />
           ) : section === "donut9a" && supportsDonut9a(report.format) ? (
             <Donut9aEditor

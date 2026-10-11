@@ -179,6 +179,38 @@ describe("save player context across Worker lifecycle", () => {
     }
     client.dispose();
   });
+  it("transfers Z-A event pages, frozen saves, cancellation and comparison without detaching original bytes", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "event9a",
+      "event9aPreview",
+      "event9aCommit",
+      "event9aDiscard",
+      "event9aCompare",
+    ] as const) {
+      const payload =
+        kind === "event9aDiscard"
+          ? "event9a:1"
+          : JSON.stringify({
+              names: "11\tKnown",
+              group: "WorkSpawn",
+              filter: "known",
+              offset: 50,
+              limit: 50,
+            });
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes).not.toBe(source);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({ data: { id: message.id, report: {} } });
+      await pending;
+    }
+    client.dispose();
+  });
   it("transfers donut read, single-preview confirmation, cancellation and export without detaching original bytes", async () => {
     const client = new SaveEditorClient(),
       source = new Uint8Array([1, 2, 3]);

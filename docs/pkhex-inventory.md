@@ -421,11 +421,11 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | API 127：631 可见物品完整读写、批量、冻结预览及工程检查通过，浏览器待验收       |
 | `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
 | `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
-| `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | 待核对                                                                          |
+| `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | API 133：15 组／复合键／名称表／保存／比较工程通过，页面与真实存档待验收        |
 | `Subforms/Save Editors/Gen9/SAV_Donut9a.cs`                                   | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
 | `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
-| `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 待核对                                                                          |
-| `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | 待核对                                                                          |
+| `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 已核对：朱／紫 8 组、Z-A 25 组及导入／拥有操作；UInt32／32767 字符，未实现      |
+| `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | API 133：15 组／复合键／名称表／保存／比较工程通过，页面与真实存档待验收        |
 | `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | API 58：三语图鉴、三组形态、十语言、超级进化与批量编辑                          |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 已接入旧版状态、形态、语言、显示及批量；工程检查通过，浏览器待核验              |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 已接入四组形态位及三地区显示、批量；工程检查通过，浏览器待核验                  |
@@ -440,7 +440,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_EventFlags.cs`                                     | API 80：Gen3–7 标记／数值／预设／双存档比较已接入，浏览器待核验                 |
 | `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | API 81：五布局事件标记／byte 数值／预设／比较已接入，浏览器待核验               |
 | `Subforms/Save Editors/SAV_EventWork.cs`                                      | API 82：两版本分组／Int32 数值／预设／比较已接入，浏览器待核验                  |
-| `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 已核对：特殊 SlotGroup 浏览／详情与合法性显示未接入通用仓储，待实现             |
+| `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 已核对：Stadium 注册队伍 16／108／70／60 组的图片、只读详情与合法性显示待实现   |
 | `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                                         |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                                          |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 已接入 Gen1–3；区域布局、批量标记及联动规则通过工程检查                         |

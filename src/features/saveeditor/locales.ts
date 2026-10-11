@@ -1,3 +1,4 @@
+import { event9aWords } from "./event9aWords";
 import { donut9aWords } from "./donut9aWords";
 import { trainer8Words } from "./trainer8Words";
 import { trainer8aWords } from "./trainer8aWords";
@@ -48,6 +49,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.zh.invalid,
     avenue5Error: avenue5Words.zh.invalid,
     avenue5Stale: avenue5Words.zh.stale,
+    event9aError: event9aWords.zh.invalid,
+    event9aStale: event9aWords.zh.stale,
     donut9aError: donut9aWords.zh.invalid,
     donut9aStale: donut9aWords.zh.stale,
     trainer8Error: trainer8Words.zh.invalid,
@@ -669,6 +672,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.en.invalid,
     avenue5Error: avenue5Words.en.invalid,
     avenue5Stale: avenue5Words.en.stale,
+    event9aError: event9aWords.en.invalid,
+    event9aStale: event9aWords.en.stale,
     donut9aError: donut9aWords.en.invalid,
     donut9aStale: donut9aWords.en.stale,
     trainer8Error: trainer8Words.en.invalid,
@@ -1332,6 +1337,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.ja.invalid,
     avenue5Error: avenue5Words.ja.invalid,
     avenue5Stale: avenue5Words.ja.stale,
+    event9aError: event9aWords.ja.invalid,
+    event9aStale: event9aWords.ja.stale,
     donut9aError: donut9aWords.ja.invalid,
     donut9aStale: donut9aWords.ja.stale,
     trainer8Error: trainer8Words.ja.invalid,
@@ -2033,6 +2040,8 @@ export function localizeSaveError(
   if (/(?:Collectibles7|Zygarde7).*stale/i.test(message))
     return words.zygarde7Stale;
   if (/Collectibles7|Zygarde7/i.test(message)) return words.zygarde7Error;
+  if (/Event9a.*stale/i.test(message)) return words.event9aStale;
+  if (/Event9a/i.test(message)) return words.event9aError;
   if (/Donut9a.*stale/i.test(message)) return words.donut9aStale;
   if (/Donut9a/i.test(message)) return words.donut9aError;
   if (/Trainer8a.*stale/i.test(message)) return words.trainer8aStale;
