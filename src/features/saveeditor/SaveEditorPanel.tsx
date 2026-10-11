@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Donut9aEditor } from "./Donut9aEditor";
+import { supportsDonut9a } from "./donut9a";
+import { donut9aWords } from "./donut9aWords";
 import { Trainer8Editor } from "./Trainer8Editor";
 import { supportsTrainer8 } from "./trainer8";
 import { trainer8Words } from "./trainer8Words";
@@ -223,6 +226,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "donut9a"
     | "trainer8"
     | "trainer8a"
     | "trainer8b"
@@ -355,6 +359,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "donut9a" && !supportsDonut9a(result.report.format)) ||
         (previous === "trainer8" && !supportsTrainer8(result.report.format)) ||
         (previous === "trainer8a" &&
           !supportsTrainer8a(result.report.format)) ||
@@ -1407,6 +1412,78 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readDonut9a = async () => {
+    let c: import("./donut9a").Dn9aCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "donut9a",
+      );
+      if (id !== operation.current) return;
+      if (!result.donut9a) throw Error("No Donut9a catalog was returned.");
+      c = result.donut9a;
+    });
+    return c;
+  };
+  const previewDonut9a = async (edit: import("./donut9a").Dn9aEdit) => {
+    let p: import("./donut9a").Dn9aTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "donut9aPreview",
+      );
+      if (id !== operation.current) return;
+      if (!result.donut9aTicket)
+        throw Error("No Donut9a preview was returned.");
+      p = result.donut9aTicket;
+    });
+    return p;
+  };
+  const discardDonut9a = async (token: string) => {
+    try {
+      if (working.current)
+        await client.current.run(working.current, token, "donut9aDiscard");
+    } catch {
+      /* A disposed/replaced Worker has already released its preview. */
+    }
+  };
+  const exportDonut9a = async (index: number, text: boolean) => {
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        String(index),
+        "donut9aExport",
+      );
+      if (id !== operation.current) return;
+      if (!result.donut9aFile) throw Error("No Donut9a export was returned.");
+      const value = text
+        ? new TextEncoder().encode(
+            Array.from(result.donut9aFile, (b) =>
+              b.toString(16).toUpperCase().padStart(2, "0"),
+            ).join(" "),
+          )
+        : result.donut9aFile;
+      const url = URL.createObjectURL(
+        new Blob([value], {
+          type: text ? "text/plain;charset=utf-8" : "application/octet-stream",
+        }),
+      );
+      try {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download =
+          String(index + 1).padStart(3, "0") + (text ? ".donut.txt" : ".donut");
+        a.click();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    });
+  };
   const readTrainer8 = async () => {
     let c: import("./trainer8").Tr8Catalog | undefined;
     await perform(async (id) => {
@@ -2448,6 +2525,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./donut9a").Dn9aConfirmation
       | import("./trainer8").Tr8Edit
       | import("./trainer8a").Tr8aEdit
       | import("./trainer8b").Tr8bEdit
@@ -2524,6 +2602,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "donut9aCommit"
       | "trainer8Edit"
       | "trainer8aEdit"
       | "trainer8bEdit"
@@ -3122,6 +3201,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsDonut9a(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "donut9a"}
+                onClick={() => setSection("donut9a")}
+              >
+                {donut9aWords[batchLang].title}
+              </button>
+            )}
             {supportsTrainer8(report.format) && (
               <button
                 type="button"
@@ -3705,6 +3793,18 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "donut9a" && supportsDonut9a(report.format) ? (
+            <Donut9aEditor
+              key={report.format}
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readDonut9a}
+              onPreview={previewDonut9a}
+              onApply={(e) => applyWorkingEdit(e, "donut9aCommit")}
+              onDiscard={discardDonut9a}
+              onExport={exportDonut9a}
             />
           ) : section === "trainer8" && supportsTrainer8(report.format) ? (
             <Trainer8Editor

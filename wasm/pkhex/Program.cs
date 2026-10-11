@@ -185,6 +185,16 @@ public static partial class Program
     [JSExport]
     public static string ReadTrainerGG(byte[] data) => SaveService.ReadTrainerGG(data);
     [JSExport]
+    public static string ReadDonut9a(byte[] data) => SaveService.ReadDonut9a(data);
+    [JSExport]
+    public static string PreviewDonut9a(byte[] data,string json) => SaveService.PreviewDonut9a(data,json);
+    [JSExport]
+    public static byte[] CommitDonut9a(byte[] data,string json) => SaveService.CommitDonut9a(data,json);
+    [JSExport]
+    public static void DiscardDonut9a(string token) => SaveService.DiscardDonut9a(token);
+    [JSExport]
+    public static byte[] ExportDonut9a(byte[] data,int index) => SaveService.ExportDonut9a(data,index);
+    [JSExport]
     public static string ReadTrainer8(byte[] data) => SaveService.ReadTrainer8(data);
     [JSExport]
     public static string PreviewTrainer8(byte[] data,string json) => SaveService.PreviewTrainer8(data,json);
@@ -430,7 +440,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 131;
+    public const int ApiVersion = 132;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -894,6 +904,10 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(Tr8bCatalog))]
 [JsonSerializable(typeof(Tr8aCatalog))]
 [JsonSerializable(typeof(Tr8Catalog))]
+[JsonSerializable(typeof(Dn9aCatalog))]
+[JsonSerializable(typeof(Dn9aEdit))]
+[JsonSerializable(typeof(Dn9aTicket))]
+[JsonSerializable(typeof(Dn9aConfirmation))]
 [JsonSerializable(typeof(Tr8Edit))]
 [JsonSerializable(typeof(Tr8Preview))]
 [JsonSerializable(typeof(Tr8aEdit))]

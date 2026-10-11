@@ -3,6 +3,33 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 传说 Z-A 甜甜圈窗口（API 132，工程检查通过）
+
+已核对 PKHeX 26.08.26 `SAV_Donut9a.cs`、`DonutEditor9a.cs`／Designer、`DonutFlavorProfile9a.cs`、`SAV_DonutGenerator9a.cs`／Designer、`DonutPocket9a.cs`、`Epoch1900DateTimeValue.cs`、`DonutSpriteUtil.cs` 与 Misc Resources.resx。API 132 已接三语悬浮面板入口及 Worker 读取／单次预览／确认／取消／导出，工程检查通过，页面／真实存档尚未验收。
+
+产品按概览／树果／效果／制作时间／批量生成／导入导出分组，999 个物理格位可搜索、前后切换；原图、树果图、效果图、原始数据与 Core 口味图齐备。字段以有序事件队列保留，草稿未应用时禁用格位切换和其他操作，可先预览或丢弃。预览逐格显示图像、全部数值／选择、两时间、口味图及前后完整 bytes；确认不重掷，取消／关闭释放缓存，焦点回到原动作。二进制文件与拖放均恰好 72 字节，十六进制文本导入和文件导出保留来源语义；网页用文本输入／下载对应桌面剪贴板内容，全部本地处理。
+
+- 数据块 `BE007476` 为 Object，999 格，各 `0x48` 字节；缺失或不足长度禁用，不在生产创建块。毫秒 UInt64 位于 0，星数 byte `+8`、等级提升 byte `+9`、甜甜圈 UInt16 `+A`、热量 UInt16 `+C`、命名树果 UInt16 `+E`、八树果 `+10–1E`；三效果 UInt64 `+28／30／38`，保留 UInt64 `+40`。格位只开放 0–998；Core.GetDonut 的边界写法不能扩成第 1000 格。
+- 星数 NumericUpDown 0–6，等级提升 0–255，热量 0–65535，载入按范围钳制；空／无效数字沿用控制值。SaveDonut 将 decimal 转 byte／ushort，不能凭五张星图改成上限 5。甜甜圈选项来自三语 donutName 全表；九个树果选择为 None 加 ItemStorage9ZA.Berry；三效果选项为 None 加 DonutInfo.Flavors 的原顺序，存储 FNV64 哈希，网页使用字符串，不能用 Number。未知旧选项在显式原版保存时归零，读取原始字节保留。18 项逻辑输入以有序事件列表应用，允许日期／毫秒重复变化；最多 512 项是浏览器资源限额，不是上游控件限制。
+- 口味只统计八个实际树果，命名树果不参与。五项为辣／鲜／甜／苦／酸；数值与独立缩放全部由 Core.RecalculateDonutFlavors／GetStatScale 提供。图形顶点顺序为辣／酸／鲜／苦／甜，使用源的零值 10% 基线。图像选型按 DonutSpriteUtil：普通 ID 取余六口味加星数，198–202 使用五张专属图；未知资源不造图。
+- 日期块 `+20..28` 为 Epoch1900 位编码，含秒 byte `+24`，剩余三字节保留。日期控件默认最小 1753-01-01，最大 4095-12-31 00:00；无日期载入本地 Epoch=1970-01-01，超控件范围回到 Epoch，但实际无效年月日／时钟会在进入控件前抛出，不能静默归零。毫秒 TextBox 默认最大 32767 字符，ulong.TryParse 使用 Integer；无效文本不改日期，保存毫秒归零。日期变化保留旧毫秒 `%1000`；毫秒变化同步日期，超过日期范围时源回到当前本地时间，浏览器必须传明确墙钟时间。日期不作 UTC 转换；不得用 Date.now 直接代替原版 `DateTime.Now - 本地 Epoch`。
+- Reset 先清整个 72 字节，再载入／保存控件，因此最终日期编码为 1970-01-01，不能宣称最终记录全零。Clone 先保存当前格，再复制整条记录到全部 999 格。文件导入恰好 72 字节；剪贴板 Trim 后只移除 ASCII 空格，并调用源 Util.GetBytesFromHexString。该 API 忽略返回状态，可写入有效前缀、保留后续旧字节；空／无效后缀不是强制清空整格。导入和导出按源 SaveDonut 规范化，原件不修改。
+- 全部三级、异色模板及自选生成直接调用 Core。自选范围 start 0–998／end 0–999，结束不含，必须 start<end 且至少一项效果。候选严格沿源 `name.AsSpan(6,2)` 数字 3–21 的筛选，不自行扩大成所有口味；每格最多三种唯一选择，不足三种补零。生成前保存当前格，可能带来范围外的当前格规范化，须在预览显示。一次预览只生成一次，Worker 会话缓存完整输出与源／目标哈希；确认仅提交缓存，不再次随机。旧令牌、重复确认、过期源、替换、取消与失败预览均受校验。
+
+385 张未修改本地资源共 1847336 bytes，含源 GetItemSpriteA 使用的全部 66 张树果 Artwork。脚本 `scripts/import-pkhex-donut-art.mjs`、资源键／源路径／SHA-256 使用既有 artwork manifest；归属见 UPSTREAM，不改 vendored Core 或引入 CDN。三个 ZA 类型化修订专项已通过，覆盖独立完整文件字节对照、时间与空值、前缀导入、999 格克隆、范围外当前格、冻结随机、失败清理和异常日期。API 132 三文件前端领域／资源／客户端专项共 44 项通过，完整原生、核心发布与裁剪后 26 类属性通过。完整 npm run verify 通过：263 文件／1118 项、格式、Lint、类型、网页与 PWA 252 项预缓存。Lint 的导入脚本 URL 与多余正则转义均已修正，保留既有 Hook、反射裁剪和包大小警告。界面增加变化格位搜索，效果图片跟随草稿选择。生产 SaveUtil 识别未放宽；外部 Chrome 仍连接失败，页面及真实存档待验收。
+
+## 后续 Z-A 事件窗口（仅来源核对，未实现）
+
+> 后续 Z-A 事件窗口仍未实现。已先读取只读来源 `SAV_FlagWork9a.cs`、`EventWorkGrid64.cs`、Core `SaveBlockAccessor9ZA.cs`／`EventWorkStorage64.cs`，待当前甜甜圈收尾后独立接入。原版包含 Flags、Event、Work、Quest、WorkMable、CountMable、CountTitle、Report、WorkSpawn、InfiniteRank、Spawner2、Spawner4、Obstruction、FieldItems、FieldObjectInteractable 共 15 组；Load 读取全部物理 Count，保存逐行写入并 Compress，不只显示 CountUsed 或擅自 Sort。
+>
+> 64 位值与所有键须以字符串传输，不能使用 JavaScript Number。Report／Spawner2／Obstruction 的第二键按 Int64 显示、转换回 UInt64 位模式；Spawner4 为双名称／哈希键，FieldObjectInteractable 为三键。名称解析先查自定义表，再按十六进制解析，最后 FNV1a64；仅 64 位单键 Save 会 Trim 名称，其余不 Trim。加载可选本地 key-list 文件应以浏览器文件选择替代桌面固定路径。双文件研究原版仅比较 9 组；其删除循环读取 updated.GetKey 而非 previous.GetKey 的疑点仍需独立夹具核对，不在本批代码中改动或据此标记完成。
+
+## 仓储查看器覆盖复核（来源核对，未补实现）
+
+已读取同版本 `SAV_BoxList.cs`、`SAV_BoxViewer.cs`、`SAV_GroupViewer.cs`，对照现有 `SavePokemonBrowser.tsx`、`BoxEditor.tsx`、`StorageEditor.tsx` 与 SaveReport。当前主仓储一次显示队伍或一个箱子的真实格位、图像、壁纸和详情，提供目标整箱交换及单体操作。原版 BoxList 同时创建全部箱子视图，左右按钮交换相邻箱；BoxViewer 为第二个独立箱子视图，可与主箱交换并支持拖放。上述同时查看与拖放路径仍缺失，不能以已有单箱或交换 API 标为完整。
+
+GroupViewer 使用独立 SlotGroup，自动选择首个非空组，按组槽数重建网格，提供图片、悬停详情、合法性标记与选择详情，左右循环并可跳到首尾。当前通用 SaveReport／PokemonReader 路径没有独立 SlotGroup 目录；各专属模块的队伍显示不能代替所有特殊组。三项库存保持部分接入／待实现，后续独立模块须核对 SlotGroup 来源与真实输入范围后实现。
+
 ## 剑／盾训练家窗口（API 131，工程检查通过）
 
 已核对 `SAV_Trainer8.cs`／Designer、`TrainerCard8.cs`、`TitleScreen8.cs`、`MyStatus8.cs`、`FashionUnlock8.cs`、`PlayerSkinColor8.cs`、`Coordinates8.cs`、`PlayTime7b.cs`、`Epoch1900DateTimeValue.cs`、`Records.cs` 与 `TrainerStat.cs`。API 131 已接悬浮面板专属三语入口、独立 Worker 与冻结预览，工程检查通过；页面／真实存档仍待所有者验收。

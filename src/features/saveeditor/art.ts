@@ -7,6 +7,25 @@ const assets: Readonly<Record<string, string>> = manifest;
 const url = (key: string) =>
   `${import.meta.env.BASE_URL}save-art/26.08.26/${assets[key]}`;
 
+// Resource keys follow PKHeX.Drawing.Misc/Util/DonutSpriteUtil.cs.
+export function donutImage(sprite: string) {
+  return sprite.startsWith("donut_") && assets[sprite]
+    ? url(sprite)
+    : undefined;
+}
+export function donutEffectImage(sprite: string) {
+  return /^(sweet|spicy|fresh|bitter|sour)_/.test(sprite) && assets[sprite]
+    ? url(sprite)
+    : undefined;
+}
+export const donutProfileImage = () =>
+  assets.flavorprofile ? url("flavorprofile") : undefined;
+export const donutStarImage = () => (assets.star ? url("star") : undefined);
+export function donutBerryImage(id: number) {
+  const key = `aitem_${id}`;
+  return id > 0 && assets[key] ? url(key) : undefined;
+}
+
 export function itemImage(sprite: string) {
   if (!sprite) return undefined;
   return url(

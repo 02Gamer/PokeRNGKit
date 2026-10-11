@@ -179,6 +179,60 @@ describe("save player context across Worker lifecycle", () => {
     }
     client.dispose();
   });
+  it("transfers donut read, single-preview confirmation, cancellation and export without detaching original bytes", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "donut9a",
+      "donut9aPreview",
+      "donut9aCommit",
+      "donut9aDiscard",
+      "donut9aExport",
+    ] as const) {
+      const payload =
+        kind === "donut9a"
+          ? undefined
+          : kind === "donut9aDiscard"
+            ? "donut:1"
+            : kind === "donut9aExport"
+              ? "998"
+              : JSON.stringify(
+                  kind === "donut9aCommit"
+                    ? {
+                        token: "donut:1",
+                        sourceHash: "A".repeat(64),
+                        targetHash: "B".repeat(64),
+                      }
+                    : {
+                        action: "generate",
+                        index: 998,
+                        sourceHash: "A".repeat(64),
+                        start: 998,
+                        end: 999,
+                        flavors: [1],
+                        now: "2026-01-02T03:04:05.006",
+                      },
+                );
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes).not.toBe(source);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({
+        data: {
+          id: message.id,
+          report: {},
+          donut9aFile:
+            kind === "donut9aExport" ? new Uint8Array(72) : undefined,
+        },
+      });
+      const result = await pending;
+      if (kind === "donut9aExport") expect(result.donut9aFile).toHaveLength(72);
+    }
+    client.dispose();
+  });
   it("transfers Trainer8 read, preview and frozen edits without changing original bytes", async () => {
     const client = new SaveEditorClient(),
       source = new Uint8Array([1, 2, 3]);

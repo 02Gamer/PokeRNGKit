@@ -419,11 +419,11 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | API 130：完整窗口、冻结预览及工程检查通过，浏览器与真实存档待验收               |
 | `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | API 129：完整窗口、双姓名与排行联动及工程检查通过，浏览器与真实存档待验收       |
 | `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | API 127：631 可见物品完整读写、批量、冻结预览及工程检查通过，浏览器待验收       |
-| `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | 待核对                                                                          |
-| `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | 待核对                                                                          |
+| `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
+| `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
 | `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | 待核对                                                                          |
-| `Subforms/Save Editors/Gen9/SAV_Donut9a.cs`                                   | 待核对                                                                          |
-| `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | 待核对                                                                          |
+| `Subforms/Save Editors/Gen9/SAV_Donut9a.cs`                                   | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
+| `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
 | `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 待核对                                                                          |
 | `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | 待核对                                                                          |
 | `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | API 58：三语图鉴、三组形态、十语言、超级进化与批量编辑                          |
@@ -434,13 +434,13 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | 待核对                                                                          |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs`                                 | 待核对                                                                          |
 | `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | 待核对                                                                          |
-| `Subforms/Save Editors/SAV_BoxList.cs`                                        | 待核对                                                                          |
-| `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | 待核对                                                                          |
+| `Subforms/Save Editors/SAV_BoxList.cs`                                        | 已核对：全箱同时查看／相邻整箱交换界面未实现，不能以现有单箱页替代              |
+| `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | 部分接入：单箱图片／壁纸与整箱交换已有；独立第二箱并行查看及拖放待实现          |
 | `Subforms/Save Editors/SAV_Chatter.cs`                                        | 待核对                                                                          |
 | `Subforms/Save Editors/SAV_EventFlags.cs`                                     | API 80：Gen3–7 标记／数值／预设／双存档比较已接入，浏览器待核验                 |
 | `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | API 81：五布局事件标记／byte 数值／预设／比较已接入，浏览器待核验               |
 | `Subforms/Save Editors/SAV_EventWork.cs`                                      | API 82：两版本分组／Int32 数值／预设／比较已接入，浏览器待核验                  |
-| `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 待核对                                                                          |
+| `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | 已核对：特殊 SlotGroup 浏览／详情与合法性显示未接入通用仓储，待实现             |
 | `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                                         |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                                          |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 已接入 Gen1–3；区域布局、批量标记及联动规则通过工程检查                         |
