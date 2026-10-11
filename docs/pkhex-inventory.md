@@ -424,13 +424,13 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | API 133：15 组／复合键／名称表／保存／比较工程通过，页面与真实存档待验收        |
 | `Subforms/Save Editors/Gen9/SAV_Donut9a.cs`                                   | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
 | `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收         |
-| `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | 已核对：朱／紫 8 组、Z-A 25 组及导入／拥有操作；UInt32／32767 字符，未实现      |
+| `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | API 134：8／25 组、有序导入／拥有、三语与冻结工程通过；页面与真实存档待验收     |
 | `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | API 133：15 组／复合键／名称表／保存／比较工程通过，页面与真实存档待验收        |
 | `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | API 58：三语图鉴、三组形态、十语言、超级进化与批量编辑                          |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 已接入旧版状态、形态、语言、显示及批量；工程检查通过，浏览器待核验              |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 已接入四组形态位及三地区显示、批量；工程检查通过，浏览器待核验                  |
-| `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | 待核对                                                                          |
-| `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | 待核对                                                                          |
+| `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | 已核对三区域／双 Seed／传播与控件转换器；验证顺序待探针，未实现                 |
+| `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | 已核对：旧／新版双块、Identifier 联动与 Bool=1 语义；未实现                     |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | 待核对                                                                          |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs`                                 | 待核对                                                                          |
 | `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | 待核对                                                                          |

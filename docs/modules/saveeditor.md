@@ -58,7 +58,7 @@ GroupViewer 使用独立 SlotGroup，自动选择首个非空组，按组槽数�
 
 来源为 Core `SAV_STADIUM.cs`、`SAV1StadiumJ.cs`、`SAV1Stadium.cs`、`SAV2Stadium.cs`、`SlotGroup.cs` 和 WinForms `SAV_GroupViewer.cs`。原窗口 Ctrl 点击／查看菜单调用 `PopulateFields(slot, false)`，此查看器没有队伍写回路径；首个非空组、所有空格、合法性标记和悬停摘要均要保留。网页实现可用普通点击与键盘进入详情，并提供首尾按钮替代 Ctrl 修饰键，但不能把普通箱子或 Battle Revolution 战斗通行证当成该窗口的组目录。本段仅完成来源与范围核对，尚未实现。
 
-## 第九世代服装窗口（来源核对，未实现）
+## 第九世代服装窗口（API 134，工程检查通过）
 
 2026-10-11 已读取 `Gen9/SAV_Fashion9.cs`／Designer、Core `FashionItem9.cs`、`FashionItem9a.cs`、`HairMakeItem9a.cs` 和两种 `SaveBlockAccessor9`。朱／紫提供 Eyewear、Gloves、Bag、Footwear、Headwear、Legwear、Clothing、PhoneCase 共 8 组；Z-A 提供 10 组服装与 HairMake00–14 共 15 组发型／妆容。所有记录均为 8 字节：UInt32 Value 和 UInt32 Flags；实际行数取块长度整除 8，读取全部物理槽，写回保留尾部及未开放的 Flags 位。不依据块注释中的道具类别范围缩小 UInt32 输入。
 
@@ -67,6 +67,27 @@ GroupViewer 使用独立 SlotGroup，自动选择首个非空组，按组槽数�
 “全部拥有”只在 Z-A 显示：普通作用于当前标签，Shift 作用于全部标签，Alt 改为取消拥有。服装组先保存当前行状态，再调用 `FashionItem9a.ModifyAll`，只对 Value != None 的记录修改 IsOwned；发型／妆容组此方法为空操作，不能额外添加不存在的拥有标记。网页应把修饰键动作做成显式范围和状态选择，保留这套数据语义。
 
 拖放只取首个文件，文件不得超过 65536 字节，且必须恰好等于目标块的 Raw.Length；导入替换该块后重载控件，再在整窗 Save 时保存所有组。取消不复制修改，保存才 `Origin.CopyChangesFrom(SAV)`。实现须保留导入／行编辑／拥有操作的顺序和完整冻结输出，不用局部字段修改替代整窗规范化。本段尚无产品接线、工程或浏览器验收证据。
+
+Fashion9Editing／Session 已接 API 134 的四种 JSExport／Worker 请求和三语悬浮入口。组元数据不生成全行 JSON，单页最多 200 行；完整保存仍覆盖所有组和物理行。行草稿先保留文本与来源复选项，导入覆盖目标块并重载，拥有操作只保存目标服装组后调用 Core，最后整窗保存全部组。普通保存无效编号按源设为 None，并在冻结预览报告；保留尾部及未开放 Flags。原版直接消费 Raw，不能凭元数据类型更换或伪造块；缺失任何来源组拒绝编辑。
+
+512 个有序操作、8 Mi 字符 JSON 请求、32767 字符编号／过滤和最多 200 条分页是当前接口边界，其中操作数／请求大小／分页／新增编号过滤为浏览器资源或导航功能，不能当作原版枚举范围。Core 写回后回读验证版本、修订、文件长度、全部块元数据与 bytes；预览冻结完整输出、逐行和逐块对照及实际源文件差异，旧令牌、重复、替换、失败和取消保护原件。初稿、扩大、分页、JSON 及 API 134 九种类型化版本／修订专项通过，含独立全文件预期、整数输入、尾部变化、camelCase／可空标记及失败 Open 清旧令牌。六项领域与三文件 46 项接线专项、新增文件 Lint、完整原生和完整 verify 已通过：265 文件／1132 项、类型。最新 API 134 核心发布、裁剪后 26 类属性签名／访问器与最新网页打包通过，网页／PWA 253 项预缓存。保留既有 Hook、裁剪和构建提示；外部 Chrome 仍通信失败，不作页面或真实存档验收。
+
+界面使用分组选择与主表格内部滚动，输入／共享 Select 保持 44px，标签 15px、正文 14px、辅助文字 13px。跨页／跨组草稿先按分组收集，在导入或拥有操作前加入有序队列；所有操作先冻结完整预览，返回编辑后以 Core 变化行显示已排队结果，再叠加后续字段草稿。筛选明确使用已载入存档的编号，不以尚未应用的值替代查询源。可定位全部物理槽、导入首个精确大小文件、显示完整变化记录和尾部／元数据块对照，并下载预览 JSON。取消／关闭释放缓存，迟到读取不覆盖新页，语言变化保留票据；确认后沿用原件、20 步／64 MiB 撤销和导出。
+
+## 朱／紫团体战窗口（来源核对，未实现）
+
+2026-10-11 已读取 `SAV_Raid9.cs`／Designer、`SAV_RaidSevenStar9.cs`、Core `RaidSpawnList9.cs`、`RaidSevenStar9.cs`、`SaveBlockAccessor9SV.cs` 与 `ValueTypeTypeConverter.cs`。普通与七星窗口是独立模型，不套用剑／盾结构。
+
+- 普通窗口按 Core CountUsed 显示：帕底亚 72、北上 100、蓝莓学园 80。帕底亚使用 `CAAC8800`，前 16 字节为今日／明日 UInt64 Seed；两个 TextBox 最大 16 字符、大写显示、按纯十六进制校验，空白／非法文本 Undo，不写零。北上与蓝莓实际共用 `100B93DA` 的两个 `0xC80` 字节切片；蓝莓从 `+0xC80` 开始，不能误用声明但此构造器未使用的 `0C62D416`。两个切片各有 100 个物理记录，蓝莓窗口只开放前 80 个，尾部须保留。缺失 DLC 块时 Core 提供空 fake 内存，但 CountUsed 仍保留，后续入口必须核验真实可用长度，不在生产补块。
+- 每条 32 字节，IsEnabled UInt32 `+0`、AreaID `+4`、LotteryGroup `+8`、SpawnPointID `+C`、Seed `+10`、Unused `+14`、Content UInt32 枚举 `+18`、IsClaimedLeaguePoints UInt32 `+1C`。两个布尔 getter 为非零，setter 写 0／1；源 PropertyGrid 只在属性编辑时调用 setter，不能整窗规范化未改的非标准布尔编码。ScenePointName 为派生只读字符串。普通 UInt32 字段使用原版转换器完整范围；Seed 使用 TypeConverterU32，以八位大写十六进制显示，允许开头 `0x`／`0X`，不预先 Trim，无法解析返回 0，不能统一改成十进制解析或拒绝路径。枚举转换与 PropertyGrid 实际文本上限仍须后续探针核验。
+- Propagate 只遍历该区域 CountUsed，跳过目标 AreaID=0，复制启用／内容／已领取联盟支付点三项；仅 `ModifierKeys == Keys.Shift` 时额外复制 Seed。不复制位置、LotteryGroup、Unused 或区域的两项 UInt64 Seed。网页应提供显式“包含 Seed”选择，以 Core 执行完整传播并冻结输出。
+- 七星捕获块 `8B14392F`，每条 8 字节，UInt32 Identifier `+0`、Captured byte `+4`、旧版 Defeated byte `+5`，其余保留；新版击败块 `A4BA4848` 前四字节头部保留，每条八字节，Identifier `+0`、Defeated byte `+4`。两个 Bool getter 恰好等于 1，不能套普通团体战的非零语义。CountAll 来自捕获块；新版 GetRaid 按相同索引关联击败记录，Identifier setter 同时写两块；击败块缺失时回落到捕获记录 `+5`，不得新建块或把旧版字段清零。
+
+两个窗口 Save 均先 `Origin.CopyChangesFrom(SAV)`，再 ValidateChildren／Validate。区域 Seed 有 Validated 事件，后续实现须核对焦点验证与保存顺序，不能假定 Save 会把未验证文本自动写回。上述仅来源与范围核对，尚无产品、工程或真实页面／存档验收证据。
+
+独立控件探针 54990 使用已编译只读 Core 与 .NET 10 WinForms，在内存中创建同类型 PropertyGrid，退出码 0。实际 `GridViewTextBox.MaxLength=32767`；ScenePointName 为只读，Seed 的描述器转换器确为 TypeConverterU32。`0xFFFFFFFF`／`ffffffff` 得 UInt32 最大值，` 0x1` 得 0，`0x 1` 得 1，空／invalid 得 0，确认不能提前 Trim 或套区域 Seed 的 Undo 规则。
+
+Content 描述器为 EnumConverter，标准值 Base05／Black6／Distribution／Might7，`GetStandardValuesExclusive=true`；普通 UI 应按标准选项呈现并保留已载入的未知值。底层转换实测仍接受 `123`、`4294967295` 和 `Base05, Black6`（结果 1），`-1` 抛 FormatException，不能把转换器本身描述成只有四项的数值范围。区域 TextBox 的焦点验证与复制顺序尚未完成实际探针；这些元数据及转换结果是工程来源证据，不是新产品接线或验收。
 
 ## 剑／盾训练家窗口（API 131，工程检查通过）
 

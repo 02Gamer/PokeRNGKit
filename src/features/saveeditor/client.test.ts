@@ -211,6 +211,44 @@ describe("save player context across Worker lifecycle", () => {
     }
     client.dispose();
   });
+  it("transfers fashion pages, ordered previews, frozen commits and disposal without transferring original bytes", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "fashion9",
+      "fashion9Preview",
+      "fashion9Commit",
+      "fashion9Discard",
+    ] as const) {
+      const payload =
+        kind === "fashion9Discard"
+          ? "fashion9:1"
+          : JSON.stringify({
+              group: "Tops",
+              offset: 50,
+              limit: 50,
+              sourceHash: "A".repeat(64),
+              operations: [
+                { action: "owned", group: "Tops", owned: false, all: true },
+              ],
+            });
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes).not.toBe(source);
+      expect(message.bytes.buffer).not.toBe(source.buffer);
+      expect(source.byteLength).toBe(3);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({
+        data: { id: message.id, report: { apiVersion: 134 } },
+      });
+      await pending;
+    }
+    expect(vi.getTimerCount()).toBe(0);
+    client.dispose();
+  });
   it("transfers donut read, single-preview confirmation, cancellation and export without detaching original bytes", async () => {
     const client = new SaveEditorClient(),
       source = new Uint8Array([1, 2, 3]);

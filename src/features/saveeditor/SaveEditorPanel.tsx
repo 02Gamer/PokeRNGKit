@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Fashion9Editor } from "./Fashion9Editor";
+import { supportsFashion9, isFashion9Page } from "./fashion9";
+import { fashion9Words } from "./fashion9Words";
 import { Event9aEditor } from "./Event9aEditor";
 import { supportsEvent9a } from "./event9a";
 import { event9aWords } from "./event9aWords";
@@ -229,6 +232,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "fashion9"
     | "event9a"
     | "donut9a"
     | "trainer8"
@@ -363,6 +367,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "fashion9" && !supportsFashion9(result.report.format)) ||
         (previous === "event9a" && !supportsEvent9a(result.report.format)) ||
         (previous === "donut9a" && !supportsDonut9a(result.report.format)) ||
         (previous === "trainer8" && !supportsTrainer8(result.report.format)) ||
@@ -1416,6 +1421,59 @@ export function SaveEditorPanel(
       p = result.zygarde7Preview;
     });
     return p;
+  };
+  const readFashion9 = async (query: import("./fashion9").F9ReadQuery) => {
+    let page: import("./fashion9").F9Page | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(query),
+        "fashion9",
+      );
+      if (id !== operation.current) return;
+      if (!isFashion9Page(result.fashion9))
+        throw Error("Fashion9 page missing or invalid.");
+      page = result.fashion9;
+    });
+    return page;
+  };
+  const previewFashion9 = async (edit: import("./fashion9").F9Edit) => {
+    let ticket: import("./fashion9").F9Ticket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const source = working.current;
+      const result = await client.current.run(
+        source,
+        JSON.stringify(edit),
+        "fashion9Preview",
+      );
+      if (id !== operation.current) {
+        if (result.fashion9Ticket) {
+          try {
+            await client.current.run(
+              source,
+              result.fashion9Ticket.token,
+              "fashion9Discard",
+            );
+          } catch {
+            /* A disposed Worker has already released its preview. */
+          }
+        }
+        return;
+      }
+      if (!result.fashion9Ticket) throw Error("Fashion9 preview missing.");
+      ticket = result.fashion9Ticket;
+    });
+    return ticket;
+  };
+  const discardFashion9 = async (token: string) => {
+    try {
+      if (working.current)
+        await client.current.run(working.current, token, "fashion9Discard");
+    } catch {
+      /* A disposed Worker has already released its preview. */
+    }
   };
   const readEvent9a = async (query: import("./event9a").Ew9aReadQuery) => {
     let page: import("./event9a").Ew9aPage | undefined;
@@ -2600,6 +2658,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./fashion9").F9Confirmation
       | import("./event9a").Ew9aConfirmation
       | import("./donut9a").Dn9aConfirmation
       | import("./trainer8").Tr8Edit
@@ -2678,6 +2737,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "fashion9Commit"
       | "event9aCommit"
       | "donut9aCommit"
       | "trainer8Edit"
@@ -3276,6 +3336,15 @@ export function SaveEditorPanel(
                 {report.format === "SAV7USUM"
                   ? zygarde7Words[batchLang].stickers
                   : zygarde7Words[batchLang].cells}
+              </button>
+            )}
+            {supportsFashion9(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "fashion9"}
+                onClick={() => setSection("fashion9")}
+              >
+                {fashion9Words[batchLang].title}
               </button>
             )}
             {supportsEvent9a(report.format) && (
@@ -3879,6 +3948,16 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "fashion9" && supportsFashion9(report.format) ? (
+            <Fashion9Editor
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readFashion9}
+              onPreview={previewFashion9}
+              onApply={(e) => applyWorkingEdit(e, "fashion9Commit")}
+              onDiscard={discardFashion9}
             />
           ) : section === "event9a" && supportsEvent9a(report.format) ? (
             <Event9aEditor
