@@ -37,6 +37,9 @@ import { Gen7PokedexEditor } from "./Gen7PokedexEditor";
 import { FlagPokedexEditor } from "./FlagPokedexEditor";
 import { Gen4PokedexEditor } from "./Gen4PokedexEditor";
 import { SimplePokedexEditor } from "./SimplePokedexEditor";
+import { Trainer8aEditor } from "./Trainer8aEditor";
+import { supportsTrainer8a } from "./trainer8a";
+import { trainer8aWords } from "./trainer8aWords";
 import { Trainer8bEditor } from "./Trainer8bEditor";
 import { supportsTrainer8b } from "./trainer8b";
 import { trainer8bWords } from "./trainer8bWords";
@@ -217,6 +220,7 @@ export function SaveEditorPanel(
     | "link6"
     | "hall6"
     | "zygarde7"
+    | "trainer8a"
     | "trainer8b"
     | "raid8"
     | "underground8b"
@@ -347,6 +351,8 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "trainer8a" &&
+          !supportsTrainer8a(result.report.format)) ||
         (previous === "trainer8b" &&
           !supportsTrainer8b(result.report.format)) ||
         (previous === "raid8" && !supportsRaid8(result.report.format)) ||
@@ -1396,6 +1402,37 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const readTrainer8a = async () => {
+    let c: import("./trainer8a").Tr8aCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "trainer8a",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainer8a) throw Error("No Trainer8a catalog was returned.");
+      c = result.trainer8a;
+    });
+    return c;
+  };
+  const previewTrainer8a = async (edit: import("./trainer8a").Tr8aEdit) => {
+    let p: import("./trainer8a").Tr8aPreview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "trainer8aPreview",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainer8aPreview)
+        throw Error("No Trainer8a preview was returned.");
+      p = result.trainer8aPreview;
+    });
+    return p;
+  };
   const readTrainer8b = async () => {
     let c: import("./trainer8b").Tr8bCatalog | undefined;
     await perform(async (id) => {
@@ -2375,6 +2412,7 @@ export function SaveEditorPanel(
       | import("./misc5").Misc5Edit
       | import("./medals5").Medals5Edit
       | import("./avenue5").Avenue5Edit
+      | import("./trainer8a").Tr8aEdit
       | import("./trainer8b").Tr8bEdit
       | import("./raid8").Raid8Edit
       | import("./underground8b").Ug8bEdit
@@ -2449,6 +2487,7 @@ export function SaveEditorPanel(
       | "misc5Edit"
       | "medals5Edit"
       | "avenue5Edit"
+      | "trainer8aEdit"
       | "trainer8bEdit"
       | "raid8Edit"
       | "underground8bEdit"
@@ -3045,6 +3084,15 @@ export function SaveEditorPanel(
                   : zygarde7Words[batchLang].cells}
               </button>
             )}
+            {supportsTrainer8a(report.format) && (
+              <button
+                type="button"
+                aria-pressed={section === "trainer8a"}
+                onClick={() => setSection("trainer8a")}
+              >
+                {trainer8aWords[batchLang].title}
+              </button>
+            )}
             {supportsTrainer8b(report.format) && (
               <button
                 type="button"
@@ -3610,6 +3658,16 @@ export function SaveEditorPanel(
               onPreview={previewLink6}
               onApply={(edit) => applyWorkingEdit(edit, "link6Edit")}
               onExport={exportLink6}
+            />
+          ) : section === "trainer8a" && supportsTrainer8a(report.format) ? (
+            <Trainer8aEditor
+              key={report.format}
+              revision={workingRevision}
+              busy={busy}
+              lang={batchLang}
+              onRead={readTrainer8a}
+              onPreview={previewTrainer8a}
+              onApply={(e) => applyWorkingEdit(e, "trainer8aEdit")}
             />
           ) : section === "trainer8b" && supportsTrainer8b(report.format) ? (
             <Trainer8bEditor

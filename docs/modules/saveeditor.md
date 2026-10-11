@@ -3,6 +3,17 @@
 2026-09-22 开始开发。入口位于悬浮工具菜单，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
 
+## 传说 阿尔宙斯训练家窗口（API 130，工程检查通过）
+
+已核对 PKHeX 26.08.26 `SAV_Trainer8a.cs`／Designer、`MyStatus8a.cs`、`Coordinates8a.cs`、`SaveBlockAccessor8LA.cs`、`SAV8LA.cs`、`Epoch1970Value.cs`、`Epoch1900DateTimeValue.cs` 与共用姓名 TrashEditor。API 130 已接独立三语窗口及 Worker，按概览／ID／地图／姓名字节分组，所有操作先冻结预览，再进入工作副本，保留原件与既有撤销／导出。
+
+- 13 项字段：姓名、金钱、性别、语言、时长三项、开始／最后保存日期、当前／累计功勋、调查队等级、腰包次数。姓名最多 12 UTF-16 字符，七位金钱最大 9999999，五位小时最大 65535，分秒两位并模 60。四项 NumericUpDown 均 0–999999999，加载采用 `min(raw, maximum)`，整窗保存会将超限 UInt32 回写为此上限；不得按游戏注释的 rank 10／satchel 39 人为收窄。
+- MyStatus 块键 `F25C070E`，ID32 `+0x10`、性别 `+0x15`、语言 `+0x17`、姓名 `+0x20` 共 26 字节。修改语言同时更新 `0BFDEBA1`，语言编号至少 6 时运行时编号减一。六位 TID／四位 SID、空值及回绕沿用 TrainerIDManager；该窗口没有 BDSP 的全零 ID 修复。
+- 坐标块 `267DD9DA`，地图为 `+0x08` 长 0x48 的 ASCII 缓冲，但 TextBox 最大 48 字符；非 ASCII 源 setter 写问号，清缓冲后复制。X／Z／Y `+0x50／54／58`，四元数 RX／RZ／RY／RW `+0x60／64／68／6C`；数值范围正负 99999999，六位小数。地图 TextBox 未绑定 ChangeMapValue，但源窗口没有 Loading guard。加载值全部为零时单改地图不保存；加载非零值或数值实际改变会重写完整位置、地图及四元数，RX／RY 置零，RZ／RW 为半角 sin／cos。空／无效数值保留旧值；异常旧坐标禁用整组，不先归零。
+- 日期范围 2000–2099，来源为无时区 DateTime。开始块 `AEE903A2` 是 UInt64 自 1970 起的秒；最后保存 `1B1E3D8B` 是年／月／日／时／分位打包，块大于四字节才保存秒。网页须保持原有墙钟时间，不套用 BDSP 的时区换算。记录真实原始 bytes，冻结完整来源／目标哈希及逐块重读取检查，不修改无关块、元数据或原件。
+
+初稿核心编译及既有裁剪元数据探针、前端领域 4 项专项与原生四组合类型化合成块专项通过。接 UI 时再核对原版无 Loading guard：载入非零数值会触发 MapUpdated，原版重保存需同步重写地图、位置与四元数；扩大四组合专项已通过。字段、ID、坐标、姓名字节、两日期原始编码及忽略输入均进入三语预览；特殊字符、清理／层叠／完整原始字节和最大金钱操作齐备。合成数据不构成生产 SaveUtil／真实存档验收，不补造长度或放宽识别。前端三文件专项 40 项与最终完整 261 文件／1103 项通过；首轮日期子进程单项超过 5 秒，三文件 19 项复查及低负载完整重跑通过，代码与超时未改。全仓格式、Lint、类型、API 130 核心、裁剪后 26 类属性及最新核心网页／PWA 打包通过，预缓存 252 项。既有 Hook 与反射裁剪警告保留，页面／真实存档未验收。
+
 ## 晶灿钻石／明亮珍珠训练家窗口（API 129，工程检查通过）
 
 已核对 PKHeX 26.08.26 `SAV_Trainer8b.cs`／Designer、`TrainerIDManager`、`TrainerStat.cs`、`MyStatus8b.cs`、`SystemData8b.cs`、`Record8b.cs`、`RecordAddData8b.cs`、`PlayTime8b.cs`、`SAV8BS.cs` 与共用姓名 TrashEditor。API 129 已接专属三语产品入口与 Worker，按概览／ID／地图／徽章／记录／姓名字节分组，不把原有基础训练家面板视为整个窗口完成。

@@ -1,3 +1,4 @@
+import { trainer8aWords } from "./trainer8aWords";
 import { trainer8bWords } from "./trainer8bWords";
 import { raid8Words } from "./raid8Words";
 import { underground8bWords } from "./underground8bWords";
@@ -45,6 +46,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.zh.invalid,
     avenue5Error: avenue5Words.zh.invalid,
     avenue5Stale: avenue5Words.zh.stale,
+    trainer8aError: trainer8aWords.zh.invalid,
+    trainer8aStale: trainer8aWords.zh.stale,
     trainer8bError: trainer8bWords.zh.invalid,
     trainer8bStale: trainer8bWords.zh.stale,
     raid8Error: raid8Words.zh.invalid,
@@ -660,6 +663,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.en.invalid,
     avenue5Error: avenue5Words.en.invalid,
     avenue5Stale: avenue5Words.en.stale,
+    trainer8aError: trainer8aWords.en.invalid,
+    trainer8aStale: trainer8aWords.en.stale,
     trainer8bError: trainer8bWords.en.invalid,
     trainer8bStale: trainer8bWords.en.stale,
     raid8Error: raid8Words.en.invalid,
@@ -1317,6 +1322,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.ja.invalid,
     avenue5Error: avenue5Words.ja.invalid,
     avenue5Stale: avenue5Words.ja.stale,
+    trainer8aError: trainer8aWords.ja.invalid,
+    trainer8aStale: trainer8aWords.ja.stale,
     trainer8bError: trainer8bWords.ja.invalid,
     trainer8bStale: trainer8bWords.ja.stale,
     raid8Error: raid8Words.ja.invalid,
@@ -2012,6 +2019,8 @@ export function localizeSaveError(
   if (/(?:Collectibles7|Zygarde7).*stale/i.test(message))
     return words.zygarde7Stale;
   if (/Collectibles7|Zygarde7/i.test(message)) return words.zygarde7Error;
+  if (/Trainer8a.*stale/i.test(message)) return words.trainer8aStale;
+  if (/Trainer8a/i.test(message)) return words.trainer8aError;
   if (/Trainer8b.*stale/i.test(message)) return words.trainer8bStale;
   if (/Trainer8b/i.test(message)) return words.trainer8bError;
   if (/Raid8.*stale/i.test(message)) return words.raid8Stale;
