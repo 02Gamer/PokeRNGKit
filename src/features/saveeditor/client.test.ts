@@ -242,7 +242,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 135 } },
+        data: { id: message.id, report: { apiVersion: 136 } },
       });
       await pending;
     }
@@ -288,7 +288,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 135 } },
+        data: { id: message.id, report: { apiVersion: 136 } },
       });
       await pending;
     }
@@ -541,6 +541,40 @@ describe("save player context across Worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({ data: { id: message.id, report: {} } });
+      await pending;
+    }
+    client.dispose();
+  });
+  it("preserves original bytes across seven-star pages, frozen previews, commits and cancellation", async () => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    for (const kind of [
+      "sevenstar9",
+      "sevenstar9Preview",
+      "sevenstar9Commit",
+      "sevenstar9Discard",
+    ] as const) {
+      const payload =
+        kind === "sevenstar9Discard"
+          ? "sevenstar9:1"
+          : JSON.stringify({
+              offset: 2990,
+              limit: 50,
+              filter: "",
+              sourceHash: "A".repeat(64),
+              targetHash: "B".repeat(64),
+              token: "sevenstar9:1",
+            });
+      const pending = client.run(source, payload, kind),
+        worker = FakeWorker.instances[0],
+        message = worker.postMessage.mock.calls.at(-1)![0];
+      expect(message.kind).toBe(kind);
+      expect(message.edit).toBe(payload);
+      expect(message.bytes).not.toBe(source);
+      expect([...source]).toEqual([1, 2, 3]);
+      worker.onmessage?.({
+        data: { id: message.id, report: { apiVersion: 136 } },
+      });
       await pending;
     }
     client.dispose();

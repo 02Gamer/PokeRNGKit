@@ -430,7 +430,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 已接入旧版状态、形态、语言、显示及批量；工程检查通过，浏览器待核验                |
 | `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 已接入四组形态位及三地区显示、批量；工程检查通过，浏览器待核验                    |
 | `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | API 135：三区域／八属性／种子事件／传播／三语与冻结已接；完整工程通过，页面待核验 |
-| `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | 已核对并探针验证双块／Identifier／Bool=1、UInt32 转换与 32767 文本；未实现        |
+| `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | API 136：完整分页／三属性／双块及旧版回落／三语与冻结已接；工程通过，页面待核验   |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | 待核对                                                                            |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs`                                 | 待核对                                                                            |
 | `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | 待核对                                                                            |

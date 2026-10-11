@@ -60,7 +60,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 135;
+  apiVersion: 136;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -841,6 +841,8 @@ export interface SaveEditorResult {
   avenue5?: import("./avenue5").Avenue5Catalog;
   avenue5Preview?: import("./avenue5").Avenue5Preview;
   avenue5File?: Uint8Array<ArrayBuffer>;
+  sevenstar9?: import("./sevenstar9").R7Page;
+  sevenstar9Ticket?: import("./sevenstar9").R7Ticket;
   raid9?: import("./raid9").R9Catalog;
   raid9Ticket?: import("./raid9").R9Ticket;
   fashion9?: import("./fashion9").F9Page;

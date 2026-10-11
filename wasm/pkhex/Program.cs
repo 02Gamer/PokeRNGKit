@@ -185,6 +185,14 @@ public static partial class Program
     [JSExport]
     public static string ReadTrainerGG(byte[] data) => SaveService.ReadTrainerGG(data);
     [JSExport]
+    public static string ReadSevenStar9(byte[] data,string json) => SaveService.ReadSevenStar9(data,json);
+    [JSExport]
+    public static string PreviewSevenStar9(byte[] data,string json) => SaveService.PreviewSevenStar9(data,json);
+    [JSExport]
+    public static byte[] CommitSevenStar9(byte[] data,string json) => SaveService.CommitSevenStar9(data,json);
+    [JSExport]
+    public static void DiscardSevenStar9(string token) => SaveService.DiscardSevenStar9(token);
+    [JSExport]
     public static string ReadRaid9(byte[] data) => SaveService.ReadRaid9(data);
     [JSExport]
     public static string PreviewRaid9(byte[] data,string json) => SaveService.PreviewRaid9(data,json);
@@ -466,7 +474,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 135;
+    public const int ApiVersion = 136;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -937,6 +945,11 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(R9Edit))]
 [JsonSerializable(typeof(R9Ticket))]
 [JsonSerializable(typeof(R9Confirmation))]
+[JsonSerializable(typeof(R7Query))]
+[JsonSerializable(typeof(R7Page))]
+[JsonSerializable(typeof(R7Edit))]
+[JsonSerializable(typeof(R7Ticket))]
+[JsonSerializable(typeof(R7Confirmation))]
 [JsonSerializable(typeof(F9ReadQuery))]
 [JsonSerializable(typeof(F9Page))]
 [JsonSerializable(typeof(F9Edit))]

@@ -1,3 +1,4 @@
+import { sevenStar9Words } from "./sevenstar9Words";
 import { raid9Words } from "./raid9Words";
 import { fashion9Words } from "./fashion9Words";
 import { event9aWords } from "./event9aWords";
@@ -51,6 +52,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.zh.invalid,
     avenue5Error: avenue5Words.zh.invalid,
     avenue5Stale: avenue5Words.zh.stale,
+    sevenstar9Error: sevenStar9Words.zh.invalid,
+    sevenstar9Stale: sevenStar9Words.zh.stale,
     raid9Error: raid9Words.zh.invalid,
     raid9Stale: raid9Words.zh.stale,
     fashion9Error: fashion9Words.zh.invalid,
@@ -678,6 +681,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.en.invalid,
     avenue5Error: avenue5Words.en.invalid,
     avenue5Stale: avenue5Words.en.stale,
+    sevenstar9Error: sevenStar9Words.en.invalid,
+    sevenstar9Stale: sevenStar9Words.en.stale,
     raid9Error: raid9Words.en.invalid,
     raid9Stale: raid9Words.en.stale,
     fashion9Error: fashion9Words.en.invalid,
@@ -1347,6 +1352,8 @@ export const saveEditorResources = {
     berry6xyError: berry6xyWords.ja.invalid,
     avenue5Error: avenue5Words.ja.invalid,
     avenue5Stale: avenue5Words.ja.stale,
+    sevenstar9Error: sevenStar9Words.ja.invalid,
+    sevenstar9Stale: sevenStar9Words.ja.stale,
     raid9Error: raid9Words.ja.invalid,
     raid9Stale: raid9Words.ja.stale,
     fashion9Error: fashion9Words.ja.invalid,
@@ -2054,6 +2061,8 @@ export function localizeSaveError(
   if (/(?:Collectibles7|Zygarde7).*stale/i.test(message))
     return words.zygarde7Stale;
   if (/Collectibles7|Zygarde7/i.test(message)) return words.zygarde7Error;
+  if (/SevenStar9.*stale/i.test(message)) return words.sevenstar9Stale;
+  if (/SevenStar9/i.test(message)) return words.sevenstar9Error;
   if (/Raid9.*stale/i.test(message)) return words.raid9Stale;
   if (/Raid9/i.test(message)) return words.raid9Error;
   if (/Fashion9.*stale/i.test(message)) return words.fashion9Stale;
