@@ -3044,6 +3044,56 @@ export function SaveEditorPanel(
     });
     return catalog;
   };
+  const moveShopActions: import("./MoveShopEditor").MoveShopActions = {
+    onRead: async (target) => {
+      let catalog: import("./moveShop").MoveShopCatalog | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(target),
+          "moveShop",
+        );
+        if (id !== operation.current) return;
+        if (!result.moveShop) throw new Error("Missing Move Shop catalog");
+        catalog = result.moveShop;
+      });
+      return catalog;
+    },
+    onPreview: async (request) => {
+      let ticket: import("./moveShop").MoveShopTicket | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(request),
+          "moveShopPreview",
+        );
+        if (id !== operation.current) {
+          if (result.moveShopPreview)
+            await moveShopActions.onDiscard(result.moveShopPreview.token);
+          return;
+        }
+        if (!result.moveShopPreview)
+          throw new Error("Missing Move Shop preview");
+        ticket = result.moveShopPreview;
+      });
+      return ticket;
+    },
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyWorkingEdit(confirmation, "moveShopCommit", () => {
+        applied = true;
+      });
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working.current) return;
+      await client.current
+        .run(working.current, token, "moveShopDiscard")
+        .catch(() => undefined);
+    },
+  };
   const discardChatter = async (token: string) => {
     if (!working.current) return;
     await client.current
@@ -3237,6 +3287,7 @@ export function SaveEditorPanel(
       | FestaConfirmation
       | MailConfirmation
       | ChatterConfirmation
+      | import("./moveShop").MoveShopConfirmation
       | AccessorConfirmation
       | WondercardConfirmation
       | SCBlockConfirmation
@@ -3322,6 +3373,7 @@ export function SaveEditorPanel(
       | "festivalPlazaCommit"
       | "mailboxCommit"
       | "chatterCommit"
+      | "moveShopCommit"
       | "blockAccessorCommit"
       | "wondercardCommit"
       | "scblockCommit"
@@ -4964,6 +5016,7 @@ export function SaveEditorPanel(
                 />
               ) : section === "pokemon" ? (
                 <SavePokemonBrowser
+                  moveShop={moveShopActions}
                   profileLink={profileLinkPanel}
                   key={`${name}:${fileRevision}`}
                   report={report}

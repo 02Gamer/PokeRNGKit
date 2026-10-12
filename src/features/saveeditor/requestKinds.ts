@@ -1,5 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "moveShop"
+  | "moveShopPreview"
+  | "moveShopCommit"
+  | "moveShopDiscard"
+  | "entityMoveShop"
+  | "entityMoveShopPreview"
+  | "entityMoveShopCommit"
+  | "entityMoveShopDiscard"
   | "scblock"
   | "scblockExport"
   | "scblockCompare"

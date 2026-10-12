@@ -139,7 +139,7 @@ internal static class StandalonePokemon
         return Serialize(p, file.Party, false);
     }
 
-    private static byte[] Serialize(PKM p, bool party, bool encrypted)
+    internal static byte[] Serialize(PKM p, bool party, bool encrypted)
     {
         // BK4's constructor marks party-sized data as initialized. Match that representation
         // when expanding a stored file, without changing flags for stored-size exports.

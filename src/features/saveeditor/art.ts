@@ -6,6 +6,10 @@ import type { PokemonEntry, SaveReport } from "./domain";
 const assets: Readonly<Record<string, string>> = manifest;
 const url = (key: string) =>
   `${import.meta.env.BASE_URL}save-art/26.08.26/${assets[key]}`;
+export function typeIconImage(type: number) {
+  const key = `type_icon_s_${String(type).padStart(2, "0")}`;
+  return assets[key] ? url(key) : undefined;
+}
 
 // Resource keys follow PKHeX.Drawing.Misc/Util/DonutSpriteUtil.cs.
 export function donutImage(sprite: string) {

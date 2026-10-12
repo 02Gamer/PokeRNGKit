@@ -61,7 +61,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 147;
+  apiVersion: 148;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -794,6 +794,8 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  moveShop?: import("./moveShop").MoveShopCatalog;
+  moveShopPreview?: import("./moveShop").MoveShopTicket;
   scblock?: import("./scblock").SCBlockPage;
   scblockExport?: import("./scblock").SCBlockExportResult;
   scblockComparison?: import("./scblock").SCBlockComparison;

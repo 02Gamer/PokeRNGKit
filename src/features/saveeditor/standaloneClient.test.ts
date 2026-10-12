@@ -18,6 +18,41 @@ const request = {
   useFileFormat: true,
 };
 describe("independent entity worker lifecycle", () => {
+  it.each([
+    "entityMoveShop",
+    "entityMoveShopPreview",
+    "entityMoveShopCommit",
+    "entityMoveShopDiscard",
+  ] as const)("retains PA8 hints, original and %s reply", async (kind) => {
+    const client = new StandalonePokemonClient(),
+      source = new Uint8Array([1, 2, 3]);
+    const input = {
+      ...request,
+      fileName: "entity.pa8",
+      moveShopToken: "move-shop:1",
+    };
+    const pending = client.run(source, input, kind),
+      worker = FakeWorker.instances[0];
+    const [message, transfer] = worker.postMessage.mock.calls[0];
+    const fields =
+      kind === "entityMoveShop"
+        ? { moveShop: { rows: [] } }
+        : kind === "entityMoveShopPreview"
+          ? { moveShopPreview: { token: "move-shop:1" } }
+          : kind === "entityMoveShopCommit"
+            ? { output: new Uint8Array([4]) }
+            : {};
+    expect(message.kind).toBe(kind);
+    expect(JSON.parse(message.edit)).toEqual(input);
+    expect(message.bytes).not.toBe(source);
+    expect(transfer).toEqual([message.bytes.buffer]);
+    worker.onmessage?.({
+      data: { id: message.id, entity: { format: "PA8" }, ...fields },
+    });
+    expect(await pending).toMatchObject(fields);
+    expect(source).toEqual(new Uint8Array([1, 2, 3]));
+    client.dispose();
+  });
   beforeEach(() => {
     vi.useFakeTimers();
     FakeWorker.instances = [];

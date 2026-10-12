@@ -18,6 +18,7 @@ import type { PokemonLegalityReport, PokemonRawEdit } from "./domain";
 import { PokemonRawEditor } from "./PokemonRawEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
+import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
 import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
 import { PokemonFormArgumentEditor } from "./PokemonFormArgumentEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
@@ -136,9 +137,15 @@ export function StandalonePokemonPanel() {
   const applyRequest = (
     change: Pick<
       StandalonePokemonRequest,
-      "edit" | "raw" | "eggTrainer" | "gb" | "gbSpecial"
+      | "edit"
+      | "raw"
+      | "eggTrainer"
+      | "gb"
+      | "gbSpecial"
+      | "moveShopConfirmation"
     >,
-    kind: "entityEdit" | "entityRaw" | "entityGb",
+    kind: "entityEdit" | "entityRaw" | "entityGb" | "entityMoveShopCommit",
+    onApplied?: () => void,
   ) =>
     perform(async (id) => {
       if (!working) return;
@@ -169,8 +176,76 @@ export function StandalonePokemonPanel() {
       setReport(result.entity);
       setRevision((value) => value + 1);
       setStatus("applied");
+      onApplied?.();
     });
   const apply = (edit: PokemonEdit) => applyRequest({ edit }, "entityEdit");
+  const moveShopActions: MoveShopActions = {
+    onRead: (target) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            moveShopTarget: target,
+          },
+          "entityMoveShop",
+        );
+        if (id !== operation.current) return;
+        if (!result.moveShop) throw new Error("Missing Move Shop catalog");
+        return result.moveShop;
+      }),
+    onPreview: (request) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            moveShopRequest: request,
+          },
+          "entityMoveShopPreview",
+        );
+        if (id !== operation.current) {
+          if (result.moveShopPreview)
+            await moveShopActions.onDiscard(result.moveShopPreview.token);
+          return;
+        }
+        if (!result.moveShopPreview)
+          throw new Error("Missing Move Shop preview");
+        return result.moveShopPreview;
+      }),
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyRequest(
+        { moveShopConfirmation: confirmation },
+        "entityMoveShopCommit",
+        () => {
+          applied = true;
+        },
+      );
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working) return;
+      await client.current
+        .run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            moveShopToken: token,
+          },
+          "entityMoveShopDiscard",
+        )
+        .catch(() => undefined);
+    },
+  };
   const applyRaw = (raw: PokemonRawEdit) => applyRequest({ raw }, "entityRaw");
   const readDetails = <K extends keyof StandaloneAdvancedData>(
     readKind: K,
@@ -574,6 +649,25 @@ export function StandalonePokemonPanel() {
                     disabled={busy}
                     onApply={applyRaw}
                   />
+                  {report.format === "PA8" &&
+                    report.pokemon.valid &&
+                    report.pokemon.species > 0 &&
+                    working && (
+                      <MoveShopEditor
+                        key={`move-shop-${revision}`}
+                        target={{
+                          kind: "file",
+                          box: 0,
+                          slot: 0,
+                          fileName: working.fileName,
+                          inputEncrypted: working.inputEncrypted,
+                          useFileFormat: working.useFileFormat ?? false,
+                        }}
+                        lang={lang}
+                        busy={busy}
+                        {...moveShopActions}
+                      />
+                    )}
                   <PokemonEncounterEditor
                     key={`encounter-${revision}`}
                     encounter={report.pokemon.encounter}

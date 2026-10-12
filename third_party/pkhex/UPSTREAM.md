@@ -26,6 +26,8 @@ into the distribution legal folder. This adaptation does not modify the upstream
 
 2026-10-11：使用同一只读 PKHeX 26.08.26 来源的 Drawing.Misc Resources.resx，导入 319 张未修改甜甜圈、效果、星星与口味图 PNG（1738995 bytes）。脚本为 `scripts/import-pkhex-donut-art.mjs`；来源路径与 SHA-256 追加到既有 artwork manifest，原有哈希保持。资源选择沿用 `DonutSpriteUtil.cs`，适用同一 GPL 归属和角色／图像权利声明，无运行时 CDN。
 
+2026-10-13：从同一 Drawing.Misc Resources.resx 导入19张未修改小型属性图标（10478字节）。脚本为 `scripts/import-pkhex-type-art.mjs`，选择沿用 `TypeSpriteUtil.GetTypeSpriteIconSmall`，资源键 `type_icon_s_00..17` 和未知属性 `type_icon_s_99`、来源路径和 SHA-256 追加到两个既有 artwork manifest。保持上述GPL归属及图像权利声明，全部本地加载。
+
 同脚本随后按 Core.ItemStorage9ZA.Berry 的实际 66 项选择，追加 Drawing.PokeSprite Resources.resx 的 `aitem_` 树果 PNG，匹配 DonutEditor9a 的 GetItemSpriteA。新增树果共 108341 bytes，甜甜圈工具合计 385 张／1847336 bytes；全部未修改，两个 artwork manifest 保留来源及 SHA-256。
 
 `public/save-art/26.08.26/` contains unmodified PNGs from the same archive, selected using the upstream Resources.resx keys (normal Big Pokémon sprites and box wallpapers). Source paths and SHA-256 are in `art-manifest.json`; the frontend resource-key map is `src/features/saveeditor/art-manifest.json`.

@@ -15,7 +15,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 147;
+  apiVersion: 148;
   format: string;
   extension: string;
   party: boolean;
@@ -29,6 +29,14 @@ export interface StandalonePokemonReport {
   gb?: GbSpecialInfo | null;
 }
 export interface StandalonePokemonRequest {
+  moveShopTarget?: import("./moveShop").MoveShopTarget;
+  moveShopRequest?: {
+    sourceHash: string;
+    target: import("./moveShop").MoveShopTarget;
+    edit: import("./moveShop").MoveShopEdit;
+  };
+  moveShopConfirmation?: import("./moveShop").MoveShopConfirmation;
+  moveShopToken?: string;
   gb?: GbPokemonEdit;
   gbSpecial?: GbSpecialEdit;
   fileName: string;
@@ -64,6 +72,10 @@ export interface StandaloneAdvancedData {
   relearn?: number[] | null;
 }
 export type StandalonePokemonOperation =
+  | "entityMoveShop"
+  | "entityMoveShopPreview"
+  | "entityMoveShopCommit"
+  | "entityMoveShopDiscard"
   | "entityGb"
   | "entityRaw"
   | "entityDetails"
@@ -86,6 +98,8 @@ export interface GbPokemonEdit {
   heldItem: number | null;
 }
 export interface StandalonePokemonResult {
+  moveShop?: import("./moveShop").MoveShopCatalog;
+  moveShopPreview?: import("./moveShop").MoveShopTicket;
   details?: StandaloneAdvancedData;
   legality?: PokemonLegalityReport;
   entity: StandalonePokemonReport;

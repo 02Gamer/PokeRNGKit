@@ -6,6 +6,7 @@ import {
   swapBoxViews,
 } from "./boxViewer";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
+import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
 import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
@@ -53,6 +54,7 @@ import type {
 import type { saveEditorResources } from "./locales";
 
 export function SavePokemonBrowser({
+  moveShop,
   profileLink,
   report,
   revision,
@@ -79,6 +81,7 @@ export function SavePokemonBrowser({
   onDiscardBoxBinary,
   onExportBoxBinary,
 }: {
+  moveShop: MoveShopActions;
   profileLink?: ReactNode;
   report: SaveReport;
   revision: number;
@@ -572,6 +575,24 @@ export function SavePokemonBrowser({
                 disabled={busy || !report.canEdit || !selected.valid}
                 onApply={onApplyRaw}
               />
+              {report.format === "SAV8LA" &&
+                selected.valid &&
+                selected.species > 0 && (
+                  <MoveShopEditor
+                    key={`move-shop-${revision}-${selected.box}-${selected.slot}`}
+                    target={{
+                      kind: "save",
+                      box: selected.box,
+                      slot: selected.slot,
+                      fileName: null,
+                      inputEncrypted: false,
+                      useFileFormat: false,
+                    }}
+                    lang={lang}
+                    busy={busy}
+                    {...moveShop}
+                  />
+                )}
               <PokemonEncounterEditor
                 key={`encounter-${JSON.stringify(selected)}`}
                 encounter={selected.encounter}

@@ -11,6 +11,36 @@ class FakeWorker {
   }
 }
 describe("save player context across Worker lifecycle", () => {
+  it.each([
+    "moveShop",
+    "moveShopPreview",
+    "moveShopCommit",
+    "moveShopDiscard",
+  ] as const)("retains Move Shop source and %s reply", async (kind) => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]);
+    const pending = client.run(source, "payload", kind),
+      worker = FakeWorker.instances[0];
+    const [message, transfer] = worker.postMessage.mock.calls[0];
+    const fields =
+      kind === "moveShop"
+        ? { moveShop: { rows: [] } }
+        : kind === "moveShopPreview"
+          ? { moveShopPreview: { token: "move-shop:1" } }
+          : kind === "moveShopCommit"
+            ? { output: new Uint8Array([4]) }
+            : {};
+    expect(message.kind).toBe(kind);
+    expect(message.edit).toBe("payload");
+    expect(message.bytes).not.toBe(source);
+    expect(transfer).toEqual([message.bytes.buffer]);
+    worker.onmessage?.({
+      data: { id: message.id, report: { apiVersion: 148 }, ...fields },
+    });
+    expect(await pending).toMatchObject(fields);
+    expect(source).toEqual(new Uint8Array([1, 2, 3]));
+    client.dispose();
+  });
   beforeEach(() => {
     vi.useFakeTimers();
     FakeWorker.instances = [];
@@ -52,7 +82,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(message.kind).toBe(kind);
       expect(message.bytes).not.toBe(source);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 147 }, ...fields },
+        data: { id: message.id, report: { apiVersion: 148 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(original);
@@ -90,7 +120,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect(message.kind).toBe(kind);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 147 }, ...fields },
+        data: { id: message.id, report: { apiVersion: 148 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(before);
@@ -170,7 +200,7 @@ describe("save player context across Worker lifecycle", () => {
                                   }
                                 : {};
     worker.onmessage?.({
-      data: { id: message.id, report: { apiVersion: 147 }, ...fields },
+      data: { id: message.id, report: { apiVersion: 148 }, ...fields },
     });
     expect(await pending).toMatchObject(fields);
     expect(source).toEqual(original);
@@ -202,7 +232,7 @@ describe("save player context across Worker lifecycle", () => {
               },
             };
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 147 }, ...fields },
+        data: { id: message.id, report: { apiVersion: 148 }, ...fields },
       });
       const result = await pending;
       expect(result).toMatchObject(fields);
@@ -432,7 +462,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 147 } },
+        data: { id: message.id, report: { apiVersion: 148 } },
       });
       await pending;
     }
@@ -478,7 +508,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 147 } },
+        data: { id: message.id, report: { apiVersion: 148 } },
       });
       await pending;
     }
@@ -763,7 +793,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 147 } },
+        data: { id: message.id, report: { apiVersion: 148 } },
       });
       await pending;
     }
