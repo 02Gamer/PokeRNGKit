@@ -1,3 +1,9 @@
+import { Trainer9aEditor } from "./Trainer9aEditor";
+import {
+  tr9aWords,
+  supportsTrainer9a,
+  type Tr9aConfirmation,
+} from "./trainer9a";
 import { Trainer9Editor } from "./Trainer9Editor";
 import { tr9Words, supportsTrainer9, type Tr9Confirmation } from "./trainer9";
 import { FestivalPlazaEditor } from "./FestivalPlazaEditor";
@@ -339,6 +345,8 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "trainer9a" &&
+          !supportsTrainer9a(result.report.format)) ||
         (previous === "trainer9" && !supportsTrainer9(result.report.format)) ||
         (previous === "festivalPlaza" &&
           !supportsFestivalPlaza(result.report.format)) ||
@@ -2591,6 +2599,55 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readTrainer9a = async () => {
+    let catalog: import("./trainer9a").Tr9aCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "trainer9a",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainer9a)
+        throw new Error("Trainer9a catalog was not returned.");
+      catalog = result.trainer9a;
+    });
+    return catalog;
+  };
+  const discardTrainer9a = async (token: string) => {
+    if (!working.current) return;
+    await client.current
+      .run(working.current, token, "trainer9aDiscard")
+      .catch(() => undefined);
+  };
+  const previewTrainer9a = async (edit: import("./trainer9a").Tr9aRequest) => {
+    let ticket: import("./trainer9a").Tr9aTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "trainer9aPreview",
+      );
+      if (id !== operation.current) {
+        if (result.trainer9aPreview)
+          await discardTrainer9a(result.trainer9aPreview.token);
+        return;
+      }
+      if (!result.trainer9aPreview)
+        throw new Error("Trainer9a preview was not returned.");
+      ticket = result.trainer9aPreview;
+    });
+    return ticket;
+  };
+  const applyTrainer9a = async (edit: Tr9aConfirmation) => {
+    let applied = false;
+    await applyWorkingEdit(edit, "trainer9aCommit", () => {
+      applied = true;
+    });
+    return applied;
+  };
   const readTrainer9 = async () => {
     let catalog: import("./trainer9").Tr9Catalog | undefined;
     await perform(async (id) => {
@@ -2942,6 +2999,7 @@ export function SaveEditorPanel(
 
   const applyWorkingEdit = (
     edit:
+      | Tr9aConfirmation
       | Tr9Confirmation
       | FestaConfirmation
       | MailConfirmation
@@ -3023,6 +3081,7 @@ export function SaveEditorPanel(
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
+      | "trainer9aCommit"
       | "trainer9Commit"
       | "festivalPlazaCommit"
       | "mailboxCommit"
@@ -3362,6 +3421,11 @@ export function SaveEditorPanel(
 
   const sectionItems: SaveSectionItem[] = report
     ? [
+        {
+          id: "trainer9a",
+          label: tr9aWords[batchLang].title,
+          available: supportsTrainer9a(report.format),
+        },
         {
           id: "trainer9",
           label: tr9Words[batchLang].title,
@@ -4544,6 +4608,17 @@ export function SaveEditorPanel(
                   onBatch={(edit) => applyWorkingEdit(edit, "inventoryBatch")}
                   canEdit={report.canEdit}
                   onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
+                />
+              ) : section === "trainer9a" ? (
+                <Trainer9aEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readTrainer9a}
+                  onPreview={previewTrainer9a}
+                  onApply={applyTrainer9a}
+                  onDiscard={discardTrainer9a}
                 />
               ) : section === "trainer9" ? (
                 <Trainer9Editor

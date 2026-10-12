@@ -1,15 +1,13 @@
+import { SaveTrainerImage } from "./SaveTrainerImage";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
 import {
   tr9Confirmation,
   tr9Draft,
-  tr9Pixels,
-  tr9Bmp,
   tr9Request,
   tr9Words,
   type Tr9Catalog,
   type Tr9Confirmation,
-  type Tr9Image,
   type Tr9Request,
   type Tr9Ticket,
 } from "./trainer9";
@@ -555,7 +553,7 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
           {tab === "images" && (
             <div className="save-trainer9-images">
               {frame.images.map((image) => (
-                <TrainerImage
+                <SaveTrainerImage
                   key={image.key}
                   image={image}
                   title={w[image.key as "photo" | "icon" | "initialIcon"]}
@@ -645,119 +643,6 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
           {error}
         </p>
       )}
-    </section>
-  );
-}
-function TrainerImage({
-  image,
-  title,
-  unavailable,
-  exportLabel,
-}: {
-  image: Tr9Image;
-  title: string;
-  unavailable: string;
-  exportLabel: string;
-}) {
-  const canvas = useRef<HTMLCanvasElement>(null),
-    urls = useRef(new Map<string, ReturnType<typeof setTimeout>>());
-  const lifetime = useRef({ alive: true, epoch: 0 });
-  let pixels: Uint8ClampedArray | undefined;
-  try {
-    if (image.available) pixels = tr9Pixels(image);
-  } catch {
-    pixels = undefined;
-  }
-  const error = !pixels;
-  useEffect(() => {
-    const element = canvas.current;
-    if (!element || !image.available) return;
-    try {
-      const rendered = tr9Pixels(image);
-      element.width = image.width;
-      element.height = image.height;
-      element
-        .getContext("2d")
-        ?.putImageData(
-          new ImageData(rendered, image.width, image.height),
-          0,
-          0,
-        );
-    } catch {
-      element.width = element.height = 0;
-    }
-  }, [image]);
-  useEffect(() => {
-    const current = urls.current;
-    const active = lifetime.current;
-    active.alive = true;
-    return () => {
-      active.alive = false;
-      active.epoch++;
-      for (const [url, timer] of current) {
-        clearTimeout(timer);
-        URL.revokeObjectURL(url);
-      }
-      current.clear();
-    };
-  }, []);
-  function download(format: "png" | "jpg" | "bmp") {
-    const element = canvas.current;
-    if (!element || !image.available || error) return;
-    const active = lifetime.current,
-      epoch = active.epoch;
-    const publish = (blob: Blob | null) => {
-      if (!blob || !active.alive || epoch !== active.epoch) return;
-      const url = URL.createObjectURL(blob),
-        link = document.createElement("a");
-      link.href = url;
-      link.download = `${image.key}.${format}`;
-      link.click();
-      urls.current.set(
-        url,
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-          urls.current.delete(url);
-        }, 30000),
-      );
-    };
-    if (format === "bmp") {
-      publish(new Blob([tr9Bmp(image)], { type: "image/bmp" }));
-      return;
-    }
-    element.toBlob(publish, format === "jpg" ? "image/jpeg" : "image/png");
-  }
-  return (
-    <section>
-      <h4>{title}</h4>
-      {image.available && !error ? (
-        <canvas ref={canvas} role="img" aria-label={title} />
-      ) : (
-        <p>{unavailable}</p>
-      )}
-      <div className="save-editor-toolbar">
-        <button
-          type="button"
-          disabled={!image.available || error}
-          onClick={() => download("png")}
-        >
-          {exportLabel} PNG
-        </button>
-        <button
-          type="button"
-          disabled={!image.available || error}
-          onClick={() => download("jpg")}
-        >
-          {exportLabel} JPG
-        </button>
-        <button
-          type="button"
-          disabled={!image.available || error}
-          onClick={() => download("bmp")}
-        >
-          {exportLabel} BMP
-        </button>
-      </div>
     </section>
   );
 }

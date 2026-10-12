@@ -48,6 +48,22 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
+## 传说 Z-A 训练家（API 144 工程通过，页面待核验）
+
+已核对只读 PKHeX 26.08.26 `Gen9/SAV_Trainer9a.cs`／Designer、Core `SAV9ZA.cs`、`SaveBlockAccessor9ZA.cs`、`Coordinates9a.cs`、`PlayTime9a.cs`、`PlayerFashion9a.cs`、`TechnicalMachine9a.cs`、`ColorfulScrew9a.cs`、`EventWorkStorage64.cs` 与 `Epoch1900DateTimeValue.cs`。`Trainer9aEditing`／`Trainer9aActions`／`Trainer9aSession`、产品 JSExport／Worker／客户端、正式用途导航与三语五分组已接，协议同步为 API 144。完整原生、最新三修订专项、最终完整 verify（276 文件／1229 项）、最终核心／26 类裁剪与最新核心网页均退出码 0，保留既有提示。三修订类型化工程夹具不等于公开识别或真实存档验收，页面仍待核验。
+
+Designer 姓名 12 字、地图名称 32 字、街道名称 18 字；金钱／两种 Royale 点数／异次元调查点数均为七位十进制 mask。加号按钮分别填入 MaxMoney、310000、50000、100000，这些快捷值不是输入上限。小时五位且源 `ushort.Parse`，超过 65535 明确拒绝；分钟／秒两位，保存模 60。游玩时间实际在 `KPlayedSeconds` Double，三个 setter 保留小数秒，不写未使用的 PlayTime 数组。保存日期默认最小 1753-01-01、最大 4095-12-31；独立时间控件日期范围 2000–2060，保存合并日期与时分秒。
+
+X／Y／Z／R 为六位小数、−99999999–99999999，无法有限表示时地图禁用。坐标或地图名称变化才触发 MapUpdated；源保存用 float 坐标、Core 角度到四元数及 epsilon 逻辑，地图按 32 字节 ASCII 保存。未触发地图事件时不解析或重写地图字段。基础信息保存在地图之前，DLC 保存最后；修订 0 没有 DLC 字段，修订 1／2 才写调查点数与 ClearZero 街道字符串。原始 UInt64 修订先检查，不能通过 int 截断接受未知修订。
+
+性别实际变化才调用 `PlayerFashion.Reset`，仅重置服装／上身／下身三项，其余十项保留。TID／SID 即时事件复用源事件顺序，姓名高级字节通过 Core `TrashEditor` 对应操作处理，普通保存只在名称变化时写入。招式机按钮直接调用 Core，同时更新地面状态与背包数量。彩色螺丝包含普通收集、Alt 的剩余 100 个源位置列表，以及 Ctrl+Alt+Shift 的 `SetAllScrews(false)` 后收集；收集数量由 Core 返回，背包数量按源限制到 100。网页将源快捷键隐藏操作变为明确入口，位置列表可本地导出，不依赖系统剪贴板或后端。
+
+三图片按当前／SBC／初始读取对应块，DXT1 的 BGRA 转 RGBA，提供 PNG／BMP／JPG 本地导出。原版三个点击处理器的默认文件名依次为 `KPictureSBCData`／`KPictureInitialData`／`KPictureCurrentData`，与所显示图片的键并非同名，目录保留这项来源行为。缺失、类型错误、双零尺寸与无效尺寸分别返回不可显示状态；最多 4096 边长与 4194304 像素为网页资源限额。读取与预览保留原件，冻结确认不重算，取消旧 token 不删除新预览。
+
+姓名高级入口另对照 `Subforms/PKM Editors/Text.cs`／Designer：世代数值使用 WinForms 默认 0–100 范围，语言按 Gen9a 来源提供新增西班牙语，不能复用 Gen6 的语言白名单。18 个 Switch Unicode 特殊字符使用源列表，按钮向高级文本追加，沿用 12 字上限。前端三文件 56 项、完整文件 layer oracle 与 0／9／100 世代原生边界均通过。
+
+空值行为再按 `SAV_Trainer9a.SaveTrainerInfo` 核对：小时直接 `ushort.Parse`，空值必须拒绝；金钱／点数的 `Util.ToUInt32` 空值为 0，分钟／秒的 `Change255` 空值归零，不能对所有 mask 统一补 0。Core／domain 已修正小时空值，最后三修订完整文件专项 28944、最终完整 verify 89701 与最后核心／裁剪／网页 69970 均通过。
+
 ## 第九世代训练家（API 143 工程通过，页面待核验）
 
 完整 Core 字段／图片读取／源操作、冻结会话、JSExport／Worker 与正式三语共享控件入口已接。六类型化版本／修订工程专项覆盖原件、完整独立源保存、地图四元数、三 DXT1 图像／尺寸保护、全部解锁、ID／姓名 trash 和冻结生命周期。完整原生 26960、完整 verify 75539（275 文件／1217 项）、核心／26 类裁剪 53559 与最新核心网页 22130 均退出码 0，保留既有提示。不能把类型化夹具等同 SaveUtil 实际识别或真实存档验收；页面与真实存档仍待核验。

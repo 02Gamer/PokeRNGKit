@@ -3,6 +3,7 @@ export type PrimaryWorkspace = "rng" | "save";
 export const SAVE_SECTION_GROUPS = {
   pokemon: ["pokemon", "registeredGroups", "pokedex", "inventory"],
   trainer: [
+    "trainer9a",
     "trainer9",
     "trainer",
     "trainer8",

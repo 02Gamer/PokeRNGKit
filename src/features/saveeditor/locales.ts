@@ -1,3 +1,4 @@
+import { tr9aWords } from "./trainer9a";
 import { tr9Words } from "./trainer9";
 import { festaWords } from "./festivalPlaza";
 import { mailboxWords } from "./mailbox";
@@ -47,6 +48,8 @@ import { boxBinaryWords } from "./boxBinary";
 
 export const saveEditorResources = {
   zh: {
+    trainer9aError: tr9aWords.zh.invalid,
+    trainer9aStale: tr9aWords.zh.stale,
     trainer9Error: tr9Words.zh.invalid,
     trainer9Stale: tr9Words.zh.stale,
     festaError: festaWords.zh.invalid,
@@ -685,6 +688,8 @@ export const saveEditorResources = {
     },
   },
   en: {
+    trainer9aError: tr9aWords.en.invalid,
+    trainer9aStale: tr9aWords.en.stale,
     trainer9Error: tr9Words.en.invalid,
     trainer9Stale: tr9Words.en.stale,
     festaError: festaWords.en.invalid,
@@ -1366,6 +1371,8 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    trainer9aError: tr9aWords.ja.invalid,
+    trainer9aStale: tr9aWords.ja.stale,
     trainer9Error: tr9Words.ja.invalid,
     trainer9Stale: tr9Words.ja.stale,
     festaError: festaWords.ja.invalid,
@@ -2054,6 +2061,9 @@ export function localizeSaveError(
   message: string,
   words: typeof saveEditorResources.en,
 ) {
+  if (/Trainer9a.*(?:stale|missing|replaced)/i.test(message))
+    return words.trainer9aStale;
+  if (/Trainer9a/i.test(message)) return words.trainer9aError;
   if (/Trainer9.*(?:stale|missing|replaced)/i.test(message))
     return words.trainer9Stale;
   if (/Trainer9/i.test(message)) return words.trainer9Error;
