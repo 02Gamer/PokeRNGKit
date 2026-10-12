@@ -396,7 +396,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | API 118：三十二阶段／两组图像纪录／三语解析／十二袋工程通过；浏览器待核验               |
 | `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | API 120：X／Y／ORAS 与试玩版训练家全量工程通过；浏览器及实档待验收                      |
 | `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 已接入 API 53；工程检查通过，浏览器待核验                                               |
-| `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | 待核对                                                                                  |
+| `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | API 142：七设施／短语奖励／日期 FC／USUM 代理人／三语冻结已接；工程通过，页面待核验     |
 | `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | API 122：十二格种类／图像、三语、USUM 常数及来源保存全量工程通过；浏览器待验收          |
 | `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | API 73 逐项／批量编辑工程检查通过；浏览器与真实存档待核验                               |
 | `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 已接入 API 53；工程检查通过，浏览器待核验                                               |

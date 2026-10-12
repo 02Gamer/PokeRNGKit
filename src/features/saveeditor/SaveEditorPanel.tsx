@@ -1,3 +1,9 @@
+import { FestivalPlazaEditor } from "./FestivalPlazaEditor";
+import {
+  festaWords,
+  supportsFestivalPlaza,
+  type FestaConfirmation,
+} from "./festivalPlaza";
 import { MailboxEditor } from "./MailboxEditor";
 import {
   mailboxWords,
@@ -331,6 +337,8 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "festivalPlaza" &&
+          !supportsFestivalPlaza(result.report.format)) ||
         (previous === "mailbox" && !supportsMailbox(result.report.format)) ||
         (previous === "chatter" && !supportsChatter(result.report.format)) ||
         (previous === "registeredGroups" && !result.report.registeredTeams) ||
@@ -2580,6 +2588,57 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readFestivalPlaza = async () => {
+    let catalog: import("./festivalPlaza").FestaCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "festivalPlaza",
+      );
+      if (id !== operation.current) return;
+      if (!result.festivalPlaza)
+        throw new Error("Festival Plaza catalog was not returned.");
+      catalog = result.festivalPlaza;
+    });
+    return catalog;
+  };
+  const discardFestivalPlaza = async (token: string) => {
+    if (!working.current) return;
+    await client.current
+      .run(working.current, token, "festivalPlazaDiscard")
+      .catch(() => undefined);
+  };
+  const previewFestivalPlaza = async (
+    edit: import("./festivalPlaza").FestaRequest,
+  ) => {
+    let ticket: import("./festivalPlaza").FestaTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "festivalPlazaPreview",
+      );
+      if (id !== operation.current) {
+        if (result.festivalPlazaPreview)
+          await discardFestivalPlaza(result.festivalPlazaPreview.token);
+        return;
+      }
+      if (!result.festivalPlazaPreview)
+        throw new Error("Festival Plaza preview was not returned.");
+      ticket = result.festivalPlazaPreview;
+    });
+    return ticket;
+  };
+  const applyFestivalPlaza = async (edit: FestaConfirmation) => {
+    let applied = false;
+    await applyWorkingEdit(edit, "festivalPlazaCommit", () => {
+      applied = true;
+    });
+    return applied;
+  };
   const readMailbox = async () => {
     let catalog: import("./mailbox").MailCatalog | undefined;
     await perform(async (id) => {
@@ -2831,6 +2890,7 @@ export function SaveEditorPanel(
 
   const applyWorkingEdit = (
     edit:
+      | FestaConfirmation
       | MailConfirmation
       | ChatterConfirmation
       | PokemonEdit
@@ -2910,6 +2970,7 @@ export function SaveEditorPanel(
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
+      | "festivalPlazaCommit"
       | "mailboxCommit"
       | "chatterCommit"
       | "boxBinaryCommit"
@@ -3247,6 +3308,11 @@ export function SaveEditorPanel(
 
   const sectionItems: SaveSectionItem[] = report
     ? [
+        {
+          id: "festivalPlaza",
+          label: festaWords[batchLang].title,
+          available: supportsFestivalPlaza(report.format),
+        },
         {
           id: "mailbox",
           label: mailboxWords[batchLang].title,
@@ -4419,6 +4485,17 @@ export function SaveEditorPanel(
                   onBatch={(edit) => applyWorkingEdit(edit, "inventoryBatch")}
                   canEdit={report.canEdit}
                   onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
+                />
+              ) : section === "festivalPlaza" ? (
+                <FestivalPlazaEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readFestivalPlaza}
+                  onPreview={previewFestivalPlaza}
+                  onApply={applyFestivalPlaza}
+                  onDiscard={discardFestivalPlaza}
                 />
               ) : section === "mailbox" ? (
                 <MailboxEditor

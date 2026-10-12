@@ -1,3 +1,4 @@
+import { festaWords } from "./festivalPlaza";
 import { mailboxWords } from "./mailbox";
 import { chatterWords } from "./chatter";
 import { sevenStar9Words } from "./sevenstar9Words";
@@ -45,6 +46,8 @@ import { boxBinaryWords } from "./boxBinary";
 
 export const saveEditorResources = {
   zh: {
+    festaError: festaWords.zh.invalid,
+    festaStale: festaWords.zh.stale,
     mailboxError: mailboxWords.zh.invalid,
     mailboxStale: mailboxWords.zh.stale,
     chatterError: chatterWords.zh.invalid,
@@ -679,6 +682,8 @@ export const saveEditorResources = {
     },
   },
   en: {
+    festaError: festaWords.en.invalid,
+    festaStale: festaWords.en.stale,
     mailboxError: mailboxWords.en.invalid,
     mailboxStale: mailboxWords.en.stale,
     chatterError: chatterWords.en.invalid,
@@ -1356,6 +1361,8 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    festaError: festaWords.ja.invalid,
+    festaStale: festaWords.ja.stale,
     mailboxError: mailboxWords.ja.invalid,
     mailboxStale: mailboxWords.ja.stale,
     chatterError: chatterWords.ja.invalid,
@@ -2040,6 +2047,9 @@ export function localizeSaveError(
   message: string,
   words: typeof saveEditorResources.en,
 ) {
+  if (/Festival Plaza.*(?:stale|missing|replaced)/i.test(message))
+    return words.festaStale;
+  if (/Festival Plaza/i.test(message)) return words.festaError;
   if (/Mailbox.*(?:stale|missing|replaced)/i.test(message))
     return words.mailboxStale;
   if (/Mailbox/i.test(message)) return words.mailboxError;

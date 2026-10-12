@@ -6,7 +6,7 @@ internal static class StorageEditingTests
 {
     public static void Run()
     {
-        Require(SaveService.ApiVersion == 141, "Box-list storage protocol");
+        Require(SaveService.ApiVersion == 142, "Box-list storage protocol");
         foreach (var version in new[] { "E", "D", "Pt", "HG", "B", "B2", "X", "OR", "SN", "US", "BD" })
         {
             var setup = SaveUtil.GetSaveFile(File.ReadAllBytes($".tmp/pkhex-fixtures/{version}.sav"))!;

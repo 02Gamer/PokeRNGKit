@@ -168,6 +168,9 @@
     <Compile Include="../ChatterSession.cs" Link="ChatterSession.cs" />
     <Compile Include="../MailboxEditing.cs" Link="MailboxEditing.cs" />
     <Compile Include="../MailboxSession.cs" Link="MailboxSession.cs" />
+    <Compile Include="../FestivalPlazaEditing.cs" Link="FestivalPlazaEditing.cs" />
+    <Compile Include="../FestivalPlazaActions.cs" Link="FestivalPlazaActions.cs" />
+    <Compile Include="../FestivalPlazaSession.cs" Link="FestivalPlazaSession.cs" />
     <ProjectReference Include="../../../third_party/pkhex/PKHeX.Core/PKHeX.Core.csproj" />
   </ItemGroup>
 </Project>

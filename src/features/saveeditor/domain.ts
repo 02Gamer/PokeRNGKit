@@ -61,7 +61,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 141;
+  apiVersion: 142;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -794,6 +794,8 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  festivalPlaza?: import("./festivalPlaza").FestaCatalog;
+  festivalPlazaPreview?: import("./festivalPlaza").FestaTicket;
   mailbox?: import("./mailbox").MailCatalog;
   mailboxPreview?: import("./mailbox").MailTicket;
   chatter?: import("./chatter").ChatterCatalog;
