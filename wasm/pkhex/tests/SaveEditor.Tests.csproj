@@ -171,6 +171,11 @@
     <Compile Include="../FestivalPlazaEditing.cs" Link="FestivalPlazaEditing.cs" />
     <Compile Include="../FestivalPlazaActions.cs" Link="FestivalPlazaActions.cs" />
     <Compile Include="../FestivalPlazaSession.cs" Link="FestivalPlazaSession.cs" />
+    <Compile Include="../Trainer9Editing.cs" Link="Trainer9Editing.cs" />
+    <Compile Include="../Trainer9Actions.cs" Link="Trainer9Actions.cs" />
+    <Compile Include="../Trainer9Fly.cs" Link="Trainer9Fly.cs" />
+    <Compile Include="../Trainer9Session.cs" Link="Trainer9Session.cs" />
+    <Compile Include="../Trainer9Ids.cs" Link="Trainer9Ids.cs" />
     <ProjectReference Include="../../../third_party/pkhex/PKHeX.Core/PKHeX.Core.csproj" />
   </ItemGroup>
 </Project>

@@ -17,6 +17,10 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "trainer9"
+      | "trainer9Preview"
+      | "trainer9Commit"
+      | "trainer9Discard"
       | "festivalPlaza"
       | "festivalPlazaPreview"
       | "festivalPlazaCommit"

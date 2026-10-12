@@ -26,9 +26,16 @@ internal static class SvBlockFixtureTests
             if (source.Key is SaveBlockAccessor9SV.KCurrentBox or SaveBlockAccessor9SV.KBoxesUnlocked) type = SCTypeCode.Byte;
             if (source.Key == SaveBlockAccessor9SV.KGameLanguage) type = SCTypeCode.Int32;
             if (source.Key is SaveBlockAccessor9SV.KMoney or SaveBlockAccessor9SV.KLeaguePoints or SaveBlockAccessor9SV.KBlueberryPoints) type = SCTypeCode.UInt32;
+            if(source.Key is SaveBlockAccessor9SV.KPictureProfileCurrentWidth or SaveBlockAccessor9SV.KPictureProfileCurrentHeight or SaveBlockAccessor9SV.KPictureIconCurrentWidth or SaveBlockAccessor9SV.KPictureIconCurrentHeight or SaveBlockAccessor9SV.KPictureIconInitialWidth or SaveBlockAccessor9SV.KPictureIconInitialHeight)type=SCTypeCode.UInt32;
             if (source.Key == SaveBlockAccessor9SV.KBoxWallpapers) { type = SCTypeCode.Array; subtype = SCTypeCode.Byte; }
             blocks.Add(SwshBlockFixtureTests.Typed(source.Key, source.Data.ToArray(), type, subtype));
         }
+        foreach(uint key in new uint[]{0x54B8E8E1,0x0D707154,0x6ABB01F7,0x9DDF953F,0x76FF4AF0}.Concat(revision>=2?new uint[]{0x3A9255B2}:[]))if(!blocks.Any(b=>b.Key==key))blocks.Add(SwshBlockFixtureTests.Typed(key,[],SCTypeCode.Bool1,SCTypeCode.None));
+        for(int shrine=14;shrine<=17;shrine++)for(int stake=1;stake<=8;stake++){uint key=(uint)FnvHash.HashFnv1a_64($"FEVT_SUB_{shrine:000}_KUI_{stake:00}_RELEASE");if(!blocks.Any(b=>b.Key==key))blocks.Add(SwshBlockFixtureTests.Typed(key,[],SCTypeCode.Bool1,SCTypeCode.None));}
+        foreach(uint key in new uint[]{0xA3B2E1E8,0xB6D28884,0x8FC1AFF5,0x0FD2F9E2}){blocks.RemoveAll(b=>b.Key==key);blocks.Add(SwshBlockFixtureTests.Typed(key,new byte[4],SCTypeCode.Int32,SCTypeCode.None));}
+        foreach(uint key in new[]{SaveBlockAccessor9SV.KStakesRemovedTingLu,SaveBlockAccessor9SV.KStakesRemovedChienPao,SaveBlockAccessor9SV.KStakesRemovedWoChien,SaveBlockAccessor9SV.KStakesRemovedChiYu}){blocks.RemoveAll(b=>b.Key==key);blocks.Add(SwshBlockFixtureTests.Typed(key,new byte[8],SCTypeCode.UInt64,SCTypeCode.None));}
+        if(revision>=2)for(int i=13;i<=37;i++){uint key=(uint)FnvHash.HashFnv1a_64($"WEVT_S2_SUB_{i:000}_STATE");if(blocks.Any(b=>b.Key==key)){blocks.RemoveAll(b=>b.Key==key);blocks.Add(SwshBlockFixtureTests.Typed(key,new byte[4],SCTypeCode.Int32,SCTypeCode.None));}}
+        blocks.Sort((a,b)=>a.Key.CompareTo(b.Key));
         var save = new SAV9SV(SwishCrypto.Encrypt(blocks)) { Language = 9, CurrentBox = 3, BoxesUnlocked = 32, Money = 123456, LeaguePoints = 654321 };
         if (revision == 2) save.BlueberryPoints = 4321;
         foreach (uint key in new[] { Paldea, Kitakami })

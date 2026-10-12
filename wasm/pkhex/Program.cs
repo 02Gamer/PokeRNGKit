@@ -21,6 +21,14 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadTrainer9(byte[] data)=>SaveService.ReadTrainer9(data);
+    [JSExport]
+    public static string PreviewTrainer9(byte[] data,string json)=>SaveService.PreviewTrainer9(data,json);
+    [JSExport]
+    public static byte[] CommitTrainer9(byte[] data,string json)=>SaveService.CommitTrainer9(data,json);
+    [JSExport]
+    public static void DiscardTrainer9(string token)=>SaveService.DiscardTrainer9(token);
+    [JSExport]
     public static string ReadFestivalPlaza(byte[] data) => SaveService.ReadFestivalPlaza(data);
     [JSExport]
     public static string PreviewFestivalPlaza(byte[] data,string json) => SaveService.PreviewFestivalPlaza(data,json);
@@ -505,7 +513,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 142;
+    public const int ApiVersion = 143;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -902,6 +910,10 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(ChatterCatalog))]
 [JsonSerializable(typeof(MailboxCatalog))]
 [JsonSerializable(typeof(FestaCatalog))]
+[JsonSerializable(typeof(Trainer9Catalog))]
+[JsonSerializable(typeof(Trainer9Request))]
+[JsonSerializable(typeof(Trainer9Ticket))]
+[JsonSerializable(typeof(Trainer9Confirmation))]
 [JsonSerializable(typeof(FestaRequest))]
 [JsonSerializable(typeof(FestaTicket))]
 [JsonSerializable(typeof(FestaConfirmation))]

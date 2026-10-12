@@ -1,3 +1,5 @@
+import { Trainer9Editor } from "./Trainer9Editor";
+import { tr9Words, supportsTrainer9, type Tr9Confirmation } from "./trainer9";
 import { FestivalPlazaEditor } from "./FestivalPlazaEditor";
 import {
   festaWords,
@@ -337,6 +339,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "trainer9" && !supportsTrainer9(result.report.format)) ||
         (previous === "festivalPlaza" &&
           !supportsFestivalPlaza(result.report.format)) ||
         (previous === "mailbox" && !supportsMailbox(result.report.format)) ||
@@ -2588,6 +2591,55 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readTrainer9 = async () => {
+    let catalog: import("./trainer9").Tr9Catalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "trainer9",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainer9)
+        throw new Error("Trainer9 catalog was not returned.");
+      catalog = result.trainer9;
+    });
+    return catalog;
+  };
+  const discardTrainer9 = async (token: string) => {
+    if (!working.current) return;
+    await client.current
+      .run(working.current, token, "trainer9Discard")
+      .catch(() => undefined);
+  };
+  const previewTrainer9 = async (edit: import("./trainer9").Tr9Request) => {
+    let ticket: import("./trainer9").Tr9Ticket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "trainer9Preview",
+      );
+      if (id !== operation.current) {
+        if (result.trainer9Preview)
+          await discardTrainer9(result.trainer9Preview.token);
+        return;
+      }
+      if (!result.trainer9Preview)
+        throw new Error("Trainer9 preview was not returned.");
+      ticket = result.trainer9Preview;
+    });
+    return ticket;
+  };
+  const applyTrainer9 = async (edit: Tr9Confirmation) => {
+    let applied = false;
+    await applyWorkingEdit(edit, "trainer9Commit", () => {
+      applied = true;
+    });
+    return applied;
+  };
   const readFestivalPlaza = async () => {
     let catalog: import("./festivalPlaza").FestaCatalog | undefined;
     await perform(async (id) => {
@@ -2890,6 +2942,7 @@ export function SaveEditorPanel(
 
   const applyWorkingEdit = (
     edit:
+      | Tr9Confirmation
       | FestaConfirmation
       | MailConfirmation
       | ChatterConfirmation
@@ -2970,6 +3023,7 @@ export function SaveEditorPanel(
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
+      | "trainer9Commit"
       | "festivalPlazaCommit"
       | "mailboxCommit"
       | "chatterCommit"
@@ -3308,6 +3362,11 @@ export function SaveEditorPanel(
 
   const sectionItems: SaveSectionItem[] = report
     ? [
+        {
+          id: "trainer9",
+          label: tr9Words[batchLang].title,
+          available: supportsTrainer9(report.format),
+        },
         {
           id: "festivalPlaza",
           label: festaWords[batchLang].title,
@@ -4485,6 +4544,17 @@ export function SaveEditorPanel(
                   onBatch={(edit) => applyWorkingEdit(edit, "inventoryBatch")}
                   canEdit={report.canEdit}
                   onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
+                />
+              ) : section === "trainer9" ? (
+                <Trainer9Editor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readTrainer9}
+                  onPreview={previewTrainer9}
+                  onApply={applyTrainer9}
+                  onDiscard={discardTrainer9}
                 />
               ) : section === "festivalPlaza" ? (
                 <FestivalPlazaEditor
