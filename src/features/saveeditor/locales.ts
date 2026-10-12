@@ -1,3 +1,4 @@
+import { chatterWords } from "./chatter";
 import { sevenStar9Words } from "./sevenstar9Words";
 import { raid9Words } from "./raid9Words";
 import { fashion9Words } from "./fashion9Words";
@@ -43,6 +44,8 @@ import { boxBinaryWords } from "./boxBinary";
 
 export const saveEditorResources = {
   zh: {
+    chatterError: chatterWords.zh.invalid,
+    chatterStale: chatterWords.zh.stale,
     registeredGroupError: "无法读取或分析该注册队伍，请检查队伍与格位选择。",
     misc4Error: misc4Words.zh.invalid,
     misc4Stale: misc4Words.zh.stale,
@@ -673,6 +676,8 @@ export const saveEditorResources = {
     },
   },
   en: {
+    chatterError: chatterWords.en.invalid,
+    chatterStale: chatterWords.en.stale,
     registeredGroupError:
       "Unable to read or analyze the registered team. Check the team and slot selection.",
     misc4Error: misc4Words.en.invalid,
@@ -1346,6 +1351,8 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    chatterError: chatterWords.ja.invalid,
+    chatterStale: chatterWords.ja.stale,
     registeredGroupError:
       "登録チームを読み込みまたは解析できません。チームとスロットの選択を確認してください。",
     misc4Error: misc4Words.ja.invalid,
@@ -2026,6 +2033,9 @@ export function localizeSaveError(
   message: string,
   words: typeof saveEditorResources.en,
 ) {
+  if (/Chatter.*(?:stale|missing|replaced)/i.test(message))
+    return words.chatterStale;
+  if (/Chatter/i.test(message)) return words.chatterError;
   if (/registered team/i.test(message)) return words.registeredGroupError;
   if (/Box import/.test(message)) return words.boxImportError;
   if (/Box binary/.test(message)) return words.boxBinaryError;

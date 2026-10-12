@@ -164,6 +164,8 @@
     <Compile Include="../PokemonReader.cs" Link="PokemonReader.cs" />
     <Compile Include="../BrowserCryptography.cs" Link="BrowserCryptography.cs" />
     <Compile Include="../RegisteredGroups.cs" Link="RegisteredGroups.cs" />
+    <Compile Include="../ChatterEditing.cs" Link="ChatterEditing.cs" />
+    <Compile Include="../ChatterSession.cs" Link="ChatterSession.cs" />
     <ProjectReference Include="../../../third_party/pkhex/PKHeX.Core/PKHeX.Core.csproj" />
   </ItemGroup>
 </Project>

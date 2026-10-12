@@ -436,7 +436,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | 待核对                                                                                  |
 | `Subforms/Save Editors/SAV_BoxList.cs`                                        | API 137：全箱／真实格位／相邻循环交换／跨箱拖放与详情已接；工程通过，页面待核验         |
 | `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | API 138：独立双箱、图片／壁纸／真实格位、显示交换、详情及拖放已接；工程通过，页面待核验 |
-| `Subforms/Save Editors/SAV_Chatter.cs`                                        | 已核对 Gen4／5 PCM／WAV、播放与派生几率；下一独立模块，尚未实现                         |
+| `Subforms/Save Editors/SAV_Chatter.cs`                                        | API 140：五布局 PCM／WAV、试听与冻结预览已接；工程通过，页面／真实存档待核验            |
 | `Subforms/Save Editors/SAV_EventFlags.cs`                                     | API 80：Gen3–7 标记／数值／预设／双存档比较已接入，浏览器待核验                         |
 | `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | API 81：五布局事件标记／byte 数值／预设／比较已接入，浏览器待核验                       |
 | `Subforms/Save Editors/SAV_EventWork.cs`                                      | API 82：两版本分组／Int32 数值／预设／比较已接入，浏览器待核验                          |

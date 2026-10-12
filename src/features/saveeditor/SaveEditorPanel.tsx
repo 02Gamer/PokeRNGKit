@@ -1,3 +1,9 @@
+import { ChatterEditor } from "./ChatterEditor";
+import {
+  chatterWords,
+  supportsChatter,
+  type ChatterConfirmation,
+} from "./chatter";
 import { SaveSectionNavigation } from "./SaveSectionNavigation";
 import { RegisteredGroupViewer } from "./RegisteredGroupViewer";
 import {
@@ -319,6 +325,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "chatter" && !supportsChatter(result.report.format)) ||
         (previous === "registeredGroups" && !result.report.registeredTeams) ||
         (previous === "sevenstar9" &&
           !supportsSevenStar9(result.report.format)) ||
@@ -2566,6 +2573,54 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readChatter = async () => {
+    let catalog: import("./chatter").ChatterCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "chatter",
+      );
+      if (id !== operation.current) return;
+      if (!result.chatter) throw new Error("Chatter catalog was not returned.");
+      catalog = result.chatter;
+    });
+    return catalog;
+  };
+  const discardChatter = async (token: string) => {
+    if (!working.current) return;
+    await client.current
+      .run(working.current, token, "chatterDiscard")
+      .catch(() => undefined);
+  };
+  const previewChatter = async (edit: import("./chatter").ChatterRequest) => {
+    let ticket: import("./chatter").ChatterTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "chatterPreview",
+      );
+      if (id !== operation.current) {
+        if (result.chatterPreview)
+          await discardChatter(result.chatterPreview.token);
+        return;
+      }
+      if (!result.chatterPreview)
+        throw new Error("Chatter preview was not returned.");
+      ticket = result.chatterPreview;
+    });
+    return ticket;
+  };
+  const applyChatter = async (edit: ChatterConfirmation) => {
+    let applied = false;
+    await applyWorkingEdit(edit, "chatterCommit", () => {
+      applied = true;
+    });
+    return applied;
+  };
   const readRegisteredGroups = async () => {
     let catalog:
       import("./registeredGroups").RegisteredGroupCatalog | undefined;
@@ -2721,6 +2776,7 @@ export function SaveEditorPanel(
 
   const applyWorkingEdit = (
     edit:
+      | ChatterConfirmation
       | PokemonEdit
       | PokemonRawEdit
       | BoxEdit
@@ -2798,6 +2854,7 @@ export function SaveEditorPanel(
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
+      | "chatterCommit"
       | "boxBinaryCommit"
       | "boxImportCommit"
       | "propertyCommit"
@@ -2876,8 +2933,9 @@ export function SaveEditorPanel(
       | "foodEdit"
       | "recordEdit"
       | "trainer",
-  ) =>
-    perform(async (id) => {
+    onApplied?: () => void,
+  ) => {
+    return perform(async (id) => {
       if (!working.current) return;
       const before = working.current;
       const values = typeof edit === "function" ? await edit() : edit;
@@ -2901,6 +2959,7 @@ export function SaveEditorPanel(
         return next;
       });
       working.current = result.output;
+      onApplied?.();
       setReport(result.report);
       setVersion((previous) => reconcileSaveGame(previous, result.report));
       if (report && report.version !== result.report.version) {
@@ -2916,6 +2975,7 @@ export function SaveEditorPanel(
       setLegality(undefined);
       setStatus("pokemonSaved");
     });
+  };
   const importPokemon = (position: PokemonPosition, file: File) =>
     applyWorkingEdit(async () => {
       if (!file.size || file.size > 1024 * 1024)
@@ -3130,6 +3190,11 @@ export function SaveEditorPanel(
 
   const sectionItems: SaveSectionItem[] = report
     ? [
+        {
+          id: "chatter",
+          label: chatterWords[batchLang].title,
+          available: supportsChatter(report.format),
+        },
         { id: "pokemon", label: words.pokemon, available: Boolean(true) },
         {
           id: "registeredGroups",
@@ -4292,6 +4357,17 @@ export function SaveEditorPanel(
                   onBatch={(edit) => applyWorkingEdit(edit, "inventoryBatch")}
                   canEdit={report.canEdit}
                   onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
+                />
+              ) : section === "chatter" ? (
+                <ChatterEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readChatter}
+                  onPreview={previewChatter}
+                  onApply={applyChatter}
+                  onDiscard={discardChatter}
                 />
               ) : section === "registeredGroups" && report.registeredTeams ? (
                 <RegisteredGroupViewer

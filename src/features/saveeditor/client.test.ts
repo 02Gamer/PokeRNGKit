@@ -21,6 +21,36 @@ describe("save player context across Worker lifecycle", () => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
+  it.each([
+    "chatter",
+    "chatterPreview",
+    "chatterCommit",
+    "chatterDiscard",
+  ] as const)("transfers an isolated source for %s", async (kind) => {
+    const client = new SaveEditorClient(),
+      source = new Uint8Array([1, 2, 3]),
+      original = source.slice();
+    const pending = client.run(source, "payload", kind),
+      worker = FakeWorker.instances[0],
+      message = worker.postMessage.mock.calls[0][0];
+    expect(message.kind).toBe(kind);
+    expect(message.edit).toBe("payload");
+    expect(message.bytes).not.toBe(source);
+    const fields =
+      kind === "chatterCommit"
+        ? { output: new Uint8Array([4, 5, 6]) }
+        : kind === "chatter"
+          ? { chatter: { sourceHash: "source" } }
+          : kind === "chatterPreview"
+            ? { chatterPreview: { token: "chatter:1" } }
+            : {};
+    worker.onmessage?.({
+      data: { id: message.id, report: { apiVersion: 140 }, ...fields },
+    });
+    expect(await pending).toMatchObject(fields);
+    expect(source).toEqual(original);
+    client.dispose();
+  });
   it.each(["registeredGroups", "registeredGroupAnalyze"] as const)(
     "keeps %s read-only with independent group positions and response fields",
     async (kind) => {
@@ -47,7 +77,7 @@ describe("save player context across Worker lifecycle", () => {
               },
             };
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 139 }, ...fields },
+        data: { id: message.id, report: { apiVersion: 140 }, ...fields },
       });
       const result = await pending;
       expect(result).toMatchObject(fields);
@@ -277,7 +307,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 139 } },
+        data: { id: message.id, report: { apiVersion: 140 } },
       });
       await pending;
     }
@@ -323,7 +353,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(source.byteLength).toBe(3);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 139 } },
+        data: { id: message.id, report: { apiVersion: 140 } },
       });
       await pending;
     }
@@ -608,7 +638,7 @@ describe("save player context across Worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect([...source]).toEqual([1, 2, 3]);
       worker.onmessage?.({
-        data: { id: message.id, report: { apiVersion: 139 } },
+        data: { id: message.id, report: { apiVersion: 140 } },
       });
       await pending;
     }

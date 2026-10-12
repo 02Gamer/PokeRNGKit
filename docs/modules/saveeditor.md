@@ -48,11 +48,19 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
-## 录音工具来源核对（尚未实现）
+## 录音工具（API 140 工程通过，页面待核验）
 
-下一独立模块已只读核对 `SAV_Chatter.cs`／Designer、`IChatter.cs`、`Chatter4.cs`／`Chatter5.cs`，当前不混入注册队伍实现。来源仅提供 Initialized 勾选、PCM 导入／导出、WAV 导出、播放和保存／取消，没有实时录音入口；浏览器使用文件选择、下载与本地音频对应，无服务端或系统 SoundPlayer 依赖。PCM 必须恰好 1000 bytes，导入同时设 Initialized=true；WAV 是源固定 44-byte header 加 2000 个 unsigned 8-bit 样本，2000 Hz 单声道，每字节先低四位左移 4，再高四位。未初始化且样本全零时播放无操作，未初始化但非零样本仍可播放。混乱几率由 Core 计算；Designer 的三位 MaskedTextBox 没有保存读取，网页不将该显示值伪装成可写存档字段。
+完整原生、完整前端 verify（272 文件／1179 项）、API 140 核心发布、26 类裁剪属性与使用最新核心的网页构建均通过。保留既有警告；工程合成存档不代表真实存档和页面验收，外部 Chrome 当前连接超时。
 
-两个世代 Initialized 都仅在首四字节 UInt32==1 时为真；显式设置写 0／1，未知原始标记未操作时需保留。Gen4 使用 recording[15] 的 signed byte：已初始化时 <−30 为 11%、>=30 为 31%、其余为 1%；未初始化为 1%。Gen5 使用 recording[99]^recording[499]^recording[699]：已初始化时 <100 或 >=150 为 10%，其余为 0%；未初始化为 0%。支持范围由原版 SAVEditor 对应入口及具体 SAV4/SAV5 类型继续核对后确定，不先扩大成所有世代。Core 与 Web 功能尚未实现，须先完成本批注册队伍的工程及提交。
+JSExport／Worker／客户端与三语界面已接。独立导航复用用途分组，控件复用共享工具栏、文件选择与勾选样式；混乱几率只读。每次修改生成冻结预览，确认才写工作副本并进入撤销历史；关闭释放票据与音频，下载 URL 延迟释放。最新前端四文件 60 项通过，类型／Lint／最新协议原生专项与完整工程尚待收尾，新核心未发布，页面及真实存档未验收。下方初稿检查记录保留为阶段证据。
+
+已只读核对 `SAV_Chatter.cs`／Designer、`IChatter.cs`、`Chatter4.cs`／`Chatter5.cs`。来源仅提供 Initialized 勾选、PCM 导入／导出、WAV 导出、播放和保存／取消，没有实时录音入口；浏览器使用文件选择、下载与本地音频对应，无服务端或系统 SoundPlayer 依赖。PCM 必须恰好 1000 bytes，导入同时设 Initialized=true；WAV 是源固定 44-byte header 加 2000 个 unsigned 8-bit 样本，2000 Hz 单声道，每字节先低四位左移 4，再高四位。未初始化且样本全零时播放无操作，未初始化但非零样本仍可播放。混乱几率由 Core 计算；Designer 的三位 MaskedTextBox 没有保存读取，网页不将该显示值伪装成可写存档字段。
+
+两个世代 Initialized 都仅在首四字节 UInt32==1 时为真；显式设置写 0／1，未知原始标记未操作时需保留。Gen4 使用 recording[15] 的 signed byte：已初始化时 <−30 为 11%、>=30 为 31%、其余为 1%；未初始化为 1%。Gen5 使用 recording[99]^recording[499]^recording[699]：已初始化时 <100 或 >=150 为 10%，其余为 0%；未初始化为 0%。SAVEditor.B_OpenChatterEditor.Visible 确认仅 sav is SAV4 or SAV5；生产读取类型为 SAV4DP／SAV4Pt／SAV4HGSS／SAV5BW／SAV5B2W2，不包含 Battle Revolution。注册队伍已收尾提交，当前独立实现录音模块。
+
+ChatterEditing Core 已接读取、源事件顺序的勾选／PCM 导入和完整导出／重读校验，专项通过。Gen4 标记／录音共 1004 bytes，相对 active General 的地址为 DP 61CC、Pt 64EC、HGSS 4E74；不假定当前文件分区。Gen5 使用公开 Chatter.Data，block 36 位于 1D500、长 03EC，BW 两处校验字段 1D8EE／23F48，B2W2 为 1D8EE／25F48；只调用 Core 写入／计算校验和。原始四字节标记保留，重复相同勾选值不模拟不存在的 CheckedChanged；勾选 true 再 false 保留实际事件顺序。请求最多 512 个动作、Base64 文本最多 2048 字符是浏览器资源限额，实际 PCM 仍恰好 1000 bytes。所有动作和导入数据先完整验证，失败不写任何字段；原件仍保留。冻结会话与 JSExport／Worker／三语界面已接，协议为 API 140。
+
+五布局 Core 与冻结会话专项已通过。ChatterSession 以来源／目标 SHA-256 与独立令牌保留完整输出，提供前后标记／PCM／WAV／混乱几率、全部变化文件偏移与变化 PCM 字节数；确认仅复制缓存，取消丢弃，旧令牌关闭不清除新预览。过期来源、替换、重复确认及失败预览清理均已检查；只读 JSON 与源生成 DTO 已接，JSExport／Worker 和三语播放／文件操作界面已接，最新完整工程正在收尾；页面与真实存档未验收。预览 JSON 最多 2 MiB、确认最多 4096 字符属于浏览器资源限额；来源哈希与动作字段必填，不能默认为空修改。
 
 ## 仓储查看器覆盖复核（BoxList／第二箱／注册队伍工程通过）
 

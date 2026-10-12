@@ -21,6 +21,15 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadChatter(byte[] data) => SaveService.ReadChatter(data);
+    [JSExport]
+    public static string PreviewChatter(byte[] data, string json) => SaveService.PreviewChatter(data, json);
+    [JSExport]
+    public static byte[] CommitChatter(byte[] data, string json) => SaveService.CommitChatter(data, json);
+    [JSExport]
+    public static void DiscardChatter(string token) => SaveService.DiscardChatter(token);
+
+    [JSExport]
     public static string ReadRegisteredGroups(byte[] data) => SaveService.ReadRegisteredGroups(data);
     [JSExport]
     public static string AnalyzeRegisteredGroup(byte[] data, string json) => SaveService.AnalyzeRegisteredGroup(data, json);
@@ -479,7 +488,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 139;
+    public const int ApiVersion = 140;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -873,6 +882,10 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(ChatterCatalog))]
+[JsonSerializable(typeof(ChatterRequest))]
+[JsonSerializable(typeof(ChatterTicket))]
+[JsonSerializable(typeof(ChatterConfirmation))]
 [JsonSerializable(typeof(RegisteredGroupCatalog))]
 [JsonSerializable(typeof(RegisteredGroupPosition))]
 [JsonSerializable(typeof(RegisteredGroupAnalysis))]

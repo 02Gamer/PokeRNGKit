@@ -61,7 +61,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 139;
+  apiVersion: 140;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -794,6 +794,8 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  chatter?: import("./chatter").ChatterCatalog;
+  chatterPreview?: import("./chatter").ChatterTicket;
   registeredGroups?: import("./registeredGroups").RegisteredGroupCatalog;
   registeredGroupAnalysis?: import("./registeredGroups").RegisteredGroupAnalysis;
   boxImportPreview?: import("./boxImport").BoxImportTicket;

@@ -17,6 +17,10 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "chatter"
+      | "chatterPreview"
+      | "chatterCommit"
+      | "chatterDiscard"
       | "registeredGroups"
       | "registeredGroupAnalyze"
       | "brProfile"
