@@ -31,6 +31,7 @@ export const SAVE_SECTION_GROUPS = {
     "honeyTree4",
   ],
   game: [
+    "mailbox",
     "chatter",
     "hall3",
     "hall1",

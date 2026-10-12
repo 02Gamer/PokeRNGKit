@@ -1,3 +1,4 @@
+import { mailboxWords } from "./mailbox";
 import { chatterWords } from "./chatter";
 import { sevenStar9Words } from "./sevenstar9Words";
 import { raid9Words } from "./raid9Words";
@@ -44,6 +45,8 @@ import { boxBinaryWords } from "./boxBinary";
 
 export const saveEditorResources = {
   zh: {
+    mailboxError: mailboxWords.zh.invalid,
+    mailboxStale: mailboxWords.zh.stale,
     chatterError: chatterWords.zh.invalid,
     chatterStale: chatterWords.zh.stale,
     registeredGroupError: "无法读取或分析该注册队伍，请检查队伍与格位选择。",
@@ -676,6 +679,8 @@ export const saveEditorResources = {
     },
   },
   en: {
+    mailboxError: mailboxWords.en.invalid,
+    mailboxStale: mailboxWords.en.stale,
     chatterError: chatterWords.en.invalid,
     chatterStale: chatterWords.en.stale,
     registeredGroupError:
@@ -1351,6 +1356,8 @@ export const saveEditorResources = {
     },
   },
   ja: {
+    mailboxError: mailboxWords.ja.invalid,
+    mailboxStale: mailboxWords.ja.stale,
     chatterError: chatterWords.ja.invalid,
     chatterStale: chatterWords.ja.stale,
     registeredGroupError:
@@ -2033,6 +2040,9 @@ export function localizeSaveError(
   message: string,
   words: typeof saveEditorResources.en,
 ) {
+  if (/Mailbox.*(?:stale|missing|replaced)/i.test(message))
+    return words.mailboxStale;
+  if (/Mailbox/i.test(message)) return words.mailboxError;
   if (/Chatter.*(?:stale|missing|replaced)/i.test(message))
     return words.chatterStale;
   if (/Chatter/i.test(message)) return words.chatterError;

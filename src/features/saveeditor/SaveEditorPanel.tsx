@@ -1,3 +1,9 @@
+import { MailboxEditor } from "./MailboxEditor";
+import {
+  mailboxWords,
+  supportsMailbox,
+  type MailConfirmation,
+} from "./mailbox";
 import { ChatterEditor } from "./ChatterEditor";
 import {
   chatterWords,
@@ -325,6 +331,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "mailbox" && !supportsMailbox(result.report.format)) ||
         (previous === "chatter" && !supportsChatter(result.report.format)) ||
         (previous === "registeredGroups" && !result.report.registeredTeams) ||
         (previous === "sevenstar9" &&
@@ -2573,6 +2580,54 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readMailbox = async () => {
+    let catalog: import("./mailbox").MailCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "mailbox",
+      );
+      if (id !== operation.current) return;
+      if (!result.mailbox) throw new Error("Mailbox catalog was not returned.");
+      catalog = result.mailbox;
+    });
+    return catalog;
+  };
+  const discardMailbox = async (token: string) => {
+    if (!working.current) return;
+    await client.current
+      .run(working.current, token, "mailboxDiscard")
+      .catch(() => undefined);
+  };
+  const previewMailbox = async (edit: import("./mailbox").MailRequest) => {
+    let ticket: import("./mailbox").MailTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "mailboxPreview",
+      );
+      if (id !== operation.current) {
+        if (result.mailboxPreview)
+          await discardMailbox(result.mailboxPreview.token);
+        return;
+      }
+      if (!result.mailboxPreview)
+        throw new Error("Mailbox preview was not returned.");
+      ticket = result.mailboxPreview;
+    });
+    return ticket;
+  };
+  const applyMailbox = async (edit: MailConfirmation) => {
+    let applied = false;
+    await applyWorkingEdit(edit, "mailboxCommit", () => {
+      applied = true;
+    });
+    return applied;
+  };
   const readChatter = async () => {
     let catalog: import("./chatter").ChatterCatalog | undefined;
     await perform(async (id) => {
@@ -2776,6 +2831,7 @@ export function SaveEditorPanel(
 
   const applyWorkingEdit = (
     edit:
+      | MailConfirmation
       | ChatterConfirmation
       | PokemonEdit
       | PokemonRawEdit
@@ -2854,6 +2910,7 @@ export function SaveEditorPanel(
       | StorageEdit
       | (() => Promise<PokemonImport | ReturnType<typeof validateTrainer>>),
     kind:
+      | "mailboxCommit"
       | "chatterCommit"
       | "boxBinaryCommit"
       | "boxImportCommit"
@@ -3190,6 +3247,11 @@ export function SaveEditorPanel(
 
   const sectionItems: SaveSectionItem[] = report
     ? [
+        {
+          id: "mailbox",
+          label: mailboxWords[batchLang].title,
+          available: supportsMailbox(report.format),
+        },
         {
           id: "chatter",
           label: chatterWords[batchLang].title,
@@ -4357,6 +4419,17 @@ export function SaveEditorPanel(
                   onBatch={(edit) => applyWorkingEdit(edit, "inventoryBatch")}
                   canEdit={report.canEdit}
                   onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
+                />
+              ) : section === "mailbox" ? (
+                <MailboxEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readMailbox}
+                  onPreview={previewMailbox}
+                  onApply={applyMailbox}
+                  onDiscard={discardMailbox}
                 />
               ) : section === "chatter" ? (
                 <ChatterEditor

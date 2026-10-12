@@ -17,6 +17,10 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "mailbox"
+      | "mailboxPreview"
+      | "mailboxCommit"
+      | "mailboxDiscard"
       | "chatter"
       | "chatterPreview"
       | "chatterCommit"

@@ -442,7 +442,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_EventWork.cs`                                      | API 82：两版本分组／Int32 数值／预设／比较已接入，浏览器待核验                          |
 | `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | API 139：全部注册组／六格／图片／只读详情／合法性分析已接；工程通过，页面待核验         |
 | `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                                                 |
-| `Subforms/Save Editors/SAV_MailBox.cs`                                        | 待核对                                                                                  |
+| `Subforms/Save Editors/SAV_MailBox.cs`                                        | API 141：目录／字段／消息／移动删除／队伍联动／三语冻结已接；工程通过，页面待核验       |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 已接入 Gen1–3；区域布局、批量标记及联动规则通过工程检查                                 |
 | `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/GBA 设置/DS 地区及坐标已接入；日期等字段待接入                                     |
 | `Subforms/Save Editors/SAV_Wondercard.cs`                                     | 待核对                                                                                  |
