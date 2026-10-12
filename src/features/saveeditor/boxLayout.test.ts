@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
 import { boxFlags } from "./boxLayout";
 const options = {
+  currentBox: 0,
+  canSetCurrentBox: true,
   canName: true,
   nameLength: 8,
   wallpapers: [],

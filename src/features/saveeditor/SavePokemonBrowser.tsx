@@ -1,3 +1,10 @@
+import { SaveBoxViewer } from "./SaveBoxViewer";
+import {
+  boxViewIndex,
+  boxViewerWords,
+  currentBoxEdit,
+  swapBoxViews,
+} from "./boxViewer";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
@@ -120,20 +127,31 @@ export function SavePokemonBrowser({
       ? "ja"
       : "en";
   const name = (value: LocalizedText) => value[lang];
-  const [box, setBox] = useState(-1);
-  const [slot, setSlot] = useState<number>();
+  const initialBox =
+    report.boxCount > 0
+      ? boxViewIndex(report.boxOptions.currentBox, report.boxCount)
+      : -1;
+  const [box, setBox] = useState(initialBox);
+  const [secondBox, setSecondBox] = useState(initialBox < 0 ? 0 : initialBox);
+  const [selection, setSelection] = useState<PokemonPosition>();
   const entries = report.pokemon.filter((p) => p.box === box);
-  const selected =
-    slot === undefined ? entries[0] : entries.find((p) => p.slot === slot);
+  const detailBox = selection?.box ?? box;
+  const selected = selection
+    ? report.pokemon.find(
+        (p) => p.box === selection.box && p.slot === selection.slot,
+      )
+    : entries[0];
+  const toolBox = detailBox;
   const filePosition = {
-    box,
+    box: detailBox,
     slot:
-      box === -1
-        ? Math.min(slot ?? selected?.slot ?? 0, report.partyCount)
-        : (slot ?? selected?.slot ?? 0),
+      detailBox === -1
+        ? Math.min(selection?.slot ?? selected?.slot ?? 0, report.partyCount)
+        : (selection?.slot ?? selected?.slot ?? 0),
   };
   const galleryWords = boxGalleryWords[lang];
-  const [view, setView] = useState<"single" | "all">("single");
+  const [view, setView] = useState<"single" | "all" | "dual">("single");
+  const viewerWords = boxViewerWords[lang];
   const [mode, setMode] = useState<GalleryDropMode>("auto");
   const [pending, setPending] = useState(false),
     [galleryError, setGalleryError] = useState<
@@ -152,12 +170,46 @@ export function SavePokemonBrowser({
       alive.current = false;
     };
   }, []);
+  const viewer = view === "dual" && report.boxCount > 0;
   const gallery = view === "all" && report.boxCount > 0,
     locked = busy || pending;
-  const selectedPosition = { box, slot: slot ?? selected?.slot ?? 0 };
-  const select = (position: PokemonPosition) => {
-    setBox(position.box);
-    setSlot(position.slot);
+  const selectedPosition = {
+    box: detailBox,
+    slot: selection?.slot ?? selected?.slot ?? 0,
+  };
+  const select = (position: PokemonPosition) => setSelection(position);
+  const chooseMain = (next: number) => {
+    if (
+      locked ||
+      flight.current ||
+      !Number.isInteger(next) ||
+      next < -1 ||
+      next >= report.boxCount
+    )
+      return;
+    setBox(next);
+    setSelection(undefined);
+    if (next >= 0) {
+      const edit = currentBoxEdit(report, next);
+      if (edit) void swap(edit);
+    }
+  };
+  const chooseSecond = (next: number) => {
+    if (
+      locked ||
+      !Number.isInteger(next) ||
+      next < 0 ||
+      next >= report.boxCount
+    )
+      return;
+    setSecondBox(next);
+    setSelection({ box: next, slot: 0 });
+  };
+  const swapViews = () => {
+    if (locked || flight.current) return;
+    const next = swapBoxViews(box, secondBox, report.boxCount);
+    setSecondBox(next.secondary);
+    chooseMain(next.main);
   };
   async function swap(edit: BoxEdit) {
     if (locked || flight.current) return;
@@ -228,7 +280,7 @@ export function SavePokemonBrowser({
           <button
             type="button"
             disabled={locked}
-            aria-pressed={!gallery}
+            aria-pressed={view === "single"}
             onClick={() => setView("single")}
           >
             {galleryWords.current}
@@ -241,19 +293,27 @@ export function SavePokemonBrowser({
           >
             {galleryWords.all}
           </button>
+          <button
+            type="button"
+            disabled={locked}
+            aria-pressed={viewer}
+            onClick={() => {
+              if (box < 0) chooseMain(initialBox);
+              setView("dual");
+            }}
+          >
+            {viewerWords.viewer}
+          </button>
         </div>
       )}
-      <label className="field">
+      <label className="field" hidden={viewer}>
         <span>
           {words.party} / {words.box}
         </span>
         <Select
           value={box}
           disabled={locked}
-          onChange={(e) => {
-            setBox(Number(e.target.value));
-            setSlot(undefined);
-          }}
+          onChange={(e) => chooseMain(Number(e.target.value))}
         >
           <option value={-1}>
             {words.party} ({report.pokemon.filter((p) => p.box === -1).length})
@@ -292,33 +352,33 @@ export function SavePokemonBrowser({
         </p>
       )}
       <div className="save-storage-tools">
-        {box >= 0 && report.canEdit && (
+        {toolBox >= 0 && report.canEdit && (
           <BoxEditor
             key={JSON.stringify([
-              box,
-              report.boxes[box],
+              toolBox,
+              report.boxes[toolBox],
               report.boxOptions,
               revision,
             ])}
             report={report}
-            box={box}
+            box={toolBox}
             busy={busy}
             onApply={onApplyBox}
           />
         )}
         {report.boxCount > 0 && report.checksumsValid && (
           <BoxArchiveEditor
-            key={`archive-${box}:${revision}`}
-            box={box}
+            key={`archive-${toolBox}:${revision}`}
+            box={toolBox}
             busy={busy}
             onExport={onExportBoxes}
           />
         )}
         {report.boxCount > 0 && report.canEdit && report.checksumsValid && (
           <BoxImportEditor
-            key={`import-${box}:${revision}:${lang}`}
+            key={`import-${toolBox}:${revision}:${lang}`}
             report={report}
-            box={box}
+            box={toolBox}
             busy={busy}
             lang={lang}
             onPreview={onPreviewBoxImport}
@@ -328,8 +388,8 @@ export function SavePokemonBrowser({
         )}
         {report.boxCount > 0 && report.checksumsValid && (
           <BoxBinaryEditor
-            key={`binary-${box}:${revision}:${lang}`}
-            box={box}
+            key={`binary-${toolBox}:${revision}:${lang}`}
+            box={toolBox}
             canEdit={report.canEdit}
             busy={busy}
             lang={lang}
@@ -340,21 +400,41 @@ export function SavePokemonBrowser({
           />
         )}
         <PokemonFileTools
-          key={`file-${box}:${filePosition.slot}`}
+          key={`file-${toolBox}:${filePosition.slot}`}
           position={filePosition}
           canImport={report.canEdit}
           canExport={report.checksumsValid && !!selected?.valid}
           busy={busy}
           onImport={async (position, file) => {
             await onImport(position, file);
-            setSlot(position.slot);
+            setSelection(position);
           }}
           onExport={onExport}
         />
       </div>
-      <div className="save-pokemon-workspace" data-gallery={gallery}>
+      <div
+        className="save-pokemon-workspace"
+        data-gallery={gallery}
+        data-viewer={viewer}
+      >
         <div className="save-pokemon-storage">
-          {gallery ? (
+          {viewer ? (
+            <SaveBoxViewer
+              report={report}
+              main={boxViewIndex(box, report.boxCount)}
+              secondary={boxViewIndex(secondBox, report.boxCount)}
+              selected={selectedPosition}
+              busy={locked}
+              lang={lang}
+              revision={revision}
+              scope={scope}
+              onMain={chooseMain}
+              onSecondary={chooseSecond}
+              onSelect={select}
+              onSwapViews={swapViews}
+              onDrop={drop}
+            />
+          ) : gallery ? (
             <SaveBoxGallery
               report={report}
               revision={revision}
@@ -380,7 +460,7 @@ export function SavePokemonBrowser({
               onDrop={drop}
             />
           )}
-          {!gallery && (
+          {!gallery && !viewer && (
             <p className="save-editor-note">
               {entries.length} / {box === -1 ? 6 : report.boxSlotCount}
             </p>

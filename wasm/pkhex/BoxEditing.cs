@@ -3,15 +3,15 @@ using PKHeX.Core;
 
 namespace PokeRNGKit.SaveEditor;
 
-public sealed record BoxEdit(int Box, string? Name, int? Wallpaper, int? Unlocked = null, int[]? Flags = null, int? SwapWith = null, string? Batch = null, bool All = false, bool Reverse = false, string? Language = null);
-public sealed record BoxOptions(bool CanName, int NameLength, LocalizedText[] Wallpapers, int? Unlocked, int[] Flags, int FlagMaximum, bool CanSwap, BoxBatchChoice[] BatchActions);
+public sealed record BoxEdit(int Box, string? Name, int? Wallpaper, int? Unlocked = null, int[]? Flags = null, int? SwapWith = null, string? Batch = null, bool All = false, bool Reverse = false, string? Language = null, int? CurrentBox = null);
+public sealed record BoxOptions(bool CanName, int NameLength, LocalizedText[] Wallpapers, int? Unlocked, int[] Flags, int FlagMaximum, bool CanSwap, BoxBatchChoice[] BatchActions, int CurrentBox, bool CanSetCurrentBox);
 
 internal static class BoxEditing
 {
     // PKHeX.WinForms/Subforms/Save Editors/Gen6/SAV_BoxLayout.cs.
     public static BoxOptions Options(SaveFile save)
     {
-        if(!save.HasBox)return new(false,0,[],null,[],0,false,[]);
+        if(!save.HasBox)return new(false,0,[],null,[],0,false,[],save.CurrentBox,false);
         var length = save.Generation switch
         {
             2 when save is SAV2 { Japanese: false, Korean: false } => 16,
@@ -36,13 +36,29 @@ internal static class BoxEditing
                 GameInfo.GetStrings("en").wallpapernames[i], GameInfo.GetStrings("ja").wallpapernames[i])
             : new LocalizedText($"壁纸 {i + 1}", $"Wallpaper {i + 1}", $"壁紙 {i + 1}")).ToArray();
         return new(save is IBoxDetailName, length, wallpapers, save.BoxesUnlocked < 0 ? null : save.BoxesUnlocked,
-            Array.ConvertAll(save.BoxFlags, b => (int)b), save is SAV8SWSH or SAV8LA ? 1 : 255, save.BoxCount > 1, BoxBatch.Choices(save));
+            Array.ConvertAll(save.BoxFlags, b => (int)b), save is SAV8SWSH or SAV8LA ? 1 : 255, save.BoxCount > 1, BoxBatch.Choices(save), save.CurrentBox, CanStoreCurrentBox(save) && save.State.Exportable && SaveChecksums.Valid(save));
     }
+
+    // Only these upstream overrides store CurrentBox in the serialized save.
+    // SaveFile's base auto-property is navigation state that is lost on reopen.
+    private static bool CanStoreCurrentBox(SaveFile save) => save.HasBox && save is
+        SAV1 or SAV2 or SAV3 or SAV3RSBox or SAV4HGSS or SAV4Sinnoh or SAV5 or
+        SAV6AO or SAV6XY or SAV7 or SAV8BS or SAV8LA or SAV8SWSH or SAV9SV or SAV9ZA;
 
     public static void Apply(SaveFile save, BoxEdit edit)
     {
         if ((uint)edit.Box >= save.BoxCount)
             throw new ArgumentException("Invalid box position.");
+        if (edit.CurrentBox is { } current)
+        {
+            if (!CanStoreCurrentBox(save) || (uint)current >= save.BoxCount || current != edit.Box ||
+                edit.Name is not null || edit.Wallpaper is not null || edit.Unlocked is not null ||
+                edit.Flags is not null || edit.SwapWith is not null || edit.Batch is not null ||
+                edit.All || edit.Reverse || edit.Language is not null)
+                throw new ArgumentException("Invalid current box selection.");
+            save.CurrentBox = current;
+            return;
+        }
         if (edit.Batch is not null) { BoxBatch.Apply(save, edit); return; }
         if (edit.All || edit.Reverse || edit.Language is not null) throw new ArgumentException("Invalid box batch values.");
         var options = Options(save);
@@ -91,7 +107,15 @@ internal static class BoxEditing
             for (int slot = 0; slot < save.BoxSlotCount; slot++)
             {
                 var p = save.GetBoxSlotAtIndex(box, slot);
-                result.Add(Convert.ToHexString(p.Data[..p.SIZE_STORED]));
+                // PK1/PK2 SIZE_STORED is a serialized list containing separate
+                // names; their entity Data buffer is shorter than that list.
+                if (p is GBPKML)
+                {
+                    result.Add(Convert.ToHexString(p.Data));
+                    result.Add(Convert.ToHexString(p.OriginalTrainerTrash));
+                    result.Add(Convert.ToHexString(p.NicknameTrash));
+                }
+                else result.Add(Convert.ToHexString(p.Data[..p.SIZE_STORED]));
                 result.Add(((int)save.GetBoxSlotFlags(box, slot)).ToString());
             }
         }
@@ -101,7 +125,8 @@ internal static class BoxEditing
     public static void Verify(SaveFile save, BoxEdit edit)
     {
         if ((edit.Name is { } name && ((IBoxDetailNameRead)save).GetBoxName(edit.Box) != DisplayName(save, edit.Box, name)) ||
-            (edit.Wallpaper is { } wallpaper && ((IBoxDetailWallpaper)save).GetBoxWallpaper(edit.Box) != wallpaper))
+            (edit.Wallpaper is { } wallpaper && ((IBoxDetailWallpaper)save).GetBoxWallpaper(edit.Box) != wallpaper) ||
+            (edit.CurrentBox is { } current && save.CurrentBox != (save is SAV3RSBox ? current / 2 * 2 : current)))
             throw new InvalidOperationException("Export verification failed. No file was exported.");
     }
 

@@ -3409,6 +3409,7 @@ export function SaveEditorPanel(
               busy ||
               !(
                 report.canEdit ||
+                report.boxOptions.canSetCurrentBox ||
                 report.trainerOnly ||
                 report.pokedex?.canEdit ||
                 report.brProfiles?.canEdit

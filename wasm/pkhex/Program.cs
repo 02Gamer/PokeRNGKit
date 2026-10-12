@@ -474,7 +474,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 137;
+    public const int ApiVersion = 138;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -589,7 +589,7 @@ public static partial class SaveService
     public static byte[] ExportWorkingCopy(byte[] data)
     {
         var save = Open(data);
-        if ((!CanEditTrainer(save) && !SimplePokedex.Supports(save) && !ZaPokedex.Supports(save) && save is not (SAV7b or SAV8LA or SAV9SV or SAV4BR)) || !save.State.Exportable || !SaveChecksums.Valid(save))
+        if ((!CanEditTrainer(save) && !SimplePokedex.Supports(save) && !ZaPokedex.Supports(save) && !BoxEditing.Options(save).CanSetCurrentBox && save is not (SAV7b or SAV8LA or SAV9SV or SAV4BR)) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Export requires a supported save with valid checksums.");
         // Every edit already recomputes checksums and verifies a reload. Preserve those exact verified bytes.
         return data.ToArray();
@@ -813,10 +813,14 @@ public static partial class SaveService
     public static byte[] EditBox(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
+        if (!save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BoxEdit)
             ?? throw new ArgumentException("Missing box values.");
+        // Current-box metadata has its own source-backed capabilities. Do not
+        // enable unrelated Pokémon/box mutations for otherwise read-only formats.
+        if (edit.CurrentBox is null && !CanEdit(save))
+            throw new ArgumentException("Editing requires a supported save with valid checksums.");
         BoxEditing.Apply(save, edit);
         var expected = BoxEditing.Snapshot(save);
         var output = save.Write().ToArray();

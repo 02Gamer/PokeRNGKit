@@ -48,9 +48,21 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
-## 仓储查看器覆盖复核（BoxList API 137 工程通过，第二箱与注册队伍待接）
+## 仓储查看器覆盖复核（BoxList／第二箱 API 138 工程通过，注册队伍待接）
 
-已读取同版本 `SAV_BoxList.cs`／Designer、`SAV_BoxViewer.cs`、`SAV_GroupViewer.cs`、`Controls/SAV Editor/BoxEditor.cs`、`SlotChangeManager.cs` 与 `Controls/Slots/SlotUtil.cs`。BoxList 同时创建全部箱子视图，左右按钮交换相邻箱并首尾循环；槽数与列数来自 Core BoxSlotCount／5，不按固定 30 格假定所有格式。BoxViewer 是第二个独立箱子视图，仍待实现，不能以新增全箱页面代替它。
+2026-10-12 开始 BoxViewer。窗体源 SAV_BoxViewer.cs／Designer 将第二窗设为 CanSetCurrentBox=false；主窗 SAVEditor.Designer.cs 为 true。SwapBoxesViewer 交换两窗的 CurrentBox 显示索引，不调用 SaveFile.SwapBox；左右键按 Core BoxEdit.MoveLeft／MoveRight 循环，单独 Ctrl 跳首／尾。下拉有效编号为 0–BoxCount−1，载入越界显示索引回退 0。主窗 GetBox 将当前编号写入 SAV.CurrentBox，第二窗导航不写。
+
+当前箱子持久化由 Core 的 15 个 override 家族决定：SAV1、SAV2、SAV3、SAV3RSBox、SAV4HGSS、SAV4Sinnoh、SAV5、SAV6AO、SAV6XY、SAV7、SAV8BS、SAV8LA、SAV8SWSH、SAV9SV、SAV9ZA；SaveFile 基类的自动属性不序列化。SAV1 setter 保留原高位初始化标记。新增独立 CurrentBox 请求限制为整型 0–BoxCount−1，并拒绝和箱名、壁纸、交换、批量等操作混用；写入复用 Core 与全文件复读验证、工作副本／撤销，不开放这些格式的其他未实现编辑行为。双箱组件与辅助函数已写，产品接线、新协议、扩大工程和页面核验仍待完成，不能标记功能完成。
+
+API 138 已接双箱模式、两个独立选择器、循环／首尾导航、显示交换及共用详情／文件操作／拖放。主箱首次显示取实际保存编号，越界仅显示回退；第二箱初始同主箱，两个视图共享工作副本、图像／壁纸和来源修订。主箱显式选择按独立元数据能力写入工作副本，不受通用宝可梦编辑白名单影响；第二箱和格位详情选择不写编号。原版窗体滚轮在格位上下文菜单可见时停用；网页保留显式上一箱／下一箱／首箱／末箱与准确 Ctrl 修饰规则，窗口位置采用响应式工作区两窗并排／窄屏顺序布局。API 138 最新专项、完整工程、核心及裁剪检查均通过，外部浏览器与真实存档核验仍待完成。
+
+工作副本导出同时识别当前箱子元数据能力，保留已经验证的完整文件 bytes；不扩大其他宝可梦写入能力。端点编号专项包含导出 bytes 完全相等的检查。
+
+RS Box 的源码 CurrentBox getter 为 BoxBuffer[4]×2，setter 写 value／2，因此奇数显示编号保存为前一个偶数编号。显示仍可选择全部 50 箱，重新读取与校验使用这一来源映射；不能把奇数请求的原值误认为保存结果。剑／盾、朱／紫、Z-A 各修订与阿尔宙斯两修订补充类型化区块专项，严格区分 Core 工程检查与 SaveUtil 生产识别。
+
+完整原生与完整前端 verify 已通过（270 文件／1158 项）；最新专项包含工作副本完整导出、17 个类型化区块组合和 RS Box 两语言各 50 个显示编号。首次类型化专项因 BlankSaveFile 缺少零长度箱子标记布尔块失败，修正只在本专项夹具补入访问器定义的键，保留完整输出与重新读取校验；不扩大生产检测。API 138 核心发布、裁剪后属性及最新网页打包均通过，页面／真实存档未验收。
+
+已读取同版本 `SAV_BoxList.cs`／Designer、`SAV_BoxViewer.cs`、`SAV_GroupViewer.cs`、`Controls/SAV Editor/BoxEditor.cs`、`SlotChangeManager.cs` 与 `Controls/Slots/SlotUtil.cs`。BoxList 同时创建全部箱子视图，左右按钮交换相邻箱并首尾循环；槽数与列数来自 Core BoxSlotCount／5，不按固定 30 格假定所有格式。BoxViewer 已接独立第二箱，复用共享 Select、工具栏按钮与实际格位组件，按钮高度继承工作区令牌；完整工程检查通过，页面待核验，不能以全箱页面代替第二箱能力。
 
 API 137 已在 SavePokemonBrowser 接入当前箱子／队伍与全部箱子切换。SaveBoxGallery 同时呈现全部物理箱子，包括空箱；SaveBoxGrid 复用真实位置、原版壁纸及本地宝可梦图像，支持点击详情、槽号／状态／悬停摘要、方向键与 Home／End 定位。全部视图保持同步，修改继续使用工作副本／撤销／导出，不修改原件。相邻整箱交换直接复用已验证的 Core SwapBox 路径，禁止不可编辑或受保护数据，不额外写入名称／壁纸草稿。
 
