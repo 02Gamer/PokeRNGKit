@@ -48,7 +48,13 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
-## 仓储查看器覆盖复核（BoxList／第二箱 API 138 工程通过，注册队伍待接）
+## 录音工具来源核对（尚未实现）
+
+下一独立模块已只读核对 `SAV_Chatter.cs`／Designer、`IChatter.cs`、`Chatter4.cs`／`Chatter5.cs`，当前不混入注册队伍实现。来源仅提供 Initialized 勾选、PCM 导入／导出、WAV 导出、播放和保存／取消，没有实时录音入口；浏览器使用文件选择、下载与本地音频对应，无服务端或系统 SoundPlayer 依赖。PCM 必须恰好 1000 bytes，导入同时设 Initialized=true；WAV 是源固定 44-byte header 加 2000 个 unsigned 8-bit 样本，2000 Hz 单声道，每字节先低四位左移 4，再高四位。未初始化且样本全零时播放无操作，未初始化但非零样本仍可播放。混乱几率由 Core 计算；Designer 的三位 MaskedTextBox 没有保存读取，网页不将该显示值伪装成可写存档字段。
+
+两个世代 Initialized 都仅在首四字节 UInt32==1 时为真；显式设置写 0／1，未知原始标记未操作时需保留。Gen4 使用 recording[15] 的 signed byte：已初始化时 <−30 为 11%、>=30 为 31%、其余为 1%；未初始化为 1%。Gen5 使用 recording[99]^recording[499]^recording[699]：已初始化时 <100 或 >=150 为 10%，其余为 0%；未初始化为 0%。支持范围由原版 SAVEditor 对应入口及具体 SAV4/SAV5 类型继续核对后确定，不先扩大成所有世代。Core 与 Web 功能尚未实现，须先完成本批注册队伍的工程及提交。
+
+## 仓储查看器覆盖复核（BoxList／第二箱／注册队伍工程通过）
 
 2026-10-12 开始 BoxViewer。窗体源 SAV_BoxViewer.cs／Designer 将第二窗设为 CanSetCurrentBox=false；主窗 SAVEditor.Designer.cs 为 true。SwapBoxesViewer 交换两窗的 CurrentBox 显示索引，不调用 SaveFile.SwapBox；左右键按 Core BoxEdit.MoveLeft／MoveRight 循环，单独 Ctrl 跳首／尾。下拉有效编号为 0–BoxCount−1，载入越界显示索引回退 0。主窗 GetBox 将当前编号写入 SAV.CurrentBox，第二窗导航不写。
 
@@ -72,11 +78,19 @@ API 137 已在 SavePokemonBrowser 接入当前箱子／队伍与全部箱子切�
 
 2026-10-12 完整原生 48249、完整 verify 14683、API 137 核心发布 3862、裁剪与最新网页 29002 均退出码 0；268 文件／1147 项、26 类裁剪元数据和最新网页／PWA 已通过。覆盖与队伍专项 36644 保留完整文件字节对照，SAV7 测试解析复制后的输出数组，避免解析器自身清除 MemeCrypto 签名污染比较。外部 Chrome 仍返回通信错误，工程通过不等同页面或真实存档验收。所有者已认可独立存档工作区布局方向及统一控件要求，随后按 docs/ui-design.md 迁移。
 
-GroupViewer 使用独立 SlotGroup，自动选择首个非空组，按组槽数重建网格，提供图片、悬停详情、合法性标记与选择详情，左右循环并可跳到首尾。当前通用 SaveReport／PokemonReader 路径没有独立 SlotGroup 目录；各专属模块的队伍显示不能代替所有特殊组。BoxViewer／GroupViewer 的剩余覆盖继续保留，后续独立实现。
+GroupViewer 使用独立 SlotGroup，自动选择首个非空组，按组槽数重建网格，提供图片、悬停详情、合法性标记与选择详情，左右循环并可跳到首尾。各专属模块的队伍显示不能代替这些注册组。2026-10-12 已接 RegisteredGroups Core 目录与独立 Group／Slot 位置，保留每组六个物理成员，空位返回 null，成员克隆后读取／分析，不能作为普通箱子写入。API 139 已接 JSExport、来源生成 JSON、Worker 与三语用途入口；完整工程、新版核心、26 类裁剪属性和最新网页检查通过。
+
+GroupViewer.Designer 的下拉为 DropDownList，没有自由数字输入；有效组编号是 0–Groups.Count−1，格位是 0–当前组 Slots.Length−1。左右按钮以任意包含 Ctrl 的组合跳首／尾，普通按钮循环；这与第二箱 BoxEditor 的精确 Ctrl 条件不同，不能复用其修饰判定。网页使用共享 Select、普通查看／导航按钮对应下拉、Ctrl 点击和 View 菜单，六格排列按容器重排，不复制桌面 32×24 像素按钮。窗口位置与滚轮用工作区及显式导航替代，保留键盘和触屏路径。
+
+API 139 最新公共接口专项按真实箱子 header／stride／footer 位置补充工程识别标记，初代为 POKE=454B4F50，二代为 P3v0=30763350，再由 Core.Write 计算校验和，不垫充长度或改变生产识别。最新专项退出码 0，五布局的源生成 JSON、SaveUtil 识别、完整公开报告及携带组位置的分析响应通过；真实存档仍未验收。读取在 StrictMode 重用同修订 Promise，卸载／修订变更拒绝迟到分析。操作、入口与注册组错误信息支持中文／英文／日文；组原始名称、顺序和训练家数据来自 Core。
+
+最新公开接口／缺失字段／小数／字符串／越界／原件保留专项、类型、四文件 57 项及全部接线 Lint 均通过。Group／Slot 的 JSON 字段为必填，不能将缺失选择默认为 0。前端覆盖本地图像、物理空格、三语训练家描述与错误、跨组旧分析隔离及只读 Worker 客户端响应；完整工程、API 139 核心及最新网页通过，不等同页面或真实存档验收。
+
+五种 Stadium 类型化 Core 读取专项通过。初代原始实体是 PokeCrypto 内部 SIZE_1STORED=33 bytes，随后分别为昵称／训练家姓名，日文各 6 bytes，国际各 11 bytes；不能使用带列表包装的 PK1.SIZE_STORED。SAV1StadiumJ 空白构造器调用该列表写入，在本版本抛出越界；专项使用 SIZE_G1STADJ=0x8000 的原始数据构造器，不把构造器缺陷修补进只读上游。其余初代／二代使用 Core SIZE_G1STAD／SIZE_G2STAD=0x20000 原始数据构造器，补齐上述来源标记后通过 SaveUtil 及公共接口工程检查，不构成真实存档验收。合法性标记与详细分析使用组实际 StorageSlotType、存档 Personal 和克隆成员；五布局专项、Worker／产品入口及 API 139 接线均通过工程检查。
 
 2026-10-11 继续核对实际调用点 `Controls/SAV Editor/SAVEditor.cs:B_OtherSlots_Click`，该版本只对 `SAV_STADIUM.GetRegisteredTeams()` 打开 GroupViewer，不是任意游戏的特殊槽统一入口。`SAV1StadiumJ` 返回 16 组，每组六只，交错的备份队伍不另列；`SAV1Stadium` 日文返回 108 组，国际版从 90 组移除两类各 10 组的未使用队伍，显示 70 组；`SAV2Stadium` 返回 60 组，每组六只。组名与实际顺序必须由 Core 返回，不能用显示索引自行重算物理队伍偏移。
 
-来源为 Core `SAV_STADIUM.cs`、`SAV1StadiumJ.cs`、`SAV1Stadium.cs`、`SAV2Stadium.cs`、`SlotGroup.cs` 和 WinForms `SAV_GroupViewer.cs`。原窗口 Ctrl 点击／查看菜单调用 `PopulateFields(slot, false)`，此查看器没有队伍写回路径；首个非空组、所有空格、合法性标记和悬停摘要均要保留。网页实现可用普通点击与键盘进入详情，并提供首尾按钮替代 Ctrl 修饰键，但不能把普通箱子或 Battle Revolution 战斗通行证当成该窗口的组目录。本段仅完成来源与范围核对，尚未实现。
+来源为 Core `SAV_STADIUM.cs`、`SAV1StadiumJ.cs`、`SAV1Stadium.cs`、`SAV2Stadium.cs`、`SlotGroup.cs` 和 WinForms `SAV_GroupViewer.cs`。原窗口 Ctrl 点击／查看菜单调用 `PopulateFields(slot, false)`，此查看器没有队伍写回路径；首个非空组、所有空格、合法性标记和悬停摘要均要保留。网页实现可用普通点击与键盘进入详情，并提供首尾按钮替代 Ctrl 修饰键，但不能把普通箱子或 Battle Revolution 战斗通行证当成该窗口的组目录。当前已按此范围接入，页面与真实存档仍待验收。
 
 ## 第九世代服装窗口（API 134，工程检查通过）
 

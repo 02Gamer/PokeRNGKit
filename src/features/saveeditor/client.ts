@@ -17,6 +17,8 @@ export class SaveEditorClient {
     bytes: Uint8Array,
     edit?: string,
     kind:
+      | "registeredGroups"
+      | "registeredGroupAnalyze"
       | "brProfile"
       | "inspectWorking"
       | "boxBinaryPreview"

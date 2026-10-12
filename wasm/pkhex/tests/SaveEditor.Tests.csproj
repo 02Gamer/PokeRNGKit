@@ -163,6 +163,7 @@
     <Compile Include="../PokemonFormArgument.cs" Link="PokemonFormArgument.cs" />
     <Compile Include="../PokemonReader.cs" Link="PokemonReader.cs" />
     <Compile Include="../BrowserCryptography.cs" Link="BrowserCryptography.cs" />
+    <Compile Include="../RegisteredGroups.cs" Link="RegisteredGroups.cs" />
     <ProjectReference Include="../../../third_party/pkhex/PKHeX.Core/PKHeX.Core.csproj" />
   </ItemGroup>
 </Project>

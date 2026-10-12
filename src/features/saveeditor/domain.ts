@@ -45,6 +45,7 @@ export interface TrainerDateField {
 }
 
 export interface SaveReport {
+  registeredTeams?: boolean;
   brProfiles?: import("./br4").Br4Profiles | null;
   pokedex: {
     kind:
@@ -60,7 +61,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 138;
+  apiVersion: 139;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -793,6 +794,8 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  registeredGroups?: import("./registeredGroups").RegisteredGroupCatalog;
+  registeredGroupAnalysis?: import("./registeredGroups").RegisteredGroupAnalysis;
   boxImportPreview?: import("./boxImport").BoxImportTicket;
   boxBinaryPreview?: import("./boxBinary").BoxBinaryTicket;
   boxBinary?: Uint8Array<ArrayBuffer>;

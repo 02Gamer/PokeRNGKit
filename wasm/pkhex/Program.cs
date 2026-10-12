@@ -21,6 +21,11 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadRegisteredGroups(byte[] data) => SaveService.ReadRegisteredGroups(data);
+    [JSExport]
+    public static string AnalyzeRegisteredGroup(byte[] data, string json) => SaveService.AnalyzeRegisteredGroup(data, json);
+
+    [JSExport]
     public static string ReadPokedex9a(byte[] data) => SaveService.ReadPokedex9a(data);
     [JSExport]
     public static byte[] EditPokedex9a(byte[] data, string json) => SaveService.EditPokedex9a(data, json);
@@ -474,7 +479,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 138;
+    public const int ApiVersion = 139;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -695,6 +700,15 @@ public static partial class SaveService
         return JsonSerializer.Serialize(PokemonOrigin.Catalog(save, query), SaveJsonContext.Default.OriginCatalog);
     }
 
+    public static string ReadRegisteredGroups(byte[] data) => JsonSerializer.Serialize(RegisteredGroups.Read(Open(data)), SaveJsonContext.Default.RegisteredGroupCatalog);
+    public static string AnalyzeRegisteredGroup(byte[] data, string json)
+    {
+        var save = Open(data);
+        var position = JsonSerializer.Deserialize(json, SaveJsonContext.Default.RegisteredGroupPosition)
+            ?? throw new ArgumentException("Missing registered team position.");
+        return JsonSerializer.Serialize(new RegisteredGroupAnalysis(position, RegisteredGroups.Analyze(save, position)), SaveJsonContext.Default.RegisteredGroupAnalysis);
+    }
+
     public static string AnalyzePokemon(byte[] data, string json)
     {
         var save = Open(data);
@@ -734,7 +748,7 @@ public static partial class SaveService
             valid && CanEdit(save) && save.State.Exportable,
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
             PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), ZaPokedex.Supports(save) ? new PokedexCapability("za", valid && save.State.Exportable) : save is SAV9SV ? new PokedexCapability("sv", valid && save.State.Exportable) : save is SAV8LA ? new PokedexCapability("legends", valid && save.State.Exportable) : save is SAV8SWSH ? new PokedexCapability("swsh", valid && save.State.Exportable) : save is SAV8BS ? new PokedexCapability("bdsp", valid && save.State.Exportable) : save is SAV7 or SAV7b ? new PokedexCapability("gen7", valid && save.State.Exportable) : save is SAV6XY or SAV6AO ? new PokedexCapability("gen6", valid && save.State.Exportable) : save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
-        report = report with { BrProfiles = Br4Editing.Profiles(save), TrainerOnly = valid && save.State.Exportable && save is SAV6AODemo };
+        report = report with { BrProfiles = Br4Editing.Profiles(save), TrainerOnly = valid && save.State.Exportable && save is SAV6AODemo, RegisteredTeams = RegisteredGroups.Supports(save) };
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -855,10 +869,13 @@ public sealed record SaveReport(
     ushort Tid, ushort Sid, uint DisplayTid, uint DisplaySid, int Language,
     byte Gender, uint Money, int MaxMoney, int MaxNameLength, int BoxCount,
     int PartyCount, string PlayTime, bool ChecksumsValid, bool CanEdit,
-    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer, PokedexCapability? Pokedex, Br4Profiles? BrProfiles=null,bool TrainerOnly=false);
+    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer, PokedexCapability? Pokedex, Br4Profiles? BrProfiles=null,bool TrainerOnly=false, bool RegisteredTeams=false);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(RegisteredGroupCatalog))]
+[JsonSerializable(typeof(RegisteredGroupPosition))]
+[JsonSerializable(typeof(RegisteredGroupAnalysis))]
 [JsonSerializable(typeof(Dex9aCatalog))]
 [JsonSerializable(typeof(Dex9aEdit))]
 [JsonSerializable(typeof(Dex9Catalog))]

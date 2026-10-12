@@ -1,4 +1,9 @@
 import { SaveSectionNavigation } from "./SaveSectionNavigation";
+import { RegisteredGroupViewer } from "./RegisteredGroupViewer";
+import {
+  registeredGroupWords,
+  type RegisteredGroupPosition,
+} from "./registeredGroups";
 import type { SaveSection, SaveSectionItem } from "./saveWorkspace";
 import { SuperTrain6Editor } from "./SuperTrain6Editor";
 import { supportsSuperTrain6 } from "./superTrain6";
@@ -314,6 +319,7 @@ export function SaveEditorPanel(
         setReviewDefaults(false);
       }
       setSection((previous) =>
+        (previous === "registeredGroups" && !result.report.registeredTeams) ||
         (previous === "sevenstar9" &&
           !supportsSevenStar9(result.report.format)) ||
         (previous === "raid9" && !supportsRaid9(result.report.format)) ||
@@ -2560,6 +2566,41 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readRegisteredGroups = async () => {
+    let catalog:
+      import("./registeredGroups").RegisteredGroupCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "registeredGroups",
+      );
+      if (id !== operation.current) return;
+      if (!result.registeredGroups)
+        throw new Error("Registered teams were not returned.");
+      catalog = result.registeredGroups;
+    });
+    return catalog;
+  };
+  const analyzeRegisteredGroup = async (position: RegisteredGroupPosition) => {
+    let analysis:
+      import("./registeredGroups").RegisteredGroupAnalysis | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(position),
+        "registeredGroupAnalyze",
+      );
+      if (id !== operation.current) return;
+      if (!result.registeredGroupAnalysis)
+        throw new Error("Registered team analysis was not returned.");
+      analysis = result.registeredGroupAnalysis;
+    });
+    return analysis;
+  };
+
   const readRecords = async () => {
     let catalog: import("./domain").SaveRecordCatalog | undefined;
     await perform(async (id) => {
@@ -3090,6 +3131,18 @@ export function SaveEditorPanel(
   const sectionItems: SaveSectionItem[] = report
     ? [
         { id: "pokemon", label: words.pokemon, available: Boolean(true) },
+        {
+          id: "registeredGroups",
+          label:
+            registeredGroupWords[
+              i18n.language.startsWith("zh")
+                ? "zh"
+                : i18n.language.startsWith("ja")
+                  ? "ja"
+                  : "en"
+            ].title,
+          available: Boolean(report.registeredTeams),
+        },
         { id: "trainer", label: words.trainer, available: Boolean(true) },
         { id: "inventory", label: words.inventory, available: Boolean(true) },
         {
@@ -4239,6 +4292,14 @@ export function SaveEditorPanel(
                   onBatch={(edit) => applyWorkingEdit(edit, "inventoryBatch")}
                   canEdit={report.canEdit}
                   onApply={(edit) => applyWorkingEdit(edit, "inventoryEdit")}
+                />
+              ) : section === "registeredGroups" && report.registeredTeams ? (
+                <RegisteredGroupViewer
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  busy={busy}
+                  onRead={readRegisteredGroups}
+                  onAnalyze={analyzeRegisteredGroup}
                 />
               ) : section === "pokemon" ? (
                 <SavePokemonBrowser

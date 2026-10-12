@@ -11,6 +11,7 @@ internal static class SaveEditorTests
 
     public static void Main()
     {
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "registered-groups") { RegisteredGroupsTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "gs-ball2") { GsBall2Tests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "ferry3") { Ferry3EditingTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "misc3") { Misc3EditingTests.Run(); return; }
@@ -132,7 +133,7 @@ internal static class SaveEditorTests
             var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
             Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
             Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
-            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 138, $"{version}: API version");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 139, $"{version}: API version");
             Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
             var boxes = document.RootElement.GetProperty("boxes");
             Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");
@@ -288,6 +289,7 @@ internal static class SaveEditorTests
         BoxEditingTests.Run();
         BoxLayoutTests.Run();
         CurrentBoxTests.Run();
+        RegisteredGroupsTests.Run();
         BoxBatchTests.Run();
         PropertyBatchContractTests.Run();
         FolderBatchContractTests.Run();
