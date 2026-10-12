@@ -8,6 +8,9 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../WondercardEditing.cs" Link="WondercardEditing.cs" />
+    <Compile Include="../WondercardSession.cs" Link="WondercardSession.cs" />
+    <Compile Include="../WondercardDetails.cs" Link="WondercardDetails.cs" />
     <Compile Include="../BlockAccessorSession.cs" Link="BlockAccessorSession.cs" />
     <Compile Include="../BlockAccessorEditing.cs" Link="BlockAccessorEditing.cs" />
     <Compile Include="../BlockAccessorReading.cs" Link="BlockAccessorReading.cs" />

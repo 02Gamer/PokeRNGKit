@@ -61,7 +61,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 145;
+  apiVersion: 146;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -794,6 +794,10 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  wondercard?: import("./wondercard").WondercardCatalog;
+  wondercardEntry?: import("./wondercard").WondercardEntry;
+  wondercardPreview?: import("./wondercard").WondercardTicket;
+  wondercardQR?: string;
   blockAccessor?: import("./blockAccessor").AccessorCatalog;
   blockAccessorPreview?: import("./blockAccessor").AccessorTicket;
   trainer9a?: import("./trainer9a").Tr9aCatalog;

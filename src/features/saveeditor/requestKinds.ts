@@ -1,5 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "wondercard"
+  | "wondercardImport"
+  | "wondercardQR"
+  | "wondercardPreview"
+  | "wondercardCommit"
+  | "wondercardDiscard"
   | "blockAccessor"
   | "blockAccessorPreview"
   | "blockAccessorCommit"

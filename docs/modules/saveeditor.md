@@ -48,9 +48,25 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
-## 神秘礼物相册（下一模块，来源初审，未接产品）
+## SCBlock 区块工具（下一模块，来源初审，未实现）
+
+2026-10-13 只读核对 `Gen8/SAV_BlockDump8.cs`／Designer、SAVEditor 调用点与 `SCBlockUtil.cs`。入口按 ISCBlockArray，不限名称里的第八世代。完整范围为键目录／名称过滤、Bool1／Bool2 切换、当前块等长导入／导出、目录批量导入／全部非空块导出、单文件四个选项以及双存档比较。默认选项仅 DataOnly + FakeHeader，Key／TypeInfo 未勾选；FakeHeader 经 BinaryWriter.Write(string) 写入长度前缀，并非纯 ASCII 拼接。十六进制显示区只读，PG_BlockView 在来源只切换 Visible、没有 SelectedObject 赋值，不将空 PropertyGrid 当作已实现任意结构属性编辑。额外键名与排除名单来自桌面设置，网页需本地文件／设置替代；CompareSaves 的第二次长度检查误指向旧文件，应明确源异常并分别核对两个输入。后续还需完整核对 SCBlockMetadata／Compare／TypeCode 和目录导入，当前仅记录来源，不混入相册实现。
+
+后续只读核对 `SCBlockMetadata.cs`／`SCBlockCompare.cs`／`SCTypeCode.cs`／`SCBlock.cs`／`Util.cs`：实际 ISCBlockArray 家族为 SAV8SWSH、SAV8LA、SAV9SV、SAV9ZA。目录沿来源先命名项、再类型排序；排除名单仅过滤常量名称，不能据此删除物理区块。额外键名按 TAB 解析 ulong 十六进制再转 uint，已有名称与重复键第一项保留。文件夹只枚举顶层文件，不限扩展名；文件名移除扩展名和首个 ASCII 空格后的值摘要，以 GetHexValue 跳过非 hex 字符并按 uint 位模式解析；逐文件等长导入，失败记录而已成功项保留，重复键按文件顺序覆盖。网页需保留顺序与成功／失败结果，在克隆中冻结整体输出，并明确展示部分成功。导出目录只含非空 Data；单文件 16 种选项组合须逐一与 Core 对照，None 使用源解密 raw 线格式，而非单纯 Data 拼接。源比较分别记录新增／删除／类型／长度／值／对象 bytes；类型变化会跳过后续 bytes，Array SubType 变化和 NaN 位模式差异可能不在源报告体现，网页应同时给源原文及完整逐块结构／bytes 对照。Bool3 被 IsBoolean 判为 true，但 ChangeBooleanType 只接受 Bool1／Bool2，应显示实际类型并原子拒绝不可切换项。Designer 未设置键输入 MaxLength，八字符只用于 Enter 的键跳转判断，不能擅自限制名称过滤为八字符。这些仍是下一模块来源记录，尚未增加功能实现。
+
+## 神秘礼物相册（API 146 工程通过，页面待核验）
+
+最后图像追加后的完整 verify 95943 已通过：280 文件／1256 项、格式／Lint／类型／网页／PWA 257 项，99 个核心框架资源与打包输出 SHA-256 一致。完整原生 99420 默认链已结束，退出码 0，包含相册全部新增用例；核心发布／228 根类型和两个程序集扩展裁剪 21800 通过。页面与真实存档仍待核验，工程结果不作所有者验收。
+
+当前图像使用源宝可梦／蛋／玛纳霏蛋／物品资源；网格、详情与导入预览共用 WondercardImage，携带物使用本地物品图片叠层，异色使用和箱子相同的星号及三语可访问名称，已用透明度作用于完整图层。两项渲染专项通过，覆盖三语与空卡／物品卡不显示残留实体标记。没有宣称逐像素复刻桌面 SpriteBuilder：源异色星图、蛋下层物种透明度、可选精灵球与遭遇背景设置仍需后续对照；正式浏览器图片处理仍待核验。
 
 2026-10-13 只读核对 `Subforms/Save Editors/SAV_Wondercard.cs`：通过 IMysteryGiftStorageProvider 取得相册，窗口限 Gen4–7，HGSS 额外锁定胶囊槽。查看／设置／删除、已领取标记、全部已用／未用、相册槽位移动、导入／导出与 QR 是独立能力，不能由现有实体礼物导入代替。设置必须检查卡片兼容性、同类型首个空槽重定位、PCD 转 PGT 及锁定胶囊第 11 槽；删除按类型将连续非空卡片前移。保存 Gen4 配送员激活及 PGT 关联、HGSS 胶囊，Gen5 调 EndAccess 重新加密；标记保存按来源先清再写列表。追加只读核对拖放／QR：Gen4 相册为 8 个 PGT + 3 个 PCD，HGSS 追加胶囊；Gen5–7 按实际数量六格分行。外部拖放按长度识别与扩展名解析，PCD 可向 PGT 转换，流程与普通设置的兼容检查不同，不能误合并。QR 导出排除空卡和 Gen6 无限船票，导入检查解析状态、相册长度／类型及 CanReceiveGift。已读取 Drawing.Misc QRDecode／QREncode：原导入调用 qrserver 外部 HTTP API，原导出依赖 QRCoder + System.Drawing；这两条实现不能直接移植。网页需保留 Core QRMessageUtil 载荷，使用随包的本地二维码编码／图片解码，替代剪贴板 URL／网络服务，不能放宽静态架构。已读取 SAV4.cs MysteryBlock4／Gen5–7 MysteryBlock／LGPE WB7Records：Gen4 8 PGT + 3 PCD、Gen5 12 PGF、Gen6 24 WC6、Gen7 48 WC7、Let’s Go 10 WR7 摘要。记录大小依次 0x104／0x358／0xCC／0x108／0x108／0x140；领取范围 Gen4 窗口 1–2046、Gen5–7 1–2047、LGPE 1–4223。Gen4 卡片保存会重新关联 PGT／PCD 和配送员，Gen6 无限船票还调用 Sango 联动。LGPE ClearReceivedFlags 从块起始清 0x210 字节而非 FlagStart，保存卡片随后覆盖但尾部旧 flags 可能保留，须独立完整文件对照并明示源异常；WR7 是已领摘要，源隐藏已用／未用及 QR。后续还需核对完整移动边界与图像来源，当前仅记录来源，不开放入口或宣称接入。
+
+`WondercardEditing` 内部初稿已建立完整相册及有序动作，读取原件 clone；初始十布局专项 86696 通过目录／加密原件和领取标记保存的独立完整文件 oracle。追加内部 WondercardSession 和十布局动作／冻结专项（41355 十布局通过；22086／37999 曾因共享 SAV5 夹具不为空的测试假设失败，已保留异常原件并增加明确清空动作夹具），单文件预览、QR 载荷导入与源限制导出已分离；尚未公开 JSON／Worker／入口或提升协议；完整动作、三语描述、图像、冻结及本地二维码仍待实现／验证，不把初稿视为窗口完成。
+
+特殊分支专项 59009 通过胶囊／PCD 转 PGT／外部拖入／无限船票接收发送／三语资源与 QR 限制。追加 WondercardDetails 和结构化名称／图片／数量元数据，最新元数据专项 97854 通过，前端领域请求／冻结四项通过。源标题保留原语言，产品标签与生成详情按三语显示；原始图像编号与道具值分开，不因 Z 晶石图片映射改写数据。
+
+API 146 已接相册读取、文件／QR 载荷预览、二维码载荷导出、冻结预览／确认／取消，公开 required JSON 十布局专项通过。正式三语入口使用共享 44px 控件、真实相册格位及本地图像，图片读取／二维码 PNG 编码在独立 Worker 处理，qrcode 1.5.4／jsqr 1.4.0 随包，无运行时 CDN／网络服务；[编码器来源](https://github.com/soldair/node-qrcode)、[解码器来源](https://github.com/cozmo/jsQR)。编码沿源 Q 纠错、4px 模块及 4 模块静区；图片上限 8 MiB／4096 边长／4194304 像素是网页资源限额。四类卡片长度及反色测试通过，正式浏览器图片文件处理仍待核验。源无限船票／空卡／WR7 限制继续在 Core 检查；最新公开 QR／UI 原生 63228、类型 94909、前端三文件 59 项均通过；追加 SAV5 解密前能力断言专项 43273 已通过，完整工程门槛未收齐，不宣称窗口完成。
 
 ## 通用区块属性窗口（API 145 工程通过，页面待核验）
 

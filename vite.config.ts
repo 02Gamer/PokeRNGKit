@@ -16,6 +16,18 @@ export default defineConfig(({ mode }) => ({
         await mkdir(`${outputDirectory}/legal`, { recursive: true });
         await Promise.all([
           copyFile(
+            "node_modules/qrcode/license",
+            `${outputDirectory}/legal/QRCode-LICENSE.txt`,
+          ),
+          copyFile(
+            "node_modules/jsqr/LICENSE",
+            `${outputDirectory}/legal/jsQR-LICENSE.txt`,
+          ),
+          copyFile(
+            "node_modules/dijkstrajs/LICENSE.md",
+            `${outputDirectory}/legal/DijkstraJS-LICENSE.txt`,
+          ),
+          copyFile(
             "third_party/pkhex/drawing/README.upstream.md",
             `${outputDirectory}/legal/PKHeX-Drawing-Credits.md`,
           ),

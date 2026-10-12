@@ -21,6 +21,19 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadWondercard(byte[] data) => SaveService.ReadWondercard(data);
+    [JSExport]
+    public static string InspectWondercardImport(byte[] data, string json) => SaveService.InspectWondercardImport(data, json);
+    [JSExport]
+    public static string ExportWondercardQR(byte[] data, string json) => SaveService.ExportWondercardQR(data, json);
+    [JSExport]
+    public static string PreviewWondercard(byte[] data, string json) => SaveService.PreviewWondercard(data, json);
+    [JSExport]
+    public static byte[] CommitWondercard(byte[] data, string json) => SaveService.CommitWondercard(data, json);
+    [JSExport]
+    public static void DiscardWondercard(string token) => SaveService.DiscardWondercard(token);
+
+    [JSExport]
     public static string ReadBlockAccessor(byte[] data, string json) => SaveService.ReadBlockAccessor(data, json);
     [JSExport]
     public static string PreviewBlockAccessor(byte[] data, string json) => SaveService.PreviewBlockAccessor(data, json);
@@ -530,7 +543,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 145;
+    public const int ApiVersion = 146;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -924,6 +937,13 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(WondercardCatalog))]
+[JsonSerializable(typeof(WondercardEntry))]
+[JsonSerializable(typeof(WondercardImport))]
+[JsonSerializable(typeof(WondercardPosition))]
+[JsonSerializable(typeof(WondercardRequest))]
+[JsonSerializable(typeof(WondercardTicket))]
+[JsonSerializable(typeof(WondercardConfirmation))]
 [JsonSerializable(typeof(AccessorSelection))]
 [JsonSerializable(typeof(AccessorCatalog))]
 [JsonSerializable(typeof(AccessorRequest))]

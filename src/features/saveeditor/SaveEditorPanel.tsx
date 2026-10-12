@@ -1,3 +1,6 @@
+import { WondercardEditor } from "./WondercardEditor";
+import { supportsWondercard, type WondercardConfirmation } from "./wondercard";
+import { wondercardWords } from "./wondercardWords";
 import { BlockAccessorEditor } from "./BlockAccessorEditor";
 import {
   accessorCulture,
@@ -359,6 +362,8 @@ export function SaveEditorPanel(
           !supportsFestivalPlaza(result.report.format)) ||
         (previous === "mailbox" && !supportsMailbox(result.report.format)) ||
         (previous === "chatter" && !supportsChatter(result.report.format)) ||
+        (previous === "wondercard" &&
+          !supportsWondercard(result.report.format)) ||
         (previous === "blockAccessor" &&
           !supportsBlockAccessor(result.report.format)) ||
         (previous === "registeredGroups" && !result.report.registeredTeams) ||
@@ -2805,6 +2810,94 @@ export function SaveEditorPanel(
     });
     return applied;
   };
+  const readWondercard = async () => {
+    let catalog: import("./wondercard").WondercardCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "wondercard",
+      );
+      if (id !== operation.current) return;
+      if (!result.wondercard)
+        throw new Error("Mystery gift album was not returned.");
+      catalog = result.wondercard;
+    });
+    return catalog;
+  };
+  const inspectWondercard = async (
+    data: string,
+    fileName: string,
+    qr: boolean,
+  ) => {
+    let entry: import("./wondercard").WondercardEntry | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ data, fileName, qr }),
+        "wondercardImport",
+      );
+      if (id !== operation.current) return;
+      if (!result.wondercardEntry)
+        throw new Error("Mystery gift import was not returned.");
+      entry = result.wondercardEntry;
+    });
+    return entry;
+  };
+  const readWondercardQR = async (
+    index: number,
+    entry?: import("./wondercard").WondercardEntry,
+  ) => {
+    let text: string | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ index, data: entry?.data, fileName: entry?.fileName }),
+        "wondercardQR",
+      );
+      if (id !== operation.current) return;
+      text = result.wondercardQR;
+    });
+    return text;
+  };
+  const discardWondercard = async (token: string) => {
+    if (!working.current) return;
+    await client.current
+      .run(working.current, token, "wondercardDiscard")
+      .catch(() => undefined);
+  };
+  const previewWondercard = async (
+    edit: import("./wondercard").WondercardRequest,
+  ) => {
+    let ticket: import("./wondercard").WondercardTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "wondercardPreview",
+      );
+      if (id !== operation.current) {
+        if (result.wondercardPreview)
+          await discardWondercard(result.wondercardPreview.token);
+        return;
+      }
+      if (!result.wondercardPreview)
+        throw new Error("Mystery gift preview was not returned.");
+      ticket = result.wondercardPreview;
+    });
+    return ticket;
+  };
+  const applyWondercard = async (edit: WondercardConfirmation) => {
+    let applied = false;
+    await applyWorkingEdit(edit, "wondercardCommit", () => {
+      applied = true;
+    });
+    return applied;
+  };
   const readBlockAccessor = async (selected?: string) => {
     let catalog: import("./blockAccessor").AccessorCatalog | undefined;
     await perform(async (id) => {
@@ -3065,6 +3158,7 @@ export function SaveEditorPanel(
       | MailConfirmation
       | ChatterConfirmation
       | AccessorConfirmation
+      | WondercardConfirmation
       | PokemonEdit
       | PokemonRawEdit
       | BoxEdit
@@ -3148,6 +3242,7 @@ export function SaveEditorPanel(
       | "mailboxCommit"
       | "chatterCommit"
       | "blockAccessorCommit"
+      | "wondercardCommit"
       | "boxBinaryCommit"
       | "boxImportCommit"
       | "propertyCommit"
@@ -3512,6 +3607,11 @@ export function SaveEditorPanel(
           id: "blockAccessor",
           label: accessorWords[batchLang].title,
           available: supportsBlockAccessor(report.format),
+        },
+        {
+          id: "wondercard",
+          label: wondercardWords[batchLang].title,
+          available: supportsWondercard(report.format),
         },
         { id: "pokemon", label: words.pokemon, available: Boolean(true) },
         {
@@ -4719,6 +4819,19 @@ export function SaveEditorPanel(
                   onPreview={previewMailbox}
                   onApply={applyMailbox}
                   onDiscard={discardMailbox}
+                />
+              ) : section === "wondercard" ? (
+                <WondercardEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readWondercard}
+                  onInspect={inspectWondercard}
+                  onQR={readWondercardQR}
+                  onPreview={previewWondercard}
+                  onApply={applyWondercard}
+                  onDiscard={discardWondercard}
                 />
               ) : section === "blockAccessor" ? (
                 <BlockAccessorEditor

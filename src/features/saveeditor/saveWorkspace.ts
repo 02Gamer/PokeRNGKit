@@ -20,6 +20,7 @@ export const SAVE_SECTION_GROUPS = {
     "paintings3",
   ],
   events: [
+    "wondercard",
     "events",
     "gsBall2",
     "eventReset",
