@@ -1,3 +1,6 @@
+import { SCBlockEditor } from "./SCBlockEditor";
+import { supportsSCBlock, type SCBlockConfirmation } from "./scblock";
+import { scblockWords } from "./scblockWords";
 import { WondercardEditor } from "./WondercardEditor";
 import { supportsWondercard, type WondercardConfirmation } from "./wondercard";
 import { wondercardWords } from "./wondercardWords";
@@ -362,6 +365,7 @@ export function SaveEditorPanel(
           !supportsFestivalPlaza(result.report.format)) ||
         (previous === "mailbox" && !supportsMailbox(result.report.format)) ||
         (previous === "chatter" && !supportsChatter(result.report.format)) ||
+        (previous === "scblock" && !supportsSCBlock(result.report.format)) ||
         (previous === "wondercard" &&
           !supportsWondercard(result.report.format)) ||
         (previous === "blockAccessor" &&
@@ -2810,6 +2814,82 @@ export function SaveEditorPanel(
     });
     return applied;
   };
+  const readSCBlocks = async (query: import("./scblock").SCBlockQuery) => {
+    let page: import("./scblock").SCBlockPage | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(query),
+        "scblock",
+      );
+      if (id === operation.current) page = result.scblock;
+    });
+    return page;
+  };
+  const exportSCBlocks = async (query: {
+    kind: "block" | "folder" | "single";
+    key?: string;
+    options?: number;
+  }) => {
+    let exported: import("./scblock").SCBlockExportResult | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(query),
+        "scblockExport",
+      );
+      if (id === operation.current) exported = result.scblockExport;
+    });
+    return exported;
+  };
+  const compareSCBlocks = async (updated: string, names: string) => {
+    let comparison: import("./scblock").SCBlockComparison | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ updated, names }),
+        "scblockCompare",
+      );
+      if (id === operation.current) comparison = result.scblockComparison;
+    });
+    return comparison;
+  };
+  const discardSCBlocks = async (token: string) => {
+    if (working.current)
+      await client.current
+        .run(working.current, token, "scblockDiscard")
+        .catch(() => undefined);
+  };
+  const previewSCBlocks = async (
+    request: ReturnType<typeof import("./scblock").scblockRequest>,
+  ) => {
+    let ticket: import("./scblock").SCBlockTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(request),
+        "scblockPreview",
+      );
+      if (id !== operation.current) {
+        if (result.scblockPreview)
+          await discardSCBlocks(result.scblockPreview.token);
+        return;
+      }
+      ticket = result.scblockPreview;
+    });
+    return ticket;
+  };
+  const applySCBlocks = async (edit: SCBlockConfirmation) => {
+    let applied = false;
+    await applyWorkingEdit(edit, "scblockCommit", () => {
+      applied = true;
+    });
+    return applied;
+  };
   const readWondercard = async () => {
     let catalog: import("./wondercard").WondercardCatalog | undefined;
     await perform(async (id) => {
@@ -3159,6 +3239,7 @@ export function SaveEditorPanel(
       | ChatterConfirmation
       | AccessorConfirmation
       | WondercardConfirmation
+      | SCBlockConfirmation
       | PokemonEdit
       | PokemonRawEdit
       | BoxEdit
@@ -3243,6 +3324,7 @@ export function SaveEditorPanel(
       | "chatterCommit"
       | "blockAccessorCommit"
       | "wondercardCommit"
+      | "scblockCommit"
       | "boxBinaryCommit"
       | "boxImportCommit"
       | "propertyCommit"
@@ -3607,6 +3689,11 @@ export function SaveEditorPanel(
           id: "blockAccessor",
           label: accessorWords[batchLang].title,
           available: supportsBlockAccessor(report.format),
+        },
+        {
+          id: "scblock",
+          label: scblockWords[batchLang].title,
+          available: supportsSCBlock(report.format),
         },
         {
           id: "wondercard",
@@ -4819,6 +4906,18 @@ export function SaveEditorPanel(
                   onPreview={previewMailbox}
                   onApply={applyMailbox}
                   onDiscard={discardMailbox}
+                />
+              ) : section === "scblock" ? (
+                <SCBlockEditor
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readSCBlocks}
+                  onExport={exportSCBlocks}
+                  onCompare={compareSCBlocks}
+                  onPreview={previewSCBlocks}
+                  onApply={applySCBlocks}
+                  onDiscard={discardSCBlocks}
                 />
               ) : section === "wondercard" ? (
                 <WondercardEditor

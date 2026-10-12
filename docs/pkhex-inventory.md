@@ -328,7 +328,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Misc/SortableBindingList.cs`                                        | 待核对                                                                                       |
 | `Subforms/PKM Editors/BatchEditor.cs`                                         | API 61：存档范围指令、预览与确认已接入；目录文件流程待接入                                   |
 | `Subforms/PKM Editors/MemoryAmie.cs`                                          | 记忆、亲密度/好感、互动数值与居住记录已接入；浏览器待核验                                    |
-| `Subforms/PKM Editors/MoveShopEditor.cs`                                      | 待核对                                                                                       |
+| `Subforms/PKM Editors/MoveShopEditor.cs`                                      | 已核对61项购买／掌握、批量分支与PA8尾部保留，功能待接入                                      |
 | `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | 待核对                                                                                       |
 | `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查                                     |
 | `Subforms/PKM Editors/SuperTrainingEditor.cs`                                 | 待核对                                                                                       |
@@ -405,7 +405,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | API 124：完整训练家／1000 格 GP1／文件及 ZIP 工程检查通过，浏览器待验收                      |
 | `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | API 121：95／100 格、三语、储存／收集及来源保存全量工程通过；浏览器待验收                    |
 | `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                                                       |
-| `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | 已核对四 ISCBlock 家族、目录导入导出／16 组合／比较及源异常，功能待接入                      |
+| `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | API147：四家族目录／导入导出／16组合／比较与冻结三语已接；完整工程通过，页面／真实存档待核验 |
 | `Subforms/Save Editors/Gen8/SAV_FlagWork8b.cs`                                | API 83：八布局普通／系统标记、Int32 数值及比较已接入，浏览器待核验                           |
 | `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | API 125：十项操作、冻结预览及完整工程检查通过，浏览器与真实存档待验收                        |
 | `Subforms/Save Editors/Gen8/SAV_Poffin8b.cs`                                  | API 75：逐格／批量与三语目录已接入；工程检查通过，浏览器待核验                               |

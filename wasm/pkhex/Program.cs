@@ -21,6 +21,19 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadSCBlocks(byte[] data, string json) => SaveService.ReadSCBlocks(data, json);
+    [JSExport]
+    public static string ExportSCBlocks(byte[] data, string json) => SaveService.ExportSCBlocks(data, json);
+    [JSExport]
+    public static string CompareSCBlocks(byte[] data, string json) => SaveService.CompareSCBlocks(data, json);
+    [JSExport]
+    public static string PreviewSCBlocks(byte[] data, string json) => SaveService.PreviewSCBlocks(data, json);
+    [JSExport]
+    public static byte[] CommitSCBlocks(byte[] data, string json) => SaveService.CommitSCBlocks(data, json);
+    [JSExport]
+    public static void DiscardSCBlocks(string token) => SaveService.DiscardSCBlocks(token);
+
+    [JSExport]
     public static string ReadWondercard(byte[] data) => SaveService.ReadWondercard(data);
     [JSExport]
     public static string InspectWondercardImport(byte[] data, string json) => SaveService.InspectWondercardImport(data, json);
@@ -543,7 +556,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 146;
+    public const int ApiVersion = 147;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -937,6 +950,15 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(SCBlockQuery))]
+[JsonSerializable(typeof(SCBlockPage))]
+[JsonSerializable(typeof(SCBlockExportQuery))]
+[JsonSerializable(typeof(SCBlockExportResult))]
+[JsonSerializable(typeof(SCBlockCompareQuery))]
+[JsonSerializable(typeof(SCBlockComparison))]
+[JsonSerializable(typeof(SCBlockRequest))]
+[JsonSerializable(typeof(SCBlockConfirmation))]
+[JsonSerializable(typeof(SCBlockTicket))]
 [JsonSerializable(typeof(WondercardCatalog))]
 [JsonSerializable(typeof(WondercardEntry))]
 [JsonSerializable(typeof(WondercardImport))]
