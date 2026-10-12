@@ -48,6 +48,24 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
+## 神秘礼物相册（下一模块，来源初审，未接产品）
+
+2026-10-13 只读核对 `Subforms/Save Editors/SAV_Wondercard.cs`：通过 IMysteryGiftStorageProvider 取得相册，窗口限 Gen4–7，HGSS 额外锁定胶囊槽。查看／设置／删除、已领取标记、全部已用／未用、相册槽位移动、导入／导出与 QR 是独立能力，不能由现有实体礼物导入代替。设置必须检查卡片兼容性、同类型首个空槽重定位、PCD 转 PGT 及锁定胶囊第 11 槽；删除按类型将连续非空卡片前移。保存 Gen4 配送员激活及 PGT 关联、HGSS 胶囊，Gen5 调 EndAccess 重新加密；标记保存按来源先清再写列表。追加只读核对拖放／QR：Gen4 相册为 8 个 PGT + 3 个 PCD，HGSS 追加胶囊；Gen5–7 按实际数量六格分行。外部拖放按长度识别与扩展名解析，PCD 可向 PGT 转换，流程与普通设置的兼容检查不同，不能误合并。QR 导出排除空卡和 Gen6 无限船票，导入检查解析状态、相册长度／类型及 CanReceiveGift。已读取 Drawing.Misc QRDecode／QREncode：原导入调用 qrserver 外部 HTTP API，原导出依赖 QRCoder + System.Drawing；这两条实现不能直接移植。网页需保留 Core QRMessageUtil 载荷，使用随包的本地二维码编码／图片解码，替代剪贴板 URL／网络服务，不能放宽静态架构。已读取 SAV4.cs MysteryBlock4／Gen5–7 MysteryBlock／LGPE WB7Records：Gen4 8 PGT + 3 PCD、Gen5 12 PGF、Gen6 24 WC6、Gen7 48 WC7、Let’s Go 10 WR7 摘要。记录大小依次 0x104／0x358／0xCC／0x108／0x108／0x140；领取范围 Gen4 窗口 1–2046、Gen5–7 1–2047、LGPE 1–4223。Gen4 卡片保存会重新关联 PGT／PCD 和配送员，Gen6 无限船票还调用 Sango 联动。LGPE ClearReceivedFlags 从块起始清 0x210 字节而非 FlagStart，保存卡片随后覆盖但尾部旧 flags 可能保留，须独立完整文件对照并明示源异常；WR7 是已领摘要，源隐藏已用／未用及 QR。后续还需核对完整移动边界与图像来源，当前仅记录来源，不开放入口或宣称接入。
+
+## 通用区块属性窗口（API 145 工程通过，页面待核验）
+
+只读来源 `Subforms/Save Editors/Misc/SAV_Accessor.cs`／Designer、`Controls/SAV Editor/SAVEditor.cs`、Core `SaveBlockMetadata.cs`／`ISaveBlockAccessor.cs`。调用点明确八种 accessor：BW、B2W2、XY、AO、AO 试玩、SM、USUM、Let’s Go；不能据窗口泛型外推到任意存档。
+
+来源通过 Reflection 取得全部 IDataIndirect 命名对象，`GetSortedBlockList` 的排序与名称为块选择依据，选择后绑定原对象到 PropertyGrid，值变更直接修改调用方存档。原窗口没有额外 Save／Cancel 流程；网页仍按产品约束保留原件，在工作副本准备完整输出、冻结预览与确认，并提供撤销。Designer 的 Raw 页 PropertyGrid 未赋 SelectedObject，没有可执行导入／导出行为，不与独立 BlockDump 窗口混淆。
+
+完整 collection-item 原生审计核对八访问器的 207 个命名对象，包含显式接口别名；目录含 22245 个可见属性节点、19184 个可写描述符与 28 个 getter 错误。初步涉及 164 个 Core 类型，仍须核对运行时子类、转换器和裁剪后的同等目录，不以数量代替编辑覆盖。来源 `EntreeForest.Slots` getter 在 BW／B2W2 原地解密，SAV5.GetFinalData 调 EndAccess 重加密；单纯浏览不能碰工作副本。可见 Span 的 PropertyGrid getter 无法反射调用，保留其只读／失败状态；合成样本的无效日期和 SM FieldMenu 边界失败单独记录，不能删掉对应属性。
+
+`BlockAccessorReading` 原生读取初稿提供来源排序、完整对象名／别名、描述符与数组项树、转换器选项及错误状态，并在独立 clone 上读取。八访问器专项通过：森林 4244 个节点覆盖第 529 槽，服饰 5793 个节点覆盖第 1447 项，来源命名与原件不变通过，完整 collection-item 审计已重新生成。编辑器须完整覆盖标量／128 位数值／日期／枚举／数组与嵌套结构的源转换及回写，不能只依据部分专项称为全量完成。原生编辑与冻结初稿及结果见下文；泛型接口的裁剪标注不能替代实际 accessor 与块类型验证。API 145 已接 JSExport／Worker／客户端和正式三语区块入口；属性以每页 40 项逐层浏览、草稿顺序编辑和冻结前后差异确认。运行时对象与转换器裁剪根 228 类型／2 程序集已生成，首轮发布含嵌套类型 `+` 名称解析警告，已修正为 ILLink `/` 格式，新发布／扩展元数据检查 57631 通过：228 根类型／2 程序集属性、构造器、枚举字段、类型／属性 attributes、方法签名与方法体存在性一致；IL2026 仍保留，实际浏览器运行尚待核验。
+
+`BlockAccessorEditing`／`BlockAccessorSession` 原生初稿已加入实际 PropertyDescriptor 转换、按字符串数组路径有序编辑、嵌套／数组／脱离对象回写、JSON 数组／对象替换与冻结输出。八访问器标量、森林第 529 槽、Radar 记录、道具数组、服饰第 1447 项、战斗树第 49 项、UInt128 最大值的完整源文件对照通过；原件、过期／重复确认、替换、旧 token 取消与失败预览清理通过。公开 JSON／八访问器冻结专项已通过；正式接线后的新原生专项 62177 通过（含四组合数组及男女外观 JSON 原样回写），扩展裁剪 57631 已通过；完整 verify 88612 已通过（277 文件／1239 项、最新核心网页／PWA 253 项），完整原生 11100 已通过，不以专项当作完整窗口验收。
+
+PropertyGrid 的输入范围来自实际 CLR 类型和具体 TypeConverter，随后仍执行 Core setter 的存储转换／夹取／副作用；不因底层 bytes 较窄就自行缩小 int 属性的可输入范围。保留三种明确文化参数（en-US／zh-CN／ja-JP）、64／128 位字符串传输、枚举名称或数值、nullable 空值与数组结构。显示和写入采用同一文化参数，避免 invariant 的 Infinity 文本不能被 en-US 解析。nullable 空日期、NaN、实际文化 Infinity 符号、十六进制 0xFF、未知枚举 255 及三文化显示／提交完整文件 roundtrip 专项通过。最大 512 次有序修改、12 层路径、单值 4 MiB、数组 8192 项为网页资源限额，区别于源存储限制。正式 Worker／JSON／三语界面已接入 API 145。可编辑结构化对象提供当前 JSON 初值，整数及非有限浮点保持转换器文本，数组替换执行原 setter；新裁剪构建和两程序集元数据已核验，页面与真实存档仍待核验。
+
 ## 传说 Z-A 训练家（API 144 工程通过，页面待核验）
 
 已核对只读 PKHeX 26.08.26 `Gen9/SAV_Trainer9a.cs`／Designer、Core `SAV9ZA.cs`、`SaveBlockAccessor9ZA.cs`、`Coordinates9a.cs`、`PlayTime9a.cs`、`PlayerFashion9a.cs`、`TechnicalMachine9a.cs`、`ColorfulScrew9a.cs`、`EventWorkStorage64.cs` 与 `Epoch1900DateTimeValue.cs`。`Trainer9aEditing`／`Trainer9aActions`／`Trainer9aSession`、产品 JSExport／Worker／客户端、正式用途导航与三语五分组已接，协议同步为 API 144。完整原生、最新三修订专项、最终完整 verify（276 文件／1229 项）、最终核心／26 类裁剪与最新核心网页均退出码 0，保留既有提示。三修订类型化工程夹具不等于公开识别或真实存档验收，页面仍待核验。

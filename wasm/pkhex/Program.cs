@@ -21,6 +21,15 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadBlockAccessor(byte[] data, string json) => SaveService.ReadBlockAccessor(data, json);
+    [JSExport]
+    public static string PreviewBlockAccessor(byte[] data, string json) => SaveService.PreviewBlockAccessor(data, json);
+    [JSExport]
+    public static byte[] CommitBlockAccessor(byte[] data, string json) => SaveService.CommitBlockAccessor(data, json);
+    [JSExport]
+    public static void DiscardBlockAccessor(string token) => SaveService.DiscardBlockAccessor(token);
+
+    [JSExport]
     public static string ReadTrainer9a(byte[] data)=>SaveService.ReadTrainer9a(data);
     [JSExport]
     public static string PreviewTrainer9a(byte[] data,string json)=>SaveService.PreviewTrainer9a(data,json);
@@ -521,7 +530,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 144;
+    public const int ApiVersion = 145;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -915,6 +924,11 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(AccessorSelection))]
+[JsonSerializable(typeof(AccessorCatalog))]
+[JsonSerializable(typeof(AccessorRequest))]
+[JsonSerializable(typeof(AccessorTicket))]
+[JsonSerializable(typeof(AccessorConfirmation))]
 [JsonSerializable(typeof(ChatterCatalog))]
 [JsonSerializable(typeof(MailboxCatalog))]
 [JsonSerializable(typeof(FestaCatalog))]

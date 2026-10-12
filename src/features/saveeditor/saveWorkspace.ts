@@ -70,7 +70,7 @@ export const SAVE_SECTION_GROUPS = {
     "opowers",
     "food",
   ],
-  tools: ["batch", "files"],
+  tools: ["blockAccessor", "batch", "files"],
 } as const;
 export type SaveSection =
   (typeof SAVE_SECTION_GROUPS)[keyof typeof SAVE_SECTION_GROUPS][number];

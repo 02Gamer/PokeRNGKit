@@ -14,13 +14,68 @@ internal static class PropertyBatchTrimTests
         using var trimmedStream = File.OpenRead("wasm/pkhex/obj/Release/net10.0/linked/PKHeX.Core.dll");
         using var originalPe = new PEReader(originalStream); using var trimmedPe = new PEReader(trimmedStream);
         var original = originalPe.GetMetadataReader(); var trimmed = trimmedPe.GetMetadataReader();
-        var roots = System.Xml.Linq.XDocument.Load("wasm/pkhex/PropertyBatchRoots.xml").Descendants("type").Select(e => (string)e.Attribute("fullname")!);
+        var roots = System.Xml.Linq.XDocument.Load("wasm/pkhex/PropertyBatchRoots.xml").Descendants("type").Select(e => (string)e.Attribute("fullname")!)
+            .Concat(System.Xml.Linq.XDocument.Load("wasm/pkhex/BlockAccessorRoots.xml").Descendants("assembly").Where(a => (string?)a.Attribute("fullname") == "PKHeX.Core").SelectMany(a => a.Elements("type")).Select(e => (string)e.Attribute("fullname")!)).Select(name => name.Replace('/', '+')).Distinct(StringComparer.Ordinal);
         foreach (string name in roots)
         {
             var before = Properties(original, name); var after = Properties(trimmed, name);
             if (!before.SequenceEqual(after)) throw new Exception($"Trimmed property metadata or accessors differ: {name}\nBefore: {string.Join(';', before)}\nAfter: {string.Join(';', after)}");
             Console.WriteLine($"PASS trimmed metadata {name}: {before.Length} exact declared property signatures and getter/setter visibility/body presence");
         }
+        foreach (var assembly in System.Xml.Linq.XDocument.Load("wasm/pkhex/BlockAccessorRoots.xml").Descendants("assembly"))
+        {
+            string name = (string)assembly.Attribute("fullname")!;
+            var nativeAssembly = Assembly.Load(name);
+            using var nativeStream = File.OpenRead(nativeAssembly.Location);
+            using var linkedStream = File.OpenRead($"wasm/pkhex/obj/Release/net10.0/linked/{name}.dll");
+            using var nativePe = new PEReader(nativeStream); using var linkedPe = new PEReader(linkedStream);
+            var native = nativePe.GetMetadataReader(); var linked = linkedPe.GetMetadataReader();
+            foreach (var type in assembly.Elements("type"))
+            {
+                string typeName = ((string)type.Attribute("fullname")!).Replace('/', '+');
+                if (!Members(native, typeName).SequenceEqual(Members(linked, typeName)))
+                    throw new Exception($"Accessor trim members/attributes differ: {name}/{typeName}");
+                Console.WriteLine($"PASS accessor trim {name}/{typeName}: properties, constructors, fields, custom attributes and method signatures/body presence");
+            }
+        }
+    }
+    private static string[] Members(MetadataReader reader, string name)
+    {
+        var decoder = new SignatureNames();
+        var handle = reader.TypeDefinitions.Single(h => decoder.GetTypeFromDefinition(reader, h, 0) == name);
+        var type = reader.GetTypeDefinition(handle);
+        string[] Attributes(CustomAttributeHandleCollection attributes) => attributes.Select(h =>
+        {
+            var attribute = reader.GetCustomAttribute(h);
+            string owner = attribute.Constructor.Kind switch
+            {
+                HandleKind.MethodDefinition => decoder.GetTypeFromDefinition(reader, reader.GetMethodDefinition((MethodDefinitionHandle)attribute.Constructor).GetDeclaringType(), 0),
+                HandleKind.MemberReference => Parent(reader.GetMemberReference((MemberReferenceHandle)attribute.Constructor).Parent),
+                _ => attribute.Constructor.Kind.ToString(),
+            };
+            return owner + ":" + Convert.ToHexString(reader.GetBlobBytes(attribute.Value));
+        }).Order(StringComparer.Ordinal).ToArray();
+        string Parent(EntityHandle parent) => parent.Kind switch
+        {
+            HandleKind.TypeDefinition => decoder.GetTypeFromDefinition(reader, (TypeDefinitionHandle)parent, 0),
+            HandleKind.TypeReference => decoder.GetTypeFromReference(reader, (TypeReferenceHandle)parent, 0),
+            HandleKind.TypeSpecification => decoder.GetTypeFromSpecification(reader, null, (TypeSpecificationHandle)parent, 0),
+            _ => parent.Kind.ToString(),
+        };
+        var result = Properties(reader, name).Select(p => "property:" + p).ToList();
+        result.AddRange(Attributes(type.GetCustomAttributes()).Select(a => "type-attribute:" + a));
+        foreach (var h in type.GetProperties()) { var p = reader.GetPropertyDefinition(h); result.AddRange(Attributes(p.GetCustomAttributes()).Select(a => "property-attribute:" + reader.GetString(p.Name) + ":" + a)); }
+        foreach (var h in type.GetMethods())
+        {
+            var method = reader.GetMethodDefinition(h); var signature = method.DecodeSignature(decoder, (object?)null);
+            result.Add("method:" + reader.GetString(method.Name) + ":" + method.Attributes + ":" + signature.ReturnType + "(" + string.Join(',', signature.ParameterTypes) + "):" + (method.RelativeVirtualAddress != 0));
+        }
+        foreach (var h in type.GetFields())
+        {
+            var field = reader.GetFieldDefinition(h); var constant = field.GetDefaultValue();
+            result.Add("field:" + reader.GetString(field.Name) + ":" + field.Attributes + ":" + field.DecodeSignature(decoder, (object?)null) + ":" + (constant.IsNil ? "" : Convert.ToHexString(reader.GetBlobBytes(reader.GetConstant(constant).Value))));
+        }
+        return result.Order(StringComparer.Ordinal).ToArray();
     }
     private static string[] Properties(MetadataReader reader, string typeName)
     {

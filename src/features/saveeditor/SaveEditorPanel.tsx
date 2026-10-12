@@ -1,3 +1,10 @@
+import { BlockAccessorEditor } from "./BlockAccessorEditor";
+import {
+  accessorCulture,
+  supportsBlockAccessor,
+  type AccessorConfirmation,
+} from "./blockAccessor";
+import { accessorWords } from "./blockAccessorWords";
 import { Trainer9aEditor } from "./Trainer9aEditor";
 import {
   tr9aWords,
@@ -352,6 +359,8 @@ export function SaveEditorPanel(
           !supportsFestivalPlaza(result.report.format)) ||
         (previous === "mailbox" && !supportsMailbox(result.report.format)) ||
         (previous === "chatter" && !supportsChatter(result.report.format)) ||
+        (previous === "blockAccessor" &&
+          !supportsBlockAccessor(result.report.format)) ||
         (previous === "registeredGroups" && !result.report.registeredTeams) ||
         (previous === "sevenstar9" &&
           !supportsSevenStar9(result.report.format)) ||
@@ -2796,6 +2805,57 @@ export function SaveEditorPanel(
     });
     return applied;
   };
+  const readBlockAccessor = async (selected?: string) => {
+    let catalog: import("./blockAccessor").AccessorCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify({ selected, culture: accessorCulture(batchLang) }),
+        "blockAccessor",
+      );
+      if (id !== operation.current) return;
+      if (!result.blockAccessor)
+        throw new Error("Block accessor catalog was not returned.");
+      catalog = result.blockAccessor;
+    });
+    return catalog;
+  };
+  const discardBlockAccessor = async (token: string) => {
+    if (!working.current) return;
+    await client.current
+      .run(working.current, token, "blockAccessorDiscard")
+      .catch(() => undefined);
+  };
+  const previewBlockAccessor = async (
+    edit: import("./blockAccessor").AccessorRequest,
+  ) => {
+    let ticket: import("./blockAccessor").AccessorTicket | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(edit),
+        "blockAccessorPreview",
+      );
+      if (id !== operation.current) {
+        if (result.blockAccessorPreview)
+          await discardBlockAccessor(result.blockAccessorPreview.token);
+        return;
+      }
+      if (!result.blockAccessorPreview)
+        throw new Error("Block accessor preview was not returned.");
+      ticket = result.blockAccessorPreview;
+    });
+    return ticket;
+  };
+  const applyBlockAccessor = async (edit: AccessorConfirmation) => {
+    let applied = false;
+    await applyWorkingEdit(edit, "blockAccessorCommit", () => {
+      applied = true;
+    });
+    return applied;
+  };
   const readChatter = async () => {
     let catalog: import("./chatter").ChatterCatalog | undefined;
     await perform(async (id) => {
@@ -3004,6 +3064,7 @@ export function SaveEditorPanel(
       | FestaConfirmation
       | MailConfirmation
       | ChatterConfirmation
+      | AccessorConfirmation
       | PokemonEdit
       | PokemonRawEdit
       | BoxEdit
@@ -3086,6 +3147,7 @@ export function SaveEditorPanel(
       | "festivalPlazaCommit"
       | "mailboxCommit"
       | "chatterCommit"
+      | "blockAccessorCommit"
       | "boxBinaryCommit"
       | "boxImportCommit"
       | "propertyCommit"
@@ -3445,6 +3507,11 @@ export function SaveEditorPanel(
           id: "chatter",
           label: chatterWords[batchLang].title,
           available: supportsChatter(report.format),
+        },
+        {
+          id: "blockAccessor",
+          label: accessorWords[batchLang].title,
+          available: supportsBlockAccessor(report.format),
         },
         { id: "pokemon", label: words.pokemon, available: Boolean(true) },
         {
@@ -4652,6 +4719,17 @@ export function SaveEditorPanel(
                   onPreview={previewMailbox}
                   onApply={applyMailbox}
                   onDiscard={discardMailbox}
+                />
+              ) : section === "blockAccessor" ? (
+                <BlockAccessorEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readBlockAccessor}
+                  onPreview={previewBlockAccessor}
+                  onApply={applyBlockAccessor}
+                  onDiscard={discardBlockAccessor}
                 />
               ) : section === "chatter" ? (
                 <ChatterEditor

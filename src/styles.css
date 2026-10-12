@@ -5391,9 +5391,9 @@ textarea:disabled {
 }
 
 /* Keep labels, controls, and paired values on one predictable baseline. */
-#root .main-content .field > span,
+#root :is(.main-content, .save-primary-workspace) .field > span,
 #root .floating-tool-panel .field > span,
-#root .main-content .misc-rng-grid label > span,
+#root :is(.main-content, .save-primary-workspace) .misc-rng-grid label > span,
 #root .floating-tool-panel .misc-rng-grid label > span {
   min-height: 22px;
   display: flex;
@@ -5402,14 +5402,17 @@ textarea:disabled {
 }
 
 #root
-  .main-content
+  :is(.main-content, .save-primary-workspace)
   .field
   > input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-#root .main-content .field > textarea,
-#root .main-content .field > .haku-select,
-#root .main-content .field > .autocomplete-combobox,
-#root .main-content .field > .multi-check-control,
-#root .main-content .field > .prefixed-input,
+#root :is(.main-content, .save-primary-workspace) .field > textarea,
+#root :is(.main-content, .save-primary-workspace) .field > .haku-select,
+#root
+  :is(.main-content, .save-primary-workspace)
+  .field
+  > .autocomplete-combobox,
+#root :is(.main-content, .save-primary-workspace) .field > .multi-check-control,
+#root :is(.main-content, .save-primary-workspace) .field > .prefixed-input,
 #root
   .floating-tool-panel
   .field
@@ -5659,10 +5662,10 @@ textarea:disabled {
 
 /* Final control pass: keep every workspace on the same HakuStyle surface. */
 #root
-  .main-content
+  :is(.main-content, .save-primary-workspace)
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-#root .main-content textarea,
-#root .main-content select,
+#root :is(.main-content, .save-primary-workspace) textarea,
+#root :is(.main-content, .save-primary-workspace) select,
 #root
   .floating-tool-panel
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
@@ -5684,12 +5687,14 @@ textarea:disabled {
 }
 
 #root
-  .main-content
+  :is(.main-content, .save-primary-workspace)
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover:not(
     :disabled
   ):not([readonly]),
-#root .main-content textarea:hover:not(:disabled):not([readonly]),
-#root .main-content select:hover:not(:disabled),
+#root
+  :is(.main-content, .save-primary-workspace)
+  textarea:hover:not(:disabled):not([readonly]),
+#root :is(.main-content, .save-primary-workspace) select:hover:not(:disabled),
 #root
   .floating-tool-panel
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover:not(
@@ -5702,12 +5707,12 @@ textarea:disabled {
 }
 
 #root
-  .main-content
+  :is(.main-content, .save-primary-workspace)
   input:not([type="checkbox"]):not([type="radio"]):not(
     [type="file"]
   ):focus-visible,
-#root .main-content textarea:focus-visible,
-#root .main-content select:focus-visible,
+#root :is(.main-content, .save-primary-workspace) textarea:focus-visible,
+#root :is(.main-content, .save-primary-workspace) select:focus-visible,
 #root
   .floating-tool-panel
   input:not([type="checkbox"]):not([type="radio"]):not(
@@ -5721,10 +5726,10 @@ textarea:disabled {
 }
 
 #root
-  .main-content
+  :is(.main-content, .save-primary-workspace)
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):disabled,
-#root .main-content textarea:disabled,
-#root .main-content select:disabled,
+#root :is(.main-content, .save-primary-workspace) textarea:disabled,
+#root :is(.main-content, .save-primary-workspace) select:disabled,
 #root
   .floating-tool-panel
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):disabled,
@@ -5736,7 +5741,7 @@ textarea:disabled {
   opacity: 0.72;
 }
 
-#root .main-content .haku-select-trigger,
+#root :is(.main-content, .save-primary-workspace) .haku-select-trigger,
 #root .floating-tool-panel .haku-select-trigger {
   min-height: var(--control-height);
   border: 1px solid var(--line-strong);
@@ -5746,12 +5751,16 @@ textarea:disabled {
   padding: 10px 13px 10px 14px;
 }
 
-#root .main-content .haku-select-trigger:hover:not(:disabled),
+#root
+  :is(.main-content, .save-primary-workspace)
+  .haku-select-trigger:hover:not(:disabled),
 #root .floating-tool-panel .haku-select-trigger:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--brand) 52%, var(--line-strong));
 }
 
-#root .main-content .haku-select-trigger:focus-visible,
+#root
+  :is(.main-content, .save-primary-workspace)
+  .haku-select-trigger:focus-visible,
 #root .floating-tool-panel .haku-select-trigger:focus-visible {
   border-color: var(--brand);
   box-shadow: 0 0 0 2px var(--focus-ring);

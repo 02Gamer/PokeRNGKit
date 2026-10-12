@@ -67,4 +67,16 @@ describe("save workspace navigation", () => {
     expect(html).toContain("训练家与记录");
     expect(html).not.toContain("事件与配信");
   });
+  it("keeps block accessor editing in the tools group", () => {
+    expect(
+      groupSaveSections([
+        { id: "blockAccessor", label: "区块属性", available: true },
+      ]),
+    ).toEqual([
+      {
+        id: "tools",
+        items: [{ id: "blockAccessor", label: "区块属性", available: true }],
+      },
+    ]);
+  });
 });

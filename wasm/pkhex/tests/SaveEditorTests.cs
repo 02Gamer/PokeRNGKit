@@ -11,6 +11,8 @@ internal static class SaveEditorTests
 
     public static void Main()
     {
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "block-accessor") { BlockAccessorEditingTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "block-accessor-audit") { BlockAccessorAuditTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "trainer9a") { Trainer9aEditingTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "trainer9") { Trainer9EditingTests.Run(); Trainer9SessionTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "festival-plaza") { FestivalPlazaEditingTests.Run(); FestivalPlazaSessionTests.Run(); return; }
@@ -138,7 +140,7 @@ internal static class SaveEditorTests
             var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
             Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
             Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
-            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 144, $"{version}: API version");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 145, $"{version}: API version");
             Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
             var boxes = document.RootElement.GetProperty("boxes");
             Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");
@@ -303,6 +305,7 @@ internal static class SaveEditorTests
         FestivalPlazaSessionTests.Run();
         Trainer9EditingTests.Run();
         Trainer9SessionTests.Run();
+        BlockAccessorEditingTests.Run();
         Trainer9aEditingTests.Run();
         BoxBatchTests.Run();
         PropertyBatchContractTests.Run();
