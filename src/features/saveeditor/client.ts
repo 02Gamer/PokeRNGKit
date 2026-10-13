@@ -19,6 +19,26 @@ export class SaveEditorClient {
     edit?: string,
     kind: SaveEditorRequestKind = "trainer",
   ): Promise<SaveEditorResult> {
+    return this.runRequest(bytes, edit, kind);
+  }
+  runDatabase(
+    bytes: Uint8Array,
+    edit: string,
+    kind: import("./databaseProtocol").DatabaseRequestKind,
+    files?: Uint8Array,
+  ): Promise<SaveEditorResult> {
+    if (files && files.byteLength > 128 * 1024 * 1024)
+      return Promise.reject(
+        new Error("Database files exceed the local size limit."),
+      );
+    return this.runRequest(bytes, edit, kind, files);
+  }
+  private runRequest(
+    bytes: Uint8Array,
+    edit: string | undefined,
+    kind: SaveEditorRequestKind,
+    databaseFiles?: Uint8Array,
+  ): Promise<SaveEditorResult> {
     if (kind === "trainer" && edit === undefined) this.brProfile = -1;
     if (!bytes.length || bytes.length > MAX_SAVE_BYTES)
       return Promise.reject(
@@ -49,6 +69,7 @@ export class SaveEditorClient {
     }
     const id = ++this.nextId;
     const copy = new Uint8Array(bytes);
+    const fileCopy = databaseFiles ? new Uint8Array(databaseFiles) : undefined;
     const base = new URL(import.meta.env.BASE_URL, window.location.href).href;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(
@@ -60,8 +81,16 @@ export class SaveEditorClient {
       );
       this.pending.set(id, { resolve, reject, timer });
       this.worker!.postMessage(
-        { id, bytes: copy, base, edit, kind, brProfile: this.brProfile },
-        [copy.buffer],
+        {
+          id,
+          bytes: copy,
+          base,
+          edit,
+          kind,
+          brProfile: this.brProfile,
+          databaseFiles: fileCopy,
+        },
+        fileCopy ? [copy.buffer, fileCopy.buffer] : [copy.buffer],
       );
     });
   }

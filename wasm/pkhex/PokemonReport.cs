@@ -32,10 +32,17 @@ internal static class PokemonReport
         var save = source.Clone();
         var slots = new List<SlotCache>();
         SlotInfoLoader.AddFromSaveFile(save, slots);
+        return Read(slots, query);
+    }
+
+    internal static PokemonReportData Read(IEnumerable<SlotCache> slots, PokemonReportQuery query)
+    {
+        Validate(query);
         var strings = GameInfo.GetStrings(query.Language);
         var entries = new List<Entry>();
-        foreach (var slot in slots)
+        foreach (var original in slots)
         {
+            var slot = new SlotCache(original.Source, original.Entity.Clone(), original.SAV);
             var entity = slot.Entity;
             if (entity.Species - 1u >= entity.MaxSpeciesID) continue;
             entity.Stat_Level = entity.CurrentLevel;

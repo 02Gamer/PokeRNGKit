@@ -17,7 +17,7 @@ import type { PokemonPosition } from "./domain";
 import type { pokemonSearchSourceLabels } from "./pokemonSearchSourceLabels";
 import "./PokemonSearchEditor.css";
 
-function SearchCandidate({
+export function SearchCandidate({
   title,
   choices,
   value,

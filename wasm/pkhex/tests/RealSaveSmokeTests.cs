@@ -10,6 +10,14 @@ internal static class RealSaveSmokeTests
         string path = Environment.GetEnvironmentVariable("PKHEX_REAL_SAVE_PATH") ?? throw new ArgumentException("Provide the owner-authorized save path.");
         byte[] input = File.ReadAllBytes(path), original = input.ToArray();
         var save = SaveUtil.GetSaveFile(input.ToArray()) ?? throw new Exception("Real save recognition failed.");
+        var database=JsonSerializer.Deserialize(SaveService.OpenPokemonDatabase(input,[],"{\"files\":[]}"),PokemonDatabaseJson.Default.PokemonDatabaseView)!;
+        var databaseSlots=new List<SlotCache>();SlotInfoLoader.AddFromSaveFile(save,databaseSlots);
+        Check(database.Total==databaseSlots.Count(s=>s.IsDataValid()),"Real database all valid box/party/extra slots");
+        var databaseBox=database.Rows.First(r=>r.Source=="current" && r.Position is {Box:>=0});
+        string databaseEdit=JsonSerializer.Serialize(new PokemonDatabasePreviewRequest([],new("delete",[databaseBox.Id])),PokemonDatabaseJson.Default.PokemonDatabasePreviewRequest);
+        var databaseTicket=JsonSerializer.Deserialize(SaveService.PreviewPokemonDatabase(input,[],databaseEdit),PokemonDatabaseJson.Default.PokemonDatabaseTicket)!;
+        Check(databaseTicket.DeletedSlots==1 && databaseTicket.ChangedSaveBytes>0 && input.SequenceEqual(original),"Real database deletion preview is a frozen copy only");
+        PokemonDatabaseRuntime.Discard(databaseTicket.Confirmation.Token);PokemonDatabaseRuntime.Reset();
         var reportQuery = new PokemonReportQuery("zh-Hans", ["PID", "Species"], ["OT"], SortIndex: 2);
         string reportJson = JsonSerializer.Serialize(reportQuery, SaveJsonContext.Default.PokemonReportQuery);
         var pokemonReport = JsonSerializer.Deserialize(SaveService.ReadPokemonReport(input, reportJson), SaveJsonContext.Default.PokemonReportData)!;

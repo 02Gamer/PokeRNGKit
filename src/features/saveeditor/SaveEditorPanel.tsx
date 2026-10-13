@@ -1,6 +1,13 @@
 import { SCBlockEditor } from "./SCBlockEditor";
 import { PersonalChartViewer } from "./PersonalChartViewer";
 import { PokemonReportViewer } from "./PokemonReportViewer";
+import { PokemonDatabaseViewer } from "./PokemonDatabaseViewer";
+import { databaseWords } from "./databaseWords";
+import type { DatabaseActions } from "./databaseProtocol";
+import {
+  replaceDatabaseFiles,
+  type DatabaseLocalFile,
+} from "./databaseRepository";
 import { reportWords, type PokemonReportActions } from "./pokemonReport";
 import { chartWords } from "./personalChart";
 import { supportsSCBlock, type SCBlockConfirmation } from "./scblock";
@@ -251,12 +258,48 @@ export function SaveEditorPanel(
   const original = useRef<Uint8Array | undefined>(undefined);
   const working = useRef<Uint8Array | undefined>(undefined);
   const [history, setHistory] = useState<Uint8Array[]>([]);
+  const databaseHistory = useRef(
+    new Map<
+      Uint8Array,
+      {
+        before: readonly DatabaseLocalFile[];
+        after: readonly DatabaseLocalFile[];
+      }
+    >(),
+  );
   const operation = useRef(0);
+  const trimSaveHistory = (steps: Uint8Array[]) => {
+    const size = () => {
+      const buffers = new Set<ArrayBufferLike>();
+      for (const bytes of steps) {
+        buffers.add(bytes.buffer);
+        const edit = databaseHistory.current.get(bytes);
+        for (const file of [...(edit?.before ?? []), ...(edit?.after ?? [])])
+          buffers.add(file.data);
+      }
+      return [...buffers].reduce((sum, buffer) => sum + buffer.byteLength, 0);
+    };
+    while (steps.length > 1 && (steps.length > 20 || size() > 64 * 1024 * 1024))
+      steps.shift();
+    return steps;
+  };
+  const preparedDatabase = useRef<
+    { result: import("./domain").SaveEditorResult; context: number } | undefined
+  >(undefined);
+  useEffect(() => {
+    const retained = new Set(history);
+    for (const bytes of databaseHistory.current.keys())
+      if (!retained.has(bytes)) databaseHistory.current.delete(bytes);
+  }, [history]);
   const running = useRef(false);
   const [busy, setBusy] = useState(false);
   const [cancellable, setCancellable] = useState(false);
   const [name, setName] = useState("");
   const [fileRevision, setFileRevision] = useState(0);
+  const contextRevision = useRef(fileRevision);
+  useEffect(() => {
+    contextRevision.current = fileRevision;
+  }, [fileRevision]);
   const [report, setReport] = useState<SaveReport>();
   const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
@@ -355,6 +398,7 @@ export function SaveEditorPanel(
       original.current = bytes;
       working.current = bytes;
       setHistory([]);
+      databaseHistory.current.clear();
       setReport(result.report);
       setVersion((previous) => reconcileSaveGame(previous, result.report));
       if (report && report.version !== result.report.version) {
@@ -3822,15 +3866,7 @@ export function SaveEditorPanel(
       if (id !== operation.current) return;
       if (!result.output) throw new Error("No output was returned.");
       setHistory((previous) => {
-        const next = [...previous, before];
-        while (
-          next.length > 1 &&
-          (next.length > 20 ||
-            next.reduce((size, bytes) => size + bytes.byteLength, 0) >
-              64 * 1024 * 1024)
-        )
-          next.shift();
-        return next;
+        return trimSaveHistory([...previous, before]);
       });
       working.current = result.output;
       onApplied?.();
@@ -3929,6 +3965,82 @@ export function SaveEditorPanel(
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
     });
 
+  const databaseActions: DatabaseActions = {
+    request: async (kind, json, files) => {
+      let response: import("./domain").SaveEditorResult | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        if (kind === "databaseOpen" || kind === "databaseReset")
+          preparedDatabase.current = undefined;
+        const result = await client.current
+          .runDatabase(working.current, json, kind, files)
+          .catch(() => {
+            throw Error(databaseWords[batchLang].failed);
+          });
+        if (id === operation.current) {
+          response = result;
+          if (kind === "databaseCommit")
+            preparedDatabase.current = {
+              result,
+              context: contextRevision.current,
+            };
+        }
+      }, kind !== "databaseCommit");
+      return response;
+    },
+    apply: async (result, sourceHash, beforeFiles, afterFiles) => {
+      let applied = false;
+      if (
+        preparedDatabase.current?.result !== result ||
+        preparedDatabase.current.context !== contextRevision.current
+      )
+        return false;
+      await perform(async (id) => {
+        const before = working.current;
+        if (!before || !result.output) return;
+        const digest = await crypto.subtle.digest(
+          "SHA-256",
+          new Uint8Array(before),
+        );
+        const hash = Array.from(new Uint8Array(digest), (byte) =>
+          byte.toString(16).padStart(2, "0"),
+        )
+          .join("")
+          .toUpperCase();
+        if (id !== operation.current || hash !== sourceHash)
+          throw Error(databaseWords[batchLang].failed);
+        await replaceDatabaseFiles(beforeFiles, afterFiles).catch(() => {
+          throw Error(databaseWords[batchLang].storage);
+        });
+        if (id !== operation.current) {
+          await replaceDatabaseFiles(afterFiles, beforeFiles);
+          return;
+        }
+        databaseHistory.current.set(before, {
+          before: beforeFiles,
+          after: afterFiles,
+        });
+        setHistory((previous) => {
+          return trimSaveHistory([...previous, before]);
+        });
+        working.current = result.output;
+        setReport(result.report);
+        setVersion((previous) => reconcileSaveGame(previous, result.report));
+        setDraft((previous) =>
+          report
+            ? rebaseTrainerDraft(previous, report, result.report)
+            : trainerDraft(result.report),
+        );
+        setWorkingRevision((previous) => previous + 1);
+        setLegality(undefined);
+        setStatus("pokemonSaved");
+        applied = true;
+        preparedDatabase.current = undefined;
+      }, false);
+      return applied;
+    },
+  };
+
   const restoreWorking = (originalSave = false) =>
     perform(async (id) => {
       const bytes = originalSave ? original.current : history.at(-1);
@@ -3939,6 +4051,20 @@ export function SaveEditorPanel(
         "inspectWorking",
       );
       if (id !== operation.current) return;
+      const changes = (originalSave ? [] : history.slice(-1))
+        .map((value) => databaseHistory.current.get(value))
+        .filter((value) => value !== undefined);
+      if (changes.length) {
+        const oldest = changes[0],
+          newest = changes.at(-1)!;
+        await replaceDatabaseFiles(newest.after, oldest.before).catch(() => {
+          throw Error(databaseWords[batchLang].undoFailed);
+        });
+        if (id !== operation.current) {
+          await replaceDatabaseFiles(oldest.before, newest.after);
+          return;
+        }
+      }
       working.current = bytes;
       setReport(result.report);
       setVersion((previous) => reconcileSaveGame(previous, result.report));
@@ -3949,12 +4075,14 @@ export function SaveEditorPanel(
       setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setHistory((previous) => (originalSave ? [] : previous.slice(0, -1)));
+      if (originalSave) databaseHistory.current.clear();
+      else databaseHistory.current.delete(bytes);
       setDraft((previous) =>
         originalSave || !report
           ? trainerDraft(result.report)
           : rebaseTrainerDraft(previous, report, result.report),
       );
-    });
+    }, false);
 
   const selectBRPlayer = (profile: number) =>
     perform(async (id) => {
@@ -4113,6 +4241,11 @@ export function SaveEditorPanel(
         {
           id: "pokemonReport",
           label: reportWords[batchLang].title,
+          available: true,
+        },
+        {
+          id: "database",
+          label: databaseWords[batchLang].title,
           available: true,
         },
         {
@@ -4579,7 +4712,14 @@ export function SaveEditorPanel(
                 words.title
               }
             >
-              {section === "pokemonReport" ? (
+              {section === "database" ? (
+                <PokemonDatabaseViewer
+                  key={`${name}:${fileRevision}:${workingRevision}:${batchLang}`}
+                  lang={batchLang}
+                  busy={busy}
+                  actions={databaseActions}
+                />
+              ) : section === "pokemonReport" ? (
                 <PokemonReportViewer
                   key={`${name}:${fileRevision}:${workingRevision}:${batchLang}`}
                   revision={workingRevision}

@@ -49,7 +49,7 @@ describe("independent entity worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect(transfer).toEqual([message.bytes.buffer]);
       worker.onmessage?.({
-        data: { id: message.id, entity: { apiVersion: 155 }, ...fields },
+        data: { id: message.id, entity: { apiVersion: 156 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(original);

@@ -16,7 +16,7 @@ public sealed record PokemonSearchResults(PokemonSearchPosition[] Matches);
 // Hidden context controls live in FLP_Format, so first-show top-level resets preserve them.
 internal static class PokemonSearch
 {
-    internal static SearchSettings Settings(PokemonSearchQuery query, SaveFile? save = null)
+    internal static SearchSettings Settings(PokemonSearchQuery query, SaveFile? save = null, EntityContext? context = null, SearchComparison? comparison = null)
     {
         if (query.Level is null || query.Esv is null || query.Nickname is null || query.Instructions is null)
             throw new ArgumentException("Search text fields are missing.");
@@ -30,8 +30,8 @@ internal static class PokemonSearch
             throw new ArgumentException("Invalid source search settings.");
         var settings = new SearchSettings
         {
-            Context = save?.Context ?? EntityContext.None,
-            SearchContext = save is null ? SearchComparison.None : save.Generation >= 8 ? SearchComparison.Equals : SearchComparison.LessThanEquals,
+            Context = context ?? save?.Context ?? EntityContext.None,
+            SearchContext = comparison ?? (save is null ? SearchComparison.None : save.Generation >= 8 ? SearchComparison.Equals : SearchComparison.LessThanEquals),
             Species = query.Species, Ability = query.Ability, Nature = (Nature)query.Nature,
             Item = query.Item, Nickname = query.Nickname.Trim(), Version = (GameVersion)query.Version,
             Generation = (byte)query.Generation, HiddenPowerType = query.HiddenPowerType,

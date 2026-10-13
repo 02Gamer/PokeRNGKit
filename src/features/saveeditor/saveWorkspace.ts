@@ -6,6 +6,7 @@ export const SAVE_SECTION_GROUPS = {
     "registeredGroups",
     "personalChart",
     "pokemonReport",
+    "database",
     "pokedex",
     "inventory",
   ],
