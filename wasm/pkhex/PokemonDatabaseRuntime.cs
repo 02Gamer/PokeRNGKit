@@ -5,7 +5,7 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 internal sealed record PokemonDatabaseDescriptor([property:JsonRequired]string Id,[property:JsonRequired]string Name,
-    [property:JsonRequired]int Offset,[property:JsonRequired]int Length,[property:JsonRequired]bool EntityFile,long Modified=0);
+    [property:JsonRequired]int Offset,[property:JsonRequired]int Length,[property:JsonRequired]bool EntityFile,long Modified=0,bool UseFileFormat=false);
 internal sealed record PokemonDatabaseOpenRequest([property:JsonRequired]PokemonDatabaseDescriptor[] Files,PokemonDatabaseOptions? Options=null);
 internal sealed record PokemonDatabaseReadRequest([property:JsonRequired]PokemonDatabaseQuery Query,int Offset=0);
 internal sealed record PokemonDatabaseViewRow(int Id,string Source,string Identity,string? FileId,string Format,PokemonPosition? Position,PokemonEntry Pokemon);
@@ -99,6 +99,12 @@ internal static class PokemonDatabaseRuntime
         Session().AssertSource(input);
     }
     internal static PokemonFile Export(int id)=>PokemonDatabaseFiles.Export(Session().Database.Row(id));
+    internal static PokemonFile ViewEntity(byte[] input,int id) {
+        var current=Session();current.AssertSource(input);
+        var entity=PokemonDatabaseFiles.Convert(current.Database.Row(id),SaveService.OpenDatabaseSave(input.ToArray()));
+        entity.ForcePartyData();var bytes=new byte[entity.SIZE_PARTY];entity.WriteDecryptedDataParty(bytes);
+        return new(PathUtil.CleanFileName(entity.FileName),Convert.ToBase64String(bytes));
+    }
     internal static string Report(string json,bool csv)
     {
         var request=Decode(json,PokemonDatabaseJson.Default.PokemonDatabaseReportRequest);
@@ -143,7 +149,7 @@ internal static class PokemonDatabaseRuntime
         foreach(var file in descriptors)
         {
             if(file is null || file.Offset!=end || file.Length<=0 || file.Length>64*1024*1024 || file.Length>data.Length-end)throw new ArgumentException("Invalid database file slice.");
-            result.Add(new(file.Id,file.Name,data.AsSpan(end,file.Length).ToArray(),file.EntityFile,file.Modified));end+=file.Length;
+            result.Add(new(file.Id,file.Name,data.AsSpan(end,file.Length).ToArray(),file.EntityFile,file.Modified,file.UseFileFormat));end+=file.Length;
         }
         if(end!=data.Length)throw new ArgumentException("Database source buffer has extra bytes.");
         PokemonDatabaseFiles.Validate(result);return result.ToArray();

@@ -61,6 +61,15 @@ internal sealed class PokemonDatabaseSession
             {
                 if(!source.State.Exportable || !SaveChecksums.Valid(source))throw new ArgumentException("Database import requires a valid editable save.");
                 if(!Enum.IsDefined(edit.Settings.UpdateToSaveFile) || !Enum.IsDefined(edit.Settings.UpdatePokeDex) || !Enum.IsDefined(edit.Settings.UpdateRecord))throw new ArgumentException("Invalid database import option.");
+                if(edit.Add is not null) {
+                    if(edit.Ids is not null || edit.Query is not null || !edit.Add.EntityFile || !edit.Add.UseFileFormat)throw new ArgumentException("Prepared import must declare one independent entity.");
+                    PokemonDatabaseFiles.Validate([edit.Add]);
+                    var prepared=StandalonePokemon.Open(edit.Add.Data,edit.Add.Name,false,true).Entity;
+                    if(prepared.Species==0 || !prepared.Valid)throw new ArgumentException("Invalid prepared import entity.");
+                    if(!source.HasBox || (uint)edit.Box>=source.BoxCount)throw new ArgumentException("Invalid prepared import box.");
+                    nextSave=PokemonDatabase.Copy(source);
+                    imported=nextSave.LoadBoxes([prepared],out _,edit.Box,edit.Clear,edit.Overwrite,edit.Settings);break;
+                }
                 if(edit.Ids is not null && edit.Query is not null)throw new ArgumentException("Choose import entries or a search query.");
                 var ids=edit.Query is null ? edit.Ids ?? throw new ArgumentException("Missing import entries.") : Database.Search(edit.Query).Select(row=>row.Id).ToArray();
                 var result=Database.Import(source,ids,edit.Box,edit.Clear,edit.Overwrite,edit.Settings);
@@ -131,7 +140,7 @@ internal sealed class PokemonDatabaseSession
         void String(string value){byte[] bytes=Encoding.UTF8.GetBytes(value);byte[] size=new byte[4];BinaryPrimitives.WriteInt32LittleEndian(size,bytes.Length);hash.AppendData(size);hash.AppendData(bytes);}
         foreach(var file in files)
         {
-            String(file.Id);String(file.Name);String(file.EntityFile?"entity":"save");String(file.Modified.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            String(file.Id);String(file.Name);String(file.EntityFile?"entity":"save");String(file.Modified.ToString(System.Globalization.CultureInfo.InvariantCulture));String(file.UseFileFormat?"declared":"detected");
             String(Br4Editing.Hash(file.Data));
         }
         return Convert.ToHexString(hash.GetHashAndReset());

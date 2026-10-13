@@ -20,6 +20,7 @@ export interface DatabaseActions {
 }
 import type { PokemonSearchQuery, PokemonSearchCatalog } from "./pokemonSearch";
 export type DatabaseRequestKind =
+  | "databaseView"
   | "databaseArchive"
   | "databaseReport"
   | "databaseReportExport"
@@ -88,6 +89,7 @@ export interface DatabaseWireDelta {
     data: string;
     entityFile: boolean;
     modified: number;
+    useFileFormat?: boolean;
   }[];
   filesHash: string;
 }
@@ -134,6 +136,7 @@ export interface DatabaseDescriptor {
   length: number;
   entityFile: boolean;
   modified: number;
+  useFileFormat?: boolean;
 }
 export interface DatabaseConfirmation {
   token: string;
@@ -175,6 +178,7 @@ export function databasePacket(files: readonly DatabaseLocalFile[]) {
       length: file.data.byteLength,
       entityFile: file.entityFile,
       modified: file.modified,
+      useFileFormat: Boolean(file.useFileFormat),
     };
     bytes.set(new Uint8Array(file.data), offset);
     offset += file.data.byteLength;

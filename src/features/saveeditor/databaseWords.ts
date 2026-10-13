@@ -1,5 +1,10 @@
 export const databaseWords = {
   zh: {
+    viewEdit: "转换并编辑选中项",
+    closeEditor: "关闭准备中的宝可梦",
+    prepared: "准备中的宝可梦",
+    addEdited: "预览加入数据库",
+    importEdited: "预览导入当前存档",
     undoFailed: "数据库撤销失败，存档与本地文件保持不变，请重新读取后重试",
     add: "预览加入本地数据库",
     importAll: "预览导入全部结果",
@@ -65,6 +70,11 @@ export const databaseWords = {
     retry: "重试应用冻结结果",
   },
   en: {
+    viewEdit: "Convert and edit selected entry",
+    closeEditor: "Close prepared Pokémon",
+    prepared: "Prepared Pokémon",
+    addEdited: "Preview adding to database",
+    importEdited: "Preview import into current save",
     undoFailed:
       "Database undo failed. The save and local files are unchanged; reload and retry.",
     add: "Preview adding to local database",
@@ -132,6 +142,11 @@ export const databaseWords = {
     retry: "Retry frozen result",
   },
   ja: {
+    viewEdit: "選択項目を変換して編集",
+    closeEditor: "編集中のポケモンを閉じる",
+    prepared: "編集中のポケモン",
+    addEdited: "データベースへの追加をプレビュー",
+    importEdited: "現在のセーブへのインポートをプレビュー",
     undoFailed:
       "データベースを元に戻せませんでした。セーブとローカルファイルは変更されていません。再読み込みしてお試しください。",
     add: "ローカルデータベースへの追加をプレビュー",

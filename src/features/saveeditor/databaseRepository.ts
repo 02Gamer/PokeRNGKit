@@ -5,6 +5,7 @@ export interface DatabaseLocalFile {
   data: ArrayBuffer;
   entityFile: boolean;
   modified: number;
+  useFileFormat?: boolean;
 }
 export const DATABASE_LIMITS = {
   files: 1024,
@@ -27,7 +28,10 @@ export function validateDatabaseFiles(files: readonly DatabaseLocalFile[]) {
       file.name.length > 4096 ||
       !file.data.byteLength ||
       file.data.byteLength > DATABASE_LIMITS.fileBytes ||
-      !Number.isFinite(file.modified)
+      !Number.isFinite(file.modified) ||
+      (file.useFileFormat !== undefined &&
+        typeof file.useFileFormat !== "boolean") ||
+      (file.useFileFormat === true && !file.entityFile)
     )
       throw Error("Invalid local database file.");
     ids.add(file.id);
@@ -136,6 +140,7 @@ export async function replaceDatabaseFiles(
                 !old ||
                 old.name !== file.name ||
                 old.entityFile !== file.entityFile ||
+                Boolean(old.useFileFormat) !== Boolean(file.useFileFormat) ||
                 old.modified !== file.modified ||
                 old.data.byteLength !== file.data.byteLength
               )

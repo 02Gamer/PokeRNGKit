@@ -4,6 +4,9 @@
 .save-pokemon-database .save-editor-toolbar {
   align-items: end;
 }
+.save-db-mode [aria-pressed="true"] {
+  background: var(--brand-soft);
+}
 .save-pokemon-database output {
   display: block;
   min-height: 44px;

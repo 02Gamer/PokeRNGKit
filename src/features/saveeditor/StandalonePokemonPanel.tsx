@@ -49,7 +49,18 @@ function download(bytes: Uint8Array<ArrayBuffer>, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
-export function StandalonePokemonPanel() {
+export function StandalonePokemonPanel({
+  seed,
+  disabled = false,
+  preparedActions = [],
+}: {
+  seed?: StandalonePokemonSnapshot;
+  disabled?: boolean;
+  preparedActions?: {
+    label: string;
+    onPrepare(snapshot: StandalonePokemonSnapshot): Promise<void>;
+  }[];
+} = {}) {
   const { i18n, t } = useTranslation();
   const lang = i18n.language.startsWith("zh")
     ? "zh"
@@ -66,7 +77,9 @@ export function StandalonePokemonPanel() {
   const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [revision, setRevision] = useState(0);
   const [changed, setChanged] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [localBusy, setBusy] = useState(false);
+  const busy = localBusy || disabled;
+  const initialLoaded = useRef(false);
   const running = useRef(false),
     operation = useRef(0);
   const [inputEncrypted, setInputEncrypted] = useState(false);
@@ -79,41 +92,68 @@ export function StandalonePokemonPanel() {
   const [status, setStatus] = useState<"applied" | "restored">();
   const dispose = useCallback(() => {
     operation.current++;
+    running.current = false;
+    initialLoaded.current = false;
     client.current.dispose();
   }, []);
   useEffect(() => dispose, [dispose]);
-  async function perform<T>(
-    action: (id: number) => Promise<T>,
-  ): Promise<T | undefined> {
-    if (running.current) return;
-    running.current = true;
-    setBusy(true);
-    setError(undefined);
-    setStatus(undefined);
-    const id = ++operation.current;
-    try {
-      return await action(id);
-    } catch (cause) {
-      if (id === operation.current)
-        setError(
-          cause instanceof Error && /API version mismatch/.test(cause.message)
-            ? "runtime"
-            : cause instanceof Error &&
-                /(?:GB|Pokemon) name/.test(cause.message)
-              ? "names"
-              : cause instanceof Error && /timed out/.test(cause.message)
-                ? "timeout"
-                : cause instanceof Error && cause.message === "size"
-                  ? "size"
-                  : "failed",
-        );
-    } finally {
-      if (id === operation.current) {
-        running.current = false;
-        setBusy(false);
+  const perform = useCallback(
+    async function perform<T>(
+      action: (id: number) => Promise<T>,
+    ): Promise<T | undefined> {
+      if (running.current || disabled) return;
+      running.current = true;
+      setBusy(true);
+      setError(undefined);
+      setStatus(undefined);
+      const id = ++operation.current;
+      try {
+        return await action(id);
+      } catch (cause) {
+        if (id === operation.current)
+          setError(
+            cause instanceof Error && /API version mismatch/.test(cause.message)
+              ? "runtime"
+              : cause instanceof Error &&
+                  /(?:GB|Pokemon) name/.test(cause.message)
+                ? "names"
+                : cause instanceof Error && /timed out/.test(cause.message)
+                  ? "timeout"
+                  : cause instanceof Error && cause.message === "size"
+                    ? "size"
+                    : "failed",
+          );
+      } finally {
+        if (id === operation.current) {
+          running.current = false;
+          setBusy(false);
+        }
       }
-    }
-  }
+    },
+    [disabled],
+  );
+  useEffect(() => {
+    if (!seed || disabled || initialLoaded.current) return;
+    initialLoaded.current = true;
+    void perform(async (id) => {
+      const snapshot = { ...seed, bytes: new Uint8Array(seed.bytes) };
+      const result = await client.current.run(snapshot.bytes, {
+        fileName: snapshot.fileName,
+        inputEncrypted: snapshot.inputEncrypted,
+        useFileFormat: snapshot.useFileFormat,
+      });
+      if (id !== operation.current) return;
+      original.current = snapshot;
+      setWorking(snapshot);
+      setHistory([]);
+      setReport(result.entity);
+      setLegality(undefined);
+      setChanged(false);
+      setParty(result.entity.party);
+      setEncrypted(false);
+      setRevision((value) => value + 1);
+    });
+  }, [seed, disabled, perform]);
   const open = (file: File) =>
     perform(async (id) => {
       if (!file.size || file.size > MAX_ENTITY_BYTES) throw new Error("size");
@@ -635,53 +675,97 @@ export function StandalonePokemonPanel() {
         `${stem}-edited${encrypted ? "-encrypted" : ""}.${report.extension.replace(/^\./, "")}`,
       );
     });
+  const prepare = (
+    action: (snapshot: StandalonePokemonSnapshot) => Promise<void>,
+  ) =>
+    perform(async (id) => {
+      if (!working || !report) return;
+      const result = await client.current.run(
+        working.bytes,
+        {
+          fileName: working.fileName,
+          inputEncrypted: working.inputEncrypted,
+          useFileFormat: working.useFileFormat,
+          party: true,
+          encrypted: false,
+        },
+        "entityExport",
+      );
+      if (id !== operation.current) return;
+      if (!result.entityFile) throw Error("Missing prepared entity");
+      await action({
+        ...working,
+        bytes: new Uint8Array(result.entityFile),
+        fileName:
+          working.fileName.replace(/\.[^.]*$/, "") +
+          "-edited." +
+          report.extension.replace(/^\./, ""),
+        inputEncrypted: false,
+        useFileFormat: true,
+      });
+    });
   return (
     <div className="save-editor-panel" aria-busy={busy}>
       <p>{words.intro}</p>
-      <div className="save-editor-fields">
-        <label className="field">
-          <span>{words.inputLayout}</span>
-          <Select
-            disabled={busy}
-            value={inputEncrypted ? "raw" : "normal"}
-            onChange={(event) =>
-              setInputEncrypted(event.target.value === "raw")
-            }
-          >
-            <option value="normal">{words.normal}</option>
-            <option value="raw">{words.rawBk4}</option>
-          </Select>
-        </label>
-        <p className="save-editor-note">{words.inputNote}</p>
-        <label className="field">
-          <span>{words.formatMode}</span>
-          <Select
-            disabled={busy}
-            value={useFileFormat ? "file" : "auto"}
-            onChange={(event) =>
-              setUseFileFormat(event.target.value === "file")
-            }
-          >
-            <option value="auto">{words.autoFormat}</option>
-            <option value="file">{words.fileFormat}</option>
-          </Select>
-        </label>
-        <p className="save-editor-note">{words.formatNote}</p>
-      </div>
+      {!seed && (
+        <div className="save-editor-fields">
+          <label className="field">
+            <span>{words.inputLayout}</span>
+            <Select
+              disabled={busy}
+              value={inputEncrypted ? "raw" : "normal"}
+              onChange={(event) =>
+                setInputEncrypted(event.target.value === "raw")
+              }
+            >
+              <option value="normal">{words.normal}</option>
+              <option value="raw">{words.rawBk4}</option>
+            </Select>
+          </label>
+          <p className="save-editor-note">{words.inputNote}</p>
+          <label className="field">
+            <span>{words.formatMode}</span>
+            <Select
+              disabled={busy}
+              value={useFileFormat ? "file" : "auto"}
+              onChange={(event) =>
+                setUseFileFormat(event.target.value === "file")
+              }
+            >
+              <option value="auto">{words.autoFormat}</option>
+              <option value="file">{words.fileFormat}</option>
+            </Select>
+          </label>
+          <p className="save-editor-note">{words.formatNote}</p>
+        </div>
+      )}
       <div className="save-editor-toolbar">
-        <label className="save-editor-file">
-          {words.open}
-          <input
-            type="file"
-            aria-label={words.open}
-            disabled={busy}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = "";
-              if (file) void open(file);
-            }}
-          />
-        </label>
+        {!seed && (
+          <label className="save-editor-file">
+            {words.open}
+            <input
+              type="file"
+              aria-label={words.open}
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void open(file);
+              }}
+            />
+          </label>
+        )}
+        {working &&
+          preparedActions.map((action) => (
+            <button
+              type="button"
+              key={action.label}
+              disabled={busy}
+              onClick={() => void prepare(action.onPrepare)}
+            >
+              {action.label}
+            </button>
+          ))}
         {working && (
           <>
             <button
@@ -727,7 +811,7 @@ export function StandalonePokemonPanel() {
             </button>
           </>
         )}
-        {busy && (
+        {localBusy && (
           <button
             type="button"
             onClick={() => {

@@ -26,11 +26,13 @@ describe("database binary protocol", () => {
           data: "AwQ=",
           entityFile: true,
           modified: 2,
+          useFileFormat: true,
         },
       ],
       filesHash: "next",
     });
     expect(decoded.output).toEqual(new Uint8Array([1, 2]));
+    expect(decoded.databaseDelta.added[0].useFileFormat).toBe(true);
     expect(
       applyDatabaseDelta([current], decoded.databaseDelta).map((f) => f.id),
     ).toEqual(["new"]);
@@ -53,6 +55,7 @@ describe("database binary protocol", () => {
         data: one.buffer,
         entityFile: true,
         modified: 1,
+        useFileFormat: true,
       },
       {
         id: "b",
@@ -63,6 +66,10 @@ describe("database binary protocol", () => {
       },
     ]);
     expect(packet.bytes).toEqual(new Uint8Array([1, 2, 3, 4, 5]));
+    expect(packet.descriptors.map((d) => d.useFileFormat)).toEqual([
+      true,
+      false,
+    ]);
     expect(packet.descriptors.map((d) => [d.offset, d.length])).toEqual([
       [0, 3],
       [3, 2],

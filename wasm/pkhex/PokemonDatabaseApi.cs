@@ -13,6 +13,7 @@ public static partial class Program
     [JSExport]public static string ExportPokemonDatabaseEntity(byte[] data,int id)=>SaveService.ExportPokemonDatabaseEntity(data,id);
     [JSExport]public static void DiscardPokemonDatabase(string token)=>PokemonDatabaseRuntime.Discard(token);
     [JSExport]public static void ResetPokemonDatabase()=>PokemonDatabaseRuntime.Reset();
+    [JSExport]public static string ViewPokemonDatabaseEntity(byte[] data,int id)=>SaveService.ViewPokemonDatabaseEntity(data,id);
     [JSExport]public static byte[] ExportPokemonDatabaseArchive(byte[] data,string json)=>SaveService.ExportPokemonDatabaseArchive(data,json);
     [JSExport]public static string ReadPokemonDatabaseReport(byte[] data,string json)=>SaveService.ReadPokemonDatabaseReport(data,json);
     [JSExport]public static string ExportPokemonDatabaseReport(byte[] data,string json)=>SaveService.ExportPokemonDatabaseReport(data,json);
@@ -26,6 +27,7 @@ public static partial class SaveService
     public static string PreviewPokemonDatabase(byte[] data,byte[] files,string json)=>PokemonDatabaseRuntime.Preview(data,files,json);
     public static string CommitPokemonDatabase(byte[] data,byte[] files,string json)=>PokemonDatabaseRuntime.CommitDelta(data,files,json);
     public static string ExportPokemonDatabaseEntity(byte[] data,int id){PokemonDatabaseRuntime.AssertSource(data);return JsonSerializer.Serialize(PokemonDatabaseRuntime.Export(id),PokemonDatabaseJson.Default.PokemonFile);}
+    public static string ViewPokemonDatabaseEntity(byte[] data,int id)=>JsonSerializer.Serialize(PokemonDatabaseRuntime.ViewEntity(data,id),PokemonDatabaseJson.Default.PokemonFile);
     public static byte[] ExportPokemonDatabaseArchive(byte[] data,string json){PokemonDatabaseRuntime.AssertSource(data);return PokemonDatabaseRuntime.Archive(json);}
     public static string ReadPokemonDatabaseReport(byte[] data,string json){PokemonDatabaseRuntime.AssertSource(data);return PokemonDatabaseRuntime.Report(json,false);}
     public static string ExportPokemonDatabaseReport(byte[] data,string json){PokemonDatabaseRuntime.AssertSource(data);return PokemonDatabaseRuntime.Report(json,true);}

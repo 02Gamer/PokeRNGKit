@@ -2,7 +2,7 @@
 using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
-internal sealed record PokemonDatabaseFile(string Id, string Name, byte[] Data, bool EntityFile, long Modified = 0);
+internal sealed record PokemonDatabaseFile(string Id, string Name, byte[] Data, bool EntityFile, long Modified = 0, bool UseFileFormat = false);
 internal sealed record PokemonDatabaseFileResult(string Id, string Name, string Kind, int Count, string? Error);
 internal sealed record PokemonDatabaseLoaded(SlotCache[] Slots, PokemonDatabaseFileResult[] Files, string[] FileIds);
 
@@ -41,6 +41,7 @@ internal static class PokemonDatabaseFiles
         if(files is null || files.Any(f=>f is null))throw new ArgumentException("Missing database files.");
         if (files.Count > 1024 || files.Sum(f => (long)(f.Data?.Length ?? 0)) > 128L * 1024 * 1024)
             throw new ArgumentException("Database input exceeds the browser limit.");
+        if(files.Any(f=>f.UseFileFormat && !f.EntityFile))throw new ArgumentException("Declared entity format requires an entity file.");
         var ids = new HashSet<string>(StringComparer.Ordinal);
         foreach (var file in files)
         {
@@ -53,6 +54,11 @@ internal static class PokemonDatabaseFiles
     {
                 if (file.EntityFile)
                 {
+                    if(file.UseFileFormat) {
+                        var declared=StandalonePokemon.Open(file.Data,name,false,true).Entity;
+                        if(declared.Species==0)throw new ArgumentException("Empty declared database entity.");
+                        slots.Add(new SlotCache(new SlotInfoFileSingle(name),declared));return;
+                    }
                     var extension = Path.GetExtension(name);
                     if (!Extensions.Contains(extension) || !EntityDetection.IsSizePlausible(file.Data.Length) ||
                         !PokemonFiles.TryRead(file.Data, extension, destination, out var entity) || entity.Species == 0)

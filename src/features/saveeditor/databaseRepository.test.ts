@@ -113,6 +113,7 @@ describe("database replacement transaction", () => {
     for (const changed of [
       { ...file, name: "changed.pk3" },
       { ...file, modified: 2 },
+      { ...file, useFileFormat: true },
       { ...file, data: Uint8Array.of(3, 2, 1).buffer },
     ]) {
       const read = storage([changed]);
