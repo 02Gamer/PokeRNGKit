@@ -32,7 +32,7 @@ internal static class SevenStar9EditingTests
     }
     public static void Run()
     {
-        Check(SaveService.ApiVersion == 148, "SevenStar9 product protocol");
+        Check(SaveService.ApiVersion == 149, "SevenStar9 product protocol");
         foreach (var version in new[] { GameVersion.SL, GameVersion.VL })
         for (int revision = 0; revision <= 2; revision++)
         foreach (bool newer in new[] { false, true })

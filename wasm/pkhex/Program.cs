@@ -21,6 +21,15 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadTechRecords(byte[] data, string json) => SaveService.ReadTechRecords(data, json);
+    [JSExport]
+    public static string PreviewTechRecords(byte[] data, string json) => SaveService.PreviewTechRecords(data, json);
+    [JSExport]
+    public static byte[] CommitTechRecords(byte[] data, string json) => SaveService.CommitTechRecords(data, json);
+    [JSExport]
+    public static void DiscardTechRecords(string token) => SaveService.DiscardTechRecords(token);
+
+    [JSExport]
     public static string ReadMoveShop(byte[] data, string json) => SaveService.ReadMoveShop(data, json);
     [JSExport]
     public static string PreviewMoveShop(byte[] data, string json) => SaveService.PreviewMoveShop(data, json);
@@ -565,7 +574,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 148;
+    public const int ApiVersion = 149;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -959,6 +968,12 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(TechRecordTarget))]
+[JsonSerializable(typeof(TechRecordCatalog))]
+[JsonSerializable(typeof(TechRecordRequest))]
+[JsonSerializable(typeof(TechRecordConfirmation))]
+[JsonSerializable(typeof(TechRecordTicket))]
+[JsonSerializable(typeof(TechRecordEdit))]
 [JsonSerializable(typeof(MoveShopTarget))]
 [JsonSerializable(typeof(MoveShopCatalog))]
 [JsonSerializable(typeof(MoveShopRequest))]

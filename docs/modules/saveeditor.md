@@ -48,11 +48,37 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 扩大专项还覆盖元数据独立变化、尾部不足一条记录的 bytes、部分键编辑与失败 Open 清旧令牌。比较同时列出 15 组块的类型／子类型／完整 bytes，不能只查完整行；保存保留尾部残留。请求未改的键以 null 保留，允许编辑一个键时其他键的预载长名称保持原值，32767 输入限制只约束实际新输入。
 
+## 技式记录（API149 工程通过，页面待核验）
+
+完整verify99973退出码0：283文件／1294项前端测试、生产构建和PWA257项通过；核心99文件、类型图19张的public／dist哈希一致。默认完整原生42124退出码0，五实体／七动作专项也包含在总链中。核心、裁剪、类型、lint和最后格式均通过；页面与真实存档仍待核验。
+
+### 下一项强化招式记录的二进制来源审计
+
+2026-10-13 按 `BinLinkerAccessor16` 的 UInt16 起止地址及 `LearnsetReader.ReadLearnset16` 的整除布局只读解码 `plus_za.pkl`／`lvlmove_za.pkl`：两表均1445个目录项、594个非空项、8030对招式／等级，全部招式包含于340个PlusMoves候选。强化表等级6–100，普通学习表0–99；各326项有整除后的一字节00尾部，Core忽略它，不能把该尾字节当成额外招式。
+
+强化表有404处相邻等级下降，普通学习表无下降。例如Personal索引1的前三招33／45／22对应强化等级10／10／6。`PlusRecordApplicator.SetPlusFlagsNatural` 按原顺序遍历且遇到大于Evo.LevelMax的等级即break；接入必须直接复用Core，不排序或自行补齐后续低等级项。此为原始资源和源码审计证据，尚未实现强化招式记录，也不作为游戏结果验收。
+
+2026-10-13 核心发布30877、类型38970、定向lint11727、全仓格式及property-trim均退出码0。完整verify99973与默认完整原生42124均完成且退出码0。正式页面和真实存档仍待核验，工程结果不代替所有者验收。
+
+下一独立候选PlusRecordEditor仅只读来源核对，未实现：窗口／Designer、父PKMEditor入口、IPlusRecord／IPermitPlus、PlusRecordApplicator、PA9与PersonalInfo9ZA。PlusMoveIndexes实际340项、Used340、Total360；零基显示000..339，PA9在0xD6起33字节／264位和0x94起12字节／96位分区，索引264进入第二段。手动Save只写可见340位，Core清理按360位，不能套用商店尾部保留规则。GetMovePlusFlagAnyImpossible检查第二段尾20位，不把它当可见候选。
+
+Give All先Save，然后Alt=None、Shift=LegalSeedTM、Control=LegalCurrentTM、默认=LegalCurrent；窗口没有ForceAll快捷分支，不能把强制全勾选当原操作。Remove All不保存草稿，父入口只要HasFlag(Shift)就直接LegalCurrent、不保存子窗口草稿，区别于TechRecord的严格相等Shift。建议基于LearnPossible／遭遇／进化链、等级学习与强化学习表；Rotom／Hoopa特殊形态再考虑基础形态，ZA头目按遭遇PersonalInfo.AlphaMove，TM按进化链许可。窗口提示优先当前招式，再可学招式，其他可疑但仍允许手动编辑；属性按类型／许可／名称排序。此处仅来源证据，后续仍需每个位／边界、全部动作及完整实体／文件对照，先收齐当前API149工程检查。
+
+历史来源初审（后续已实现，最终状态见本节工程证据）：窗口／Designer、父PKMEditor的普通／Shift入口、ITechRecord及TechnicalRecordApplicator、五种实体记录与Personal许可已核对。显示全RecordPermitIndexes，不许可项可手动勾选；许可提示包含当前种族、进化链和当前招式。Save按显示编号写全部旗；Give All先Save，再按Alt清空／Shift强制全部／Control当前合法／默认全部合法调用Core，Core先清RecordCountTotal。Remove All不保存窗口草稿；父Shift只建议当前合法记录，不保存子窗口草稿。
+
+来源范围区别：PK8／PB8使用100候选、112总位（G8PKM `0x127` 起14字节）；PA8候选61、总位64，但独立MoveRecordFlags在 `0x13F` 起14字节，不能误接招式商店的购买／掌握缓冲。PK9候选230、PA9候选160，二者RecordCountUsed均230、RecordCountTotal均304，均有 `0x12F` 起25字节基础200位与 `0x4B` 起13字节DLC104位，索引200开始进入DLC区。手动窗口只写候选编号，Core清理按总位数遍历，不能套用招式商店“保留尾部三位”的操作规则。TechnicalRecordApplicator的进化链分支只处理PK8／PK9／PA9，PB8许可全部false，不能给PB8／PA8另造合法推断。Z-A窗口以1基显示，但Load／Save直接把显示编号传入Core，而Core批量使用0基；这是实际来源差异，后续必须以独立完整字节对照验证，不能根据注释静默统一。该段保留初审阶段事实，正式接入已完成工程检查。
+
+2026-10-13 专项首轮在PA9候选数断言处失败；修正审计91722退出码0，五实体候选／批量范围／总容量、独立物理地址、全清／ForceAll边界、LA高48位与商店缓冲隔离、原件保护通过。实际ZA MachineMoves只有160项，RecordCountUsed仍230、RecordCountTotal为304，不能创造70条不存在的招式名称。已复现Z-A窗口首尾读取物理1..160，Core候选对应0..159；勾选首项时原窗口使0x12F首字节为02，Core逻辑首项为01。
+
+正式接入采用Core逻辑位索引0..159与显示编号001..160分离，修复来源窗口误用显示编号的偏移，保留原版Core批量操作的230／304范围。此为已有字节证据支持的UI映射修正，不修改只读上游源码；实际游戏存档仍需页面核验。下列记录分别保留内部阶段与当前API149接线证据，不把来源审计视为完整接入。
+
+内部PokemonTechRecord初稿现已加入五实体读取与克隆编辑。目录返回逻辑索引／显示编号、实际候选、记录旗、当前／进化／可疑许可提示、当前招式提示、三语招式与类型、批量容量／总容量及完整原始记录。七动作区分手动保存、四种Give All分支、Remove All和父Shift；后两种不保存窗口草稿，其他要求完整且唯一的候选行，按逻辑索引写入后直接调用Core。五实体×四种族、每一可见物理位／SV分区边界、七动作完整实体独立Core对照、LA高位／商店保护及原子拒绝专项59156退出码0。
+
+内部TechRecordSession已加入两种完整文件路径与冻结生命周期，源／目标hash及目标六字段绑定，记录完整原始位变化而不只比较可见行，保留ZA批量未显示位的预览证据。存档仅实际SAV8SWSH／SAV8BS／SAV8LA／SAV9SV／SAV9ZA，重开具体类型验证校验／长度／队伍／完整实体；不放宽通用CanEdit或生产SaveUtil识别。二十单只加密／存储布局、五存档箱子／队伍、七动作完整文件Core对照与过期／替换／针对取消／重复／失败清理专项21221退出码0。合成类型路径不接受为真实存档识别。
+
+前端领域模型与七项专项85389通过：五格式候选／批量／原始容量分离、完整且唯一的逻辑行、独立草稿、Remove All／父入口不保存行、Z-A显示号分离、来源／目标hash及六字段绑定、完整原始变更范围（包括非可见位）。API149四个JSExport／required JSON、八种Worker请求及两正式三语入口已接；公开接口专项37479和前端三文件83项通过。共用MoveShop控件／列表样式，支持七操作、源码许可／当前招式提示、类型图、冻结逐项／原始差异和列表外位变更计数。两入口共用组件与既有工作副本／撤销，语言切换保留草稿，关闭／换格位针对取消。新核心、最后类型、完整verify、默认完整原生及裁剪已通过；页面／真实存档仍待核验，本批准备提交。
+
 ## 招式商店（API 148 工程通过，页面待核验）
-
-下一独立候选 `TechRecordEditor` 仅完成只读来源初审，尚未实现：窗口／Designer、父PKMEditor的普通／Shift入口、ITechRecord及TechnicalRecordApplicator、五种实体记录与Personal许可已核对。显示全RecordPermitIndexes，不许可项可手动勾选；许可提示包含当前种族、进化链和当前招式。Save按显示编号写全部旗；Give All先Save，再按Alt清空／Shift强制全部／Control当前合法／默认全部合法调用Core，Core先清RecordCountTotal。Remove All不保存窗口草稿；父Shift只建议当前合法记录，不保存子窗口草稿。
-
-来源范围区别：PK8／PB8使用100候选、112总位（G8PKM `0x127` 起14字节）；PA8候选61、总位64，但独立MoveRecordFlags在 `0x13F` 起14字节，不能误接招式商店的购买／掌握缓冲。PK9／PA9候选230、总位304，两实体均有 `0x12F` 起25字节基础200位与 `0x4B` 起13字节DLC104位，索引200开始进入DLC区。手动窗口只写候选编号，Core清理按总位数遍历，不能套用招式商店“保留尾部三位”的操作规则。TechnicalRecordApplicator的进化链分支只处理PK8／PK9／PA9，PB8许可全部false，不能给PB8／PA8另造合法推断。Z-A窗口以1基显示，但Load／Save直接把显示编号传入Core，而Core批量使用0基；这是实际来源差异，后续必须以独立完整字节对照验证，不能根据注释静默统一。这里只读审计，不混入API148实现；先完成当前招式商店的完整检查与提交。
 
 首轮21193及两路径冻结69253作为早期工程记录保留，最终证据以API148完整检查为准。单只文件复用现有序列化回读，存档用实际SAV8LA类型重开；合成夹具不能替代生产公开识别、真实存档或所有者验收。
 

@@ -8,6 +8,9 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../TechRecordApi.cs" Link="TechRecordApi.cs" />
+    <Compile Include="../TechRecordSession.cs" Link="TechRecordSession.cs" />
+    <Compile Include="../PokemonTechRecord.cs" Link="PokemonTechRecord.cs" />
     <Compile Include="../PokemonMoveShop.cs" Link="PokemonMoveShop.cs" />
     <Compile Include="../MoveShopSession.cs" Link="MoveShopSession.cs" />
     <Compile Include="../MoveShopApi.cs" Link="MoveShopApi.cs" />

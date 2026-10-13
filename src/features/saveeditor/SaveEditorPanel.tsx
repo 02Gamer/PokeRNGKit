@@ -3094,6 +3094,57 @@ export function SaveEditorPanel(
         .catch(() => undefined);
     },
   };
+  const techRecordActions: import("./TechRecordEditor").TechRecordActions = {
+    onRead: async (target) => {
+      let catalog: import("./techRecord").TechRecordCatalog | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(target),
+          "techRecord",
+        );
+        if (id !== operation.current) return;
+        if (!result.techRecord)
+          throw new Error("Missing technical record catalog");
+        catalog = result.techRecord;
+      });
+      return catalog;
+    },
+    onPreview: async (request) => {
+      let ticket: import("./techRecord").TechRecordTicket | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(request),
+          "techRecordPreview",
+        );
+        if (id !== operation.current) {
+          if (result.techRecordPreview)
+            await techRecordActions.onDiscard(result.techRecordPreview.token);
+          return;
+        }
+        if (!result.techRecordPreview)
+          throw new Error("Missing technical record preview");
+        ticket = result.techRecordPreview;
+      });
+      return ticket;
+    },
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyWorkingEdit(confirmation, "techRecordCommit", () => {
+        applied = true;
+      });
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working.current) return;
+      await client.current
+        .run(working.current, token, "techRecordDiscard")
+        .catch(() => undefined);
+    },
+  };
   const discardChatter = async (token: string) => {
     if (!working.current) return;
     await client.current
@@ -3288,6 +3339,7 @@ export function SaveEditorPanel(
       | MailConfirmation
       | ChatterConfirmation
       | import("./moveShop").MoveShopConfirmation
+      | import("./techRecord").TechRecordConfirmation
       | AccessorConfirmation
       | WondercardConfirmation
       | SCBlockConfirmation
@@ -3374,6 +3426,7 @@ export function SaveEditorPanel(
       | "mailboxCommit"
       | "chatterCommit"
       | "moveShopCommit"
+      | "techRecordCommit"
       | "blockAccessorCommit"
       | "wondercardCommit"
       | "scblockCommit"
@@ -5017,6 +5070,7 @@ export function SaveEditorPanel(
               ) : section === "pokemon" ? (
                 <SavePokemonBrowser
                   moveShop={moveShopActions}
+                  techRecord={techRecordActions}
                   profileLink={profileLinkPanel}
                   key={`${name}:${fileRevision}`}
                   report={report}

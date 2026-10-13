@@ -24,7 +24,7 @@
 
 ## 当前工程证据
 
-以下保留按API整理的历史证据；当前接口为148，最新检查和未完成项以进度记录及下方各窗口状态为准，不以历史专项通过代替完整接入。招式商店已接两个正式入口、统一控件、三语类型图标及冻结确认；专项原生／前端、类型、核心发布、裁剪、默认完整原生及完整verify通过（282文件／1279项），页面和真实存档未验收。
+以下保留按API整理的历史证据；当前工作区接口为149，技式记录完整工程检查已通过，最新检查和未完成项以进度记录及下方各窗口状态为准，不以历史专项通过代替完整接入。已提交的招式商店API148接两个正式入口、统一控件、三语类型图标及冻结确认；专项原生／前端、类型、核心发布、裁剪、默认完整原生及完整verify通过（282文件／1279项），Actions38323927065已成功，页面和真实存档未验收。
 
 API 80 接入 Gen3–7 事件标记／数值的完整数组、具名分类与预设、按编号编辑、草稿差异及双文件研究比较。
 12 布局三语目录、每个编号、全文件 Core 输出、原子拒绝、QR 联动及比较方向专项通过；浏览器与真实存档待核验。
@@ -331,10 +331,10 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/PKM Editors/BatchEditor.cs`                                         | API 61：存档范围指令、预览与确认已接入；目录文件流程待接入                                                            |
 | `Subforms/PKM Editors/MemoryAmie.cs`                                          | 记忆、亲密度/好感、互动数值与居住记录已接入；浏览器待核验                                                             |
 | `Subforms/PKM Editors/MoveShopEditor.cs`                                      | API148：存档／PA8共用三语详情入口、61项购买／掌握、六动作、类型图标与冻结确认已接；完整工程通过，页面／真实存档待核验 |
-| `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | 待核对                                                                                                                |
+| `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | 已核对窗口／父入口／Core及等级资源；340候选／360总位与顺序停止行为已记录，正式接入待完成                              |
 | `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查                                                              |
 | `Subforms/PKM Editors/SuperTrainingEditor.cs`                                 | 待核对                                                                                                                |
-| `Subforms/PKM Editors/TechRecordEditor.cs`                                    | 已只读核对窗口／父入口、五实体／许可与Core动作；Z-A显示编号和Core批量索引差异待完整字节对照，尚未实现                 |
+| `Subforms/PKM Editors/TechRecordEditor.cs`                                    | API149：五实体／七动作／三语共用详情入口、冻结与列表外位差异已接；专项与完整工程通过，页面／真实存档待核验            |
 | `Subforms/PKM Editors/Text.cs`                                                | 待核对                                                                                                                |
 | `Subforms/ReportGrid.cs`                                                      | 待核对                                                                                                                |
 | `Subforms/SAV_Database.cs`                                                    | 待核对                                                                                                                |

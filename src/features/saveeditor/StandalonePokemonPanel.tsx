@@ -19,6 +19,7 @@ import { PokemonRawEditor } from "./PokemonRawEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
+import { TechRecordEditor, type TechRecordActions } from "./TechRecordEditor";
 import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
 import { PokemonFormArgumentEditor } from "./PokemonFormArgumentEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
@@ -143,8 +144,14 @@ export function StandalonePokemonPanel() {
       | "gb"
       | "gbSpecial"
       | "moveShopConfirmation"
+      | "techRecordConfirmation"
     >,
-    kind: "entityEdit" | "entityRaw" | "entityGb" | "entityMoveShopCommit",
+    kind:
+      | "entityEdit"
+      | "entityRaw"
+      | "entityGb"
+      | "entityMoveShopCommit"
+      | "entityTechRecordCommit",
     onApplied?: () => void,
   ) =>
     perform(async (id) => {
@@ -242,6 +249,74 @@ export function StandalonePokemonPanel() {
             moveShopToken: token,
           },
           "entityMoveShopDiscard",
+        )
+        .catch(() => undefined);
+    },
+  };
+  const techRecordActions: TechRecordActions = {
+    onRead: (target) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            techRecordTarget: target,
+          },
+          "entityTechRecord",
+        );
+        if (id !== operation.current) return;
+        if (!result.techRecord)
+          throw new Error("Missing technical record catalog");
+        return result.techRecord;
+      }),
+    onPreview: (request) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            techRecordRequest: request,
+          },
+          "entityTechRecordPreview",
+        );
+        if (id !== operation.current) {
+          if (result.techRecordPreview)
+            await techRecordActions.onDiscard(result.techRecordPreview.token);
+          return;
+        }
+        if (!result.techRecordPreview)
+          throw new Error("Missing technical record preview");
+        return result.techRecordPreview;
+      }),
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyRequest(
+        { techRecordConfirmation: confirmation },
+        "entityTechRecordCommit",
+        () => {
+          applied = true;
+        },
+      );
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working) return;
+      await client.current
+        .run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            techRecordToken: token,
+          },
+          "entityTechRecordDiscard",
         )
         .catch(() => undefined);
     },
@@ -666,6 +741,27 @@ export function StandalonePokemonPanel() {
                         lang={lang}
                         busy={busy}
                         {...moveShopActions}
+                      />
+                    )}
+                  {["PK8", "PB8", "PA8", "PK9", "PA9"].includes(
+                    report.format,
+                  ) &&
+                    report.pokemon.valid &&
+                    report.pokemon.species > 0 &&
+                    working && (
+                      <TechRecordEditor
+                        key={`tech-record-${revision}`}
+                        target={{
+                          kind: "file",
+                          box: 0,
+                          slot: 0,
+                          fileName: working.fileName,
+                          inputEncrypted: working.inputEncrypted,
+                          useFileFormat: working.useFileFormat ?? false,
+                        }}
+                        lang={lang}
+                        busy={busy}
+                        {...techRecordActions}
                       />
                     )}
                   <PokemonEncounterEditor
