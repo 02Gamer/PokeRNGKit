@@ -21,6 +21,9 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadPersonalChart(byte[] data) => SaveService.ReadPersonalChart(data);
+
+    [JSExport]
     public static string ReadTextTrash(byte[] data,string json)=>SaveService.ReadTextTrash(data,json);
     [JSExport]
     public static string DraftTextTrash(byte[] data,string json)=>SaveService.DraftTextTrash(data,json);
@@ -603,7 +606,8 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 152;
+    public const int ApiVersion = 153;
+    public static string ReadPersonalChart(byte[] data) => JsonSerializer.Serialize(PersonalChart.Read(Open(data)), SaveJsonContext.Default.PersonalChartCatalog);
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -1002,6 +1006,7 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(TextTrashRequest))]
 [JsonSerializable(typeof(TextTrashConfirmation))]
 [JsonSerializable(typeof(TextTrashCatalog))]
+[JsonSerializable(typeof(PersonalChartCatalog))]
 [JsonSerializable(typeof(TextTrashTicket))]
 [JsonSerializable(typeof(TextTrashDraft))]
 [JsonSerializable(typeof(TextTrashEvent))]

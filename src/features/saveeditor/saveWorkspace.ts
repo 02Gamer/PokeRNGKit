@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type PrimaryWorkspace = "rng" | "save";
 export const SAVE_SECTION_GROUPS = {
-  pokemon: ["pokemon", "registeredGroups", "pokedex", "inventory"],
+  pokemon: [
+    "pokemon",
+    "registeredGroups",
+    "personalChart",
+    "pokedex",
+    "inventory",
+  ],
   trainer: [
     "trainer9a",
     "trainer9",

@@ -8,6 +8,7 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../PersonalChart.cs" Link="PersonalChart.cs" />
     <Compile Include="../TextTrashApi.cs" Link="TextTrashApi.cs" />
     <Compile Include="../TextTrashSession.cs" Link="TextTrashSession.cs" />
     <Compile Include="../PokemonTextTrash.cs" Link="PokemonTextTrash.cs" />

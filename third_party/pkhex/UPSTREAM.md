@@ -24,6 +24,8 @@ into the distribution legal folder. This adaptation does not modify the upstream
 
 ## Drawing resources (2026-09-26)
 
+2026-10-13：信息列表沿用 `KChart.cs` 的种类／形态筛选、原生标记、编号、三语具名列与 `TypeSpriteUtil.GetTypeSpriteWide`；资源脚本扩展导入19张未修改宽属性图（23692字节），两个artwork manifest记录路径与哈希。测试专用 `wasm/pkhex/tests/KChartColorOracle.cs` 是相同来源 `PKHeX.Drawing/ColorUtil.cs` 的未修改副本，SHA-256 `1bb7e74bb5b95cf6e57a2ff95a4aebad4b8f3722dbf1b9484da15c66731ac20c`，用于颜色独立对照，不进入浏览器生产目标，适用上述GPL归属。Web新增搜索、列移动及头目招式中文／日文标签按所有者多语言要求本地化。
+
 2026-10-13：从相同只读PKHeX 26.08.26 WinForms `lang_zh-Hans.txt`、`lang_en.txt` 和 `lang_ja.txt` 导入45个SuperTrainingEditor具名标签。生成器为 `scripts/import-pkhex-supertraining.mjs`，生成C#为 `wasm/pkhex/SuperTrainingNames.cs`，源路径与SHA-256见 `supertraining-sources.json`；保留相同GPL归属，仅本地使用，不修改上游语言文件。
 
 2026-10-11：使用同一只读 PKHeX 26.08.26 来源的 Drawing.Misc Resources.resx，导入 319 张未修改甜甜圈、效果、星星与口味图 PNG（1738995 bytes）。脚本为 `scripts/import-pkhex-donut-art.mjs`；来源路径与 SHA-256 追加到既有 artwork manifest，原有哈希保持。资源选择沿用 `DonutSpriteUtil.cs`，适用同一 GPL 归属和角色／图像权利声明，无运行时 CDN。

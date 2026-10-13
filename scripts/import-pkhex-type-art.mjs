@@ -24,7 +24,7 @@ const hashes = JSON.parse(await readFile(hashesPath, "utf8"));
 const entries = [];
 // The upstream ResX file uses file references; only accept its type icon PNG keys.
 for (const match of xml.matchAll(
-  /<data name="(type_icon_s_\d{2})"[^>]*>\s*<value>([^<]+)<\/value>/g,
+  /<data name="(type_(?:icon_s|wide)_\d{2})"[^>]*>\s*<value>([^<]+)<\/value>/g,
 )) {
   const key = match[1];
   const file = path.resolve(
@@ -48,9 +48,11 @@ for (const match of xml.matchAll(
     throw new Error(`Existing source hash differs: ${relative}`);
   entries.push({ key, relative, bytes, hash });
 }
-for (const required of Array.from(
-  { length: 18 },
-  (_, i) => `type_icon_s_${String(i).padStart(2, "0")}`,
+for (const required of ["icon_s", "wide"].flatMap((kind) =>
+  Array.from(
+    { length: 18 },
+    (_, i) => `type_${kind}_${String(i).padStart(2, "0")}`,
+  ),
 ))
   if (!entries.some((e) => e.key === required))
     throw new Error(`Missing ${required}`);

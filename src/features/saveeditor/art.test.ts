@@ -1,11 +1,34 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { itemImage } from "./art";
+import { itemImage, typeWideImage } from "./art";
 import manifest from "./art-manifest.json";
 import hashes from "../../../third_party/pkhex/art-manifest.json";
 
 describe("local inventory artwork", () => {
+  it("ships KChart wide type sprites locally with original source hashes", () => {
+    const sources: Record<string, string> = hashes.files;
+    const keys = Object.keys(manifest).filter((key) =>
+      key.startsWith("type_wide_"),
+    );
+    expect(keys).toHaveLength(19);
+    for (const key of keys) {
+      const filename = manifest[key as keyof typeof manifest];
+      expect(typeWideImage(Number(key.slice(-2)))).toContain(
+        `/save-art/26.08.26/${filename}`,
+      );
+      const bytes = readFileSync(
+        new URL(
+          `../../../public/save-art/26.08.26/${filename}`,
+          import.meta.url,
+        ),
+      );
+      expect(Object.values(sources)).toContain(
+        createHash("sha256").update(bytes).digest("hex"),
+      );
+    }
+    expect(typeWideImage(255)).toBeUndefined();
+  });
   it("keeps empty slots empty and uses an explicit unknown image", () => {
     expect(itemImage("")).toBeUndefined();
     expect(itemImage("bitem_65535")).toMatch(/\/bitem_unk\.png$/);

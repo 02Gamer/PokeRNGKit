@@ -61,7 +61,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 152;
+  apiVersion: 153;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -826,6 +826,7 @@ export interface SaveEditorResult {
   chatter?: import("./chatter").ChatterCatalog;
   chatterPreview?: import("./chatter").ChatterTicket;
   registeredGroups?: import("./registeredGroups").RegisteredGroupCatalog;
+  personalChart?: import("./personalChart").PersonalChartCatalog;
   registeredGroupAnalysis?: import("./registeredGroups").RegisteredGroupAnalysis;
   boxImportPreview?: import("./boxImport").BoxImportTicket;
   boxBinaryPreview?: import("./boxBinary").BoxBinaryTicket;

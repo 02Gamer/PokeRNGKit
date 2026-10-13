@@ -10,6 +10,10 @@ export function typeIconImage(type: number) {
   const key = `type_icon_s_${String(type).padStart(2, "0")}`;
   return assets[key] ? url(key) : undefined;
 }
+export function typeWideImage(type: number) {
+  const key = `type_wide_${String(type).padStart(2, "0")}`;
+  return assets[key] ? url(key) : undefined;
+}
 
 // Resource keys follow PKHeX.Drawing.Misc/Util/DonutSpriteUtil.cs.
 export function donutImage(sprite: string) {

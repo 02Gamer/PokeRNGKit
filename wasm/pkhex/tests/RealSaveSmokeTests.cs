@@ -10,6 +10,9 @@ internal static class RealSaveSmokeTests
         string path = Environment.GetEnvironmentVariable("PKHEX_REAL_SAVE_PATH") ?? throw new ArgumentException("Provide the owner-authorized save path.");
         byte[] input = File.ReadAllBytes(path), original = input.ToArray();
         var save = SaveUtil.GetSaveFile(input.ToArray()) ?? throw new Exception("Real save recognition failed.");
+        var personal = JsonSerializer.Deserialize(SaveService.ReadPersonalChart(input), SaveJsonContext.Default.PersonalChartCatalog)!;
+        Check(personal.Rows.Length == PersonalChart.Read(save).Rows.Length && personal.Rows.Length > 0, "Real save personal chart complete row count");
+        Check(input.SequenceEqual(original), "Real save personal chart preserves original buffer");
         using var report = JsonDocument.Parse(SaveService.Inspect(input));
         Check(report.RootElement.GetProperty("checksumsValid").GetBoolean(), "Real save checksums");
         Check(report.RootElement.GetProperty("canEdit").GetBoolean(), "Real save edit capability");

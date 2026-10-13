@@ -1,4 +1,6 @@
 import { SCBlockEditor } from "./SCBlockEditor";
+import { PersonalChartViewer } from "./PersonalChartViewer";
+import { chartWords } from "./personalChart";
 import { supportsSCBlock, type SCBlockConfirmation } from "./scblock";
 import { scblockWords } from "./scblockWords";
 import { WondercardEditor } from "./WondercardEditor";
@@ -3352,6 +3354,22 @@ export function SaveEditorPanel(
     });
     return applied;
   };
+  const readPersonalChart = async () => {
+    let catalog: import("./personalChart").PersonalChartCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "personalChart",
+      );
+      if (id !== operation.current) return;
+      if (!result.personalChart)
+        throw new Error("Personal chart was not returned.");
+      catalog = result.personalChart;
+    });
+    return catalog;
+  };
   const readRegisteredGroups = async () => {
     let catalog:
       import("./registeredGroups").RegisteredGroupCatalog | undefined;
@@ -3987,6 +4005,11 @@ export function SaveEditorPanel(
         },
         { id: "pokemon", label: words.pokemon, available: Boolean(true) },
         {
+          id: "personalChart",
+          label: chartWords[batchLang].title,
+          available: true,
+        },
+        {
           id: "registeredGroups",
           label:
             registeredGroupWords[
@@ -4450,7 +4473,15 @@ export function SaveEditorPanel(
                 words.title
               }
             >
-              {section === "files" ? (
+              {section === "personalChart" ? (
+                <PersonalChartViewer
+                  key={`${name}:${fileRevision}`}
+                  revision={workingRevision}
+                  lang={batchLang}
+                  busy={busy}
+                  onRead={readPersonalChart}
+                />
+              ) : section === "files" ? (
                 <FileBatchEditor
                   key={
                     name +
