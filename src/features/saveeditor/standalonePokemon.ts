@@ -15,7 +15,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 149;
+  apiVersion: 150;
   format: string;
   extension: string;
   party: boolean;
@@ -29,6 +29,14 @@ export interface StandalonePokemonReport {
   gb?: GbSpecialInfo | null;
 }
 export interface StandalonePokemonRequest {
+  plusRecordTarget?: import("./plusRecord").PlusRecordTarget;
+  plusRecordRequest?: {
+    sourceHash: string;
+    target: import("./plusRecord").PlusRecordTarget;
+    edit: import("./plusRecord").PlusRecordEdit;
+  };
+  plusRecordConfirmation?: import("./plusRecord").PlusRecordConfirmation;
+  plusRecordToken?: string;
   techRecordTarget?: import("./techRecord").TechRecordTarget;
   techRecordRequest?: {
     sourceHash: string;
@@ -80,6 +88,10 @@ export interface StandaloneAdvancedData {
   relearn?: number[] | null;
 }
 export type StandalonePokemonOperation =
+  | "entityPlusRecord"
+  | "entityPlusRecordPreview"
+  | "entityPlusRecordCommit"
+  | "entityPlusRecordDiscard"
   | "entityTechRecord"
   | "entityTechRecordPreview"
   | "entityTechRecordCommit"
@@ -111,6 +123,8 @@ export interface GbPokemonEdit {
 }
 export interface StandalonePokemonResult {
   moveShop?: import("./moveShop").MoveShopCatalog;
+  plusRecord?: import("./plusRecord").PlusRecordCatalog;
+  plusRecordPreview?: import("./plusRecord").PlusRecordTicket;
   techRecord?: import("./techRecord").TechRecordCatalog;
   techRecordPreview?: import("./techRecord").TechRecordTicket;
   moveShopPreview?: import("./moveShop").MoveShopTicket;

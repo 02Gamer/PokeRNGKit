@@ -52,17 +52,29 @@ API 133 已接三语悬浮工作区、JSExport 和五种 Worker 读取／预览�
 
 完整verify99973退出码0：283文件／1294项前端测试、生产构建和PWA257项通过；核心99文件、类型图19张的public／dist哈希一致。默认完整原生42124退出码0，五实体／七动作专项也包含在总链中。核心、裁剪、类型、lint和最后格式均通过；页面与真实存档仍待核验。
 
-### 下一项强化招式记录的二进制来源审计
+## 强化招式记录（API150 工程通过，页面待核验）
 
-2026-10-13 按 `BinLinkerAccessor16` 的 UInt16 起止地址及 `LearnsetReader.ReadLearnset16` 的整除布局只读解码 `plus_za.pkl`／`lvlmove_za.pkl`：两表均1445个目录项、594个非空项、8030对招式／等级，全部招式包含于340个PlusMoves候选。强化表等级6–100，普通学习表0–99；各326项有整除后的一字节00尾部，Core忽略它，不能把该尾字节当成额外招式。
+已核对上游PlusRecordEditor／Designer、父PKMEditor入口、IPlusRecord／IPermitPlus、PlusRecordApplicator、PA9、PersonalInfo9ZA及等级资源。仅PA9／SAV9ZA适用。目录340项、使用340位、总容量360位，逻辑编号000..339；原始记录为0xD6起33字节／264位加0x94起12字节／96位，索引264进入第二段，尾20位不创造可见招式。手动保存保留尾位，Core建议及清理遍历360位。
 
-强化表有404处相邻等级下降，普通学习表无下降。例如Personal索引1的前三招33／45／22对应强化等级10／10／6。`PlusRecordApplicator.SetPlusFlagsNatural` 按原顺序遍历且遇到大于Evo.LevelMax的等级即break；接入必须直接复用Core，不排序或自行补齐后续低等级项。此为原始资源和源码审计证据，尚未实现强化招式记录，也不作为游戏结果验收。
+七操作保留窗口与父入口差异：保存全部草稿行；Give All先保存再调用默认LegalCurrent、Control的LegalCurrentTM、Shift的LegalSeedTM或Alt的None；Remove All和父HasFlag(Shift)直接操作原数据，不保存子窗口草稿。窗口没有ForceAll命令。当前招式／LearnPossible仅提示，所有记录可手动修改；属性按类型、当前或可学、名称排序。
 
-2026-10-13 核心发布30877、类型38970、定向lint11727、全仓格式及property-trim均退出码0。完整verify99973与默认完整原生42124均完成且退出码0。正式页面和真实存档仍待核验，工程结果不代替所有者验收。
+等级资源按BinLinkerAccessor16与LearnsetReader整除布局只读核对：两表1445目录／594非空／8030招式等级对，全在340候选中；强化等级6–100、普通0–99，各326项一字节00尾部由Core忽略。强化表404处相邻等级下降，普通表无下降；例如Personal索引1前三招33／45／22对应10／10／6。Core按原序遇到超过Evo.LevelMax即停止，正式建议直接调用Core，不排序补齐。Rotom／Hoopa形态、Alpha与TM沿用Core进化／遭遇规则。
 
-下一独立候选PlusRecordEditor仅只读来源核对，未实现：窗口／Designer、父PKMEditor入口、IPlusRecord／IPermitPlus、PlusRecordApplicator、PA9与PersonalInfo9ZA。PlusMoveIndexes实际340项、Used340、Total360；零基显示000..339，PA9在0xD6起33字节／264位和0x94起12字节／96位分区，索引264进入第二段。手动Save只写可见340位，Core清理按360位，不能套用商店尾部保留规则。GetMovePlusFlagAnyImpossible检查第二段尾20位，不把它当可见候选。
+来源审计92927、35种族形态等级组合的实体专项61565、完整文件专项64342以及公开JSON专项3950均退出码0。覆盖全部物理／可见位、264分区、七操作完整实体／文件Core对照、尾位／技式隔离、三语提示、四单只表示、队伍／箱子、目标六字段、冻结单次／过期／替换／针对取消／失败清理和原件。合成类型路径不代表生产SaveUtil识别或真实存档验收。
 
-Give All先Save，然后Alt=None、Shift=LegalSeedTM、Control=LegalCurrentTM、默认=LegalCurrent；窗口没有ForceAll快捷分支，不能把强制全勾选当原操作。Remove All不保存草稿，父入口只要HasFlag(Shift)就直接LegalCurrent、不保存子窗口草稿，区别于TechRecord的严格相等Shift。建议基于LearnPossible／遭遇／进化链、等级学习与强化学习表；Rotom／Hoopa特殊形态再考虑基础形态，ZA头目按遭遇PersonalInfo.AlphaMove，TM按进化链许可。窗口提示优先当前招式，再可学招式，其他可疑但仍允许手动编辑；属性按类型／许可／名称排序。此处仅来源证据，后续仍需每个位／边界、全部动作及完整实体／文件对照，先收齐当前API149工程检查。
+API150四个JSExport、required JSON和八种Worker请求已接；前端三文件86项、最终类型81934、定向lint75820、核心29896、property-trim及全仓格式均通过。SAV9ZA存档详情与PA9独立详情共用PlusRecordEditor、现有Select／按钮／MoveShop列表样式，44px目标／控件、15px控件文字和14px列表，不新增皮肤。340行、属性图标、尾位提醒、逐项／原始／列表外位冻结差异、确认取消及既有副本／撤销齐备。语言变化保留草稿，关闭或换目标针对取消。
+
+完整verify40310退出码0：284文件／1304项测试、生产构建与PWA257项通过，核心99文件和19类型图的public／dist哈希一致。默认完整原生46795退出码0；页面与真实存档仍待核验。本批准备提交，完整PKHeX目标仍有其他窗口和平台等效功能未完成。
+
+### 后续超级训练来源初审
+
+只读对照PK6／PK7的30普通项物理位序均为3,4,7,2,5,6,9,10,13,8,11,12,15,16,19,14,17,18,20..31（相对0x2C）；30项映射唯一，不能按UI索引线性写位。中／英／日SuperTraining文字资源各38行，名称接入仍须按窗口翻译映射而非直接按显示行号拼接。
+
+SuperTrainingEditor／Designer、父入口、ISuperTrainRegimen／ISuperTrain及PK6／PK7仅只读核对，尚未实现。普通30项、配信6项采用源映射；普通0x2C四字节、配信UInt16为0x3A、秘密／完成为0x72低两位。PK6袋编号0x17来自命名表，超目录旧值载入归零；0x16命中数0–255。非PK6隐藏袋／秘密／完成，但保存仍按旧秘密／完成与隐藏复选框做AND。
+
+Give All先按操作前秘密状态决定配信，再为PK6解锁／完成并勾普通，因此未解锁时第一次All不勾配信、第二次才勾。Remove All清全部与两状态。PK6关闭秘密清第4–8阶普通项并禁用完成，不随之清配信。源PK6／PK7配信Setter将UInt16转byte回写，会清高八位，此行为仍待原生字节复现；不能宣称保留。该窗口与存档训练记录及通用极限训练分别记录。
+
+## 技式记录来源与内部阶段记录
 
 历史来源初审（后续已实现，最终状态见本节工程证据）：窗口／Designer、父PKMEditor的普通／Shift入口、ITechRecord及TechnicalRecordApplicator、五种实体记录与Personal许可已核对。显示全RecordPermitIndexes，不许可项可手动勾选；许可提示包含当前种族、进化链和当前招式。Save按显示编号写全部旗；Give All先Save，再按Alt清空／Shift强制全部／Control当前合法／默认全部合法调用Core，Core先清RecordCountTotal。Remove All不保存窗口草稿；父Shift只建议当前合法记录，不保存子窗口草稿。
 

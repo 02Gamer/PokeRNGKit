@@ -3094,6 +3094,56 @@ export function SaveEditorPanel(
         .catch(() => undefined);
     },
   };
+  const plusRecordActions: import("./PlusRecordEditor").PlusRecordActions = {
+    onRead: async (target) => {
+      let catalog: import("./plusRecord").PlusRecordCatalog | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(target),
+          "plusRecord",
+        );
+        if (id !== operation.current) return;
+        if (!result.plusRecord) throw new Error("Missing plus record catalog");
+        catalog = result.plusRecord;
+      });
+      return catalog;
+    },
+    onPreview: async (request) => {
+      let ticket: import("./plusRecord").PlusRecordTicket | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(request),
+          "plusRecordPreview",
+        );
+        if (id !== operation.current) {
+          if (result.plusRecordPreview)
+            await plusRecordActions.onDiscard(result.plusRecordPreview.token);
+          return;
+        }
+        if (!result.plusRecordPreview)
+          throw new Error("Missing plus record preview");
+        ticket = result.plusRecordPreview;
+      });
+      return ticket;
+    },
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyWorkingEdit(confirmation, "plusRecordCommit", () => {
+        applied = true;
+      });
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working.current) return;
+      await client.current
+        .run(working.current, token, "plusRecordDiscard")
+        .catch(() => undefined);
+    },
+  };
   const techRecordActions: import("./TechRecordEditor").TechRecordActions = {
     onRead: async (target) => {
       let catalog: import("./techRecord").TechRecordCatalog | undefined;
@@ -3339,6 +3389,7 @@ export function SaveEditorPanel(
       | MailConfirmation
       | ChatterConfirmation
       | import("./moveShop").MoveShopConfirmation
+      | import("./plusRecord").PlusRecordConfirmation
       | import("./techRecord").TechRecordConfirmation
       | AccessorConfirmation
       | WondercardConfirmation
@@ -3426,6 +3477,7 @@ export function SaveEditorPanel(
       | "mailboxCommit"
       | "chatterCommit"
       | "moveShopCommit"
+      | "plusRecordCommit"
       | "techRecordCommit"
       | "blockAccessorCommit"
       | "wondercardCommit"
@@ -5070,6 +5122,7 @@ export function SaveEditorPanel(
               ) : section === "pokemon" ? (
                 <SavePokemonBrowser
                   moveShop={moveShopActions}
+                  plusRecord={plusRecordActions}
                   techRecord={techRecordActions}
                   profileLink={profileLinkPanel}
                   key={`${name}:${fileRevision}`}

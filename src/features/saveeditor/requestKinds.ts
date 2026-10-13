@@ -1,5 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "plusRecord"
+  | "plusRecordPreview"
+  | "plusRecordCommit"
+  | "plusRecordDiscard"
+  | "entityPlusRecord"
+  | "entityPlusRecordPreview"
+  | "entityPlusRecordCommit"
+  | "entityPlusRecordDiscard"
   | "techRecord"
   | "techRecordPreview"
   | "techRecordCommit"

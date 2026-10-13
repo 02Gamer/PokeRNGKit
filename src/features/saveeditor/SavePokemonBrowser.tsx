@@ -7,6 +7,7 @@ import {
 } from "./boxViewer";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
+import { PlusRecordEditor, type PlusRecordActions } from "./PlusRecordEditor";
 import { TechRecordEditor, type TechRecordActions } from "./TechRecordEditor";
 import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
@@ -56,6 +57,7 @@ import type { saveEditorResources } from "./locales";
 
 export function SavePokemonBrowser({
   moveShop,
+  plusRecord,
   techRecord,
   profileLink,
   report,
@@ -84,6 +86,7 @@ export function SavePokemonBrowser({
   onExportBoxBinary,
 }: {
   moveShop: MoveShopActions;
+  plusRecord: PlusRecordActions;
   techRecord: TechRecordActions;
   profileLink?: ReactNode;
   report: SaveReport;
@@ -594,6 +597,24 @@ export function SavePokemonBrowser({
                     lang={lang}
                     busy={busy}
                     {...moveShop}
+                  />
+                )}
+              {report.format === "SAV9ZA" &&
+                selected.valid &&
+                selected.species > 0 && (
+                  <PlusRecordEditor
+                    key={`plus-record-${revision}-${selected.box}-${selected.slot}`}
+                    target={{
+                      kind: "save",
+                      box: selected.box,
+                      slot: selected.slot,
+                      fileName: null,
+                      inputEncrypted: false,
+                      useFileFormat: false,
+                    }}
+                    lang={lang}
+                    busy={busy}
+                    {...plusRecord}
                   />
                 )}
               {["SAV8SWSH", "SAV8BS", "SAV8LA", "SAV9SV", "SAV9ZA"].includes(

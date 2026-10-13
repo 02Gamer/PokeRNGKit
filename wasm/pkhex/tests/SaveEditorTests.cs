@@ -11,6 +11,8 @@ internal static class SaveEditorTests
 
     public static void Main()
     {
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "plus-record") { PlusRecordAuditTests.Run(); PokemonPlusRecordTests.Run(); PlusRecordSessionTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "plus-record-audit") { PlusRecordAuditTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "tech-record") { TechRecordAuditTests.Run(); PokemonTechRecordTests.Run(); TechRecordSessionTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "tech-record-audit") { TechRecordAuditTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "move-shop") { PokemonMoveShopTests.Run(); MoveShopSessionTests.Run(); return; }
@@ -145,7 +147,7 @@ internal static class SaveEditorTests
             var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
             Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
             Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
-            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 149, $"{version}: API version");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 150, $"{version}: API version");
             Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
             var boxes = document.RootElement.GetProperty("boxes");
             Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");
@@ -309,6 +311,9 @@ internal static class SaveEditorTests
         TechRecordAuditTests.Run();
         PokemonTechRecordTests.Run();
         TechRecordSessionTests.Run();
+        PlusRecordAuditTests.Run();
+        PokemonPlusRecordTests.Run();
+        PlusRecordSessionTests.Run();
         MailboxEditingTests.Run();
         MailboxSessionTests.Run();
         FestivalPlazaEditingTests.Run();

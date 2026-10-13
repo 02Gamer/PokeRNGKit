@@ -19,6 +19,7 @@ import { PokemonRawEditor } from "./PokemonRawEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
+import { PlusRecordEditor, type PlusRecordActions } from "./PlusRecordEditor";
 import { TechRecordEditor, type TechRecordActions } from "./TechRecordEditor";
 import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
 import { PokemonFormArgumentEditor } from "./PokemonFormArgumentEditor";
@@ -144,6 +145,7 @@ export function StandalonePokemonPanel() {
       | "gb"
       | "gbSpecial"
       | "moveShopConfirmation"
+      | "plusRecordConfirmation"
       | "techRecordConfirmation"
     >,
     kind:
@@ -151,6 +153,7 @@ export function StandalonePokemonPanel() {
       | "entityRaw"
       | "entityGb"
       | "entityMoveShopCommit"
+      | "entityPlusRecordCommit"
       | "entityTechRecordCommit",
     onApplied?: () => void,
   ) =>
@@ -249,6 +252,73 @@ export function StandalonePokemonPanel() {
             moveShopToken: token,
           },
           "entityMoveShopDiscard",
+        )
+        .catch(() => undefined);
+    },
+  };
+  const plusRecordActions: PlusRecordActions = {
+    onRead: (target) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            plusRecordTarget: target,
+          },
+          "entityPlusRecord",
+        );
+        if (id !== operation.current) return;
+        if (!result.plusRecord) throw new Error("Missing plus record catalog");
+        return result.plusRecord;
+      }),
+    onPreview: (request) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            plusRecordRequest: request,
+          },
+          "entityPlusRecordPreview",
+        );
+        if (id !== operation.current) {
+          if (result.plusRecordPreview)
+            await plusRecordActions.onDiscard(result.plusRecordPreview.token);
+          return;
+        }
+        if (!result.plusRecordPreview)
+          throw new Error("Missing plus record preview");
+        return result.plusRecordPreview;
+      }),
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyRequest(
+        { plusRecordConfirmation: confirmation },
+        "entityPlusRecordCommit",
+        () => {
+          applied = true;
+        },
+      );
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working) return;
+      await client.current
+        .run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            plusRecordToken: token,
+          },
+          "entityPlusRecordDiscard",
         )
         .catch(() => undefined);
     },
@@ -741,6 +811,25 @@ export function StandalonePokemonPanel() {
                         lang={lang}
                         busy={busy}
                         {...moveShopActions}
+                      />
+                    )}
+                  {report.format === "PA9" &&
+                    report.pokemon.valid &&
+                    report.pokemon.species > 0 &&
+                    working && (
+                      <PlusRecordEditor
+                        key={`plus-record-${revision}`}
+                        target={{
+                          kind: "file",
+                          box: 0,
+                          slot: 0,
+                          fileName: working.fileName,
+                          inputEncrypted: working.inputEncrypted,
+                          useFileFormat: working.useFileFormat ?? false,
+                        }}
+                        lang={lang}
+                        busy={busy}
+                        {...plusRecordActions}
                       />
                     )}
                   {["PK8", "PB8", "PA8", "PK9", "PA9"].includes(
