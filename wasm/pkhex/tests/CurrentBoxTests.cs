@@ -8,7 +8,7 @@ internal static class CurrentBoxTests
 {
     public static void Run()
     {
-        Check(SaveService.ApiVersion == 153, "Current-box product protocol");
+        Check(SaveService.ApiVersion == 154, "Current-box product protocol");
         var examples = new List<(string Name, byte[] Data)>();
         foreach (var version in new[] { "E", "D", "Pt", "HG", "B", "B2", "X", "OR", "SN", "US", "BD" })
             examples.Add((version, File.ReadAllBytes($".tmp/pkhex-fixtures/{version}.sav")));

@@ -10,6 +10,7 @@ import type {
 } from "./domain";
 import "./SaveBoxGallery.css";
 export function SaveBoxGallery({
+  searchMatches,
   report,
   revision,
   scope,
@@ -20,6 +21,7 @@ export function SaveBoxGallery({
   onSwap,
   onDrop,
 }: {
+  searchMatches?: ReadonlySet<string>;
   report: SaveReport;
   revision: number;
   scope: string;
@@ -77,6 +79,7 @@ export function SaveBoxGallery({
               </span>
             </div>
             <SaveBoxGrid
+              searchMatches={searchMatches}
               report={report}
               box={box}
               entries={entries}

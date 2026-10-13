@@ -3354,6 +3354,56 @@ export function SaveEditorPanel(
     });
     return applied;
   };
+  const pokemonSearchActions: import("./pokemonSearch").PokemonSearchActions = {
+    catalog: async (position) => {
+      let catalog: import("./pokemonSearch").PokemonSearchCatalog | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(position ?? {}),
+          "pokemonSearchCatalog",
+        );
+        if (id !== operation.current) return;
+        if (!result.pokemonSearchCatalog)
+          throw new Error("Search catalog was not returned.");
+        catalog = result.pokemonSearchCatalog;
+      });
+      return catalog;
+    },
+    search: async (query) => {
+      let found: import("./pokemonSearch").PokemonSearchResults | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(query),
+          "pokemonSearch",
+        );
+        if (id !== operation.current) return;
+        if (!result.pokemonSearch)
+          throw new Error("Search results were not returned.");
+        found = result.pokemonSearch;
+      });
+      return found;
+    },
+    seek: async (query, box, slot, reverse) => {
+      let position: PokemonPosition | null | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify({ query, box, slot, reverse }),
+          "pokemonSearchSeek",
+        );
+        if (id !== operation.current) return;
+        if (result.pokemonSearchPosition === undefined)
+          throw new Error("Search position was not returned.");
+        position = result.pokemonSearchPosition;
+      });
+      return position;
+    },
+  };
   const readPersonalChart = async () => {
     let catalog: import("./personalChart").PersonalChartCatalog | undefined;
     await perform(async (id) => {
@@ -5280,6 +5330,7 @@ export function SaveEditorPanel(
                 />
               ) : section === "pokemon" ? (
                 <SavePokemonBrowser
+                  searchActions={pokemonSearchActions}
                   moveShop={moveShopActions}
                   pokemonSuperTraining={pokemonSuperTrainingActions}
                   textTrash={textTrashActions}

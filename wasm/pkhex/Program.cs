@@ -606,7 +606,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 153;
+    public const int ApiVersion = 154;
     public static string ReadPersonalChart(byte[] data) => JsonSerializer.Serialize(PersonalChart.Read(Open(data)), SaveJsonContext.Default.PersonalChartCatalog);
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
@@ -1007,6 +1007,12 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(TextTrashConfirmation))]
 [JsonSerializable(typeof(TextTrashCatalog))]
 [JsonSerializable(typeof(PersonalChartCatalog))]
+[JsonSerializable(typeof(PokemonSearchTarget))]
+[JsonSerializable(typeof(PokemonSearchCatalog))]
+[JsonSerializable(typeof(PokemonSearchQuery))]
+[JsonSerializable(typeof(PokemonSearchResults))]
+[JsonSerializable(typeof(PokemonSearchSeekRequest))]
+[JsonSerializable(typeof(PokemonSearchSeekResult))]
 [JsonSerializable(typeof(TextTrashTicket))]
 [JsonSerializable(typeof(TextTrashDraft))]
 [JsonSerializable(typeof(TextTrashEvent))]

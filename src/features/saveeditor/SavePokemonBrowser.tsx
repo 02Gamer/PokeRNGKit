@@ -1,4 +1,6 @@
 import { SaveBoxViewer } from "./SaveBoxViewer";
+import { PokemonSearchEditor } from "./PokemonSearchEditor";
+import type { PokemonSearchActions } from "./pokemonSearch";
 import {
   boxViewIndex,
   boxViewerWords,
@@ -61,6 +63,7 @@ import type {
 import type { saveEditorResources } from "./locales";
 
 export function SavePokemonBrowser({
+  searchActions,
   moveShop,
   pokemonSuperTraining,
   textTrash,
@@ -92,6 +95,7 @@ export function SavePokemonBrowser({
   onDiscardBoxBinary,
   onExportBoxBinary,
 }: {
+  searchActions: PokemonSearchActions;
   moveShop: MoveShopActions;
   pokemonSuperTraining: PokemonSuperTrainingActions;
   textTrash: TextTrashActions;
@@ -152,6 +156,24 @@ export function SavePokemonBrowser({
   const [box, setBox] = useState(initialBox);
   const [secondBox, setSecondBox] = useState(initialBox < 0 ? 0 : initialBox);
   const [selection, setSelection] = useState<PokemonPosition>();
+  const [searchMatches, setSearchMatches] = useState<{
+    revision: number;
+    positions: PokemonPosition[];
+  }>();
+  const [searchFocus, setSearchFocus] = useState<PokemonPosition>();
+  const browserRef = useRef<HTMLElement>(null);
+  const matches =
+    searchMatches?.revision === revision
+      ? new Set(searchMatches.positions.map((p) => `${p.box}:${p.slot}`))
+      : undefined;
+  useEffect(() => {
+    if (!searchFocus) return;
+    browserRef.current
+      ?.querySelector<HTMLButtonElement>(
+        `[data-box="${searchFocus.box}"] button[data-slot="${searchFocus.slot}"]`,
+      )
+      ?.focus();
+  }, [searchFocus]);
   const entries = report.pokemon.filter((p) => p.box === box);
   const detailBox = selection?.box ?? box;
   const selected = selection
@@ -286,9 +308,34 @@ export function SavePokemonBrowser({
     words.speed,
   ];
   return (
-    <section className="save-pokemon-browser" aria-label={words.pokemon}>
+    <section
+      ref={browserRef}
+      className="save-pokemon-browser"
+      aria-label={words.pokemon}
+    >
       <h3>{words.pokemon}</h3>
       <p className="save-editor-note">{words.readPokemon}</p>
+      {report.boxCount > 0 && (
+        <PokemonSearchEditor
+          revision={revision}
+          position={
+            selected ? { box: selected.box, slot: selected.slot } : undefined
+          }
+          box={box}
+          busy={locked}
+          lang={lang}
+          actions={searchActions}
+          onMatches={(positions) =>
+            setSearchMatches(positions ? { revision, positions } : undefined)
+          }
+          onLocate={(position) => {
+            setBox(position.box);
+            setSelection(position);
+            setView("single");
+            setSearchFocus(position);
+          }}
+        />
+      )}
       {report.boxCount > 0 && (
         <div
           className="save-editor-toolbar save-box-view-modes"
@@ -438,6 +485,7 @@ export function SavePokemonBrowser({
         <div className="save-pokemon-storage">
           {viewer ? (
             <SaveBoxViewer
+              searchMatches={matches}
               report={report}
               main={boxViewIndex(box, report.boxCount)}
               secondary={boxViewIndex(secondBox, report.boxCount)}
@@ -454,6 +502,7 @@ export function SavePokemonBrowser({
             />
           ) : gallery ? (
             <SaveBoxGallery
+              searchMatches={matches}
               report={report}
               revision={revision}
               scope={scope}
@@ -466,6 +515,7 @@ export function SavePokemonBrowser({
             />
           ) : (
             <SaveBoxGrid
+              searchMatches={matches}
               report={report}
               box={box}
               entries={entries}

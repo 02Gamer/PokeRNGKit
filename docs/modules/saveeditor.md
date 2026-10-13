@@ -98,6 +98,29 @@ PK6 沙袋编号位于 0x17，目录 27 项，超目录旧值开窗归零；0x16
 
 API152核心20362、最后类型45657、property-trim及完整verify29431已退出码0。前端286文件／1330项、生产构建与PWA257项（24605.99KiB）通过；99核心文件与19属性图的public／dist哈希一致。默认完整原生22995已退出码0；Chrome页面／真实数据流程尚未验收。本批正在提交收尾。
 
+## 宝可梦箱子检索（EntitySearchSetup，API154）
+
+当前工程记录：最终完整 `npm run verify`（55427）退出码0，288个文件／1346项测试、ESLint、TypeScript、Vite及PWA257项预缓存（24633.06KiB）通过；ESLint保留1条既有Gen3Static Hook warning。最新Core重建41724、六文件147项前端专项56282与最终候选Lint88911通过，99个核心文件public／dist SHA-256一致。真实E.sav／property-trim／默认完整原生串行26013已全部退出码0，源存档SHA-256保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442；浏览器本轮仍在Chrome标签列表请求时报fetch失败，页面／Worker与所有者验收未完成。
+
+空候选复核：WinFormsUtil.GetIndex返回SelectedValue或0，清空特性／性格／持有物／觉醒力量按0筛选，不等于Any；种类／招式0忽略，来源版本0忽略。共享候选保留空或未匹配文本，完整名称匹配不区分大小写，语言切换保留空状态；属性构建器初始选源首项，清空后无选中且禁止追加错误指令。旧14088前端通过结果与主动停止的66180属于更正前快照，不替代最终工程门槛。
+正式只读目录／检索／定位三接口已连接Worker与箱子工作区。三语普通筛选、只读指令构建器、共享可搜索候选及来源排序、三态、互斥世代／来源版本、重置与前后定位齐备。匹配状态只淡化不匹配图像，单箱／双箱／全览保持所有真实格位及原编号；定位显示对应箱并聚焦该格。展开读取候选，折叠保留筛选；工作副本版本变化重新计算匹配，迟到结果不能更新新版本。构建器的“当前值”来自选中工作副本实体，切换选择后需重读，不包含各编辑表单尚未应用的草稿，此行为按Web的应用边界记录，页面仍待核验。
+
+目录JSON上限4096字符，检索／定位JSON上限256Ki字符、指令32767字符为浏览器资源约束；源等级／ESV分别三／四位，空或解析失败仍交Core处理。查询位置须在真实箱位／队伍内，定位只限箱子；缺失字段、null文本、超出UInt16种类和错误位置均拒绝。每次读取复制输入，搜索无导出或编辑动作，完整原文件字节保持。
+
+来源对照：API154专项59162、隐藏Context修正86712及候选排序28876退出码0。覆盖13种公开JSON存档全部候选／匹配位置、源码筛选与前后环绕、错误请求拒绝、完整输入保持，以及18实体／6个隐藏Context跨格式矩阵。最终空候选与版本0修正由41724专项和上方最终工程检查覆盖。
+
+下文内部阶段为来源与失败历史，不代表当前API仍未接线。
+
+候选／构建器内部阶段：PokemonSearchCatalogReader使用三份GameDataSource／FilteredGameDataSource，种类只排除0且不按当前存档限代、特性完整、道具按存档HeldItems、招式Skip(1)、来源版本只移除最后空项、觉醒力量使用HiddenPowerTypes索引。全部候选保留来源顺序及重复编号；首轮19732因重复571的字典转换失败，改为按编号与出现次数匹配三语名称，54348修复通过。构建器枚举EntityBatchEditor全部Any／实体格式／All属性表，显示源属性类型与当前实体属性值；Span只显示类型、缺失属性为空、null为文字null。Readonly源码只隐藏第0个“.”前缀，其余运算前缀仍显示，追加后CreateSearchPredicate只执行筛选，不能以“只读”名义误执行运算。
+
+补充77461通过18实体的每个属性值／Span／空值和13存档每项三语候选／重复次数／全部格式表对照；原存档与实体完整字节保持。前端37470为3项状态／构建器追加边界检查，40340定向lint通过。生成器scripts/import-pkhex-search-labels.mjs从上游导入27个EntitySearchSetup三语具名标签，来源及SHA-256见third_party/pkhex/search-sources.json。当时尚未接公开目录API／Worker／正式控件，API153保持；该内部阶段已由API154正式接线替代。
+
+来源为WinForms EntitySearchSetup、EntitySearchControl／Designer、EntityInstructionBuilder与SAVEditor／BoxEditor；Core为PKM/Searching/SearchSettings、SearchUtil、SearchComparison及StringInstruction。全部普通筛选调用CreateSearchPredicate，不在JavaScript重写筛选规则。复查Designer确认FLP_Format嵌套格式与比较控件，首次OnShown只重置TLP_Filters直属ComboBox，不会清隐藏格式条件；InitializeSelections的事件将格式设为当前存档Context，Gen8及之后比较Equals，之前LessThanEquals，ResetFilters也不清该隐藏限制。前一内部阶段误判其为无格式限制，现已纠正并增加跨18实体对照。来源版本与世代互斥选项需要在正式UI保留；重置清普通条件及指令、恢复三态异色／蛋为Any，隐藏ESV并重置前后定位。
+
+等级MaskedTextBox为三位十进制，byte.TryParse失败或空白则null，成功0也不筛选；允许源可表达的0..255，不能套实体等级1..100。ESV为四位十进制，int.TryParse；仅蛋选择非Any时传值，false筛选非蛋时该值不会使用。四个招式去重且0忽略；昵称Trim后OrdinalIgnoreCase包含。IV七选项、EV五选项、比较四选项及世代0..9来自Designer列表，性格Random为25。高级文本只GetFilters，修改行忽略，元数据过滤从predicate中移走，与源窗口相同；不能误套批量修改的ScreenStrings。昵称RenderedString未设置MaxLength，继承TextBox；本机WinForms探针确认TextBox默认32767、RichTextBox默认2147483647。内部32767指令长度是独立浏览器资源上限，不是源RichTextBox上限。
+
+箱子遍历只收非空实体真实格位，派对不参与。前后定位调用SearchUtil.TrySeekNext：首次当前位置(CurrentBox,-1)，逆向首次仍从该箱0格开始；后续从上次匹配之后／之前循环，空格跳过，未找到不改当前位置。内部PokemonSearch已增加Settings／Read／Seek与实体、13合成存档来源对照，专项12397退出码0；补充SK2及版本UInt8溢出拒绝18950退出码0，实体格式共18种。该内部阶段尚未接候选目录、属性构建器或产品入口，API153；现已接入API154，历史专项不单独作为浏览器验收。
+
 ## 信息列表（KChart，API153）
 
 最终工程记录：默认完整原生修复70467、完整verify17993、核心40286、类型39903、专项／真实E.sav／property-trim47130及末次格式71382均退出码0。前端287文件1337项，PWA257项24614.67KiB，99核心文件与19宽属性图public／dist哈希一致。首次完整原生90532仅因四处旧协议断言失败，修复后从头完整重跑通过；生产读取逻辑没有因此降低校验。正式页面和浏览器Worker仍待外部Chrome连接核验，不作所有者验收。

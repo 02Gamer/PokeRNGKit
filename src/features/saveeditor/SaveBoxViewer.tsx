@@ -6,6 +6,7 @@ import type { PokemonPosition, SaveReport } from "./domain";
 import "./SaveBoxViewer.css";
 
 export function SaveBoxViewer({
+  searchMatches,
   report,
   main,
   secondary,
@@ -20,6 +21,7 @@ export function SaveBoxViewer({
   onSwapViews,
   onDrop,
 }: {
+  searchMatches?: ReadonlySet<string>;
   report: SaveReport;
   main: number;
   secondary: number;
@@ -134,6 +136,7 @@ export function SaveBoxViewer({
               </button>
             </div>
             <SaveBoxGrid
+              searchMatches={searchMatches}
               report={report}
               box={pane.box}
               selected={selected}

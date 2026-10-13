@@ -9,6 +9,7 @@ import {
 import { boxGalleryWords } from "./boxGalleryWords";
 import type { PokemonEntry, PokemonPosition, SaveReport } from "./domain";
 export function SaveBoxGrid({
+  searchMatches,
   report,
   box,
   selected,
@@ -20,6 +21,7 @@ export function SaveBoxGrid({
   onSelect,
   onDrop,
 }: {
+  searchMatches?: ReadonlySet<string>;
   report: SaveReport;
   box: number;
   selected: PokemonPosition;
@@ -91,6 +93,11 @@ export function SaveBoxGrid({
             type="button"
             key={slot}
             data-slot={slot}
+            data-search-match={
+              searchMatches && box >= 0 && p
+                ? searchMatches.has(`${box}:${slot}`)
+                : undefined
+            }
             aria-label={label}
             title={label}
             aria-pressed={isSelected}

@@ -43,6 +43,29 @@ const report = (): SaveReport =>
   }) as SaveReport;
 const none = { shiftKey: false, altKey: false, ctrlKey: false, metaKey: false };
 describe("Box-list gallery", () => {
+  it("marks matches without removing or renumbering occupied and empty physical slots", () => {
+    const r = report(),
+      before = structuredClone(r);
+    const html = renderToStaticMarkup(
+      <SaveBoxGallery
+        report={r}
+        revision={7}
+        scope="scope"
+        selected={{ box: 1, slot: 5 }}
+        busy={false}
+        lang="zh"
+        searchMatches={new Set(["1:5"])}
+        onSelect={() => {}}
+        onSwap={async () => {}}
+        onDrop={async () => {}}
+      />,
+    );
+    expect(html.match(/data-slot=/g)).toHaveLength(90);
+    expect(html.match(/data-search-match="true"/g)).toHaveLength(1);
+    expect(html.match(/data-search-match="false"/g)).toHaveLength(1);
+    expect(html).toContain('data-box="2"');
+    expect(r).toEqual(before);
+  });
   it("swaps adjacent complete boxes with wraparound and without metadata writes", () => {
     expect(adjacentBoxEdit(report(), 0, -1)).toEqual({
       box: 0,
