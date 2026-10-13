@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "pokemonReport"
+  | "pokemonReportCatalog"
+  | "pokemonReportExport"
   | "pokemonSearchCatalog"
   | "pokemonSearch"
   | "pokemonSearchSeek"

@@ -61,7 +61,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 154;
+  apiVersion: 155;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -827,6 +827,9 @@ export interface SaveEditorResult {
   chatterPreview?: import("./chatter").ChatterTicket;
   registeredGroups?: import("./registeredGroups").RegisteredGroupCatalog;
   personalChart?: import("./personalChart").PersonalChartCatalog;
+  pokemonReport?: import("./pokemonReport").PokemonReportData;
+  pokemonReportCatalog?: import("./pokemonReport").PokemonReportCatalog;
+  pokemonReportCsv?: string;
   pokemonSearchCatalog?: import("./pokemonSearch").PokemonSearchCatalog;
   pokemonSearch?: import("./pokemonSearch").PokemonSearchResults;
   pokemonSearchPosition?: PokemonPosition | null;

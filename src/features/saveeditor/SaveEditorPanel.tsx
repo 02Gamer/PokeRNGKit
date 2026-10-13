@@ -1,5 +1,7 @@
 import { SCBlockEditor } from "./SCBlockEditor";
 import { PersonalChartViewer } from "./PersonalChartViewer";
+import { PokemonReportViewer } from "./PokemonReportViewer";
+import { reportWords, type PokemonReportActions } from "./pokemonReport";
 import { chartWords } from "./personalChart";
 import { supportsSCBlock, type SCBlockConfirmation } from "./scblock";
 import { scblockWords } from "./scblockWords";
@@ -3420,6 +3422,55 @@ export function SaveEditorPanel(
     });
     return catalog;
   };
+  const reportActions: PokemonReportActions = {
+    catalog: async () => {
+      let value: import("./pokemonReport").PokemonReportCatalog | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          undefined,
+          "pokemonReportCatalog",
+        );
+        if (id !== operation.current) return;
+        if (!result.pokemonReportCatalog)
+          throw new Error("Report catalog was not returned.");
+        value = result.pokemonReportCatalog;
+      });
+      return value;
+    },
+    read: async (query) => {
+      let value: import("./pokemonReport").PokemonReportData | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(query),
+          "pokemonReport",
+        );
+        if (id !== operation.current) return;
+        if (!result.pokemonReport) throw new Error("Report was not returned.");
+        value = result.pokemonReport;
+      });
+      return value;
+    },
+    csv: async (query) => {
+      let value: string | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(query),
+          "pokemonReportExport",
+        );
+        if (id !== operation.current) return;
+        if (result.pokemonReportCsv === undefined)
+          throw new Error("Report CSV was not returned.");
+        value = result.pokemonReportCsv;
+      });
+      return value;
+    },
+  };
   const readRegisteredGroups = async () => {
     let catalog:
       import("./registeredGroups").RegisteredGroupCatalog | undefined;
@@ -4060,6 +4111,11 @@ export function SaveEditorPanel(
           available: true,
         },
         {
+          id: "pokemonReport",
+          label: reportWords[batchLang].title,
+          available: true,
+        },
+        {
           id: "registeredGroups",
           label:
             registeredGroupWords[
@@ -4523,7 +4579,15 @@ export function SaveEditorPanel(
                 words.title
               }
             >
-              {section === "personalChart" ? (
+              {section === "pokemonReport" ? (
+                <PokemonReportViewer
+                  key={`${name}:${fileRevision}:${workingRevision}:${batchLang}`}
+                  revision={workingRevision}
+                  lang={batchLang}
+                  busy={busy}
+                  actions={reportActions}
+                />
+              ) : section === "personalChart" ? (
                 <PersonalChartViewer
                   key={`${name}:${fileRevision}`}
                   revision={workingRevision}

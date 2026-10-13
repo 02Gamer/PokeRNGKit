@@ -325,9 +325,9 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/BoxExporter.cs`                                                     | API63：当前／全部箱子 ZIP、目录／命名／编号／空格选项与三语入口已接；原生 Core 对照通过，页面／实际下载待核验                                               |
 | `Subforms/EntitySearchSetup.cs`                                               | API154：只读筛选／属性指令、三语候选、箱位标记／循环定位已接；公开专项、实档、裁剪及完整前端／原生通过，页面待核验                                          |
 | `Subforms/KChart.cs`                                                          | API153：当前存档种类／形态、图像、宽属性图、三语、原生标记、能力值／特性与Z-A头目招式只读入口已接；搜索／排序／列序，完整原生／verify／核心通过，页面待核验 |
-| `Subforms/Misc/EntitySummaryImage.cs`                                         | 待核对                                                                                                                                                      |
-| `Subforms/Misc/PropertyComparer.cs`                                           | 待核对                                                                                                                                                      |
-| `Subforms/Misc/SortableBindingList.cs`                                        | 待核对                                                                                                                                                      |
+| `Subforms/Misc/EntitySummaryImage.cs`                                         | API155：Core摘要、三语名称／地点、图片与箱子／队伍／额外槽已接；公开及完整工程通过，页面待核验                                                              |
+| `Subforms/Misc/PropertyComparer.cs`                                           | API155：六种原类型Comparer及升降序、额外文本列／重复列索引排序已接；源码对照及完整工程通过                                                                  |
+| `Subforms/Misc/SortableBindingList.cs`                                        | API155：报表源行序／类型排序已接；完整工程通过，页面待核验                                                                                                  |
 | `Subforms/PKM Editors/BatchEditor.cs`                                         | API61／62：存档与文件／目录批量指令、完整预览、确认／ZIP 和三语入口已接；部分 Chrome 工程样本检查通过，其他格式／实档待核验                                 |
 | `Subforms/PKM Editors/MemoryAmie.cs`                                          | 记忆、亲密度/好感、互动数值与居住记录已接入；浏览器待核验                                                                                                   |
 | `Subforms/PKM Editors/MoveShopEditor.cs`                                      | API148：存档／PA8共用三语详情入口、61项购买／掌握、六动作、类型图标与冻结确认已接；完整工程通过，页面／真实存档待核验                                       |
@@ -336,7 +336,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/PKM Editors/SuperTrainingEditor.cs`                                 | API151两正式详情入口／有序草稿／三语统一控件与冻结已接；专项与完整工程通过，页面／实档待核验                                                                |
 | `Subforms/PKM Editors/TechRecordEditor.cs`                                    | API149：五实体／七动作／三语共用详情入口、冻结与列表外位差异已接；专项与完整工程通过，页面／真实存档待核验                                                  |
 | `Subforms/PKM Editors/Text.cs`                                                | API152：两详情入口／三语统一控件、有序文字／字符／字节／名称层及冻结确认已接；专项及完整工程通过，页面／实档待核验                                          |
-| `Subforms/ReportGrid.cs`                                                      | 待核对                                                                                                                                                      |
+| `Subforms/ReportGrid.cs`                                                      | API155：正式入口、额外列／显示恢复／类型排序／选择复制及CSV已接；实档、裁剪与完整工程通过，页面待核验                                                       |
 | `Subforms/SAV_Database.cs`                                                    | 待核对                                                                                                                                                      |
 | `Subforms/SAV_Encounters.cs`                                                  | 待核对                                                                                                                                                      |
 | `Subforms/SAV_FolderList.cs`                                                  | 待核对                                                                                                                                                      |

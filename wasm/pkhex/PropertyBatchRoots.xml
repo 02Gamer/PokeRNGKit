@@ -1,6 +1,7 @@
 <!-- PKHeX EntityBatchEditor.Types and inherited PKM properties are accessed by name. -->
 <linker>
   <assembly fullname="PKHeX.Core">
+    <type fullname="PKHeX.Core.EntitySummary" preserve="all" />
     <type fullname="PKHeX.Core.PKM" preserve="all" />
     <type fullname="PKHeX.Core.GBPKM" preserve="all" />
     <type fullname="PKHeX.Core.GBPKML" preserve="all" />

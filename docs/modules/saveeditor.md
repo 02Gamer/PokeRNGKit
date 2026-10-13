@@ -98,6 +98,16 @@ PK6 沙袋编号位于 0x17，目录 27 项，超目录旧值开窗归零；0x16
 
 API152核心20362、最后类型45657、property-trim及完整verify29431已退出码0。前端286文件／1330项、生产构建与PWA257项（24605.99KiB）通过；99核心文件与19属性图的public／dist哈希一致。默认完整原生22995已退出码0；Chrome页面／真实数据流程尚未验收。本批正在提交收尾。
 
+## 箱子数据报表（ReportGrid，API155）
+
+来源已核对WinForms Main.MainMenuBoxReport、ReportGrid／Designer、EntitySummaryImage、PropertyComparer与SortableBindingList，Core为EntitySummary、SlotInfoLoader、SlotCache、BatchPropertyProvider及ReportGridSettings。Main使用ICollection版AddFromSaveFile：箱子→队伍→GetExtraSlots(true)，不是仅箱子；报告排除Species=0或超过实体MaxSpeciesID的行，刷新Stat_Level=CurrentLevel只在独立实体副本内执行。摘要全部公开属性与Sprite列使用源顺序，来源位置保留真实物理槽，额外槽不能误当箱子槽用于通用编辑。
+
+源ExtraProperties／HiddenProperties默认空，没有数值输入控件；缺失或null额外属性不生成列，重复有效属性保留。先隐藏已有列、后添加额外列，恢复显示会恢复全部列。Sprite禁止排序，摘要字段按属性原类型Comparer<T>.Default排序；额外列按文本排序。RemoveSort清排序状态但不自动恢复初始行序。Web当前属性列表256项、每项128字符是独立资源限制，不是源设置上限。
+
+原版关闭时询问导出CSV，Shift关闭跳过；UTF-8无BOM、文件名Box Data Dump.csv，跳过Sprite，包含隐藏列。原版仅包裹双引号但不转义字段中的双引号，Web计划正确转义并明确这一修正。复制源包含表头，普通剪贴板为制表符文本，可按原版规则转Markdown表格。报表值来自Core EntitySummary，三语地点直接使用对应GameStrings，避免改动全局GameInfo语言。
+
+内部PokemonReport已加入，可选pokemon-report专项首轮82126因局部模式变量重名编译失败；修复55277退出码0，13种合成存档全部摘要字段／三语／全部原类型升降序／额外隐藏属性／CSV引用和源完整字节保持通过。补真实箱子／队伍／额外槽位置、图像及空表Sprite排序拒绝40289退出码0，TEMP/pokerngkit-report-positions.log／.exit。已接默认原生门槛。当前API155公开目录／读取／CSV、Worker及存档分组入口已接，三语列名、共享可搜索候选、列显示恢复、原类型排序／重复列索引、单元格矩形选择及复制／CSV齐备；Span额外属性显示类型名，避免原版反射不可装箱导致报表失败，属于明确Web修正。公开13存档API专项40393、原类型显式比较98175及18实体全部额外属性87745通过；真实E.sav29096、92项定向前端与Lint通过。首轮类型32708因client参数／Select签名失败，修复25378退出码0。核心50128、完整verify72520及裁剪／默认完整原生89767退出码0；289文件1351项、PWA257项24644.90KiB，99核心文件public／dist哈希一致，裁剪后EntitySummary全部85属性签名及访问器保持。源存档SHA-256未变，网页与所有者验收仍待外部Chrome恢复连接。
+
 ## 宝可梦箱子检索（EntitySearchSetup，API154）
 
 当前工程记录：最终完整 `npm run verify`（55427）退出码0，288个文件／1346项测试、ESLint、TypeScript、Vite及PWA257项预缓存（24633.06KiB）通过；ESLint保留1条既有Gen3Static Hook warning。最新Core重建41724、六文件147项前端专项56282与最终候选Lint88911通过，99个核心文件public／dist SHA-256一致。真实E.sav／property-trim／默认完整原生串行26013已全部退出码0，源存档SHA-256保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442；浏览器本轮仍在Chrome标签列表请求时报fetch失败，页面／Worker与所有者验收未完成。

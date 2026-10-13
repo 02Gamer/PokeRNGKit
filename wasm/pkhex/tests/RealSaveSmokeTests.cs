@@ -10,6 +10,13 @@ internal static class RealSaveSmokeTests
         string path = Environment.GetEnvironmentVariable("PKHEX_REAL_SAVE_PATH") ?? throw new ArgumentException("Provide the owner-authorized save path.");
         byte[] input = File.ReadAllBytes(path), original = input.ToArray();
         var save = SaveUtil.GetSaveFile(input.ToArray()) ?? throw new Exception("Real save recognition failed.");
+        var reportQuery = new PokemonReportQuery("zh-Hans", ["PID", "Species"], ["OT"], SortIndex: 2);
+        string reportJson = JsonSerializer.Serialize(reportQuery, SaveJsonContext.Default.PokemonReportQuery);
+        var pokemonReport = JsonSerializer.Deserialize(SaveService.ReadPokemonReport(input, reportJson), SaveJsonContext.Default.PokemonReportData)!;
+        var reportSlots = new List<SlotCache>(); SlotInfoLoader.AddFromSaveFile(save, reportSlots);
+        Check(pokemonReport.Rows.Length == reportSlots.Count(s => s.Entity.Species - 1u < s.Entity.MaxSpeciesID), "Real report complete box/party/extra row count");
+        Check(SaveService.ExportPokemonReport(input, reportJson) == PokemonReport.Csv(PokemonReport.Read(save, reportQuery)), "Real report CSV and complete source output");
+        Check(input.SequenceEqual(original), "Real report read and CSV preserve original");
         var personal = JsonSerializer.Deserialize(SaveService.ReadPersonalChart(input), SaveJsonContext.Default.PersonalChartCatalog)!;
         Check(personal.Rows.Length == PersonalChart.Read(save).Rows.Length && personal.Rows.Length > 0, "Real save personal chart complete row count");
         Check(input.SequenceEqual(original), "Real save personal chart preserves original buffer");
