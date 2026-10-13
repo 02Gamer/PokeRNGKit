@@ -1,7 +1,41 @@
 # PKHeX 存档读取与编辑
 
+## 相遇数据库（SAV_Encounters，API158 开发阶段）
+
+来源已读取WinForms `Subforms/SAV_Encounters.cs`／Designer及Core `SearchSettings`、`EncounterMovesetGenerator`、`EncounterCriteria`、`EncounterDatabaseSettings`和`TrainerDatabase`。现有相遇字段编辑器不覆盖该数据库：需独立模板检索、类型筛选、条件生成、训练家来源、转换和完整准备编辑。
+
+输入为种类ushort、原游戏GameVersion、四个招式ushort、蛋／固定异色三态、非零EncounterTypeGroup集合与只读属性指令。候选沿源GameInfo数据，不把种类强限为当前存档MaxSpeciesID；无种类时枚举1..存档MaxSpeciesID。四个招式由SearchSettings.AddMove去重。RTB_Instructions未设置MaxLength，Web明确采用32767字符上限；结果最多100000个，超过时拒绝，不截断。类型默认全选，无类型不可检索；ReturnNoneIfEmptySearch、FilterUnavailableSpecies、UseTabsAsCriteria及UseTabsAsCriteriaAnySpecies默认true；行数默认9，源设置Clamp 5..20。
+
+检索逐种类／形态排除战斗专用形态，必要时沿源回退USUM形态表；OptimizeCriteria后调用Core.GenerateEncounters，再按蛋／固定异色、源引用身份、在场规则和属性指令筛选。PriorityList仅在同步消费检索期间修改，finally恢复Core默认。条件从ShowdownSet、EncounterMutationUtil和GetCriteria取得；可极限特训时将31 IV按源改为随机。生成沿进化链／单一性别／可行特性调整条件，TrainerDatabase按版本与旧世代语言匹配，缺失时回退当前存档；ConvertToPKM后转换当前PKMType、AdaptToSaveFile并更新校验。全部操作使用存档和编辑实体副本，训练家也注册副本。
+
+当前已加入 `PokemonEncounterDatabase` 与 `PokemonEncounterSession` 内部模型。生成预览冻结一次转换后的完整实体数据，确认仅返回冻结文件；错误确认、失败替换、重新检索、取消及存档变化清除旧预览。GB 使用完整单体列表，其余格式使用解密队伍数据，原文件不改动。Battle Revolution 另核对当前档位，避免加密 bytes 相同而档位不同。
+
+原生专项 `24384`、`81235`、`67441` 均退出 0。覆盖 13 个游戏存档夹具及 11 个额外存档环境的完整类型／形态／版本序列、四招式及重复去除、蛋／固定异色／属性指令、可用种类设置、全部自定义条件字段、进化链／性别／特性调整、训练家副本及回退、当前格式生成和原缓冲区保护；生命周期覆盖冻结哈希、一次确认、错误取消令牌、取消、失败生成、重新搜索和过期存档。XD 与 RSBox 使用可克隆的合成底层容器，不将上游空白构造器缺少序列化数据误当产品问题。最新日志为 `TEMP/pokerngkit-encounter-database-session.log/.exit`。
+
+API158 已接公开 JSExport、来源生成 JSON 和 Worker／客户端通道：打开、检索／分页、候选目录、条件修改／从编辑器载入／重置、生成预览、确认、取消和清会话。打开可从当前物理格位或明确格式的独立实体读取编辑条件，不同时接两种来源。目录的种类／游戏沿全局来源，招式沿当前存档 FilteredGameDataSource，三语由 Core 数据提供；返回 6 列乘设置行数的页面，分页保持模板 ID，不再次检索或生成。
+
+条件传输保留所有字段：性别 byte、特性 sbyte、性格／异色 byte、六项 IV／觉醒力量／形态 sbyte、等级上下限 byte、变更许可 byte flags。枚举拒绝未定义值，数字保持原 PropertyGrid 的 CLR 全范围，不额外推测限制。训练家来源包含版本、姓名、TID／SID、性别、语言与 3DS 地域，最多 1024 条、本地注册副本。条件变化使旧预览失效并保留结果。
+
+公开原生专项 `85529`、修正后 `22831` 均退出 0，覆盖 13 游戏的完整来源候选／分页顺序、冻结输出哈希、完整实体编辑器回读及失败清理；前端客户端 `86828` 为 86 项通过。Core 相遇和礼物模板反射属性加入裁剪保留根，裁剪检测展开 wildcard 到原始具体类型并逐项核对属性签名与访问器。核心重建／裁剪检查 `82331` 正在串行运行，日志 `TEMP/pokerngkit-encounter-core.log/.exit`、`TEMP/pokerngkit-encounter-trim.log/.exit`；类型／定向 Lint `54432` 正在运行，不重复启动或修改原生编译输入。
+
+正式存档导航已加入相遇数据库，采用检索／生成条件／训练家来源／设置四个分组；共享候选输入、Select 和现有 44px 控件基线，图像结果使用 6 列可滚动格位和已有干净箱子壁纸。Core 根据原版 SpriteUtil 的固定性别／GO 性别、上下文、形态和蛋选择资源键，中英日说明由 GetTextLines 的语言参数提供。类型勾选按源枚举顺序提交，Shift 可独选；条件草稿未应用时禁用生成，避免草稿与实际条件不一致。
+
+来源可选空白、当前箱子／队伍物理格位及本机独立实体文件。生成确认后复用完整 StandalonePokemonPanel 与数据库工作区，支持加入本机库／导入当前存档的冻结预览与确认、编辑导出及既有联合撤销；准备编辑器保留挂载，切换回检索或语言时保留实体编辑。准备编辑后的副本可直接作为新生成条件来源，不要求先下载。替换准备实体前显示编辑丢弃说明并明确确认。只读属性指令构建器沿源格式／属性／比较前缀与当前值，输入指令仍由 Core 执行。
+
+训练家来源可增加／移除，完整编辑版本、姓名、TID／SID、性别、语言及 3DS 地域；语言候选来自 Core 全目录，包含 Z-A 的拉美西班牙语。设置和训练家仅存本机 localStorage，保存后重新载入并校验，不扫描目录或上传。损坏存储退回默认，Core 拒绝旧参考时仍载入默认来源候选供修正。初始打开先经过微任务检查活动状态，避免 React StrictMode 的废弃初始化抢占父 Worker。条件／来源／确认失败沿用原件保护与本地化错误提示。
+
+修正 PGL 错误保留项后 `2426` 核心与 wildcard 展开的完整属性／访问器裁剪专项退出 0；三语说明／精灵修订 `16536` 与 16 个 Battle Revolution 地区／分区／档位来源检查 `63932` 退出 0。前端来源／设置／导航／客户端 `77537` 三文件 109 项通过。首轮界面类型 `42872` 发现准备 state 缺少 undefined 联合与不存在的 boxes.slots，已分别修正，不以该轮失败输出声明最终类型通过。
+
+完整目录／只读构建器后的原生 `75855` 专项、核心、裁剪及默认完整原生全部退出 0；日志为 TEMP/pokerngkit-encounter-final-native、final-core、final-trim、final-full.log/.exit。类型／定向 Lint `6053` 与末次构建器／界面定向 Lint `36166` 退出 0。最后前端完整 verify `49795` 退出 0，293 文件／1380 项、类型、网页及 PWA 257 项（24710.99KiB）通过；99 个框架文件 public／dist 哈希一致，保留既有 Hook 与大 chunk 提示。交接文档后的全仓格式 `79029` 退出 0。本批进入普通提交推送收尾；外部 Chrome 仍 id4／tabs 空／fetch 失败，正式页面、真实 IndexedDB 和所有者验收仍未完成。E.sav 原件 SHA-256 保持，工程通过不替代页面验收。
+
 2026-09-22 开始开发。入口位于主导航存档编辑，原悬浮菜单保留快捷入口，使用本地 `PKHeX.Core` 26.08.26 源码；
 来源、归属与逐文件哈希见 [UPSTREAM](../../third_party/pkhex/UPSTREAM.md)。
+
+## 存档目录列表来源核对（SAV_FolderList，尚未实现）
+
+只读核对 `Subforms/SAV_FolderList.cs` 与 Core `Editing/Saves/Management/SavePreview.cs`。原版分最近与备份列表，列为训练家姓名、世代、游戏、游玩时间、文件 UTC 时间、显示 TID／SID、文件夹及文件名；最近文件去重，排序后重新执行筛选。任意列模式显示全部并禁用文本筛选；单列使用 CurrentCultureIgnoreCase 的包含判断，空文本显示全部，空单元格不匹配。SavePreview 的 Played 补零至 9 字符，FileTime 使用 `yyyy.MM.dd:hh:mm:ss`（12 小时格式，不能悄悄改成 24 小时并称同源）。训练家 ID 格式由 Core 的 TrainerIDDisplayFormat 决定。
+
+桌面扫描逻辑驱动器、3DS／Switch 常用路径、其他备份路径及历史路径，并带 20 秒取消；浏览器应以明确选择本地文件／目录和本机最近记录对应，不进行自动全盘扫描或伪造磁盘路径。打开进入存档工作区；系统 Explorer 打开所在目录属于桌面专属行为，Web 可展示选定相对目录，不能声称等价启动 Explorer。原版 DeleteSaveFile 在 RemoveAt 后再读取 parent[item].FilePath，删除最后行会越界、其他行可能用错文件身份；后续必须先固定原文件身份，再删除所选源或列表中的引用，并区分这两种操作。CleanBackups 会删除未识别文件、删除同名备份或移动文件，不得以只读列表加载隐式触发。该模块还未开始代码实现；先收相遇数据库本批的完整门槛与提交。
 
 ## 传说 Z-A 甜甜圈窗口（API 132，工程检查通过）
 

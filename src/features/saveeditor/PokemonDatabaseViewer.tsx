@@ -33,10 +33,17 @@ export function PokemonDatabaseViewer({
   lang,
   busy,
   actions,
+  preparedSeed,
+  extraPreparedActions = [],
 }: {
   lang: "zh" | "en" | "ja";
   busy: boolean;
   actions: DatabaseActions;
+  preparedSeed?: StandalonePokemonSnapshot;
+  extraPreparedActions?: {
+    label: string;
+    onPrepare(snapshot: StandalonePokemonSnapshot): Promise<void>;
+  }[];
 }) {
   const w = databaseWords[lang],
     life = useRef(true),
@@ -66,11 +73,18 @@ export function PokemonDatabaseViewer({
     [ticket, setTicket] = useState<DatabaseTicket>(),
     [committed, setCommitted] = useState<SaveEditorResult>();
   const [reportQuery, setReportQuery] = useState<DatabaseQuery>();
-  const [prepared, setPrepared] = useState<{
-    id: string;
-    snapshot: StandalonePokemonSnapshot;
-  }>();
-  const [showEditor, setShowEditor] = useState(false);
+  const [prepared, setPrepared] = useState<
+    | {
+        id: string;
+        snapshot: StandalonePokemonSnapshot;
+      }
+    | undefined
+  >(() =>
+    preparedSeed
+      ? { id: crypto.randomUUID(), snapshot: preparedSeed }
+      : undefined,
+  );
+  const [showEditor, setShowEditor] = useState(Boolean(preparedSeed));
   const [box, setBox] = useState(0),
     [clear, setClear] = useState(false),
     [overwrite, setOverwrite] = useState(false),
@@ -585,6 +599,7 @@ export function PokemonDatabaseViewer({
             seed={prepared.snapshot}
             disabled={locked || Boolean(ticket) || !showEditor}
             preparedActions={[
+              ...extraPreparedActions,
               {
                 label: w.addEdited,
                 onPrepare: (snapshot) => prepareEdited(snapshot, "add"),

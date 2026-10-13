@@ -2,6 +2,11 @@ import { SCBlockEditor } from "./SCBlockEditor";
 import { PersonalChartViewer } from "./PersonalChartViewer";
 import { PokemonReportViewer } from "./PokemonReportViewer";
 import { PokemonDatabaseViewer } from "./PokemonDatabaseViewer";
+import {
+  PokemonEncounterViewer,
+  type EncounterActions,
+} from "./PokemonEncounterViewer";
+import { encounterWords } from "./encounterWords";
 import { databaseWords } from "./databaseWords";
 import type { DatabaseActions } from "./databaseProtocol";
 import {
@@ -3965,6 +3970,21 @@ export function SaveEditorPanel(
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
     });
 
+  const encounterActions: EncounterActions = {
+    request: async (kind, json, entity) => {
+      let response: import("./domain").SaveEditorResult | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current
+          .runEncounters(working.current, json, kind, entity)
+          .catch(() => {
+            throw Error(encounterWords[batchLang].failed);
+          });
+        if (id === operation.current) response = result;
+      });
+      return response;
+    },
+  };
   const databaseActions: DatabaseActions = {
     request: async (kind, json, files) => {
       let response: import("./domain").SaveEditorResult | undefined;
@@ -4246,6 +4266,11 @@ export function SaveEditorPanel(
         {
           id: "database",
           label: databaseWords[batchLang].title,
+          available: true,
+        },
+        {
+          id: "encounters",
+          label: encounterWords[batchLang].title,
           available: true,
         },
         {
@@ -4712,7 +4737,16 @@ export function SaveEditorPanel(
                 words.title
               }
             >
-              {section === "database" ? (
+              {section === "encounters" ? (
+                <PokemonEncounterViewer
+                  key={`${name}:${fileRevision}:${workingRevision}`}
+                  lang={batchLang}
+                  busy={busy}
+                  report={report}
+                  actions={encounterActions}
+                  databaseActions={databaseActions}
+                />
+              ) : section === "database" ? (
                 <PokemonDatabaseViewer
                   key={`${name}:${fileRevision}:${workingRevision}:${batchLang}`}
                   lang={batchLang}

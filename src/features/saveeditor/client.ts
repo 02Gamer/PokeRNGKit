@@ -33,6 +33,18 @@ export class SaveEditorClient {
       );
     return this.runRequest(bytes, edit, kind, files);
   }
+  runEncounters(
+    bytes: Uint8Array,
+    json: string,
+    kind: import("./encounterProtocol").EncounterRequestKind,
+    entity?: Uint8Array,
+  ): Promise<SaveEditorResult> {
+    if (entity && entity.byteLength > 1024 * 1024)
+      return Promise.reject(
+        new Error("Encounter entity exceeds the local size limit."),
+      );
+    return this.runRequest(bytes, json, kind, entity);
+  }
   private runRequest(
     bytes: Uint8Array,
     edit: string | undefined,

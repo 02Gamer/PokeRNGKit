@@ -16,7 +16,14 @@ internal static class PropertyBatchTrimTests
         var original = originalPe.GetMetadataReader(); var trimmed = trimmedPe.GetMetadataReader();
         var roots = System.Xml.Linq.XDocument.Load("wasm/pkhex/PropertyBatchRoots.xml").Descendants("type").Select(e => (string)e.Attribute("fullname")!)
             .Concat(System.Xml.Linq.XDocument.Load("wasm/pkhex/BlockAccessorRoots.xml").Descendants("assembly").Where(a => (string?)a.Attribute("fullname") == "PKHeX.Core").SelectMany(a => a.Elements("type")).Select(e => (string)e.Attribute("fullname")!)).Select(name => name.Replace('/', '+')).Distinct(StringComparer.Ordinal);
-        foreach (string name in roots)
+        var originalDecoder=new SignatureNames();
+        var originalNames=original.TypeDefinitions.Select(h=>originalDecoder.GetTypeFromDefinition(original,h,0)).ToArray();
+        var expanded=roots.SelectMany(name=>name.Contains('*')
+            ?originalNames.Where(value=>System.Text.RegularExpressions.Regex.IsMatch(value,"^"+System.Text.RegularExpressions.Regex.Escape(name).Replace("\\*",".*")+"$"))
+            :new[]{name}).Distinct(StringComparer.Ordinal).ToArray();
+        foreach(var pattern in roots.Where(name=>name.Contains('*')))
+            if(!originalNames.Any(value=>System.Text.RegularExpressions.Regex.IsMatch(value,"^"+System.Text.RegularExpressions.Regex.Escape(pattern).Replace("\\*",".*")+"$")))throw new Exception($"Trim root pattern matches no original type: {pattern}");
+        foreach (string name in expanded)
         {
             var before = Properties(original, name); var after = Properties(trimmed, name);
             if (!before.SequenceEqual(after)) throw new Exception($"Trimmed property metadata or accessors differ: {name}\nBefore: {string.Join(';', before)}\nAfter: {string.Join(';', after)}");

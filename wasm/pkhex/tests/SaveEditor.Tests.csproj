@@ -8,6 +8,10 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../PokemonEncounterApi.cs" Link="PokemonEncounterApi.cs" />
+    <Compile Include="../PokemonEncounterCatalog.cs" Link="PokemonEncounterCatalog.cs" />
+    <Compile Include="../PokemonEncounterSession.cs" Link="PokemonEncounterSession.cs" />
+    <Compile Include="../PokemonEncounterDatabase.cs" Link="PokemonEncounterDatabase.cs" />
     <Compile Include="../PokemonDatabaseApi.cs" Link="PokemonDatabaseApi.cs" />
     <Compile Include="../PokemonDatabaseRuntime.cs" Link="PokemonDatabaseRuntime.cs" />
     <Compile Include="../PokemonDatabaseSession.cs" Link="PokemonDatabaseSession.cs" />

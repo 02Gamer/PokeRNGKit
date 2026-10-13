@@ -1,6 +1,18 @@
 <!-- PKHeX EntityBatchEditor.Types and inherited PKM properties are accessed by name. -->
 <linker>
   <assembly fullname="PKHeX.Core">
+    <!-- SAV_Encounters filters arbitrary template properties through ReflectUtil. -->
+    <type fullname="PKHeX.Core.Encounter*" preserve="all" />
+    <type fullname="PKHeX.Core.MysteryGift" preserve="all" />
+    <type fullname="PKHeX.Core.DataMysteryGift" preserve="all" />
+    <type fullname="PKHeX.Core.WC*" preserve="all" />
+    <type fullname="PKHeX.Core.WA*" preserve="all" />
+    <type fullname="PKHeX.Core.WB*" preserve="all" />
+    <type fullname="PKHeX.Core.WR7" preserve="all" />
+    <type fullname="PKHeX.Core.PGT" preserve="all" />
+    <type fullname="PKHeX.Core.PCD" preserve="all" />
+    <type fullname="PKHeX.Core.PGF" preserve="all" />
+    <type fullname="PKHeX.Core.LinkEntity6" preserve="all" />
     <type fullname="PKHeX.Core.EntitySummary" preserve="all" />
     <type fullname="PKHeX.Core.PKM" preserve="all" />
     <type fullname="PKHeX.Core.GBPKM" preserve="all" />

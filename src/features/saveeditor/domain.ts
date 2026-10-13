@@ -61,7 +61,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 157;
+  apiVersion: 158;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -794,6 +794,9 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  encounters?: import("./encounterProtocol").EncounterView;
+  encounterCatalog?: import("./encounterProtocol").EncounterCatalog;
+  encounterPreview?: import("./encounterProtocol").EncounterTicket;
   moveShop?: import("./moveShop").MoveShopCatalog;
   pokemonSuperTraining?: import("./pokemonSuperTraining").SuperTrainingCatalog;
   textTrash?: import("./textTrash").TextTrashCatalog;
