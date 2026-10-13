@@ -3094,6 +3094,70 @@ export function SaveEditorPanel(
         .catch(() => undefined);
     },
   };
+  const textTrashActions: import("./TextTrashEditor").TextTrashActions = {
+    onRead: async (target) => {
+      let value: import("./textTrash").TextTrashCatalog | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(target),
+          "textTrash",
+        );
+        if (id !== operation.current) return;
+        if (!result.textTrash) throw Error("Missing name catalog");
+        value = result.textTrash;
+      });
+      return value;
+    },
+    onDraft: async (request) => {
+      let value: import("./textTrash").TextTrashDraft | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(request),
+          "textTrashDraft",
+        );
+        if (id !== operation.current) return;
+        if (!result.textTrashDraft) throw Error("Missing name draft");
+        value = result.textTrashDraft;
+      });
+      return value;
+    },
+    onPreview: async (request) => {
+      let value: import("./textTrash").TextTrashTicket | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current.run(
+          working.current,
+          JSON.stringify(request),
+          "textTrashPreview",
+        );
+        if (id !== operation.current) {
+          if (result.textTrashPreview)
+            await textTrashActions.onDiscard(result.textTrashPreview.token);
+          return;
+        }
+        if (!result.textTrashPreview) throw Error("Missing name preview");
+        value = result.textTrashPreview;
+      });
+      return value;
+    },
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyWorkingEdit(confirmation, "textTrashCommit", () => {
+        applied = true;
+      });
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working.current) return;
+      await client.current
+        .run(working.current, token, "textTrashDiscard")
+        .catch(() => undefined);
+    },
+  };
   const pokemonSuperTrainingActions: import("./PokemonSuperTrainingEditor").PokemonSuperTrainingActions =
     {
       onRead: async (target) => {
@@ -3450,6 +3514,7 @@ export function SaveEditorPanel(
       | ChatterConfirmation
       | import("./moveShop").MoveShopConfirmation
       | import("./pokemonSuperTraining").SuperTrainingConfirmation
+      | import("./textTrash").TextTrashConfirmation
       | import("./plusRecord").PlusRecordConfirmation
       | import("./techRecord").TechRecordConfirmation
       | AccessorConfirmation
@@ -3539,6 +3604,7 @@ export function SaveEditorPanel(
       | "chatterCommit"
       | "moveShopCommit"
       | "pokemonSuperTrainingCommit"
+      | "textTrashCommit"
       | "plusRecordCommit"
       | "techRecordCommit"
       | "blockAccessorCommit"
@@ -5185,6 +5251,7 @@ export function SaveEditorPanel(
                 <SavePokemonBrowser
                   moveShop={moveShopActions}
                   pokemonSuperTraining={pokemonSuperTrainingActions}
+                  textTrash={textTrashActions}
                   plusRecord={plusRecordActions}
                   techRecord={techRecordActions}
                   profileLink={profileLinkPanel}

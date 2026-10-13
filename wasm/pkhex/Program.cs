@@ -21,6 +21,17 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadTextTrash(byte[] data,string json)=>SaveService.ReadTextTrash(data,json);
+    [JSExport]
+    public static string DraftTextTrash(byte[] data,string json)=>SaveService.DraftTextTrash(data,json);
+    [JSExport]
+    public static string PreviewTextTrash(byte[] data,string json)=>SaveService.PreviewTextTrash(data,json);
+    [JSExport]
+    public static byte[] CommitTextTrash(byte[] data,string json)=>SaveService.CommitTextTrash(data,json);
+    [JSExport]
+    public static void DiscardTextTrash(string token)=>SaveService.DiscardTextTrash(token);
+
+    [JSExport]
     public static string ReadPokemonSuperTraining(byte[] data, string json) => SaveService.ReadPokemonSuperTraining(data, json);
     [JSExport]
     public static string PreviewPokemonSuperTraining(byte[] data, string json) => SaveService.PreviewPokemonSuperTraining(data, json);
@@ -592,7 +603,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 151;
+    public const int ApiVersion = 152;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -987,6 +998,13 @@ public sealed record SaveReport(
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
 [JsonSerializable(typeof(SuperTrainingTarget))]
+[JsonSerializable(typeof(TextTrashTarget))]
+[JsonSerializable(typeof(TextTrashRequest))]
+[JsonSerializable(typeof(TextTrashConfirmation))]
+[JsonSerializable(typeof(TextTrashCatalog))]
+[JsonSerializable(typeof(TextTrashTicket))]
+[JsonSerializable(typeof(TextTrashDraft))]
+[JsonSerializable(typeof(TextTrashEvent))]
 [JsonSerializable(typeof(SuperTrainingCatalog))]
 [JsonSerializable(typeof(SuperTrainingRequest))]
 [JsonSerializable(typeof(SuperTrainingConfirmation))]

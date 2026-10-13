@@ -335,7 +335,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查                                                                    |
 | `Subforms/PKM Editors/SuperTrainingEditor.cs`                                 | API151两正式详情入口／有序草稿／三语统一控件与冻结已接；专项与完整工程通过，页面／实档待核验                                |
 | `Subforms/PKM Editors/TechRecordEditor.cs`                                    | API149：五实体／七动作／三语共用详情入口、冻结与列表外位差异已接；专项与完整工程通过，页面／真实存档待核验                  |
-| `Subforms/PKM Editors/Text.cs`                                                | 待核对                                                                                                                      |
+| `Subforms/PKM Editors/Text.cs`                                                | API152：两详情入口／三语统一控件、有序文字／字符／字节／名称层及冻结确认已接；专项及完整工程通过，页面／实档待核验          |
 | `Subforms/ReportGrid.cs`                                                      | 待核对                                                                                                                      |
 | `Subforms/SAV_Database.cs`                                                    | 待核对                                                                                                                      |
 | `Subforms/SAV_Encounters.cs`                                                  | 待核对                                                                                                                      |

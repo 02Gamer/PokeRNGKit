@@ -18,6 +18,7 @@ import type { PokemonLegalityReport, PokemonRawEdit } from "./domain";
 import { PokemonRawEditor } from "./PokemonRawEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
+import { TextTrashEditor, type TextTrashActions } from "./TextTrashEditor";
 import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
 import {
   PokemonSuperTrainingEditor,
@@ -150,6 +151,7 @@ export function StandalonePokemonPanel() {
       | "gbSpecial"
       | "moveShopConfirmation"
       | "superTrainingConfirmation"
+      | "textTrashConfirmation"
       | "plusRecordConfirmation"
       | "techRecordConfirmation"
     >,
@@ -159,6 +161,7 @@ export function StandalonePokemonPanel() {
       | "entityGb"
       | "entityMoveShopCommit"
       | "entitySuperTrainingCommit"
+      | "entityTextTrashCommit"
       | "entityPlusRecordCommit"
       | "entityTechRecordCommit",
     onApplied?: () => void,
@@ -258,6 +261,89 @@ export function StandalonePokemonPanel() {
             moveShopToken: token,
           },
           "entityMoveShopDiscard",
+        )
+        .catch(() => undefined);
+    },
+  };
+  const textTrashActions: TextTrashActions = {
+    onRead: (target) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            textTrashTarget: target,
+          },
+          "entityTextTrash",
+        );
+        if (id !== operation.current) return;
+        if (!result.textTrash) throw Error("Missing name catalog");
+        return result.textTrash;
+      }),
+    onDraft: (request) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            textTrashRequest: request,
+          },
+          "entityTextTrashDraft",
+        );
+        if (id !== operation.current) return;
+        if (!result.textTrashDraft) throw Error("Missing name draft");
+        return result.textTrashDraft;
+      }),
+    onPreview: (request) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            textTrashRequest: request,
+          },
+          "entityTextTrashPreview",
+        );
+        if (id !== operation.current) {
+          if (result.textTrashPreview)
+            await textTrashActions.onDiscard(result.textTrashPreview.token);
+          return;
+        }
+        if (!result.textTrashPreview) throw Error("Missing name preview");
+        return result.textTrashPreview;
+      }),
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyRequest(
+        { textTrashConfirmation: confirmation },
+        "entityTextTrashCommit",
+        () => {
+          applied = true;
+        },
+      );
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working) return;
+      await client.current
+        .run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            textTrashToken: token,
+          },
+          "entityTextTrashDiscard",
         )
         .catch(() => undefined);
     },
@@ -887,6 +973,29 @@ export function StandalonePokemonPanel() {
                         lang={lang}
                         busy={busy}
                         {...moveShopActions}
+                      />
+                    )}
+                  {report.pokemon.valid &&
+                    report.pokemon.species > 0 &&
+                    working && (
+                      <TextTrashEditor
+                        key={`text-trash-${revision}`}
+                        target={{
+                          kind: "file",
+                          box: 0,
+                          slot: 0,
+                          fileName: working.fileName,
+                          inputEncrypted: working.inputEncrypted,
+                          useFileFormat: working.useFileFormat ?? false,
+                        }}
+                        fields={
+                          report.generation >= 6
+                            ? ["nickname", "originalTrainer", "handlingTrainer"]
+                            : ["nickname", "originalTrainer"]
+                        }
+                        lang={lang}
+                        busy={busy}
+                        {...textTrashActions}
                       />
                     )}
                   {["PK6", "PK7"].includes(report.format) &&

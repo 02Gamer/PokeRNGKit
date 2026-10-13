@@ -15,7 +15,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 151;
+  apiVersion: 152;
   format: string;
   extension: string;
   party: boolean;
@@ -29,6 +29,10 @@ export interface StandalonePokemonReport {
   gb?: GbSpecialInfo | null;
 }
 export interface StandalonePokemonRequest {
+  textTrashTarget?: import("./textTrash").TextTrashTarget;
+  textTrashRequest?: import("./textTrash").TextTrashRequest;
+  textTrashConfirmation?: import("./textTrash").TextTrashConfirmation;
+  textTrashToken?: string;
   superTrainingTarget?: import("./pokemonSuperTraining").SuperTrainingTarget;
   superTrainingRequest?: {
     sourceHash: string;
@@ -96,6 +100,11 @@ export interface StandaloneAdvancedData {
   relearn?: number[] | null;
 }
 export type StandalonePokemonOperation =
+  | "entityTextTrash"
+  | "entityTextTrashDraft"
+  | "entityTextTrashPreview"
+  | "entityTextTrashCommit"
+  | "entityTextTrashDiscard"
   | "entitySuperTraining"
   | "entitySuperTrainingPreview"
   | "entitySuperTrainingCommit"
@@ -134,6 +143,9 @@ export interface GbPokemonEdit {
   heldItem: number | null;
 }
 export interface StandalonePokemonResult {
+  textTrash?: import("./textTrash").TextTrashCatalog;
+  textTrashDraft?: import("./textTrash").TextTrashDraft;
+  textTrashPreview?: import("./textTrash").TextTrashTicket;
   moveShop?: import("./moveShop").MoveShopCatalog;
   pokemonSuperTraining?: import("./pokemonSuperTraining").SuperTrainingCatalog;
   pokemonSuperTrainingPreview?: import("./pokemonSuperTraining").SuperTrainingTicket;

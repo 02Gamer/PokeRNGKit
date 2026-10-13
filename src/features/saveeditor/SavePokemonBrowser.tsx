@@ -6,6 +6,7 @@ import {
   swapBoxViews,
 } from "./boxViewer";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
+import { TextTrashEditor, type TextTrashActions } from "./TextTrashEditor";
 import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
 import {
   PokemonSuperTrainingEditor,
@@ -62,6 +63,7 @@ import type { saveEditorResources } from "./locales";
 export function SavePokemonBrowser({
   moveShop,
   pokemonSuperTraining,
+  textTrash,
   plusRecord,
   techRecord,
   profileLink,
@@ -92,6 +94,7 @@ export function SavePokemonBrowser({
 }: {
   moveShop: MoveShopActions;
   pokemonSuperTraining: PokemonSuperTrainingActions;
+  textTrash: TextTrashActions;
   plusRecord: PlusRecordActions;
   techRecord: TechRecordActions;
   profileLink?: ReactNode;
@@ -605,6 +608,27 @@ export function SavePokemonBrowser({
                     {...moveShop}
                   />
                 )}
+              {selected.valid && selected.species > 0 && (
+                <TextTrashEditor
+                  key={`text-trash-${revision}-${selected.box}-${selected.slot}`}
+                  target={{
+                    kind: "save",
+                    box: selected.box,
+                    slot: selected.slot,
+                    fileName: null,
+                    inputEncrypted: false,
+                    useFileFormat: false,
+                  }}
+                  fields={
+                    report.generation >= 6
+                      ? ["nickname", "originalTrainer", "handlingTrainer"]
+                      : ["nickname", "originalTrainer"]
+                  }
+                  lang={lang}
+                  busy={busy}
+                  {...textTrash}
+                />
+              )}
               {[
                 "SAV6XY",
                 "SAV6AO",

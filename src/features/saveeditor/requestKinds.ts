@@ -1,5 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "textTrash"
+  | "textTrashDraft"
+  | "textTrashPreview"
+  | "textTrashCommit"
+  | "textTrashDiscard"
+  | "entityTextTrash"
+  | "entityTextTrashDraft"
+  | "entityTextTrashPreview"
+  | "entityTextTrashCommit"
+  | "entityTextTrashDiscard"
   | "pokemonSuperTraining"
   | "pokemonSuperTrainingPreview"
   | "pokemonSuperTrainingCommit"
