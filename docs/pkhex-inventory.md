@@ -320,134 +320,134 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 下表是来源文件盘点，不等于每个文件都需独立面板；共 129 个非 Designer 子窗口源码。
 功能可合并进编辑页，但必须保留各版本的数据语义。所有状态初始为待核对，不能推定完成。
 
-| 上游文件（PKHeX.WinForms）                                                    | 状态                                                                                                                  |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `Subforms/BoxExporter.cs`                                                     | 待核对                                                                                                                |
-| `Subforms/EntitySearchSetup.cs`                                               | 待核对                                                                                                                |
-| `Subforms/KChart.cs`                                                          | 待核对                                                                                                                |
-| `Subforms/Misc/EntitySummaryImage.cs`                                         | 待核对                                                                                                                |
-| `Subforms/Misc/PropertyComparer.cs`                                           | 待核对                                                                                                                |
-| `Subforms/Misc/SortableBindingList.cs`                                        | 待核对                                                                                                                |
-| `Subforms/PKM Editors/BatchEditor.cs`                                         | API 61：存档范围指令、预览与确认已接入；目录文件流程待接入                                                            |
-| `Subforms/PKM Editors/MemoryAmie.cs`                                          | 记忆、亲密度/好感、互动数值与居住记录已接入；浏览器待核验                                                             |
-| `Subforms/PKM Editors/MoveShopEditor.cs`                                      | API148：存档／PA8共用三语详情入口、61项购买／掌握、六动作、类型图标与冻结确认已接；完整工程通过，页面／真实存档待核验 |
-| `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | API150两正式详情入口／七动作／340候选／三语统一控件与冻结已接；专项及完整工程通过，页面／真实存档待核验               |
-| `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查                                                              |
-| `Subforms/PKM Editors/SuperTrainingEditor.cs`                                 | 待核对                                                                                                                |
-| `Subforms/PKM Editors/TechRecordEditor.cs`                                    | API149：五实体／七动作／三语共用详情入口、冻结与列表外位差异已接；专项与完整工程通过，页面／真实存档待核验            |
-| `Subforms/PKM Editors/Text.cs`                                                | 待核对                                                                                                                |
-| `Subforms/ReportGrid.cs`                                                      | 待核对                                                                                                                |
-| `Subforms/SAV_Database.cs`                                                    | 待核对                                                                                                                |
-| `Subforms/SAV_Encounters.cs`                                                  | 待核对                                                                                                                |
-| `Subforms/SAV_FolderList.cs`                                                  | 待核对                                                                                                                |
-| `Subforms/SAV_MysteryGiftDB.cs`                                               | 待核对                                                                                                                |
-| `Subforms/Save Editors/Gen1/SAV_EventReset1.cs`                               | 已接入四布局事件重置、三语、多选与撤销；浏览器与实档待核验                                                            |
-| `Subforms/Save Editors/Gen1/SAV_HallOfFame1.cs`                               | API 85：核心、三语六格图像、全部操作与撤销已接入；浏览器待核验                                                        |
-| `Subforms/Save Editors/Gen2/SAV_Misc2.cs`                                     | API 86：水晶 GS 球事件、三语状态和撤销已接入；浏览器待核验                                                            |
-| `Subforms/Save Editors/Gen3/PokeBlock3CaseEditor.cs`                          | API 75：逐格／批量与三语目录已接入；工程检查通过，浏览器待核验                                                        |
-| `Subforms/Save Editors/Gen3/SAV_HallOfFame3.cs`                               | API 87：三语六格图像、全部操作与撤销已接入；工程通过，浏览器待核验                                                    |
-| `Subforms/Save Editors/Gen3/SAV_Misc3.cs`                                     | API 95：主设置、幻影岛及此前各标签功能接入；浏览器与真实存档待核验                                                    |
-| `Subforms/Save Editors/Gen3/SAV_RTC3.cs`                                      | API 78：两组时钟／归零／树果修复工程检查通过；浏览器待核验                                                            |
-| `Subforms/Save Editors/Gen3/SAV_Roamer3.cs`                                   | API 88：三语字段、遭遇 IV 与撤销已接入；工程通过，浏览器待核验                                                        |
-| `Subforms/Save Editors/Gen3/SAV_SecretBase3.cs`                               | API 96：基地训练家、六格队伍与形态预览接入；浏览器与真实存档待核验                                                    |
-| `Subforms/Save Editors/Gen4/PoffinCase4Editor.cs`                             | API 75：逐格／批量与三语目录已接入；工程检查通过，浏览器待核验                                                        |
-| `Subforms/Save Editors/Gen4/PokeGear4Editor.cs`                               | API 97：75 格通讯录、原始数值与批量预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonConnection4Editor.cs`        | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                  |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventData4Editor.cs`         | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                  |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventRecord4Editor.cs`       | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                  |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventTrainer4Editor.cs`      | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                  |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonParticipant4Editor.cs`       | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                  |
-| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonSpeciesForm4Editor.cs`       | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                  |
-| `Subforms/Save Editors/Gen4/SAV_Apricorn.cs`                                  | API 76：数量／批量／三语图像工程检查通过；浏览器待核验                                                                |
-| `Subforms/Save Editors/Gen4/SAV_BattlePass.cs`                                | API 100：人物、台词、成绩、队伍及完整操作工程通过；浏览器待核验                                                       |
-| `Subforms/Save Editors/Gen4/SAV_DLC4.cs`                                      | API 102：录像四格／四队、导入预览与导出工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen4/SAV_Gear.cs`                                      | API 99：装备、套装、批量与四玩家工程通过；浏览器与实档待核验                                                          |
-| `Subforms/Save Editors/Gen4/SAV_Geonet4.cs`                                   | API 103：点位、旗标及批量预览工程通过；浏览器与实档待核验                                                             |
-| `Subforms/Save Editors/Gen4/SAV_HoneyTree.cs`                                 | API 104：21 树、明确补丁及重新保存预览工程通过；浏览器待核验                                                          |
-| `Subforms/Save Editors/Gen4/SAV_Misc4.cs`                                     | API 105：全分组、设施、点阵、冻结预览工程通过；浏览器待核验                                                           |
-| `Subforms/Save Editors/Gen4/SAV_Pokeathlon4.cs`                               | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                  |
-| `Subforms/Save Editors/Gen4/SAV_Pokedex4.cs`                                  | 已接入；三种布局工程检查通过，浏览器待核验                                                                            |
-| `Subforms/Save Editors/Gen4/SAV_Trainer4BR.cs`                                | API 101：训练家、时间与四玩家工程通过；浏览器待核验                                                                   |
-| `Subforms/Save Editors/Gen4/SAV_Underground.cs`                               | API 106：四类背包、十三成绩、球体与冻结预览接通；工程检查通过                                                         |
-| `Subforms/Save Editors/Gen5/CGearImage.cs`                                    | API 107：图片转换、预览、PNG 导入导出工程通过；浏览器待核验                                                           |
-| `Subforms/Save Editors/Gen5/Join Avenue/IJoinAvenueSpecificEditor.cs`         | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueAssistantSpecificEditor.cs` | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueEntityGeneralEditor.cs`     | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueFanSpecificEditor.cs`       | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueListEditor.cs`              | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueSettingsEditor.cs`          | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueVisitorSpecificEditor.cs`   | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen5/Join Avenue/SAV_JoinAvenue.cs`                    | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen5/SAV_DLC5.cs`                                      | API 108：七类文件、图像队伍、导入导出与预览工程通过；浏览器待核验                                                     |
-| `Subforms/Save Editors/Gen5/SAV_GlobalLink5.cs`                               | API 109：常规、道具图片、家具、日期及冻结预览工程通过；浏览器待核验                                                   |
-| `Subforms/Save Editors/Gen5/SAV_Medals5.cs`                                   | API 110：奖牌、栖息地、批量与 ml5 三语工程通过；浏览器待核验                                                          |
-| `Subforms/Save Editors/Gen5/SAV_Misc5.cs`                                     | API 111：普通字段、森林图像、任务、记录与文件三语工程通过；浏览器待核验                                               |
-| `Subforms/Save Editors/Gen5/SAV_Pokedex5.cs`                                  | 已接入；两种布局工程检查通过，浏览器待核验                                                                            |
-| `Subforms/Save Editors/Gen5/SAV_UnityTower.cs`                                | API 112：地点、楼层、标记、来源批量与冻结预览三语接通；工程通过，界面待核验                                           |
-| `Subforms/Save Editors/Gen6/SAV_BerryFieldXY.cs`                              | API 114：来源只读 32 格／八 UInt16 三语工程通过；浏览器待核验                                                         |
-| `Subforms/Save Editors/Gen6/SAV_BoxLayout.cs`                                 | API 59：箱名、壁纸、解锁数、标记、整箱交换；沿用当前编辑白名单                                                        |
-| `Subforms/Save Editors/Gen6/SAV_HallOfFame.cs`                                | API 115：全部字段／图像／删除／文本废字节工程通过；浏览器待核验                                                       |
-| `Subforms/Save Editors/Gen6/SAV_Link6.cs`                                     | API 116：六道具／实体图像、BP／里程、pl6 与冻结预览工程通过；浏览器待核验                                             |
-| `Subforms/Save Editors/Gen6/SAV_OPower.cs`                                    | API 77：状态／数值／批量／三语工程检查通过；浏览器待核验                                                              |
-| `Subforms/Save Editors/Gen6/SAV_PokeBlockORAS.cs`                             | API 74 数量／批量与树果田操作工程检查通过；浏览器待核验                                                               |
-| `Subforms/Save Editors/Gen6/SAV_PokedexORAS.cs`                               | 已接入；字段及批量工程检查通过，浏览器待核验                                                                          |
-| `Subforms/Save Editors/Gen6/SAV_PokedexXY.cs`                                 | 已接入；字段及批量工程检查通过，浏览器待核验                                                                          |
-| `Subforms/Save Editors/Gen6/SAV_Pokepuff.cs`                                  | API 73 逐项／批量编辑工程检查通过；浏览器与真实存档待核验                                                             |
-| `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | API 79：读取／编辑／推导已接入；X 合成样本修改／撤销已检查                                                            |
-| `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | API 117：全部属性／图像队伍／摆设／文件／批量三语工程通过；浏览器待核验                                               |
-| `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | API 118：三十二阶段／两组图像纪录／三语解析／十二袋工程通过；浏览器待核验                                             |
-| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | API 120：X／Y／ORAS 与试玩版训练家全量工程通过；浏览器及实档待验收                                                    |
-| `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 已接入 API 53；工程检查通过，浏览器待核验                                                                             |
-| `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | API 142：七设施／短语奖励／日期 FC／USUM 代理人／三语冻结已接；工程通过，页面待核验                                   |
-| `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | API 122：十二格种类／图像、三语、USUM 常数及来源保存全量工程通过；浏览器待验收                                        |
-| `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | API 73 逐项／批量编辑工程检查通过；浏览器与真实存档待核验                                                             |
-| `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 已接入 API 53；工程检查通过，浏览器待核验                                                                             |
-| `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 已接入 API 52；形态、九语言及批量操作                                                                                 |
-| `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | API 123 全窗口工程检查通过；六位 ID、地图／服装／废字节及冻结保存，浏览器待验收                                       |
-| `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | API 124：完整训练家／1000 格 GP1／文件及 ZIP 工程检查通过，浏览器待验收                                               |
-| `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | API 121：95／100 格、三语、储存／收集及来源保存全量工程通过；浏览器待验收                                             |
-| `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                                                                                |
-| `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | API147：四家族目录／导入导出／16组合／比较与冻结三语已接；完整工程通过，页面／真实存档待核验                          |
-| `Subforms/Save Editors/Gen8/SAV_FlagWork8b.cs`                                | API 83：八布局普通／系统标记、Int32 数值及比较已接入，浏览器待核验                                                    |
-| `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | API 125：十项操作、冻结预览及完整工程检查通过，浏览器与真实存档待验收                                                 |
-| `Subforms/Save Editors/Gen8/SAV_Poffin8b.cs`                                  | API 75：逐格／批量与三语目录已接入；工程检查通过，浏览器待核验                                                        |
-| `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 已接入 API 54；工程检查通过，浏览器待核验                                                                             |
-| `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | API 56 已接入；真实存档与浏览器待核验                                                                                 |
-| `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | API 56 已接入全部 30 项计数；真实存档与浏览器待核验                                                                   |
-| `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | API 55 已接入；真实存档与浏览器待核验                                                                                 |
-| `Subforms/Save Editors/Gen8/SAV_Raid8.cs`                                     | API 128：三地区完整属性、有序冻结预览及工程检查通过，浏览器与真实存档待验收                                           |
-| `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | API 126：完整读写、批量、冻结预览及工程检查通过，浏览器与真实存档待验收                                               |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | API 131：完整训练家／双队伍与冻结预览，工程通过，页面和真实存档待验收                                                 |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | API 130：完整窗口、冻结预览及工程检查通过，浏览器与真实存档待验收                                                     |
-| `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | API 129：完整窗口、双姓名与排行联动及工程检查通过，浏览器与真实存档待验收                                             |
-| `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | API 127：631 可见物品完整读写、批量、冻结预览及工程检查通过，浏览器待验收                                             |
-| `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收                                               |
-| `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收                                               |
-| `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | API 133：15 组／复合键／名称表／保存／比较工程通过，页面与真实存档待验收                                              |
-| `Subforms/Save Editors/Gen9/SAV_Donut9a.cs`                                   | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收                                               |
-| `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收                                               |
-| `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | API 134：8／25 组、有序导入／拥有、三语与冻结工程通过；页面与真实存档待验收                                           |
-| `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | API 133：15 组／复合键／名称表／保存／比较工程通过，页面与真实存档待验收                                              |
-| `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | API 58：三语图鉴、三组形态、十语言、超级进化与批量编辑                                                                |
-| `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 已接入旧版状态、形态、语言、显示及批量；工程检查通过，浏览器待核验                                                    |
-| `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 已接入四组形态位及三地区显示、批量；工程检查通过，浏览器待核验                                                        |
-| `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | API 135：三区域／八属性／种子事件／传播／三语与冻结已接；完整工程通过，页面待核验                                     |
-| `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | API 136：完整分页／三属性／双块及旧版回落／三语与冻结已接；工程通过，页面待核验                                       |
-| `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | API 143：字段／地图／蓝莓／三图片导出／全部解锁／三语冻结已接；工程通过，页面待核验                                   |
-| `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs`                                 | API 144：完整字段／地图／三图片／收集联动／三语冻结已接；工程通过，页面待核验                                         |
-| `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | API 145：八访问器／属性数组嵌套／三语冻结已接；完整原生／verify／扩展裁剪通过，页面待核验                             |
-| `Subforms/Save Editors/SAV_BoxList.cs`                                        | API 137：全箱／真实格位／相邻循环交换／跨箱拖放与详情已接；工程通过，页面待核验                                       |
-| `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | API 138：独立双箱、图片／壁纸／真实格位、显示交换、详情及拖放已接；工程通过，页面待核验                               |
-| `Subforms/Save Editors/SAV_Chatter.cs`                                        | API 140：五布局 PCM／WAV、试听与冻结预览已接；工程通过，页面／真实存档待核验                                          |
-| `Subforms/Save Editors/SAV_EventFlags.cs`                                     | API 80：Gen3–7 标记／数值／预设／双存档比较已接入，浏览器待核验                                                       |
-| `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | API 81：五布局事件标记／byte 数值／预设／比较已接入，浏览器待核验                                                     |
-| `Subforms/Save Editors/SAV_EventWork.cs`                                      | API 82：两版本分组／Int32 数值／预设／比较已接入，浏览器待核验                                                        |
-| `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | API 139：全部注册组／六格／图片／只读详情／合法性分析已接；工程通过，页面待核验                                       |
-| `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                                                                               |
-| `Subforms/Save Editors/SAV_MailBox.cs`                                        | API 141：目录／字段／消息／移动删除／队伍联动／三语冻结已接；工程通过，页面待核验                                     |
-| `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 已接入 Gen1–3；区域布局、批量标记及联动规则通过工程检查                                                               |
-| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/GBA 设置/DS 地区及坐标已接入；日期等字段待接入                                                                   |
-| `Subforms/Save Editors/SAV_Wondercard.cs`                                     | API 146：Gen4–7／LGPE 相册、三语图像、领取／卡片操作与本地 QR 已接；完整工程通过，页面待核验                          |
-| `Subforms/Save Editors/TrainerStat.cs`                                        | 读写与三语名称已接入；浏览器待核验                                                                                    |
-| `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                                                                                |
-| `Subforms/SettingsEditor.cs`                                                  | 待核对                                                                                                                |
+| 上游文件（PKHeX.WinForms）                                                    | 状态                                                                                                                        |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `Subforms/BoxExporter.cs`                                                     | API63：当前／全部箱子 ZIP、目录／命名／编号／空格选项与三语入口已接；原生 Core 对照通过，页面／实际下载待核验               |
+| `Subforms/EntitySearchSetup.cs`                                               | 待核对                                                                                                                      |
+| `Subforms/KChart.cs`                                                          | 待核对                                                                                                                      |
+| `Subforms/Misc/EntitySummaryImage.cs`                                         | 待核对                                                                                                                      |
+| `Subforms/Misc/PropertyComparer.cs`                                           | 待核对                                                                                                                      |
+| `Subforms/Misc/SortableBindingList.cs`                                        | 待核对                                                                                                                      |
+| `Subforms/PKM Editors/BatchEditor.cs`                                         | API61／62：存档与文件／目录批量指令、完整预览、确认／ZIP 和三语入口已接；部分 Chrome 工程样本检查通过，其他格式／实档待核验 |
+| `Subforms/PKM Editors/MemoryAmie.cs`                                          | 记忆、亲密度/好感、互动数值与居住记录已接入；浏览器待核验                                                                   |
+| `Subforms/PKM Editors/MoveShopEditor.cs`                                      | API148：存档／PA8共用三语详情入口、61项购买／掌握、六动作、类型图标与冻结确认已接；完整工程通过，页面／真实存档待核验       |
+| `Subforms/PKM Editors/PlusRecordEditor.cs`                                    | API150两正式详情入口／七动作／340候选／三语统一控件与冻结已接；专项及完整工程通过，页面／真实存档待核验                     |
+| `Subforms/PKM Editors/RibbonEditor.cs`                                        | 手动字段/数量/佩戴、图标及合法性辅助已接入；浏览器待检查                                                                    |
+| `Subforms/PKM Editors/SuperTrainingEditor.cs`                                 | API151两正式详情入口／有序草稿／三语统一控件与冻结已接；专项与完整工程通过，页面／实档待核验                                |
+| `Subforms/PKM Editors/TechRecordEditor.cs`                                    | API149：五实体／七动作／三语共用详情入口、冻结与列表外位差异已接；专项与完整工程通过，页面／真实存档待核验                  |
+| `Subforms/PKM Editors/Text.cs`                                                | 待核对                                                                                                                      |
+| `Subforms/ReportGrid.cs`                                                      | 待核对                                                                                                                      |
+| `Subforms/SAV_Database.cs`                                                    | 待核对                                                                                                                      |
+| `Subforms/SAV_Encounters.cs`                                                  | 待核对                                                                                                                      |
+| `Subforms/SAV_FolderList.cs`                                                  | 待核对                                                                                                                      |
+| `Subforms/SAV_MysteryGiftDB.cs`                                               | 待核对                                                                                                                      |
+| `Subforms/Save Editors/Gen1/SAV_EventReset1.cs`                               | 已接入四布局事件重置、三语、多选与撤销；浏览器与实档待核验                                                                  |
+| `Subforms/Save Editors/Gen1/SAV_HallOfFame1.cs`                               | API 85：核心、三语六格图像、全部操作与撤销已接入；浏览器待核验                                                              |
+| `Subforms/Save Editors/Gen2/SAV_Misc2.cs`                                     | API 86：水晶 GS 球事件、三语状态和撤销已接入；浏览器待核验                                                                  |
+| `Subforms/Save Editors/Gen3/PokeBlock3CaseEditor.cs`                          | API 75：逐格／批量与三语目录已接入；工程检查通过，浏览器待核验                                                              |
+| `Subforms/Save Editors/Gen3/SAV_HallOfFame3.cs`                               | API 87：三语六格图像、全部操作与撤销已接入；工程通过，浏览器待核验                                                          |
+| `Subforms/Save Editors/Gen3/SAV_Misc3.cs`                                     | API 95：主设置、幻影岛及此前各标签功能接入；浏览器与真实存档待核验                                                          |
+| `Subforms/Save Editors/Gen3/SAV_RTC3.cs`                                      | API 78：两组时钟／归零／树果修复工程检查通过；浏览器待核验                                                                  |
+| `Subforms/Save Editors/Gen3/SAV_Roamer3.cs`                                   | API 88：三语字段、遭遇 IV 与撤销已接入；工程通过，浏览器待核验                                                              |
+| `Subforms/Save Editors/Gen3/SAV_SecretBase3.cs`                               | API 96：基地训练家、六格队伍与形态预览接入；浏览器与真实存档待核验                                                          |
+| `Subforms/Save Editors/Gen4/PoffinCase4Editor.cs`                             | API 75：逐格／批量与三语目录已接入；工程检查通过，浏览器待核验                                                              |
+| `Subforms/Save Editors/Gen4/PokeGear4Editor.cs`                               | API 97：75 格通讯录、原始数值与批量预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonConnection4Editor.cs`        | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                        |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventData4Editor.cs`         | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                        |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventRecord4Editor.cs`       | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                        |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonEventTrainer4Editor.cs`      | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                        |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonParticipant4Editor.cs`       | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                        |
+| `Subforms/Save Editors/Gen4/Pokeathlon/PokeathlonSpeciesForm4Editor.cs`       | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                        |
+| `Subforms/Save Editors/Gen4/SAV_Apricorn.cs`                                  | API 76：数量／批量／三语图像工程检查通过；浏览器待核验                                                                      |
+| `Subforms/Save Editors/Gen4/SAV_BattlePass.cs`                                | API 100：人物、台词、成绩、队伍及完整操作工程通过；浏览器待核验                                                             |
+| `Subforms/Save Editors/Gen4/SAV_DLC4.cs`                                      | API 102：录像四格／四队、导入预览与导出工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen4/SAV_Gear.cs`                                      | API 99：装备、套装、批量与四玩家工程通过；浏览器与实档待核验                                                                |
+| `Subforms/Save Editors/Gen4/SAV_Geonet4.cs`                                   | API 103：点位、旗标及批量预览工程通过；浏览器与实档待核验                                                                   |
+| `Subforms/Save Editors/Gen4/SAV_HoneyTree.cs`                                 | API 104：21 树、明确补丁及重新保存预览工程通过；浏览器待核验                                                                |
+| `Subforms/Save Editors/Gen4/SAV_Misc4.cs`                                     | API 105：全分组、设施、点阵、冻结预览工程通过；浏览器待核验                                                                 |
+| `Subforms/Save Editors/Gen4/SAV_Pokeathlon4.cs`                               | API 98：随竞技窗口接入；工程通过，浏览器与实档待核验                                                                        |
+| `Subforms/Save Editors/Gen4/SAV_Pokedex4.cs`                                  | 已接入；三种布局工程检查通过，浏览器待核验                                                                                  |
+| `Subforms/Save Editors/Gen4/SAV_Trainer4BR.cs`                                | API 101：训练家、时间与四玩家工程通过；浏览器待核验                                                                         |
+| `Subforms/Save Editors/Gen4/SAV_Underground.cs`                               | API 106：四类背包、十三成绩、球体与冻结预览接通；工程检查通过                                                               |
+| `Subforms/Save Editors/Gen5/CGearImage.cs`                                    | API 107：图片转换、预览、PNG 导入导出工程通过；浏览器待核验                                                                 |
+| `Subforms/Save Editors/Gen5/Join Avenue/IJoinAvenueSpecificEditor.cs`         | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueAssistantSpecificEditor.cs` | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueEntityGeneralEditor.cs`     | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueFanSpecificEditor.cs`       | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueListEditor.cs`              | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueSettingsEditor.cs`          | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen5/Join Avenue/JoinAvenueVisitorSpecificEditor.cs`   | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen5/Join Avenue/SAV_JoinAvenue.cs`                    | API 113：全部角色／设置、文件与冻结预览工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen5/SAV_DLC5.cs`                                      | API 108：七类文件、图像队伍、导入导出与预览工程通过；浏览器待核验                                                           |
+| `Subforms/Save Editors/Gen5/SAV_GlobalLink5.cs`                               | API 109：常规、道具图片、家具、日期及冻结预览工程通过；浏览器待核验                                                         |
+| `Subforms/Save Editors/Gen5/SAV_Medals5.cs`                                   | API 110：奖牌、栖息地、批量与 ml5 三语工程通过；浏览器待核验                                                                |
+| `Subforms/Save Editors/Gen5/SAV_Misc5.cs`                                     | API 111：普通字段、森林图像、任务、记录与文件三语工程通过；浏览器待核验                                                     |
+| `Subforms/Save Editors/Gen5/SAV_Pokedex5.cs`                                  | 已接入；两种布局工程检查通过，浏览器待核验                                                                                  |
+| `Subforms/Save Editors/Gen5/SAV_UnityTower.cs`                                | API 112：地点、楼层、标记、来源批量与冻结预览三语接通；工程通过，界面待核验                                                 |
+| `Subforms/Save Editors/Gen6/SAV_BerryFieldXY.cs`                              | API 114：来源只读 32 格／八 UInt16 三语工程通过；浏览器待核验                                                               |
+| `Subforms/Save Editors/Gen6/SAV_BoxLayout.cs`                                 | API 59：箱名、壁纸、解锁数、标记、整箱交换；沿用当前编辑白名单                                                              |
+| `Subforms/Save Editors/Gen6/SAV_HallOfFame.cs`                                | API 115：全部字段／图像／删除／文本废字节工程通过；浏览器待核验                                                             |
+| `Subforms/Save Editors/Gen6/SAV_Link6.cs`                                     | API 116：六道具／实体图像、BP／里程、pl6 与冻结预览工程通过；浏览器待核验                                                   |
+| `Subforms/Save Editors/Gen6/SAV_OPower.cs`                                    | API 77：状态／数值／批量／三语工程检查通过；浏览器待核验                                                                    |
+| `Subforms/Save Editors/Gen6/SAV_PokeBlockORAS.cs`                             | API 74 数量／批量与树果田操作工程检查通过；浏览器待核验                                                                     |
+| `Subforms/Save Editors/Gen6/SAV_PokedexORAS.cs`                               | 已接入；字段及批量工程检查通过，浏览器待核验                                                                                |
+| `Subforms/Save Editors/Gen6/SAV_PokedexXY.cs`                                 | 已接入；字段及批量工程检查通过，浏览器待核验                                                                                |
+| `Subforms/Save Editors/Gen6/SAV_Pokepuff.cs`                                  | API 73 逐项／批量编辑工程检查通过；浏览器与真实存档待核验                                                                   |
+| `Subforms/Save Editors/Gen6/SAV_Roamer6.cs`                                   | API 79：读取／编辑／推导已接入；X 合成样本修改／撤销已检查                                                                  |
+| `Subforms/Save Editors/Gen6/SAV_SecretBase.cs`                                | API 117：全部属性／图像队伍／摆设／文件／批量三语工程通过；浏览器待核验                                                     |
+| `Subforms/Save Editors/Gen6/SAV_SuperTrain.cs`                                | API 118：三十二阶段／两组图像纪录／三语解析／十二袋工程通过；浏览器待核验                                                   |
+| `Subforms/Save Editors/Gen6/SAV_Trainer.cs`                                   | API 120：X／Y／ORAS 与试玩版训练家全量工程通过；浏览器及实档待验收                                                          |
+| `Subforms/Save Editors/Gen7/SAV_Capture7GG.cs`                                | 已接入 API 53；工程检查通过，浏览器待核验                                                                                   |
+| `Subforms/Save Editors/Gen7/SAV_FestivalPlaza.cs`                             | API 142：七设施／短语奖励／日期 FC／USUM 代理人／三语冻结已接；工程通过，页面待核验                                         |
+| `Subforms/Save Editors/Gen7/SAV_HallOfFame7.cs`                               | API 122：十二格种类／图像、三语、USUM 常数及来源保存全量工程通过；浏览器待验收                                              |
+| `Subforms/Save Editors/Gen7/SAV_Pokebean.cs`                                  | API 73 逐项／批量编辑工程检查通过；浏览器与真实存档待核验                                                                   |
+| `Subforms/Save Editors/Gen7/SAV_PokedexGG.cs`                                 | 已接入 API 53；工程检查通过，浏览器待核验                                                                                   |
+| `Subforms/Save Editors/Gen7/SAV_PokedexSM.cs`                                 | 已接入 API 52；形态、九语言及批量操作                                                                                       |
+| `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | API 123 全窗口工程检查通过；六位 ID、地图／服装／废字节及冻结保存，浏览器待验收                                             |
+| `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | API 124：完整训练家／1000 格 GP1／文件及 ZIP 工程检查通过，浏览器待验收                                                     |
+| `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | API 121：95／100 格、三语、储存／收集及来源保存全量工程通过；浏览器待验收                                                   |
+| `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                                                                                      |
+| `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | API147：四家族目录／导入导出／16组合／比较与冻结三语已接；完整工程通过，页面／真实存档待核验                                |
+| `Subforms/Save Editors/Gen8/SAV_FlagWork8b.cs`                                | API 83：八布局普通／系统标记、Int32 数值及比较已接入，浏览器待核验                                                          |
+| `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | API 125：十项操作、冻结预览及完整工程检查通过，浏览器与真实存档待验收                                                       |
+| `Subforms/Save Editors/Gen8/SAV_Poffin8b.cs`                                  | API 75：逐格／批量与三语目录已接入；工程检查通过，浏览器待核验                                                              |
+| `Subforms/Save Editors/Gen8/SAV_PokedexBDSP.cs`                               | 已接入 API 54；工程检查通过，浏览器待核验                                                                                   |
+| `Subforms/Save Editors/Gen8/SAV_PokedexLA.cs`                                 | API 56 已接入；真实存档与浏览器待核验                                                                                       |
+| `Subforms/Save Editors/Gen8/SAV_PokedexResearchEditorLA.cs`                   | API 56 已接入全部 30 项计数；真实存档与浏览器待核验                                                                         |
+| `Subforms/Save Editors/Gen8/SAV_PokedexSWSH.cs`                               | API 55 已接入；真实存档与浏览器待核验                                                                                       |
+| `Subforms/Save Editors/Gen8/SAV_Raid8.cs`                                     | API 128：三地区完整属性、有序冻结预览及工程检查通过，浏览器与真实存档待验收                                                 |
+| `Subforms/Save Editors/Gen8/SAV_SealStickers8b.cs`                            | API 126：完整读写、批量、冻结预览及工程检查通过，浏览器与真实存档待验收                                                     |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8.cs`                                  | API 131：完整训练家／双队伍与冻结预览，工程通过，页面和真实存档待验收                                                       |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8a.cs`                                 | API 130：完整窗口、冻结预览及工程检查通过，浏览器与真实存档待验收                                                           |
+| `Subforms/Save Editors/Gen8/SAV_Trainer8b.cs`                                 | API 129：完整窗口、双姓名与排行联动及工程检查通过，浏览器与真实存档待验收                                                   |
+| `Subforms/Save Editors/Gen8/SAV_Underground8b.cs`                             | API 127：631 可见物品完整读写、批量、冻结预览及工程检查通过，浏览器待验收                                                   |
+| `Subforms/Save Editors/Gen9/DonutEditor9a.cs`                                 | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收                                                     |
+| `Subforms/Save Editors/Gen9/DonutFlavorProfile9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收                                                     |
+| `Subforms/Save Editors/Gen9/EventWorkGrid64.cs`                               | API 133：15 组／复合键／名称表／保存／比较工程通过，页面与真实存档待验收                                                    |
+| `Subforms/Save Editors/Gen9/SAV_Donut9a.cs`                                   | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收                                                     |
+| `Subforms/Save Editors/Gen9/SAV_DonutGenerator9a.cs`                          | API 132：完整编辑／口味图／生成与冻结预览工程通过，页面与真实存档待验收                                                     |
+| `Subforms/Save Editors/Gen9/SAV_Fashion9.cs`                                  | API 134：8／25 组、有序导入／拥有、三语与冻结工程通过；页面与真实存档待验收                                                 |
+| `Subforms/Save Editors/Gen9/SAV_FlagWork9a.cs`                                | API 133：15 组／复合键／名称表／保存／比较工程通过，页面与真实存档待验收                                                    |
+| `Subforms/Save Editors/Gen9/SAV_Pokedex9a.cs`                                 | API 58：三语图鉴、三组形态、十语言、超级进化与批量编辑                                                                      |
+| `Subforms/Save Editors/Gen9/SAV_PokedexSV.cs`                                 | 已接入旧版状态、形态、语言、显示及批量；工程检查通过，浏览器待核验                                                          |
+| `Subforms/Save Editors/Gen9/SAV_PokedexSVKitakami.cs`                         | 已接入四组形态位及三地区显示、批量；工程检查通过，浏览器待核验                                                              |
+| `Subforms/Save Editors/Gen9/SAV_Raid9.cs`                                     | API 135：三区域／八属性／种子事件／传播／三语与冻结已接；完整工程通过，页面待核验                                           |
+| `Subforms/Save Editors/Gen9/SAV_RaidSevenStar9.cs`                            | API 136：完整分页／三属性／双块及旧版回落／三语与冻结已接；工程通过，页面待核验                                             |
+| `Subforms/Save Editors/Gen9/SAV_Trainer9.cs`                                  | API 143：字段／地图／蓝莓／三图片导出／全部解锁／三语冻结已接；工程通过，页面待核验                                         |
+| `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs`                                 | API 144：完整字段／地图／三图片／收集联动／三语冻结已接；工程通过，页面待核验                                               |
+| `Subforms/Save Editors/Misc/SAV_Accessor.cs`                                  | API 145：八访问器／属性数组嵌套／三语冻结已接；完整原生／verify／扩展裁剪通过，页面待核验                                   |
+| `Subforms/Save Editors/SAV_BoxList.cs`                                        | API 137：全箱／真实格位／相邻循环交换／跨箱拖放与详情已接；工程通过，页面待核验                                             |
+| `Subforms/Save Editors/SAV_BoxViewer.cs`                                      | API 138：独立双箱、图片／壁纸／真实格位、显示交换、详情及拖放已接；工程通过，页面待核验                                     |
+| `Subforms/Save Editors/SAV_Chatter.cs`                                        | API 140：五布局 PCM／WAV、试听与冻结预览已接；工程通过，页面／真实存档待核验                                                |
+| `Subforms/Save Editors/SAV_EventFlags.cs`                                     | API 80：Gen3–7 标记／数值／预设／双存档比较已接入，浏览器待核验                                                             |
+| `Subforms/Save Editors/SAV_EventFlags2.cs`                                    | API 81：五布局事件标记／byte 数值／预设／比较已接入，浏览器待核验                                                           |
+| `Subforms/Save Editors/SAV_EventWork.cs`                                      | API 82：两版本分组／Int32 数值／预设／比较已接入，浏览器待核验                                                              |
+| `Subforms/Save Editors/SAV_GroupViewer.cs`                                    | API 139：全部注册组／六格／图片／只读详情／合法性分析已接；工程通过，页面待核验                                             |
+| `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                                                                                     |
+| `Subforms/Save Editors/SAV_MailBox.cs`                                        | API 141：目录／字段／消息／移动删除／队伍联动／三语冻结已接；工程通过，页面待核验                                           |
+| `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 已接入 Gen1–3；区域布局、批量标记及联动规则通过工程检查                                                                     |
+| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/GBA 设置/DS 地区及坐标已接入；日期等字段待接入                                                                         |
+| `Subforms/Save Editors/SAV_Wondercard.cs`                                     | API 146：Gen4–7／LGPE 相册、三语图像、领取／卡片操作与本地 QR 已接；完整工程通过，页面待核验                                |
+| `Subforms/Save Editors/TrainerStat.cs`                                        | 读写与三语名称已接入；浏览器待核验                                                                                          |
+| `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                                                                                      |
+| `Subforms/SettingsEditor.cs`                                                  | 待核对                                                                                                                      |

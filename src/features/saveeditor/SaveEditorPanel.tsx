@@ -3094,6 +3094,66 @@ export function SaveEditorPanel(
         .catch(() => undefined);
     },
   };
+  const pokemonSuperTrainingActions: import("./PokemonSuperTrainingEditor").PokemonSuperTrainingActions =
+    {
+      onRead: async (target) => {
+        let catalog:
+          import("./pokemonSuperTraining").SuperTrainingCatalog | undefined;
+        await perform(async (id) => {
+          if (!working.current) return;
+          const result = await client.current.run(
+            working.current,
+            JSON.stringify(target),
+            "pokemonSuperTraining",
+          );
+          if (id !== operation.current) return;
+          if (!result.pokemonSuperTraining)
+            throw new Error("Missing super training catalog");
+          catalog = result.pokemonSuperTraining;
+        });
+        return catalog;
+      },
+      onPreview: async (request) => {
+        let ticket:
+          import("./pokemonSuperTraining").SuperTrainingTicket | undefined;
+        await perform(async (id) => {
+          if (!working.current) return;
+          const result = await client.current.run(
+            working.current,
+            JSON.stringify(request),
+            "pokemonSuperTrainingPreview",
+          );
+          if (id !== operation.current) {
+            if (result.pokemonSuperTrainingPreview)
+              await pokemonSuperTrainingActions.onDiscard(
+                result.pokemonSuperTrainingPreview.token,
+              );
+            return;
+          }
+          if (!result.pokemonSuperTrainingPreview)
+            throw new Error("Missing super training preview");
+          ticket = result.pokemonSuperTrainingPreview;
+        });
+        return ticket;
+      },
+      onApply: async (confirmation) => {
+        let applied = false;
+        await applyWorkingEdit(
+          confirmation,
+          "pokemonSuperTrainingCommit",
+          () => {
+            applied = true;
+          },
+        );
+        return applied;
+      },
+      onDiscard: async (token) => {
+        if (!working.current) return;
+        await client.current
+          .run(working.current, token, "pokemonSuperTrainingDiscard")
+          .catch(() => undefined);
+      },
+    };
   const plusRecordActions: import("./PlusRecordEditor").PlusRecordActions = {
     onRead: async (target) => {
       let catalog: import("./plusRecord").PlusRecordCatalog | undefined;
@@ -3389,6 +3449,7 @@ export function SaveEditorPanel(
       | MailConfirmation
       | ChatterConfirmation
       | import("./moveShop").MoveShopConfirmation
+      | import("./pokemonSuperTraining").SuperTrainingConfirmation
       | import("./plusRecord").PlusRecordConfirmation
       | import("./techRecord").TechRecordConfirmation
       | AccessorConfirmation
@@ -3477,6 +3538,7 @@ export function SaveEditorPanel(
       | "mailboxCommit"
       | "chatterCommit"
       | "moveShopCommit"
+      | "pokemonSuperTrainingCommit"
       | "plusRecordCommit"
       | "techRecordCommit"
       | "blockAccessorCommit"
@@ -5122,6 +5184,7 @@ export function SaveEditorPanel(
               ) : section === "pokemon" ? (
                 <SavePokemonBrowser
                   moveShop={moveShopActions}
+                  pokemonSuperTraining={pokemonSuperTrainingActions}
                   plusRecord={plusRecordActions}
                   techRecord={techRecordActions}
                   profileLink={profileLinkPanel}

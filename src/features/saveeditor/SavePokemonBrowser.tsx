@@ -7,6 +7,10 @@ import {
 } from "./boxViewer";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
+import {
+  PokemonSuperTrainingEditor,
+  type PokemonSuperTrainingActions,
+} from "./PokemonSuperTrainingEditor";
 import { PlusRecordEditor, type PlusRecordActions } from "./PlusRecordEditor";
 import { TechRecordEditor, type TechRecordActions } from "./TechRecordEditor";
 import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
@@ -57,6 +61,7 @@ import type { saveEditorResources } from "./locales";
 
 export function SavePokemonBrowser({
   moveShop,
+  pokemonSuperTraining,
   plusRecord,
   techRecord,
   profileLink,
@@ -86,6 +91,7 @@ export function SavePokemonBrowser({
   onExportBoxBinary,
 }: {
   moveShop: MoveShopActions;
+  pokemonSuperTraining: PokemonSuperTrainingActions;
   plusRecord: PlusRecordActions;
   techRecord: TechRecordActions;
   profileLink?: ReactNode;
@@ -597,6 +603,30 @@ export function SavePokemonBrowser({
                     lang={lang}
                     busy={busy}
                     {...moveShop}
+                  />
+                )}
+              {[
+                "SAV6XY",
+                "SAV6AO",
+                "SAV6AODemo",
+                "SAV7SM",
+                "SAV7USUM",
+              ].includes(report.format) &&
+                selected.valid &&
+                selected.species > 0 && (
+                  <PokemonSuperTrainingEditor
+                    key={`super-training-${revision}-${selected.box}-${selected.slot}`}
+                    target={{
+                      kind: "save",
+                      box: selected.box,
+                      slot: selected.slot,
+                      fileName: null,
+                      inputEncrypted: false,
+                      useFileFormat: false,
+                    }}
+                    lang={lang}
+                    busy={busy}
+                    {...pokemonSuperTraining}
                   />
                 )}
               {report.format === "SAV9ZA" &&

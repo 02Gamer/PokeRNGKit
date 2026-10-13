@@ -15,7 +15,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 150;
+  apiVersion: 151;
   format: string;
   extension: string;
   party: boolean;
@@ -29,6 +29,14 @@ export interface StandalonePokemonReport {
   gb?: GbSpecialInfo | null;
 }
 export interface StandalonePokemonRequest {
+  superTrainingTarget?: import("./pokemonSuperTraining").SuperTrainingTarget;
+  superTrainingRequest?: {
+    sourceHash: string;
+    target: import("./pokemonSuperTraining").SuperTrainingTarget;
+    edit: import("./pokemonSuperTraining").SuperTrainingEdit;
+  };
+  superTrainingConfirmation?: import("./pokemonSuperTraining").SuperTrainingConfirmation;
+  superTrainingToken?: string;
   plusRecordTarget?: import("./plusRecord").PlusRecordTarget;
   plusRecordRequest?: {
     sourceHash: string;
@@ -88,6 +96,10 @@ export interface StandaloneAdvancedData {
   relearn?: number[] | null;
 }
 export type StandalonePokemonOperation =
+  | "entitySuperTraining"
+  | "entitySuperTrainingPreview"
+  | "entitySuperTrainingCommit"
+  | "entitySuperTrainingDiscard"
   | "entityPlusRecord"
   | "entityPlusRecordPreview"
   | "entityPlusRecordCommit"
@@ -123,6 +135,8 @@ export interface GbPokemonEdit {
 }
 export interface StandalonePokemonResult {
   moveShop?: import("./moveShop").MoveShopCatalog;
+  pokemonSuperTraining?: import("./pokemonSuperTraining").SuperTrainingCatalog;
+  pokemonSuperTrainingPreview?: import("./pokemonSuperTraining").SuperTrainingTicket;
   plusRecord?: import("./plusRecord").PlusRecordCatalog;
   plusRecordPreview?: import("./plusRecord").PlusRecordTicket;
   techRecord?: import("./techRecord").TechRecordCatalog;

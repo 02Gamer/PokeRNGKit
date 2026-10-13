@@ -19,6 +19,10 @@ import { PokemonRawEditor } from "./PokemonRawEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
+import {
+  PokemonSuperTrainingEditor,
+  type PokemonSuperTrainingActions,
+} from "./PokemonSuperTrainingEditor";
 import { PlusRecordEditor, type PlusRecordActions } from "./PlusRecordEditor";
 import { TechRecordEditor, type TechRecordActions } from "./TechRecordEditor";
 import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
@@ -145,6 +149,7 @@ export function StandalonePokemonPanel() {
       | "gb"
       | "gbSpecial"
       | "moveShopConfirmation"
+      | "superTrainingConfirmation"
       | "plusRecordConfirmation"
       | "techRecordConfirmation"
     >,
@@ -153,6 +158,7 @@ export function StandalonePokemonPanel() {
       | "entityRaw"
       | "entityGb"
       | "entityMoveShopCommit"
+      | "entitySuperTrainingCommit"
       | "entityPlusRecordCommit"
       | "entityTechRecordCommit",
     onApplied?: () => void,
@@ -252,6 +258,76 @@ export function StandalonePokemonPanel() {
             moveShopToken: token,
           },
           "entityMoveShopDiscard",
+        )
+        .catch(() => undefined);
+    },
+  };
+  const pokemonSuperTrainingActions: PokemonSuperTrainingActions = {
+    onRead: (target) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            superTrainingTarget: target,
+          },
+          "entitySuperTraining",
+        );
+        if (id !== operation.current) return;
+        if (!result.pokemonSuperTraining)
+          throw new Error("Missing super training catalog");
+        return result.pokemonSuperTraining;
+      }),
+    onPreview: (request) =>
+      perform(async (id) => {
+        if (!working) return;
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            superTrainingRequest: request,
+          },
+          "entitySuperTrainingPreview",
+        );
+        if (id !== operation.current) {
+          if (result.pokemonSuperTrainingPreview)
+            await pokemonSuperTrainingActions.onDiscard(
+              result.pokemonSuperTrainingPreview.token,
+            );
+          return;
+        }
+        if (!result.pokemonSuperTrainingPreview)
+          throw new Error("Missing super training preview");
+        return result.pokemonSuperTrainingPreview;
+      }),
+    onApply: async (confirmation) => {
+      let applied = false;
+      await applyRequest(
+        { superTrainingConfirmation: confirmation },
+        "entitySuperTrainingCommit",
+        () => {
+          applied = true;
+        },
+      );
+      return applied;
+    },
+    onDiscard: async (token) => {
+      if (!working) return;
+      await client.current
+        .run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            superTrainingToken: token,
+          },
+          "entitySuperTrainingDiscard",
         )
         .catch(() => undefined);
     },
@@ -811,6 +887,25 @@ export function StandalonePokemonPanel() {
                         lang={lang}
                         busy={busy}
                         {...moveShopActions}
+                      />
+                    )}
+                  {["PK6", "PK7"].includes(report.format) &&
+                    report.pokemon.valid &&
+                    report.pokemon.species > 0 &&
+                    working && (
+                      <PokemonSuperTrainingEditor
+                        key={`super-training-${revision}`}
+                        target={{
+                          kind: "file",
+                          box: 0,
+                          slot: 0,
+                          fileName: working.fileName,
+                          inputEncrypted: working.inputEncrypted,
+                          useFileFormat: working.useFileFormat ?? false,
+                        }}
+                        lang={lang}
+                        busy={busy}
+                        {...pokemonSuperTrainingActions}
                       />
                     )}
                   {report.format === "PA9" &&

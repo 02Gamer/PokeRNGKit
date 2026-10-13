@@ -8,6 +8,10 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../SuperTrainingApi.cs" Link="SuperTrainingApi.cs" />
+    <Compile Include="../SuperTrainingSession.cs" Link="SuperTrainingSession.cs" />
+    <Compile Include="../PokemonSuperTraining.cs" Link="PokemonSuperTraining.cs" />
+    <Compile Include="../SuperTrainingNames.cs" Link="SuperTrainingNames.cs" />
     <Compile Include="../PlusRecordApi.cs" Link="PlusRecordApi.cs" />
     <Compile Include="../PlusRecordSession.cs" Link="PlusRecordSession.cs" />
     <Compile Include="../PokemonPlusRecord.cs" Link="PokemonPlusRecord.cs" />

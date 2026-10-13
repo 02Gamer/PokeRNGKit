@@ -19,6 +19,41 @@ const request = {
 };
 describe("independent entity worker lifecycle", () => {
   it.each([
+    "entitySuperTraining",
+    "entitySuperTrainingPreview",
+    "entitySuperTrainingCommit",
+    "entitySuperTrainingDiscard",
+  ] as const)("retains entity metadata and %s response", async (kind) => {
+    const client = new StandalonePokemonClient(),
+      source = new Uint8Array([1, 2, 3]);
+    const input = {
+      ...request,
+      fileName: "entity.pa9",
+      pokemonSuperTrainingToken: "super-training:1",
+    };
+    const pending = client.run(source, input, kind),
+      worker = FakeWorker.instances[0];
+    const [message, transfer] = worker.postMessage.mock.calls[0];
+    const fields =
+      kind === "entitySuperTraining"
+        ? { pokemonSuperTraining: { rows: [] } }
+        : kind === "entitySuperTrainingPreview"
+          ? { pokemonSuperTrainingPreview: { token: "super-training:1" } }
+          : kind === "entitySuperTrainingCommit"
+            ? { output: new Uint8Array([4]) }
+            : {};
+    expect(message.kind).toBe(kind);
+    expect(JSON.parse(message.edit)).toEqual(input);
+    expect(message.bytes).not.toBe(source);
+    expect(transfer).toEqual([message.bytes.buffer]);
+    worker.onmessage?.({
+      data: { id: message.id, entity: { format: "PA9" }, ...fields },
+    });
+    expect(await pending).toMatchObject(fields);
+    expect(source).toEqual(new Uint8Array([1, 2, 3]));
+    client.dispose();
+  });
+  it.each([
     "entityPlusRecord",
     "entityPlusRecordPreview",
     "entityPlusRecordCommit",

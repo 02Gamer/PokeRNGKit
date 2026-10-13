@@ -24,6 +24,8 @@ into the distribution legal folder. This adaptation does not modify the upstream
 
 ## Drawing resources (2026-09-26)
 
+2026-10-13：从相同只读PKHeX 26.08.26 WinForms `lang_zh-Hans.txt`、`lang_en.txt` 和 `lang_ja.txt` 导入45个SuperTrainingEditor具名标签。生成器为 `scripts/import-pkhex-supertraining.mjs`，生成C#为 `wasm/pkhex/SuperTrainingNames.cs`，源路径与SHA-256见 `supertraining-sources.json`；保留相同GPL归属，仅本地使用，不修改上游语言文件。
+
 2026-10-11：使用同一只读 PKHeX 26.08.26 来源的 Drawing.Misc Resources.resx，导入 319 张未修改甜甜圈、效果、星星与口味图 PNG（1738995 bytes）。脚本为 `scripts/import-pkhex-donut-art.mjs`；来源路径与 SHA-256 追加到既有 artwork manifest，原有哈希保持。资源选择沿用 `DonutSpriteUtil.cs`，适用同一 GPL 归属和角色／图像权利声明，无运行时 CDN。
 
 2026-10-13：从同一 Drawing.Misc Resources.resx 导入19张未修改小型属性图标（10478字节）。脚本为 `scripts/import-pkhex-type-art.mjs`，选择沿用 `TypeSpriteUtil.GetTypeSpriteIconSmall`，资源键 `type_icon_s_00..17` 和未知属性 `type_icon_s_99`、来源路径和 SHA-256 追加到两个既有 artwork manifest。保持上述GPL归属及图像权利声明，全部本地加载。

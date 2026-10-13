@@ -21,6 +21,15 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadPokemonSuperTraining(byte[] data, string json) => SaveService.ReadPokemonSuperTraining(data, json);
+    [JSExport]
+    public static string PreviewPokemonSuperTraining(byte[] data, string json) => SaveService.PreviewPokemonSuperTraining(data, json);
+    [JSExport]
+    public static byte[] CommitPokemonSuperTraining(byte[] data, string json) => SaveService.CommitPokemonSuperTraining(data, json);
+    [JSExport]
+    public static void DiscardPokemonSuperTraining(string token) => SaveService.DiscardPokemonSuperTraining(token);
+
+    [JSExport]
     public static string ReadPlusRecords(byte[] data, string json) => SaveService.ReadPlusRecords(data, json);
     [JSExport]
     public static string PreviewPlusRecords(byte[] data, string json) => SaveService.PreviewPlusRecords(data, json);
@@ -583,7 +592,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 150;
+    public const int ApiVersion = 151;
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
     public static byte[] EditPokedex9a(byte[] data, string json)
@@ -977,6 +986,14 @@ public sealed record SaveReport(
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(SuperTrainingTarget))]
+[JsonSerializable(typeof(SuperTrainingCatalog))]
+[JsonSerializable(typeof(SuperTrainingRequest))]
+[JsonSerializable(typeof(SuperTrainingConfirmation))]
+[JsonSerializable(typeof(SuperTrainingTicket))]
+[JsonSerializable(typeof(SuperTrainingEdit))]
+[JsonSerializable(typeof(SuperTrainingEvent))]
+[JsonSerializable(typeof(SuperTrainingDraft))]
 [JsonSerializable(typeof(PlusRecordTarget))]
 [JsonSerializable(typeof(PlusRecordCatalog))]
 [JsonSerializable(typeof(PlusRecordRequest))]
