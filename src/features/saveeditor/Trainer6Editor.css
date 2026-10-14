@@ -7,13 +7,6 @@
 .save-trainer6-body > p {
   margin: 0;
 }
-.save-editor-fields .save-trainer6-money {
-  grid-template-columns: minmax(0, 1fr) 44px;
-  align-items: end;
-}
-.save-editor-fields .save-trainer6-money > span {
-  grid-column: 1 / -1;
-}
 .save-trainer6-body label {
   display: grid;
   gap: 4px;

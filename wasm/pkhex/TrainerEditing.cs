@@ -52,8 +52,9 @@ internal static class TrainerEditing
     {
         var originalBdsp=save is SAV8BS original?(SAV8BS)original.Clone():null;
         var options = Options(save);
+        if (save.Generation <= 2 && edit.Sid != save.SID16) throw new ArgumentException("Secret ID is unsupported for this save.");
         var maxName = save is SAV3 { Japanese: true } ? 5 : save.MaxStringLengthTrainer;
-        int minName = save is SAV6XY or SAV6AO or SAV6AODemo or SAV7SM or SAV7USUM ? 0 : 1;
+        int minName = SimpleTrainerEditing.Supports(save) || save is SAV6XY or SAV6AO or SAV6AODemo or SAV7SM or SAV7USUM ? 0 : 1;
         if (edit.Ot is null || edit.Ot.Length < minName || edit.Ot.Length > maxName || edit.Ot.Any(char.IsControl))
             throw new ArgumentException($"Trainer name must contain {minName}–{maxName} supported characters.");
         if (edit.Money > save.MaxMoney) throw new ArgumentException($"Money must be between 0 and {save.MaxMoney}.");

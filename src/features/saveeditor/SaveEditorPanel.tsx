@@ -1,4 +1,6 @@
 import { SCBlockEditor } from "./SCBlockEditor";
+import { SimpleTrainerEditor } from "./SimpleTrainerEditor";
+import { supportsSimpleTrainer, simpleTrainerWords } from "./simpleTrainer";
 import {
   MysteryGiftDatabaseViewer,
   type MysteryGiftDatabaseActions,
@@ -355,7 +357,9 @@ export function SaveEditorPanel(
     minutes: "",
     seconds: "",
   });
-  const [trainer6Draft, setTrainer6Draft] = useState(false);
+  const [trainer6OwnDraft, setTrainer6Draft] = useState(false);
+  const [simpleTrainerDirty, setSimpleTrainerDirty] = useState(false);
+  const trainer6Draft = trainer6OwnDraft || simpleTrainerDirty;
   const [geographyReset, setGeographyReset] = useState(0);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
@@ -2114,6 +2118,50 @@ export function SaveEditorPanel(
     });
     return p;
   };
+  const discardSimpleTrainer = async (token: string) => {
+    if (!working.current) return;
+    await client.current
+      .run(working.current, token, "simpleTrainerDiscard")
+      .catch(() => undefined);
+  };
+  const readSimpleTrainer = async () => {
+    let catalog: import("./simpleTrainer").SimpleTrainerCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        undefined,
+        "simpleTrainer",
+      );
+      if (id !== operation.current) return;
+      if (!result.simpleTrainer)
+        throw Error(simpleTrainerWords[batchLang].invalid);
+      catalog = result.simpleTrainer;
+    });
+    return catalog;
+  };
+  const previewSimpleTrainer = async (
+    request: import("./simpleTrainer").SimpleTrainerRequest,
+  ) => {
+    let preview: import("./simpleTrainer").SimpleTrainerPreview | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(request),
+        "simpleTrainerPreview",
+      );
+      if (id !== operation.current) {
+        if (result.simpleTrainerPreview)
+          await discardSimpleTrainer(result.simpleTrainerPreview.token);
+        return;
+      }
+      if (!result.simpleTrainerPreview)
+        throw Error(simpleTrainerWords[batchLang].invalid);
+      preview = result.simpleTrainerPreview;
+    });
+    return preview;
+  };
   const readTrainer6 = async () => {
     let c: import("./trainer6").Tr6Catalog | undefined;
     await perform(async (id) => {
@@ -3709,6 +3757,7 @@ export function SaveEditorPanel(
       | SCBlockConfirmation
       | PokemonEdit
       | PokemonRawEdit
+      | import("./simpleTrainer").SimpleTrainerConfirmation
       | BoxEdit
       | import("./propertyBatch").PropertyBatchConfirmation
       | import("./boxImport").BoxImportConfirmation
@@ -3850,6 +3899,7 @@ export function SaveEditorPanel(
       | "trainerGGEdit"
       | "trainer7Edit"
       | "trainer6Edit"
+      | "simpleTrainerCommit"
       | "zygarde7Edit"
       | "hall7Edit"
       | "superTrain6Edit"
@@ -5713,16 +5763,16 @@ export function SaveEditorPanel(
                   </dl>
                   {report.checksumsValid && !report.canEdit && (
                     <p>
-                      {report.trainerOnly
+                      {report.trainerOnly && report.format === "SAV6AODemo"
                         ? trainer6Words[batchLang].demoScope
                         : report.format === "SAV4BR"
                           ? br4GearWords[batchLang].scoped
                           : report.format === "SAV1"
-                            ? words.pokedexResetOnly
+                            ? simpleTrainerWords[batchLang].gbScope
                             : report.format === "SAV7b"
                               ? trainerGGWords[batchLang].scope
                               : report.format === "SAV2"
-                                ? words.pokedexEventsOnly
+                                ? simpleTrainerWords[batchLang].gbScope
                                 : report.pokedex?.canEdit
                                   ? words.pokedexOnly
                                   : words.readonly}
@@ -5753,49 +5803,55 @@ export function SaveEditorPanel(
                         ["sid", words.sid, 65535],
                         ["money", words.money, report.maxMoney],
                       ] as const
-                    ).map(([key, label, max]) => (
-                      <label
-                        className={
-                          key === "money" && supportsTrainer6(report.format)
-                            ? "field save-trainer6-money"
-                            : "field"
-                        }
-                        key={key}
-                      >
-                        <span>{label}</span>
-                        <input
-                          inputMode="numeric"
-                          value={draft[key]}
-                          maxLength={String(max).length}
-                          title={
-                            supportsTrainer6(report.format) && key !== "money"
-                              ? `TSV: ${tr6Tsv(draft.tid, draft.sid)}`
-                              : undefined
+                    )
+                      .filter(([key]) => key !== "sid" || report.generation > 2)
+                      .map(([key, label, max]) => (
+                        <label
+                          className={
+                            key === "money" &&
+                            (supportsTrainer6(report.format) ||
+                              supportsSimpleTrainer(report.format))
+                              ? "field save-editor-amount"
+                              : "field"
                           }
-                          onChange={(e) =>
-                            setDraft({
-                              ...draft,
-                              [key]:
-                                supportsTrainer6(report.format) &&
-                                key !== "money"
-                                  ? tr6IdInput(e.target.value)
-                                  : e.target.value,
-                            })
-                          }
-                        />
-                        {key === "money" && supportsTrainer6(report.format) && (
-                          <button
-                            type="button"
-                            aria-label={`${label}: ${max}`}
-                            onClick={() =>
-                              setDraft({ ...draft, money: String(max) })
+                          key={key}
+                        >
+                          <span>{label}</span>
+                          <input
+                            inputMode="numeric"
+                            value={draft[key]}
+                            maxLength={String(max).length}
+                            title={
+                              supportsTrainer6(report.format) && key !== "money"
+                                ? `TSV: ${tr6Tsv(draft.tid, draft.sid)}`
+                                : undefined
                             }
-                          >
-                            +
-                          </button>
-                        )}
-                      </label>
-                    ))}
+                            onChange={(e) =>
+                              setDraft({
+                                ...draft,
+                                [key]:
+                                  supportsTrainer6(report.format) &&
+                                  key !== "money"
+                                    ? tr6IdInput(e.target.value)
+                                    : e.target.value,
+                              })
+                            }
+                          />
+                          {key === "money" &&
+                            (supportsTrainer6(report.format) ||
+                              supportsSimpleTrainer(report.format)) && (
+                              <button
+                                type="button"
+                                aria-label={`${label}: ${max}`}
+                                onClick={() =>
+                                  setDraft({ ...draft, money: String(max) })
+                                }
+                              >
+                                +
+                              </button>
+                            )}
+                        </label>
+                      ))}
                     {report.trainer.gameVersion.choices.length > 0 && (
                       <label className="field">
                         <span>{words.trainerGameVersion}</span>
@@ -6093,6 +6149,29 @@ export function SaveEditorPanel(
                       onPreview={previewTrainer6}
                       onApply={(edit) => applyWorkingEdit(edit, "trainer6Edit")}
                       onDirtyChange={setTrainer6Draft}
+                    />
+                  )}
+                  {supportsSimpleTrainer(report.format) && (
+                    <SimpleTrainerEditor
+                      key={`${name}:${fileRevision}:${report.format}`}
+                      revision={workingRevision}
+                      busy={busy || !trainerDraftMatches(draft, report)}
+                      lang={batchLang}
+                      onRead={readSimpleTrainer}
+                      onPreview={previewSimpleTrainer}
+                      onApply={async (confirmation) => {
+                        let applied = false;
+                        await applyWorkingEdit(
+                          confirmation,
+                          "simpleTrainerCommit",
+                          () => {
+                            applied = true;
+                          },
+                        );
+                        return applied;
+                      }}
+                      onDiscard={discardSimpleTrainer}
+                      onDirtyChange={setSimpleTrainerDirty}
                     />
                   )}
                   {profileLinkPanel}

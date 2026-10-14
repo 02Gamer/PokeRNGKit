@@ -1,5 +1,55 @@
 # PKHeX 存档读取与编辑
 
+## 全局设置（SettingsEditor，来源核对）
+
+尚未实现全局设置模块。来源 WinForms `Settings/PKHeXSettings.cs` 声明 Startup、Backup、LocalResources、Legality、Converter、Import、SlotWrite、Privacy、SaveLanguage、Display、Sprite、Sounds、Hover、BattleTemplate、Draw、Advanced、EntityEditor、EntityDb、EncounterDb、MysteryDb、Report、SlotExport 共 22 个设置对象。`SettingsEditor.LoadSettings` 按 ReflectUtil.GetPropertiesCanWritePublicDeclared 获取非 null 对象，没有按 Browsable 属性过滤页面，因此标记 Browsable(false) 的 SlotExport 仍须纳入范围；来源语言文件也有 SettingsEditor.SlotExport 标签。
+
+SlotExport 含 BoxExportSettings、DefaultBoxExportNamer 及默认 false 的 AllowBoxDataDrop，必须核对它们对实际导出／交互的作用。Startup.RecentlyLoadedMaxCount 为 uint，setter 截到 1–1000，默认 10；DefaultSaveVersion 通过 IsValidSavedVersion 后才更新，设置窗口另排除 0／GO／CP。启动加载、最近记录、备份与本机资源采用明确浏览器授权的本机副本路径对应，不扫描磁盘或声称已实现 EXE 插件加载。来源重置会删配置并重启进程，Web 应使用本机设置重置／重新初始化，不能照搬桌面退出行为。
+
+后续逐设置对象核对 Core／工作流使用点、范围、三语及本机持久化；已有主题／语言和单模块选项不能代替全局设置接入。本段仅来源证据，不是功能实现或验收。
+
+## 手动存档识别工具（SaveHandlerTroubleshooter，来源核对）
+
+尚未实现本模块。只读来源为 WinForms `Subforms/SaveHandlerTroubleshooter.cs`／Designer、Core `SaveUtil`、`SaveTypeInfo`、`SaveFileType` 及 `ISaveHandler`。来源选择全部非 None 类型、对应 GameUtil 子版本、全部 LanguageID 和 Default 加 SaveUtil.Handlers；无子版本时隐藏选择器并传 Any。浏览器使用明确选择文件，不读取或扫描用户输入的磁盘路径。
+
+处理器顺序为 Default、FooterRTC、GCI、DeSmuME、ARDS、NSO。RTC 允许基础长度加 7 bytes 或 12–48 的偶数尾部；DSV 为 G4RAW+0x7A 且以 `|-DESMUME SAVE-|` 结束；ARDS 为 G4RAW+0xA4，无额外头部认证；GCI 为三个 GameCube 原长度+0x40 并核对四字符游戏代码；NSO 核对 SRAM 头及长度，最终写入须重算小写十六进制 SHA1 存档摘要。头／尾和 Handler 均由 Metadata 保存，不能将拆出的主体误称为原容器。
+
+`SaveUtil.TryGetSaveFileHandler(..., handler, typeInfo)` 在成功 TrySplit 后调用 `GetSaveFileInternal(data, typeInfo)`，传入原 data 而非 split.Data；自动识别重载则使用 split.Data。此来源差异可能让手动头／尾格式错误地把容器当主体，后续必须通过各处理器完整文件对照确定修正，不能直接复刻该分支并宣称支持。原始 bytes、失败路径、选定类型／语言／子版本和正确容器导出均应单独验证。当前仅源码证据，不属于产品能力，也不缩小完整接入范围。
+
+现有 `SaveService.Open` 每次以复制后的 bytes 调用自动 SaveUtil.GetSaveFile，前端保存原／工作 bytes 后也会在后续操作重新打开。因此手动识别不能只返回一次报告或把数据包装成可自动识别样本；选择的类型、子版本、语言和处理器必须绑定明确存档上下文，并在后续读取、编辑、撤销、导出和 Worker 重建时保留，切换存档时清理。原容器与 Metadata 的头／尾也须对应同一上下文，确认不可作用于另一个文件。
+
+## 基础训练家窗口（SAV_SimpleTrainer，API162 工程检查通过）
+
+已核对 PKHeX 26.08.26 `Subforms/Save Editors/SAV_SimpleTrainer.cs`／Designer 与 Core `SAV1`、`SAV2`、`SAV3Colosseum`、`SAV3XD`。现有通用入口不覆盖 GB 代币／徽章／设置／皮卡丘字段，GC 游玩时间也未开放；这些属于本模块实际缺口，不以已有 DS 日期能力代替。
+
+内部 `SimpleTrainerEditing` 读取额外字段，在独立克隆中逐项编辑或按来源控件顺序重新保存。GB 徽章宽度为 8／16 位；第二世代 UI 调换第 5／6 个勾选控件的位置，仍使用各自原位编号构造掩码。代币上限来自 `MaxCoins`，输入掩码按上限十进制位数设置。皮卡丘亲密度为 0–255／三位，海滩分数为 0–9999／四位，仅 Yellow 暴露编辑；原窗口重新保存仍写入隐藏皮卡丘字段。文本速度 0–7、战斗模式／动画 0–1；第一世代声音 0–3，第二世代选择 0／1 对应 Core 的 0／2。普通编辑保留未改字节及异常旧值。
+
+游玩时间沿来源五位小时／两位分钟和秒：小时解析为 ushort（0–65535），分钟和秒新输入 0–99，写入取余 60。第一世代小时 setter 在 255 及以上截到 255、设置最大时间标志并清理其余时间，随后来源仍写分钟和秒；竞技场以浮点秒、XD 按地区以浮点或双精度秒保存，需按真实 setter 顺序核验，不能宣称全部输入精确可表示。DS 地图范围为 0–1000／X、Y 0–65535／Z ±65535，未编辑地图时整窗保存不重写坐标。
+
+DS 日期／时钟控件分别保存日历和时钟，允许 2099-12-31 当天完整秒数；冒险日历最小 2000，名人堂日历无显式 MinDate，但原 uint epoch 无法表示负秒数。Web 保留现有 unsigned 转换修正，不复现 DateUtil 在 2068 年后的 signed-int 溢出。来源整窗保存对 G5 两个 ulong 日期调用低 uint 属性 setter，需明确覆盖高位重写；普通字段编辑继续保留未改高位。
+
+当前仅内部读写层和专项断言，API161 保持，尚无公开 Worker 接线及正式 UI。专项 `37547` 正在运行（TEMP/pokerngkit-simple-trainer-native.log/.exit），编译输入冻结，只收现有句柄。当前不声明完整检查或模块完成；仍需完整来源保存对照、GC 精度／格式夹具、三语入口与冻结预览／确认、最新核心／裁剪／完整工程和实际浏览器核验。
+
+最新内部专项 `66245` 退出 0（TEMP/pokerngkit-simple-trainer-session-gb.log/.exit）。GB 英／日 RB、Yellow、GS、Crystal 全部设置组合及代币／徽章／时间／皮卡丘边界、GB 时间掩码及最大标志联动、E／五种 DS 来源保存／日期边界通过；竞技场／XD 补齐各槽识别头签名，以完整加密容器自动识别、独立 setter 顺序／精度和校验对照通过，不再依赖指定格式绕过识别。`SimpleTrainerSession` 冻结完整输出，一次确认、替换／旧取消、过期原数据与失败准备清理覆盖 GB、E、竞技场和 XD。源码未修改 Core；GB/GBA `CloneInternal` 调用 GetFinalData 会整理源对象，新适配器在 finally 恢复源数据与 Edited 状态，独立测试参照从原 bytes 重新读取，原缓冲、队伍、箱子数据检查保持。
+
+前端 `simpleTrainer` 16 项范围／旧值／字段归属专项及校验层 Lint 通过。三语 `SimpleTrainerEditor` 已写组件，复用共享 Select、字段、工具条和预览，未挂载到正式工作区。首轮界面 Lint 因 render 内更新 refs 失败，已移到 effect；最新 Lint 通过，类型 `53850` 尚在运行。仍未接公开 JSON／JSExport、客户端／Worker／主入口，API161 保持；基础身份的 GB 主入口、完整重保存差异预览及其他区域夹具还需继续核对。完整工程门槛、提交与页面验收未完成。
+
+公开 JSON／JSExport 已加入读取、冻结预览、一次确认和指定令牌取消；来源生成 JSON 记录要求 Action／SourceHash 与确认三字段，请求上限 32767 字符、确认 4096。错误／缺失 JSON 清除旧预览。专项 `99013` 和最后时间修订 `8706` 退出 0，覆盖 GB 英／日、E、竞技场／XD 的公开 JSON／冻结完整导出与失败清理。逐项时间编辑按小时、分钟、秒顺序恢复省略的原时间分量，避免第一世代最大小时／XD 小时 setter 清零其他分量；小时单项完整文件对照通过。整窗重新保存仍沿来源掩码／setter 的全部行为。
+
+界面补齐既有徽章网格／复选框样式，取消卸载后迟到的预览，只提交确认字段而不把显示对象发送给 Core。首轮类型 `53850` 因测试对象数组推断出 undefined 字段失败，改显式字典类型；前端 16 项及定向 Lint 重跑通过，修正后的类型 `93389` 已退出 0；末次确认对象字段提取等界面逻辑改动仍由后续完整 verify 收口。当前 Native 接口尚未重建到浏览器资源，客户端／Worker／正式入口未接，版本仍为开发基线 API161。后续必须完成协议升级与正式接线、完整来源保存差异预览、其余区域夹具、最新核心／裁剪／完整 verify／默认完整原生与浏览器核验；本批未提交。
+
+API162 已接正式训练家页、客户端请求、Worker 与握手，四种操作走独立冻结令牌；确认复用完整工作副本／历史撤销／导出，不把显示对象提交为确认。原有基础字段与补充工具草稿互斥。GB 只开放训练家能力，不据此开放普通宝可梦编辑；里 ID 控件隐藏，Native 拒绝非零新 SID。基础训练家来源 TextBox 没有 MinLength，GB、GBA、GC、DS 的空姓名按来源允许，仍核对字符、实际编码和上限。金钱／代币最大值按钮共用 44px 的金额操作布局；徽章与候选沿既有控件。
+
+预览新增来源／结果完整字段目录，按三语显示姓名、金钱、时间、国家／地区、日期及 G5 日期高位的实际变化；第一世代时间帧数／上限标记也可核对。原生专项 `92663` 退出 0，包含公开 GB 身份、空姓名／最大金钱／隐藏 SID、完整文件原件保护，以及 G5 高位清零的冻结预览／导出。前端三文件 `80064` 的 130 项通过、定向 Lint 通过，类型仍同一流水线；首轮原生因测试 MaxMoney 的 int→uint 参数失败已修正。地区扩大专项 `59335` 正在运行（TEMP/pokerngkit-simple-trainer-regions.log/.exit），追加韩国 GS 与 XD 日版浮点布局，不改编译输入、不重复启动。最后姓名行为修订的前端 `55299` 运行中。浏览器 Core 资源尚未重建，仍需最新核心／裁剪／完整 verify／默认完整原生、资源一致和真实页面核验；本批未提交，不宣称整体接入完成。
+
+地区扩大 `59335`、姓名修订三文件 130 项 `55299` 与浏览器核心 `32863` 已退出 0。日版 XD 通过影子表 0x1E00 长度明确选择浮点时间布局；韩国 GS 自动识别及专属校验布局／冻结导出通过。首轮接线类型 `80064` 因工作区应用函数返回 void 而失败，现用实际应用回调返回成功标记，修正后类型 `30788` 已退出 0；末次界面 Lint `12057` 通过。空补充字段区不渲染，不挤占 GBA／DS 重新保存工具空间。
+
+最后裁剪→默认完整原生串行 `85811` 与完整前端 verify `87470` 已启动，日志为 TEMP/pokerngkit-simple-trainer-trim／full／verify.log/.exit；只收现有句柄、不改原生编译输入、不重复启动。Native API162 已重建到 public/pkhex/_framework，需在完整网页构建后核对 public／dist。Chrome 最新仍 tabs 空、nodeRepl.fetch request failed，实际页面／所有者验收未完成。本批未提交，完整工程终态及最后格式后再按既有授权普通提交推送。
+
+完整 verify `87470` 已退出 0，301 文件／1429 项及网页／PWA 257 项（24762.72KiB）通过。99 个框架文件 public／dist 哈希一致，原 E.sav 哈希保持；裁剪已通过，默认完整原生 `85811` 仍运行，尚无总终态。源码未追加，不重启检查；原生终态后再最后记录／格式与普通提交推送。真实页面、浏览器工作副本／撤销／下载及所有者验收仍待完成。
+
+默认完整原生 `85811` 已最终退出 0，覆盖新增基础训练家与全部既有模块；核心、裁剪、完整前端和资源一致性检查已收齐。最后文档与全仓格式后普通提交推送，标题 `feat: 补齐基础训练家编辑与保存`。这些结果是工程证据，真实 Chrome 页面及所有者验收仍未完成，完整 PKHeX 接入目标保持。
+
 ## 相遇数据库（SAV_Encounters，API158 开发阶段）
 
 来源已读取WinForms `Subforms/SAV_Encounters.cs`／Designer及Core `SearchSettings`、`EncounterMovesetGenerator`、`EncounterCriteria`、`EncounterDatabaseSettings`和`TrainerDatabase`。现有相遇字段编辑器不覆盖该数据库：需独立模板检索、类型筛选、条件生成、训练家来源、转换和完整准备编辑。

@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "simpleTrainer"
+  | "simpleTrainerPreview"
+  | "simpleTrainerCommit"
+  | "simpleTrainerDiscard"
   | import("./mysteryGiftDatabaseProtocol").MysteryGiftDatabaseRequestKind
   | import("./saveFolderProtocol").SaveFolderRequestKind
   | import("./encounterProtocol").EncounterRequestKind

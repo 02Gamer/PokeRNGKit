@@ -15,7 +15,7 @@ import {
 
 export const emeraldReport: SaveReport = {
   pokedex: { kind: "simple", canEdit: true },
-  apiVersion: 161,
+  apiVersion: 162,
   trainer: {
     appearance6: null,
     gameVersion: { value: 3, choices: [] },
@@ -1072,9 +1072,24 @@ describe("save editor boundaries", () => {
     );
     expect(changeTrainerCountry(zero, report, "2", "ja").region).toBe("0");
   });
-  it("allows the source trainer window's empty name only for full Generation VI saves", () => {
+  it("allows empty names for the source simple and Generation VI trainer windows", () => {
     const report = emeraldReport;
-    for (const format of ["SAV6XY", "SAV6AO"]) {
+    for (const format of [
+      "SAV1",
+      "SAV2",
+      "SAV3RS",
+      "SAV3E",
+      "SAV3FRLG",
+      "SAV3Colosseum",
+      "SAV3XD",
+      "SAV4DP",
+      "SAV4Pt",
+      "SAV4HGSS",
+      "SAV5BW",
+      "SAV5B2W2",
+      "SAV6XY",
+      "SAV6AO",
+    ]) {
       const gen6 = { ...report, format, generation: 6, maxNameLength: 12 };
       expect(
         validateTrainer({ ...trainerDraft(gen6), money: "" }, gen6).money,
@@ -1084,7 +1099,10 @@ describe("save editor boundaries", () => {
       );
     }
     expect(() =>
-      validateTrainer({ ...trainerDraft(report), ot: "" }, report),
+      validateTrainer(
+        { ...trainerDraft(report), ot: "" },
+        { ...report, format: "SAV8BS" },
+      ),
     ).toThrow();
   });
 });

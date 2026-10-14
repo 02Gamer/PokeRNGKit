@@ -21,6 +21,15 @@ public static partial class Program
     public static string Inspect(byte[] data) => SaveService.Inspect(data);
 
     [JSExport]
+    public static string ReadSimpleTrainer(byte[] data) => SaveService.ReadSimpleTrainer(data);
+    [JSExport]
+    public static string PreviewSimpleTrainer(byte[] data, string json) => SaveService.PreviewSimpleTrainer(data, json);
+    [JSExport]
+    public static byte[] CommitSimpleTrainer(byte[] data, string json) => SaveService.CommitSimpleTrainer(data, json);
+    [JSExport]
+    public static void DiscardSimpleTrainer(string token) => SaveService.DiscardSimpleTrainer(token);
+
+    [JSExport]
     public static string ReadPersonalChart(byte[] data) => SaveService.ReadPersonalChart(data);
 
     [JSExport]
@@ -606,7 +615,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 161;
+    public const int ApiVersion = 162;
     public static string ReadPersonalChart(byte[] data) => JsonSerializer.Serialize(PersonalChart.Read(Open(data)), SaveJsonContext.Default.PersonalChartCatalog);
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
@@ -789,7 +798,7 @@ public static partial class SaveService
         SAV3RS or SAV3E or SAV3FRLG or SAV3Colosseum or SAV3XD or
         SAV4DP or SAV4Pt or SAV4HGSS or SAV5BW or SAV5B2W2 or
         SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS;
-    internal static bool CanEditTrainer(SaveFile save) => CanEdit(save) || save is SAV6AODemo;
+    internal static bool CanEditTrainer(SaveFile save) => CanEdit(save) || save is SAV1 or SAV2 or SAV6AODemo;
 
     public static string ReadHistory(byte[] data, string json)
     {
@@ -876,7 +885,7 @@ public static partial class SaveService
             valid && CanEdit(save) && save.State.Exportable,
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
             PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), ZaPokedex.Supports(save) ? new PokedexCapability("za", valid && save.State.Exportable) : save is SAV9SV ? new PokedexCapability("sv", valid && save.State.Exportable) : save is SAV8LA ? new PokedexCapability("legends", valid && save.State.Exportable) : save is SAV8SWSH ? new PokedexCapability("swsh", valid && save.State.Exportable) : save is SAV8BS ? new PokedexCapability("bdsp", valid && save.State.Exportable) : save is SAV7 or SAV7b ? new PokedexCapability("gen7", valid && save.State.Exportable) : save is SAV6XY or SAV6AO ? new PokedexCapability("gen6", valid && save.State.Exportable) : save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
-        report = report with { BrProfiles = Br4Editing.Profiles(save), TrainerOnly = valid && save.State.Exportable && save is SAV6AODemo, RegisteredTeams = RegisteredGroups.Supports(save) };
+        report = report with { BrProfiles = Br4Editing.Profiles(save), TrainerOnly = valid && save.State.Exportable && save is SAV1 or SAV2 or SAV6AODemo, RegisteredTeams = RegisteredGroups.Supports(save) };
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -1291,6 +1300,10 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(OriginQuery))]
 [JsonSerializable(typeof(OriginCatalog))]
 [JsonSerializable(typeof(TrainerEdit))]
+[JsonSerializable(typeof(SimpleTrainerCatalog))]
+[JsonSerializable(typeof(SimpleTrainerRequest))]
+[JsonSerializable(typeof(SimpleTrainerPreview))]
+[JsonSerializable(typeof(SimpleTrainerConfirmation))]
 [JsonSerializable(typeof(PokemonEdit))]
 [JsonSerializable(typeof(PokemonRawEdit))]
 [JsonSerializable(typeof(BoxEdit))]

@@ -121,6 +121,13 @@
   margin-bottom: 8px;
   font-weight: 600;
 }
+.save-editor-fields .save-editor-amount {
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: end;
+}
+.save-editor-fields .save-editor-amount > span {
+  grid-column: 1 / -1;
+}
 .save-food-fields {
   display: grid;
   gap: 12px;

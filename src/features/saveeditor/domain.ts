@@ -12,6 +12,7 @@ import {
   type TrainerSpatialField,
 } from "./trainerSpatialPosition";
 import { trainerDateValue, validateTrainerDates } from "./trainerDates";
+import { supportsSimpleTrainer } from "./simpleTrainer";
 export const MAX_SAVE_BYTES = 32 * 1024 * 1024;
 export const TRAINER_CURRENCY_KEYS = [
   "bp",
@@ -61,7 +62,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 161;
+  apiVersion: 162;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -373,15 +374,19 @@ export function rebaseTrainerDraft(
 export function validateTrainer(draft: TrainerDraft, report: SaveReport) {
   if (!(report.canEdit || report.trainerOnly) || !report.checksumsValid)
     throw new Error("This save is read-only.");
-  const minName = [
-    "SAV6XY",
-    "SAV6AO",
-    "SAV6AODemo",
-    "SAV7SM",
-    "SAV7USUM",
-  ].includes(report.format)
-    ? 0
-    : 1;
+  const minName =
+    supportsSimpleTrainer(report.format) ||
+    [
+      "SAV1",
+      "SAV2",
+      "SAV6XY",
+      "SAV6AO",
+      "SAV6AODemo",
+      "SAV7SM",
+      "SAV7USUM",
+    ].includes(report.format)
+      ? 0
+      : 1;
   if (
     draft.ot.length < minName ||
     draft.ot.length > report.maxNameLength ||
@@ -927,6 +932,8 @@ export interface SaveEditorResult {
   trainer7?: import("./trainer7").Tr7Catalog;
   trainer7Preview?: import("./trainer7").Tr7Preview;
   trainer6?: import("./trainer6").Tr6Catalog;
+  simpleTrainer?: import("./simpleTrainer").SimpleTrainerCatalog;
+  simpleTrainerPreview?: import("./simpleTrainer").SimpleTrainerPreview;
   zygarde7?: import("./zygarde7").Zygarde7Catalog;
   hall7?: import("./hall7").Hall7Catalog;
   hall7Preview?: import("./hall7").Hall7Preview;

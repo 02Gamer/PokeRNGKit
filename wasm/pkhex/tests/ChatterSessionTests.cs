@@ -6,7 +6,7 @@ internal static class ChatterSessionTests
 {
     public static void Run()
     {
-        Check(SaveService.ApiVersion == 161, "Chatter product protocol");
+        Check(SaveService.ApiVersion == 162, "Chatter product protocol");
         foreach (string version in new[] { "D", "Pt", "HG", "B", "B2" })
         {
             var input = File.ReadAllBytes($".tmp/pkhex-fixtures/{version}.sav"); var original = input.ToArray(); var hash = Br4Editing.Hash(input);
