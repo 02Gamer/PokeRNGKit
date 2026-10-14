@@ -10,7 +10,7 @@ internal static class RegisteredGroupsTests
     private const int StoredPk1Size = 33;
     public static void Run()
     {
-        Check(SaveService.ApiVersion == 159, "Registered group product protocol");
+        Check(SaveService.ApiVersion == 160, "Registered group product protocol");
         // The SAV1StadiumJ blank constructor routes PK1 list serialization into
         // a Stadium raw slot and throws. Use exact-sized typed input readers.
         foreach (var seed in new SAV_STADIUM[] { new SAV1StadiumJ(new byte[SaveUtil.SIZE_G1STADJ]), new SAV1Stadium(new byte[SaveUtil.SIZE_G1STAD], false), new SAV1Stadium(new byte[SaveUtil.SIZE_G1STAD], true), new SAV2Stadium(new byte[SaveUtil.SIZE_G2STAD], false), new SAV2Stadium(new byte[SaveUtil.SIZE_G2STAD], true) })
@@ -83,7 +83,7 @@ internal static class RegisteredGroupsTests
             using var api = JsonDocument.Parse(SaveService.ReadRegisteredGroups(recognizedBytes));
             Check(api.RootElement.GetProperty("groups").GetArrayLength() == count, "Recognized fixture group public API");
             using var inspection = JsonDocument.Parse(SaveService.Inspect(recognizedBytes));
-            Check(inspection.RootElement.GetProperty("apiVersion").GetInt32() == 159 && inspection.RootElement.GetProperty("registeredTeams").GetBoolean(), "Public group capability and API version");
+            Check(inspection.RootElement.GetProperty("apiVersion").GetInt32() == 160 && inspection.RootElement.GetProperty("registeredTeams").GetBoolean(), "Public group capability and API version");
             var query = new RegisteredGroupPosition(expectedFirst, 2);
             using var result = JsonDocument.Parse(SaveService.AnalyzeRegisteredGroup(recognizedBytes, JsonSerializer.Serialize(query, SaveJsonContext.Default.RegisteredGroupPosition)));
             Check(result.RootElement.GetProperty("position").GetProperty("group").GetInt32() == expectedFirst && result.RootElement.GetProperty("report").GetProperty("box").GetInt32() == RegisteredGroups.ReadOnlyBox, "Analysis response carries independent group position");

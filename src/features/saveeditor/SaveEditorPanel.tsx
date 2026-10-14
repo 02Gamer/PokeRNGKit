@@ -1,4 +1,9 @@
 import { SCBlockEditor } from "./SCBlockEditor";
+import {
+  MysteryGiftDatabaseViewer,
+  type MysteryGiftDatabaseActions,
+} from "./MysteryGiftDatabaseViewer";
+import { mysteryGiftDatabaseWords } from "./mysteryGiftDatabaseWords";
 import { SaveFolderViewer } from "./SaveFolderViewer";
 import { saveFolderWords } from "./saveFolderWords";
 import { rememberSaveFolderFile } from "./saveFolderRepository";
@@ -3984,6 +3989,21 @@ export function SaveEditorPanel(
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
     });
 
+  const giftDatabaseActions: MysteryGiftDatabaseActions = {
+    request: async (kind, json, entity) => {
+      let response: import("./domain").SaveEditorResult | undefined;
+      await perform(async (id) => {
+        if (!working.current) return;
+        const result = await client.current
+          .runMysteryGifts(working.current, json, kind, entity)
+          .catch(() => {
+            throw Error(mysteryGiftDatabaseWords[batchLang].failed);
+          });
+        if (id === operation.current) response = result;
+      });
+      return response;
+    },
+  };
   const encounterActions: EncounterActions = {
     request: async (kind, json, entity) => {
       let response: import("./domain").SaveEditorResult | undefined;
@@ -4280,6 +4300,11 @@ export function SaveEditorPanel(
         {
           id: "database",
           label: databaseWords[batchLang].title,
+          available: true,
+        },
+        {
+          id: "giftDatabase",
+          label: mysteryGiftDatabaseWords[batchLang].title,
           available: true,
         },
         {
@@ -4767,7 +4792,16 @@ export function SaveEditorPanel(
                 words.title
               }
             >
-              {section === "encounters" ? (
+              {section === "giftDatabase" ? (
+                <MysteryGiftDatabaseViewer
+                  key={`${name}:${fileRevision}:${workingRevision}`}
+                  lang={batchLang}
+                  busy={busy}
+                  report={report}
+                  actions={giftDatabaseActions}
+                  databaseActions={databaseActions}
+                />
+              ) : section === "encounters" ? (
                 <PokemonEncounterViewer
                   key={`${name}:${fileRevision}:${workingRevision}`}
                   lang={batchLang}

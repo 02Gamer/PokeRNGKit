@@ -11,7 +11,7 @@ export function EncounterInstructionBuilder({
   value,
   onChange,
 }: {
-  catalog: EncounterCatalog;
+  catalog: Pick<EncounterCatalog, "formats" | "prefixes">;
   lang: "zh" | "en" | "ja";
   disabled: boolean;
   value: string;

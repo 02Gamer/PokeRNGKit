@@ -8,6 +8,10 @@
     <StartupObject>SaveEditorTests</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../MysteryGiftDatabase.cs" Link="MysteryGiftDatabase.cs" />
+    <Compile Include="../MysteryGiftDatabaseApi.cs" Link="MysteryGiftDatabaseApi.cs" />
+    <Compile Include="../MysteryGiftDatabaseCatalog.cs" Link="MysteryGiftDatabaseCatalog.cs" />
+    <Compile Include="../MysteryGiftDatabaseSession.cs" Link="MysteryGiftDatabaseSession.cs" />
     <Compile Include="../SaveFolderApi.cs" Link="SaveFolderApi.cs" />
     <Compile Include="../SaveFolderSession.cs" Link="SaveFolderSession.cs" />
     <Compile Include="../SaveFolderList.cs" Link="SaveFolderList.cs" />

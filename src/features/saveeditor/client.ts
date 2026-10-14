@@ -45,6 +45,22 @@ export class SaveEditorClient {
       );
     return this.runRequest(bytes, json, kind, entity);
   }
+  runMysteryGifts(
+    bytes: Uint8Array,
+    json: string,
+    kind: import("./mysteryGiftDatabaseProtocol").MysteryGiftDatabaseRequestKind,
+    entity?: Uint8Array,
+  ): Promise<SaveEditorResult> {
+    if (entity && entity.byteLength > 1024 * 1024)
+      return Promise.reject(
+        new Error("Mystery gift editor entity exceeds the local size limit."),
+      );
+    if (json.length > 24 * 1024 * 1024)
+      return Promise.reject(
+        new Error("Mystery gift metadata exceeds the local size limit."),
+      );
+    return this.runRequest(bytes, json, kind, entity);
+  }
   runSaveFolder(
     json: string,
     kind: import("./saveFolderProtocol").SaveFolderRequestKind,
