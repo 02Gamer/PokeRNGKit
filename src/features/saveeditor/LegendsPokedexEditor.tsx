@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
 import { speciesImage } from "./art";
+import {
+  LegendsResearchThresholds,
+  LegendsResearchPoints,
+} from "./LegendsResearchTask";
 import { localizeSaveError, type saveEditorResources } from "./locales";
 import { dex5Labels } from "./gen5PokedexLabels";
 import { dex8Number } from "./swshPokedex";
@@ -352,11 +356,19 @@ export function LegendsPokedexEditor({
                             taskValues[i]
                           )}
                         </td>
-                        <td>{task.thresholds.join(" / ")}</td>
+                        <td>
+                          <LegendsResearchThresholds
+                            task={task}
+                            current={taskValues[i] ?? state.tasks[i]}
+                            lang={lang}
+                          />
+                        </td>
                         <td>
                           {task.reported} / {task.thresholds.length}
                         </td>
-                        <td>{task.points}</td>
+                        <td>
+                          <LegendsResearchPoints task={task} lang={lang} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>

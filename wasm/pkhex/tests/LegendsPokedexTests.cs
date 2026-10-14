@@ -39,6 +39,11 @@ internal static class LegendsPokedexTests
             Check(catalog.Entries.Length == 242 && catalog.Entries.Select(e => e.Number).SequenceEqual(Enumerable.Range(1, 242)), "LA complete Hisui species/order");
             Check(catalog.Entries.All(e => e.Advanced.Length == 30 && e.State.Forms.Length == e.Forms.Length && e.Forms.Length > 0 && e.Tasks.Length == e.State.Tasks.Length), "LA complete form, task and advanced catalogs");
             Check(catalog.Entries.All(e => e.Name.Zh.Length > 0 && e.Tasks.All(t => t.Name.Zh.Length > 0 && t.Name.En.Length > 0 && t.Name.Ja.Length > 0)), "LA task localization");
+            foreach(var entry in catalog.Entries)for(int i=0;i<entry.Tasks.Length;i++) {
+                var task=PokedexConstants8a.ResearchTasks[entry.Number-1][i];
+                Check(entry.Tasks[i].BonusPoints==task.PointsBonus && entry.Tasks[i].Points==task.PointsSingle+task.PointsBonus,"All 242 species preserve independent source bonus and total points");
+                Check(entry.Tasks[i].Thresholds.SequenceEqual(task.TaskThresholds.Select(value=>(int)value)),"Source threshold order/values remain unchanged");
+            }
             foreach (var entry in catalog.Entries.Where(e => e.Forms.Length > 1 || e.State.Species is 25 or 399 or 493))
             {
                 var current = Open(input); var state = entry.State;

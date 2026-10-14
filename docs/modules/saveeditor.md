@@ -65,6 +65,24 @@ API160 公开接口／JSON 来源生成与 Worker／客户端已接：打开、�
 
 最终串行 `90401` 最新核心／property-trim／默认完整原生全部退出 0；完整 verify `5983` 退出 0，299 文件／1408 项、网页和 PWA 257 项（24749.72KiB）通过。99 框架文件 public／dist 哈希一致，原 E.sav 保持；交接格式 `61296` 退出 0。最后记录／格式后按已有授权普通提交推送，标题 `feat: 接入神秘礼物数据库与图像检索`。这些结果为完整工程证据；正式页面、真实 IndexedDB／下载和所有者验收仍未完成，不能宣称整个 PKHeX 接入目标已完成。
 
+## 阿尔宙斯研究任务面板（API161，工程检查通过）
+
+来源为 PKHeX 26.08.26 PokedexResearchTask8aPanel.cs／Designer、PokedexResearchTask8a.cs 与既有 LegendsPokedex。当前值沿 NumericUpDown 的十进制 0–60000，原未修改 ushort 高值保持；任务阈值为 Core 的 byte 数组，MaskedTextBox 使用 999 掩码且 Enabled=false，不开放阈值编辑。来源 ReportedCount=reportedLevel-1，GetTaskColor 逐索引比较当前值与阈值、索引是否小于 ReportedCount：已达成且已汇报、已达成待汇报、已汇报但当前未达、尚未达成。相等即已达成，不能只看已汇报计数或累计点数。源 FlowLayout 为 RightToLeft，并逆序加入控件，视觉仍按阈值原序；Web 保持 Core 原序并以文字与语义颜色显示状态。
+
+API161 为 Dex8aTask 增加独立 BonusPoints，直接取 task.PointsBonus；Points 仍为 PointsSingle+PointsBonus，编辑和研究点数计算不变。不可从总点数猜测奖励标记。页面在既有任务表内显示四状态及当前草稿／派生形态的实时预览，不新增操作或重复计数模型。既有计数输入、汇报／高级计数、工作副本／撤销／导出保持原路径；标签三语，最小辅助文字 13px，不以颜色独立表达状态，不改变共享控件几何。
+
+原版 research_bonus_points PNG 未修改导入，脚本 scripts/import-pkhex-research-art.mjs 核对 Resources.resx、PNG 签名与已有哈希后写入既有两个 manifest。来源 PKHeX.WinForms/Resources/img/Pokedex/research_bonus_points.png，483 bytes，SHA-256 4803A0624B2C382A917E23E35CB3346C5C8543F4F54CEEB98054695581EC84FC；图像沿同一 PKHeX GPL 归属，无运行时 CDN。API／Worker／独立实体握手及相关断言仅替换协议字段 160→161，不替换普通数值或图像编号。
+
+前端两文件 11 项专项已通过，覆盖等于阈值、报送进度回退、原始高值、三语状态与奖金图像、无奖励隐藏图像以及旧编辑保护。当前原生／全仓格式串行 `46033`（TEMP/pokerngkit-research-task-format、native.log/.exit）和类型／定向 Lint `67566`（TEMP/pokerngkit-research-task-types、lint.log/.exit）运行中，只收现有句柄；未提交本批，核心／裁剪／完整工程和真实页面仍待核验。上一神秘礼物目标已提交，整体完整接入目标继续。
+
+两修订原生专项 `46033`、类型／定向 Lint `67566` 与全仓格式 `11356` 均退出 0；新增断言逐种类／任务核对 BonusPoints、总点数与阈值原序，原有全部读写／汇报／原件保护检查仍通过。额外点数标签明确为总点数拆分，计算路径未变。最新核心→property-trim 串行 `64870` 运行中（TEMP/pokerngkit-research-task-core／trim.log/.exit），不修改编译输入、不重复启动；后续仍需最终完整前端与默认完整原生、资源匹配、末次文档格式及真实浏览器核验。当前开发批未提交，不据此声明整体目标完成。
+
+最新核心／property-trim 串行 `64870` 已全部退出 0；完整前端 verify `46958`、默认完整原生 `44369` 当前运行（TEMP/pokerngkit-research-task-final-verify／full.log/.exit），只收原句柄、不改编译输入、不重复启动。尚未提交；完整门槛成功后匹配资源和末次格式，再普通提交推送。后续 SimpleTrainer 日期已有通用实现，库存已纠正为来源范围／完整重保存核对，不把旧待办说明当成不存在的功能。
+
+最终完整 verify `46958` 退出 0，300 文件／1412 项、类型、网页与 PWA 257 项（24752.02KiB）通过。99 框架文件 public／dist 一致，原版研究图标两目录哈希一致且保持来源哈希，原 E.sav 哈希保持。默认完整原生 `44369` 仍同一活跃句柄；不改编译输入、不重复启动，终态后再最后记录／格式与普通提交推送。浏览器／真实存档及所有者验收仍待完成，当前不声明整体目标完成。
+
+最终默认完整原生 `44369` 已退出 0，覆盖新增研究任务断言与全部既有检查；核心／property-trim `64870`、完整前端 `46958` 均通过。当前模块工程门槛已收齐。Chrome 最新连接仍返回 `nodeRepl.fetch request failed`，实际页面、真实存档交互与所有者验收待完成；完整 PKHeX 接入范围保持。
+
 ## 存档目录列表（SAV_FolderList，API159，工程检查通过）
 
 只读核对 `Subforms/SAV_FolderList.cs` 与 Core `Editing/Saves/Management/SavePreview.cs`。原版分最近与备份列表，列为训练家姓名、世代、游戏、游玩时间、文件 UTC 时间、显示 TID／SID、文件夹及文件名；最近文件去重，排序后重新执行筛选。任意列模式显示全部并禁用文本筛选；单列使用 CurrentCultureIgnoreCase 的包含判断，空文本显示全部，空单元格不匹配。SavePreview 的 Played 补零至 9 字符，FileTime 使用 `yyyy.MM.dd:hh:mm:ss`（12 小时格式，不能悄悄改成 24 小时并称同源）。训练家 ID 格式由 Core 的 TrainerIDDisplayFormat 决定。

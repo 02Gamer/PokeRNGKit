@@ -10,7 +10,7 @@ public sealed record Dex8aState([property: JsonRequired] int Species, [property:
     [property: JsonRequired] int DisplayForm, [property: JsonRequired] bool DisplayFemale,
     [property: JsonRequired] bool DisplayShiny, [property: JsonRequired] bool DisplayAlpha, Dex8aFormState[] Forms, int[] Tasks);
 public sealed record Dex8aForm(int Form, LocalizedText Name, string[] Theory, int ObtainedGenderMask);
-public sealed record Dex8aTask(LocalizedText Name, bool Editable, bool DerivedForms, int[] Thresholds, int Reported, int Reached, int Points, bool Required);
+public sealed record Dex8aTask(LocalizedText Name, bool Editable, bool DerivedForms, int[] Thresholds, int Reported, int Reached, int Points, int BonusPoints, bool Required);
 public sealed record Dex8aCounter(LocalizedText Name, int Value);
 public sealed record Dex8aResearch(bool Updated, bool Complete, bool Perfect, int UpdateIndex, int Reported, int Pending);
 public sealed record Dex8aEntry(Dex8aState State, int Number, LocalizedText Name, bool CanSelectGender, Dex8aForm[] Forms, Dex8aTask[] Tasks, Dex8aCounter[] Advanced, Dex8aResearch Research);
@@ -77,7 +77,7 @@ internal static class LegendsPokedex
             var taskInfo = tasks.Select((task, i) => {
                 int delta = d.GetResearchTaskLevel(s, i, out int reported, out _, out int unreported);
                 int points = task.PointsSingle + task.PointsBonus; pending += delta * points;
-                return new Dex8aTask(Local(l => TaskName(task.Task, task.Index, task, l)), task.Task.CanSetCurrentValue(), task.Task == ObtainForms, task.TaskThresholds.Select(v => (int)v).ToArray(), reported - 1, unreported - 1, points, task.RequiredForCompletion);
+                return new Dex8aTask(Local(l => TaskName(task.Task, task.Index, task, l)), task.Task.CanSetCurrentValue(), task.Task == ObtainForms, task.TaskThresholds.Select(v => (int)v).ToArray(), reported - 1, unreported - 1, points, task.PointsBonus, task.RequiredForCompletion);
             }).ToArray();
             var forms = Forms(save, s).Select(f => {
                 var p = save.Personal.GetFormEntry(s, f); int pos = PokedexConstants8a.PokemonInfoIds.BinarySearch((ushort)(s | (f << 11)));

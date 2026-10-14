@@ -29,6 +29,7 @@ export interface Dex8aTask {
   reported: number;
   reached: number;
   points: number;
+  bonusPoints: number;
   required: boolean;
 }
 export interface Dex8aEntry {
@@ -151,6 +152,18 @@ export function projectedDex8aPoints(
     return total + Math.max(0, reached - task.reported) * task.points;
   }, entry.research.reported);
 }
+export type Dex8aThresholdState =
+  "reported" | "pending" | "regressed" | "unreached";
+// Source PokedexResearchTask8aPanel.GetTaskColor; use reported stages, not points.
+export function dex8aThresholdState(
+  current: number,
+  threshold: number,
+  index: number,
+  reported: number,
+): Dex8aThresholdState {
+  if (current >= threshold) return index < reported ? "reported" : "pending";
+  return index < reported ? "regressed" : "unreached";
+}
 export const legendsDexLabels = {
   zh: {
     form: "当前形态",
@@ -184,6 +197,13 @@ export const legendsDexLabels = {
     thresholds: "任务阈值",
     reportedSteps: "已汇报阶段",
     points: "每阶段点数",
+    bonusPoints: "其中额外点数",
+    thresholdStates: {
+      reported: "已达成／已汇报",
+      pending: "已达成／待汇报",
+      regressed: "已汇报／当前未达",
+      unreached: "尚未达成",
+    },
     required: "完成所需",
     report: "汇报当前宝可梦研究",
     advanced: "高级研究：全部 30 项计数",
@@ -227,6 +247,13 @@ export const legendsDexLabels = {
     thresholds: "Task thresholds",
     reportedSteps: "Reported stages",
     points: "Points per stage",
+    bonusPoints: "Includes bonus points",
+    thresholdStates: {
+      reported: "Reached / reported",
+      pending: "Reached / unreported",
+      regressed: "Reported / below threshold",
+      unreached: "Not reached",
+    },
     required: "Required for completion",
     report: "Report research for current Pokémon",
     advanced: "Advanced research: all 30 counters",
@@ -265,6 +292,13 @@ export const legendsDexLabels = {
     thresholds: "タスクのしきい値",
     reportedSteps: "報告済みの段階",
     points: "段階ごとの点数",
+    bonusPoints: "追加ポイント分",
+    thresholdStates: {
+      reported: "達成・報告済み",
+      pending: "達成・未報告",
+      regressed: "報告済み・現在未達成",
+      unreached: "未達成",
+    },
     required: "完成に必要",
     report: "現在のポケモンの研究を報告",
     advanced: "詳細研究：全 30 カウンター",

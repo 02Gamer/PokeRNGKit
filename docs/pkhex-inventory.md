@@ -15,12 +15,12 @@
 
 本轮源码核对确认以下缺口，仍需逐行复核完整清单及主窗口关联流程；此表不替代完整范围，也不表示其他模块已获所有者验收。
 
-| 来源                         | 当前证据与缺口                                                                                                                                               | 静态浏览器对应方式                                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `PokedexResearchTask8aPanel` | `LegendsPokedex` 已读取任务计数、阈值、报送级数、可编辑标记与每级点数；页面只显示阈值文本，尚缺逐阈值已报送／待报送／当前未达的状态及额外点数标识            | 在既有 LA 图鉴工作区补齐，不另造任务计数模型；输入沿 Designer 的 0–60000，阈值只读                                  |
-| `SAV_SimpleTrainer`          | 基础、地区、位置及 GBA 设置已有入口；来源还按 `SecondsToStart`／`SecondsToFame` 读取和保存开始／殿堂日期，仍须按实际存档类型及 Designer 界限核对             | 在现有训练家编辑中补齐，保留不支持类型与异常旧值，先预览后更新工作副本                                              |
-| `SaveHandlerTroubleshooter`  | 来源允许选择 SaveFileType、子版本、LanguageID 和具体 ISaveHandler，以 `SaveTypeInfo` 调用 `TryGetSaveFileHandler` 后强制打开；当前普通自动识别不能替代该流程 | 明确选择本机文件和识别参数，返回工作副本与错误；不扫描磁盘路径、不改原文件                                          |
-| `SettingsEditor`             | 来源逐页反射并本地化 PKHeXSettings，另有默认存档版本、记忆上次页签和重置；现有语言／主题及各模块设置不能直接算作全局设置已接                                 | 核对每项 Core／工作流偏好及实际作用范围；本机设置读写／重置可对应，启动 EXE、退出进程和删除桌面配置文件属于平台行为 |
+| 来源                         | 当前证据与缺口                                                                                                                                                                                                  | 静态浏览器对应方式                                                                                                  |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `PokedexResearchTask8aPanel` | API161 已补齐原序阈值四状态、三语文字、独立额外点数与原版图像；核心、裁剪、默认完整原生及完整前端工程检查通过，真实页面待核验                                                                                   | 在既有 LA 图鉴工作区补齐，不另造任务计数模型；输入沿 Designer 的 0–60000，阈值只读                                  |
+| `SAV_SimpleTrainer`          | 基础、地区、位置及 GBA 设置已有入口；TrainerDates.cs／TrainerDateFields 已提供 G4／G5 等日期读取／校验／编辑。仍须核对 SimpleTrainer 两个独立日期／时钟控件的范围、DateUtil signed-int 转换及来源整窗重保存语义 | 在现有训练家编辑中补齐，保留不支持类型与异常旧值，先预览后更新工作副本                                              |
+| `SaveHandlerTroubleshooter`  | 来源允许选择 SaveFileType、子版本、LanguageID 和具体 ISaveHandler，以 `SaveTypeInfo` 调用 `TryGetSaveFileHandler` 后强制打开；当前普通自动识别不能替代该流程                                                    | 明确选择本机文件和识别参数，返回工作副本与错误；不扫描磁盘路径、不改原文件                                          |
+| `SettingsEditor`             | 来源逐页反射并本地化 PKHeXSettings，另有默认存档版本、记忆上次页签和重置；现有语言／主题及各模块设置不能直接算作全局设置已接                                                                                    | 核对每项 Core／工作流偏好及实际作用范围；本机设置读写／重置可对应，启动 EXE、退出进程和删除桌面配置文件属于平台行为 |
 
 神秘礼物 API160 的完整原生与前端工程门槛已通过。真实 Chrome 页面、IndexedDB 和导出下载未验收；不得以本表或 Core 构建成功宣称完整接入。
 
@@ -419,7 +419,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/Gen7/SAV_Trainer7.cs`                                  | API 123 全窗口工程检查通过；六位 ID、地图／服装／废字节及冻结保存，浏览器待验收                                                                                                     |
 | `Subforms/Save Editors/Gen7/SAV_Trainer7GG.cs`                                | API 124：完整训练家／1000 格 GP1／文件及 ZIP 工程检查通过，浏览器待验收                                                                                                             |
 | `Subforms/Save Editors/Gen7/SAV_ZygardeCell.cs`                               | API 121：95／100 格、三语、储存／收集及来源保存全量工程通过；浏览器待验收                                                                                                           |
-| `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | 待核对                                                                                                                                                                              |
+| `Subforms/Save Editors/Gen8/PokedexResearchTask8aPanel.cs`                    | API161 已接原序阈值四状态／三语／独立奖励点数与原图，复用全部既有计数与汇报；完整工程检查通过，页面待核验                                                                           |
 | `Subforms/Save Editors/Gen8/SAV_BlockDump8.cs`                                | API147：四家族目录／导入导出／16组合／比较与冻结三语已接；完整工程通过，页面／真实存档待核验                                                                                        |
 | `Subforms/Save Editors/Gen8/SAV_FlagWork8b.cs`                                | API 83：八布局普通／系统标记、Int32 数值及比较已接入，浏览器待核验                                                                                                                  |
 | `Subforms/Save Editors/Gen8/SAV_Misc8b.cs`                                    | API 125：十项操作、冻结预览及完整工程检查通过，浏览器与真实存档待验收                                                                                                               |
@@ -459,7 +459,7 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_Inventory.cs`                                      | 读取/编辑/整理/图片含 HaX；浏览器待核验                                                                                                                                             |
 | `Subforms/Save Editors/SAV_MailBox.cs`                                        | API 141：目录／字段／消息／移动删除／队伍联动／三语冻结已接；工程通过，页面待核验                                                                                                   |
 | `Subforms/Save Editors/SAV_SimplePokedex.cs`                                  | 已接入 Gen1–3；区域布局、批量标记及联动规则通过工程检查                                                                                                                             |
-| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础/GBA 设置/DS 地区及坐标已接入；日期等字段待接入                                                                                                                                 |
+| `Subforms/Save Editors/SAV_SimpleTrainer.cs`                                  | 基础／GBA 设置／DS 地区和坐标／通用日期已接；SimpleTrainer 日期边界与来源整窗保存仍待完整核对                                                                                       |
 | `Subforms/Save Editors/SAV_Wondercard.cs`                                     | API 146：Gen4–7／LGPE 相册、三语图像、领取／卡片操作与本地 QR 已接；完整工程通过，页面待核验                                                                                        |
 | `Subforms/Save Editors/TrainerStat.cs`                                        | 读写与三语名称已接入；浏览器待核验                                                                                                                                                  |
 | `Subforms/SaveHandlerTroubleshooter.cs`                                       | 待核对                                                                                                                                                                              |

@@ -51,3 +51,5 @@ into the distribution legal folder. This adaptation does not modify the upstream
 2026-10-10：使用同一只读来源的 PKHeX.Drawing.Misc Resources.resx，导入 76 张未修改训练家 PNG（34762 bytes）。脚本为 scripts/import-pkhex-trainer-art.mjs；资源键、源路径与 SHA-256 使用既有两个 artwork manifest。Trainer6Names.cs 的窗口与城堡三语标签来自同版本 WinForms lang_zh-Hans／en／ja；缺少的头像枚举翻译沿用源窗口的实际名称。没有修改 Core、引入远程图片或运行时 CDN。
 
 The offline Mystery Gift QR adapter uses qrcode 1.5.4 (MIT), jsQR 1.4.0 (Apache-2.0), and dijkstrajs (MIT) from npm. Their unmodified license files are copied to the build legal directory. QR encoding and decoding run in a dedicated local Web Worker; no upstream QR web service is used.
+
+2026-10-14：从同一只读 PKHeX.WinForms Resources.resx 导入未修改的 research_bonus_points PNG（483 bytes）。脚本 scripts/import-pkhex-research-art.mjs，来源与 SHA-256 登记于既有 artwork manifest；用途为阿尔宙斯研究任务额外点数标识，沿同一 GPL 归属和图像权利声明，无运行时 CDN。

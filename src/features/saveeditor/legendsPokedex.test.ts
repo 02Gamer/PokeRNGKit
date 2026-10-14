@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   previewDex8aTasks,
   projectedDex8aPoints,
+  dex8aThresholdState,
   validateDex8a,
   type Dex8aEntry,
 } from "./legendsPokedex";
@@ -44,6 +45,7 @@ const entry = (): Dex8aEntry => ({
       reported: 1,
       reached: 1,
       points: 20,
+      bonusPoints: 10,
       required: false,
     },
     {
@@ -54,6 +56,7 @@ const entry = (): Dex8aEntry => ({
       reported: 0,
       reached: 0,
       points: 10,
+      bonusPoints: 0,
       required: false,
     },
     {
@@ -64,6 +67,7 @@ const entry = (): Dex8aEntry => ({
       reported: 1,
       reached: 1,
       points: 10,
+      bonusPoints: 0,
       required: true,
     },
   ],
@@ -78,6 +82,14 @@ const entry = (): Dex8aEntry => ({
   },
 });
 describe("Legends Arceus Pokédex", () => {
+  it("matches every source threshold state including equality and regressed reported progress", () => {
+    expect(dex8aThresholdState(3, 3, 0, 1)).toBe("reported");
+    expect(dex8aThresholdState(3, 3, 1, 1)).toBe("pending");
+    expect(dex8aThresholdState(2, 3, 0, 1)).toBe("regressed");
+    expect(dex8aThresholdState(2, 3, 1, 1)).toBe("unreached");
+    expect(dex8aThresholdState(65535, 255, 4, 5)).toBe("reported");
+    expect(dex8aThresholdState(0, 1, 0, -1)).toBe("unreached");
+  });
   it("copies editable state and keeps hidden/raw size text untouched", () => {
     const e = entry();
     e.state.forms[0].sizes = ["NaN", "Infinity", "-0", "invalid"];
