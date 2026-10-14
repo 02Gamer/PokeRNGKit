@@ -74,7 +74,7 @@ internal static class GlobalLink5Editing
                 foreach(var v in furniture){var f=b.GetFurniture(v.Index!.Value);if(v.Value is {} value)f.Value=(ushort)value;if(v.Name is {} name)f.Name=name;}
             }
         }else throw new ArgumentException("Invalid GlobalLink5 action.");
-        var expected=b.Data.ToArray();var output=copy.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray())as SAV5;
+        var expected=b.Data.ToArray();var output=copy.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output)as SAV5;
         if(check is null||check.GetType()!=copy.GetType()||check.Version!=copy.Version||output.Length!=sourceLength||!SaveChecksums.Valid(check)||!check.GlobalLink.Data.SequenceEqual(expected))throw new InvalidOperationException("GlobalLink5 export verification failed.");
         if(edit.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("GlobalLink5 preview target is stale.");return output;
     }
@@ -83,6 +83,6 @@ public static partial class SaveService
 {
     private static Gl5Edit ParseGlobalLink5(string json)=>json.Length>1100000?throw new ArgumentException("GlobalLink5 request is too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Gl5Edit)??throw new ArgumentException("Missing GlobalLink5 edit.");
     public static string ReadGlobalLink5(byte[] data)=>JsonSerializer.Serialize(GlobalLink5Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Gl5Catalog);
-    public static string PreviewGlobalLink5(byte[] data,string json){var edit=ParseGlobalLink5(json);var output=GlobalLink5Editing.Prepare(Open(data),edit,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Gl5Preview(edit with{TargetHash=hash},GlobalLink5Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Gl5Preview);}
+    public static string PreviewGlobalLink5(byte[] data,string json){var edit=ParseGlobalLink5(json);var output=GlobalLink5Editing.Prepare(Open(data),edit,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Gl5Preview(edit with{TargetHash=hash},GlobalLink5Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Gl5Preview);}
     public static byte[] EditGlobalLink5(byte[] data,string json){var edit=ParseGlobalLink5(json);if(edit.TargetHash?.Length!=64)throw new ArgumentException("GlobalLink5 editing requires a frozen preview.");return GlobalLink5Editing.Prepare(Open(data),edit,Br4Editing.Hash(data),data.Length);}
 }

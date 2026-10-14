@@ -120,12 +120,12 @@ internal static class HallOfFame1
     internal static byte[] Edit(byte[] data, Hall1Edit edit)
     {
         if (data.Length is 0 or > (32 * 1024 * 1024)) throw new ArgumentException("Save file must be between 1 byte and 32 MiB.");
-        var s = Save(SaveUtil.GetSaveFile(data.ToArray()) ?? throw new ArgumentException("Unrecognized save."));
+        var s = Save(SaveDetectionContext.OpenCurrent(data) ?? throw new ArgumentException("Unrecognized save."));
         if (!s.State.Exportable || !SaveChecksums.Valid(s)) throw new ArgumentException("Hall of Fame editing requires a valid exportable save.");
         Apply(s, edit);
         var expected = s.Data.Slice(Offset, HallOfFameReader1.SIZE).ToArray(); var count = s.HallOfFameCount;
         var output = s.Write().ToArray();
-        var check = Save(SaveUtil.GetSaveFile(output.ToArray()) ?? throw new InvalidOperationException("Hall of Fame output was not recognized."));
+        var check = Save(SaveDetectionContext.OpenDerived(output) ?? throw new InvalidOperationException("Hall of Fame output was not recognized."));
         if (output.Length != data.Length || check.Version != s.Version || check.SaveRevision != s.SaveRevision || !SaveChecksums.Valid(check)
             || check.HallOfFameCount != count || !check.Data.Slice(Offset, expected.Length).SequenceEqual(expected))
             throw new InvalidOperationException("Hall of Fame export verification failed.");

@@ -72,9 +72,9 @@ internal static class ChatterEditing
     public static string Snapshot(SaveFile save) => Convert.ToHexString(Data(save));
     public static byte[] Prepare(byte[] original, ChatterAction[] actions)
     {
-        var save = SaveUtil.GetSaveFile(original.ToArray()) ?? throw new ArgumentException("Chatter save is unrecognized.");
+        var save = SaveDetectionContext.OpenCurrent(original) ?? throw new ArgumentException("Chatter save is unrecognized.");
         Apply(save, actions); var expected = Snapshot(save); var output = save.Write().ToArray();
-        var reopened = SaveUtil.GetSaveFile(output.ToArray());
+        var reopened = SaveDetectionContext.OpenDerived(output);
         if (reopened is null || reopened.GetType() != save.GetType() || !SaveChecksums.Valid(reopened) || Snapshot(reopened) != expected)
             throw new InvalidOperationException("Chatter export verification failed.");
         return output;

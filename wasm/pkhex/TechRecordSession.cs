@@ -20,7 +20,7 @@ internal static class TechRecordSession
         if (target is null) throw new ArgumentException("Missing technical record target.");
         PKM entity;
         if (target.Kind == "file") entity = StandalonePokemon.Open(input, FileName(target), target.InputEncrypted, target.UseFileFormat).Entity;
-        else if (target.Kind == "save") entity = PokemonEditing.Read(SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Unrecognized technical record save."), target.Box, target.Slot);
+        else if (target.Kind == "save") entity = PokemonEditing.Read(SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Unrecognized technical record save."), target.Box, target.Slot);
         else throw new ArgumentException("Unknown technical record target.");
         return PokemonTechRecord.Read(entity, Br4Editing.Hash(input));
     }
@@ -32,7 +32,7 @@ internal static class TechRecordSession
             return Freeze(input, request, file.Entity, prepared, StandalonePokemon.Serialize(prepared, file.Party, false));
         }
         if (request.Target.Kind != "save") throw new ArgumentException("Unknown technical record target.");
-        return Prepare(SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Unrecognized technical record save."), input, request);
+        return Prepare(SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Unrecognized technical record save."), input, request);
     }
     internal static TechRecordTicket Prepare(SaveFile source, byte[] input, TechRecordRequest request) {
         Reset(); Validate(input, request);

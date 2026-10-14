@@ -109,7 +109,7 @@ internal static class Medals5Editing
                 foreach (int i in indices) { var x = h.GetHabitat(i); if (e.Action == "complete") x.SetComplete(); else x.Clear(); } break;
             default: throw new ArgumentException("Invalid Medals5 action.");
         }
-        var expected = b.Data.ToArray(); var output = copy.Write().ToArray(); var check = SaveUtil.GetSaveFile(output.ToArray()) as SAV5B2W2;
+        var expected = b.Data.ToArray(); var output = copy.Write().ToArray(); var check = SaveDetectionContext.OpenDerived(output) as SAV5B2W2;
         if (check is null || check.Version != copy.Version || output.Length != sourceLength || !SaveChecksums.Valid(check) || !check.Medals.Data.SequenceEqual(expected)) throw new InvalidOperationException("Medals5 export verification failed.");
         if (e.TargetHash is {} target && target != Br4Editing.Hash(output)) throw new ArgumentException("Medals5 preview target is stale.");
         return output;
@@ -119,7 +119,7 @@ public static partial class SaveService
 {
     private static Medals5Edit ParseMedals5(string json) => json.Length > 100000 ? throw new ArgumentException("Medals5 request is too large.") : JsonSerializer.Deserialize(json, SaveJsonContext.Default.Medals5Edit) ?? throw new ArgumentException("Missing Medals5 edit.");
     public static string ReadMedals5(byte[] data) => JsonSerializer.Serialize(Medals5Editing.Read(Open(data), Br4Editing.Hash(data)), SaveJsonContext.Default.Medals5Catalog);
-    public static string PreviewMedals5(byte[] data, string json) { var e = Medals5Editing.Freeze(ParseMedals5(json)); var output = Medals5Editing.Prepare(Open(data), e, Br4Editing.Hash(data), data.Length); var hash = Br4Editing.Hash(output); return JsonSerializer.Serialize(new Medals5Preview(e with { TargetHash = hash }, Medals5Editing.Read(Open(output), hash), Enumerable.Range(0, data.Length).Where(i => data[i] != output[i]).ToArray()), SaveJsonContext.Default.Medals5Preview); }
+    public static string PreviewMedals5(byte[] data, string json) { var e = Medals5Editing.Freeze(ParseMedals5(json)); var output = Medals5Editing.Prepare(Open(data), e, Br4Editing.Hash(data), data.Length); var hash = Br4Editing.Hash(output); return JsonSerializer.Serialize(new Medals5Preview(e with { TargetHash = hash }, Medals5Editing.Read(OpenDerived(output), hash), Enumerable.Range(0, data.Length).Where(i => data[i] != output[i]).ToArray()), SaveJsonContext.Default.Medals5Preview); }
     public static byte[] EditMedals5(byte[] data, string json) { var e = ParseMedals5(json); if (e.TargetHash?.Length != 64) throw new ArgumentException("Medals5 editing requires a frozen preview."); if (Medals5Editing.Freeze(e) != e) throw new ArgumentException("Missing Medals5 frozen automatic date."); return Medals5Editing.Prepare(Open(data), e, Br4Editing.Hash(data), data.Length); }
     public static byte[] ExportMedals5(byte[] data) => (Open(data) as SAV5B2W2 ?? throw new ArgumentException("Medals5 tools are unavailable for this format.")).Medals.AllMedals.ToArray();
 }

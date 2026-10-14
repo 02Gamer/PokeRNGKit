@@ -57,7 +57,7 @@ internal static class SimpleTrainerSession
         };
         byte[] output = result.Write().ToArray();
         if (output.Length != source.Length) throw Invalid();
-        var checkedSave = SaveUtil.GetSaveFile(output.ToArray()) ?? throw Invalid();
+        var checkedSave = SaveDetectionContext.OpenDerived(output) ?? throw Invalid();
         if (checkedSave.GetType() != save.GetType() || checkedSave.Version != save.Version || !SaveChecksums.Valid(checkedSave)) throw Invalid();
         // JSON record equality does not provide deep array/data checks; compare all stored bytes.
         if (!checkedSave.Data.SequenceEqual(result.Data)) throw new InvalidOperationException("Simple trainer export verification failed.");

@@ -87,7 +87,7 @@ internal static class CGear5Editing
         copy.SetCGearSkin(bg.Data); // Includes the ext-section footer, SkinInfo, and PlayerData note.
         var expected = bg.Data.ToArray();
         var output = copy.Write().ToArray();
-        var check = SaveUtil.GetSaveFile(output.ToArray()) as SAV5;
+        var check = SaveDetectionContext.OpenDerived(output) as SAV5;
         if (check is null || check.GetType() != copy.GetType() || check.Version != copy.Version ||
             output.Length != sourceLength || !SaveChecksums.Valid(check) ||
             !check.CGearSkinData.Span.SequenceEqual(expected))
@@ -114,7 +114,7 @@ public static partial class SaveService
         var edit = ParseCGear5(json);
         var (output, stats, changes) = CGear5Editing.Prepare(Open(data), edit, Br4Editing.Hash(data), data.Length);
         var hash = Br4Editing.Hash(output);
-        var preview = new CGear5Preview(edit with { TargetHash = hash }, CGear5Editing.Read(Open(output), hash),
+        var preview = new CGear5Preview(edit with { TargetHash = hash }, CGear5Editing.Read(OpenDerived(output), hash),
             stats?.ColorCount, stats?.TileCount, changes,
             Enumerable.Range(0, data.Length).Where(i => data[i] != output[i]).ToArray());
         return JsonSerializer.Serialize(preview, SaveJsonContext.Default.CGear5Preview);

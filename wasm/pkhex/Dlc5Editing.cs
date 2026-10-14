@@ -142,7 +142,7 @@ internal static class Dlc5Editing
                 copy.SetBattleTest(raw); break;
         }
         var expected = Raw(copy, edit.Kind, i); var output = copy.Write().ToArray();
-        var check = SaveUtil.GetSaveFile(output.ToArray()) as SAV5;
+        var check = SaveDetectionContext.OpenDerived(output) as SAV5;
         if (check is null || check.GetType() != copy.GetType() || check.Version != copy.Version || output.Length != sourceLength ||
             !SaveChecksums.Valid(check) || !expected.SequenceEqual(Raw(check, edit.Kind, i))) throw new InvalidOperationException("Dlc5 export verification failed.");
         if (edit.TargetHash is {} target && target != Br4Editing.Hash(output)) throw new ArgumentException("Dlc5 preview target is stale.");
@@ -167,7 +167,7 @@ public static partial class SaveService
     public static string PreviewDlc5(byte[] data, string json)
     {
         var edit = ParseDlc5(json); var (output, size, decrypted) = Dlc5Editing.Prepare(Open(data), edit, Br4Editing.Hash(data), data.Length);
-        var result = Dlc5Editing.Slot((SAV5)Open(output), edit.Kind, edit.Index!.Value);
+        var result = Dlc5Editing.Slot((SAV5)OpenDerived(output), edit.Kind, edit.Index!.Value);
         return JsonSerializer.Serialize(new Dlc5Preview(edit with { TargetHash = Br4Editing.Hash(output) }, result, size, decrypted,
             Enumerable.Range(0, data.Length).Where(i => data[i] != output[i]).ToArray()), SaveJsonContext.Default.Dlc5Preview);
     }

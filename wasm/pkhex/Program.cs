@@ -615,7 +615,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 162;
+    public const int ApiVersion = 163;
     public static string ReadPersonalChart(byte[] data) => JsonSerializer.Serialize(PersonalChart.Read(Open(data)), SaveJsonContext.Default.PersonalChartCatalog);
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
@@ -624,7 +624,7 @@ public static partial class SaveService
         var save = Open(data);
         if (!ZaPokedex.Supports(save) || !save.State.Exportable || !SaveChecksums.Valid(save)) throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.Dex9aEdit) ?? throw new ArgumentException("Pokedex edit is missing.");
-        var expected = ZaPokedex.Apply(save, edit); var output = save.Write().ToArray(); var check = Open(output);
+        var expected = ZaPokedex.Apply(save, edit); var output = save.Write().ToArray(); var check = OpenDerived(output);
         if (check is not SAV9ZA after || !ZaPokedex.Supports(check) || !SaveChecksums.Valid(check) || ZaPokedex.Snapshot(after) != expected) throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
     }
@@ -634,7 +634,7 @@ public static partial class SaveService
         var save = Open(data);
         if (save is not SAV9SV || !save.State.Exportable || !SaveChecksums.Valid(save)) throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.Dex9Edit) ?? throw new ArgumentException("Pokedex edit is missing.");
-        var expected = SvPokedex.Apply(save, edit); var output = save.Write().ToArray(); var check = Open(output);
+        var expected = SvPokedex.Apply(save, edit); var output = save.Write().ToArray(); var check = OpenDerived(output);
         if (check is not SAV9SV after || !SaveChecksums.Valid(check) || SvPokedex.Snapshot(after) != expected) throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
     }
@@ -645,7 +645,7 @@ public static partial class SaveService
         var save=Open(data);
         if(save is not SAV8LA||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.Dex8aEdit)??throw new ArgumentException("Pokedex edit is missing.");
-        var expected=LegendsPokedex.Apply(save,edit);var output=save.Write().ToArray();var check=Open(output);
+        var expected=LegendsPokedex.Apply(save,edit);var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check is not SAV8LA after||check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||LegendsPokedex.Snapshot(after)!=expected)throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
     }
@@ -655,7 +655,7 @@ public static partial class SaveService
         var save=Open(data);
         if(save is not SAV8SWSH||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.Dex8Edit)??throw new ArgumentException("Pokedex edit is missing.");
-        var expected=SwshPokedex.Apply(save,edit);var output=save.Write().ToArray();var check=Open(output);
+        var expected=SwshPokedex.Apply(save,edit);var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check is not SAV8SWSH after||check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||SwshPokedex.Snapshot(after)!=expected)throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
     }
@@ -665,7 +665,7 @@ public static partial class SaveService
         var save=Open(data);
         if(save is not SAV8BS||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.Dex8bEdit)??throw new ArgumentException("Pokedex edit is missing.");
-        var expected=BdspPokedex.Apply(save,edit);var output=save.Write().ToArray();var check=Open(output);
+        var expected=BdspPokedex.Apply(save,edit);var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check is not SAV8BS after||check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||BdspPokedex.Snapshot(after)!=expected)throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
     }
@@ -675,7 +675,7 @@ public static partial class SaveService
         var save=Open(data);
         if(save is not (SAV7 or SAV7b)||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.Dex7Edit)??throw new ArgumentException("Pokedex edit is missing.");
-        var expected=Gen7Pokedex.Apply(save,edit);var output=save.Write().ToArray();var check=Open(output);
+        var expected=Gen7Pokedex.Apply(save,edit);var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||Gen7Pokedex.Snapshot(check)!=expected)throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
     }
@@ -685,7 +685,7 @@ public static partial class SaveService
         var save=Open(data);
         if(save is not (SAV6XY or SAV6AO)||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.Dex6Edit)??throw new ArgumentException("Pokedex edit is missing.");
-        var expected=Gen6Pokedex.Apply(save,edit);var output=save.Write().ToArray();var check=Open(output);
+        var expected=Gen6Pokedex.Apply(save,edit);var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check is not SAV6 after||check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||Gen6Pokedex.Snapshot(after)!=expected)throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
     }
@@ -695,7 +695,7 @@ public static partial class SaveService
         var save=Open(data);
         if(save is not SAV5 gen5||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.Dex5Edit)??throw new ArgumentException("Pokedex edit is missing.");
-        var expected=Gen5Pokedex.Apply(gen5,edit);var output=save.Write().ToArray();var check=Open(output);
+        var expected=Gen5Pokedex.Apply(gen5,edit);var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check is not SAV5 after||check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||Gen5Pokedex.Snapshot(after)!=expected)throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
     }
@@ -706,7 +706,7 @@ public static partial class SaveService
         if (save is not SAV4 gen4 || !save.State.Exportable || !SaveChecksums.Valid(save)) throw new ArgumentException("Pokedex editing requires a supported valid save.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.Dex4Edit) ?? throw new ArgumentException("Pokedex edit is missing.");
         var expected = Gen4Pokedex.Apply(gen4, edit);
-        var output = save.Write().ToArray(); var check = Open(output);
+        var output = save.Write().ToArray(); var check = OpenDerived(output);
         if (check is not SAV4 after || check.GetType() != save.GetType() || !SaveChecksums.Valid(check) || Gen4Pokedex.Snapshot(after) != expected)
             throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
@@ -723,7 +723,7 @@ public static partial class SaveService
             throw new ArgumentException("Pokedex editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.SimpleDexEdit) ?? throw new ArgumentException("Missing Pokedex edit.");
         var expected = SimplePokedex.Apply(save, edit);
-        var output = save.Write().ToArray(); var check = Open(output);
+        var output = save.Write().ToArray(); var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || SimplePokedex.Snapshot(check) != expected)
             throw new InvalidOperationException("Pokedex export verification failed.");
         return output;
@@ -745,7 +745,7 @@ public static partial class SaveService
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.SaveRecordEdit) ?? throw new ArgumentException("Missing game record edit.");
         var expected=SaveRecords.Apply(save,edit);
-        var output=save.Write().ToArray(); var check=Open(output);
+        var output=save.Write().ToArray(); var check=OpenDerived(output);
         if(!SaveChecksums.Valid(check) || check.GetType()!=save.GetType() || SaveRecords.Snapshot(check)!=expected)
             throw new InvalidOperationException("Game record export verification failed.");
         return output;
@@ -762,7 +762,7 @@ public static partial class SaveService
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BagEdit) ?? throw new ArgumentException("Missing inventory edit.");
         var expected = InventoryEditing.Apply(save, edit);
         var output = save.Write().ToArray();
-        var check = Open(output);
+        var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
             throw new InvalidOperationException("Inventory export verification failed.");
         return output;
@@ -775,10 +775,18 @@ public static partial class SaveService
             throw new ArgumentException("Editing requires a supported save with valid checksums.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.BagOperation) ?? throw new ArgumentException("Missing inventory action.");
         var expected = InventoryBatch.Apply(save,edit);
-        var output = save.Write().ToArray(); var check = Open(output);
+        var output = save.Write().ToArray(); var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || InventoryEditing.Snapshot(check) != expected)
             throw new InvalidOperationException("Inventory export verification failed.");
         return output;
+    }
+
+    private static SaveFile OpenDerived(byte[] data)
+    {
+        var save = SaveDetectionContext.OpenDerived(data)
+            ?? throw new ArgumentException("Exported save could not be recognized.");
+        if (save is SAV4BR br && BRProfile >= 0) br.CurrentSlot = BRProfile;
+        return save;
     }
 
     private static SaveFile Open(byte[] data)
@@ -788,7 +796,7 @@ public static partial class SaveService
         if (data.Length >= 4 && data[0] == 0x50 && data[1] == 0x4B && data[2] == 3 && data[3] == 4)
             throw new ArgumentException("Extract the save from its ZIP archive before opening it.");
         // PKHeX owns this copy. Never pass the caller's original buffer to a parser.
-        var save = SaveUtil.GetSaveFile(data.ToArray())
+        var save = SaveDetectionContext.OpenCurrent(data)
             ?? throw new ArgumentException("Unrecognized save file. Open decrypted save data, not a ROM or encrypted console container.");
         if(save is SAV4BR br&&BRProfile>=0)br.CurrentSlot=BRProfile;
         return save;
@@ -865,7 +873,7 @@ public static partial class SaveService
         var position = new PokemonPosition(edit.Box, edit.Slot);
         var expected = StorageEditing.StoredData(save, position);
         var output = save.Write().ToArray();
-        var check = Open(output);
+        var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || !StorageEditing.StoredData(check, position).SequenceEqual(expected))
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         PokemonEditing.Verify(check, edit);
@@ -917,7 +925,7 @@ public static partial class SaveService
         var expected = StorageEditing.StoredData(save, position);
         var partyCount = save.PartyCount;
         var output = save.Write().ToArray();
-        var check = Open(output);
+        var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || check.PartyCount != partyCount ||
             !StorageEditing.StoredData(check, position).SequenceEqual(expected))
             throw new InvalidOperationException("Export verification failed. No file was exported.");
@@ -935,7 +943,7 @@ public static partial class SaveService
         var position = new PokemonPosition(edit.Box, edit.Slot);
         var expected = StorageEditing.StoredData(save, position);
         var output = save.Write().ToArray();
-        var check = Open(output);
+        var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || check.PartyCount != save.PartyCount ||
             !StorageEditing.StoredData(check, position).SequenceEqual(expected))
             throw new InvalidOperationException("Export verification failed. No file was exported.");
@@ -954,7 +962,7 @@ public static partial class SaveService
         var expected = positions.Select(p => StorageEditing.StoredData(save, p)).ToArray();
         var partyCount = save.PartyCount;
         var output = save.Write().ToArray();
-        var check = Open(output);
+        var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || check.PartyCount != partyCount ||
             positions.Where((position, index) => !StorageEditing.StoredData(check, position).SequenceEqual(expected[index])).Any())
             throw new InvalidOperationException("Export verification failed. No file was exported.");
@@ -975,7 +983,7 @@ public static partial class SaveService
         BoxEditing.Apply(save, edit);
         var expected = BoxEditing.Snapshot(save);
         var output = save.Write().ToArray();
-        var check = Open(output);
+        var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType())
             throw new InvalidOperationException("Export verification failed. No file was exported.");
         BoxEditing.Verify(check, edit);
@@ -993,7 +1001,7 @@ public static partial class SaveService
         TrainerEditing.Apply(save,edit);
         var expected = TrainerEditing.Snapshot(save);
         var output = save.Write().ToArray();
-        var check = Open(output);
+        var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() ||
             TrainerEditing.Snapshot(check) != expected)
             throw new InvalidOperationException("Export verification failed. No file was exported.");

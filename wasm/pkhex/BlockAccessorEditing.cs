@@ -32,7 +32,7 @@ internal static class BlockAccessorEditing
         }
         // SAV5.GetFinalData re-encrypts EntreeForest/Mystery after getter-based access.
         var output = copy.Write().ToArray();
-        var reopened = SaveUtil.GetSaveFile(output.ToArray());
+        var reopened = SaveDetectionContext.OpenDerived(output);
         if (reopened is null || reopened.GetType() != copy.GetType() || output.Length != original.Length || !SaveChecksums.Valid(reopened))
             throw new InvalidOperationException("Block accessor export verification failed.");
         return output;

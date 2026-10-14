@@ -20,7 +20,7 @@ internal static class MoveShopSession
     {
         if (target.Kind == "file") return StandalonePokemon.Open(data, FileName(target), target.InputEncrypted, target.UseFileFormat).Entity;
         if (target.Kind != "save") throw new ArgumentException("Unknown Move Shop target.");
-        var source = SaveUtil.GetSaveFile(data.ToArray()) ?? throw new ArgumentException("Move Shop save is unrecognized.");
+        var source = SaveDetectionContext.OpenCurrent(data) ?? throw new ArgumentException("Move Shop save is unrecognized.");
         return PokemonEditing.Read(source, target.Box, target.Slot);
     }
     internal static MoveShopCatalog Read(byte[] data, MoveShopTarget target)
@@ -39,7 +39,7 @@ internal static class MoveShopSession
             return Freeze(input, request, file.Entity, prepared, StandalonePokemon.Serialize(prepared, file.Party, false));
         }
         if (request.Target.Kind != "save") throw new ArgumentException("Unknown Move Shop target.");
-        return Prepare(SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Move Shop save is unrecognized."), input, request);
+        return Prepare(SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Move Shop save is unrecognized."), input, request);
     }
     internal static MoveShopTicket Prepare(SaveFile source, byte[] input, MoveShopRequest request)
     {

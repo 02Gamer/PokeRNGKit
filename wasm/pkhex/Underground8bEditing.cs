@@ -25,7 +25,7 @@ internal static class Underground8bEditing
         if(e.Action=="patch"&&e.Entries is null)throw new ArgumentException("Missing Underground8b changes.");var copy=(SAV8BS)s.Clone();var items=copy.Underground.ReadItems();
         if(e.Entries is {} rows)foreach(var v in rows){var item=items[v.Index];if(v.Count is {} c)item.Count=c;if(v.New is {} n)item.HideNewFlag=!n;if(v.Favorite is {} f)item.IsFavoriteFlag=f;}
         if(e.Action is "all" or "none")foreach(var v in items.Where(v=>v.Type!=UgItemType.None)){if(e.Action=="all")v.Count=v.MaxValue;else{v.Count=0;v.HideNewFlag=false;v.IsFavoriteFlag=false;}}
-        copy.Underground.WriteItems(items);var output=copy.Write().ToArray();var parsed=SaveUtil.GetSaveFile(output.ToArray());
+        copy.Underground.WriteItems(items);var output=copy.Write().ToArray();var parsed=SaveDetectionContext.OpenDerived(output);
         if(parsed is not SAV8BS p||p.Version!=copy.Version||p.SaveRevision!=s.SaveRevision||output.Length!=length||!SaveChecksums.Valid(p)||!p.Data.SequenceEqual(copy.Data))throw new InvalidOperationException("Underground8b export verification failed.");
         if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("Underground8b preview target is stale.");return output;
     }
@@ -34,6 +34,6 @@ public static partial class SaveService
 {
     private static Ug8bEdit ParseUnderground8b(string json)=>json.Length>100000?throw new ArgumentException("Underground8b request too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Ug8bEdit)??throw new ArgumentException("Missing Underground8b edit.");
     public static string ReadUnderground8b(byte[] data)=>JsonSerializer.Serialize(Underground8bEditing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Ug8bCatalog);
-    public static string PreviewUnderground8b(byte[] data,string json){var e=ParseUnderground8b(json);var output=Underground8bEditing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Ug8bPreview(e with{TargetHash=hash},Underground8bEditing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Ug8bPreview);}
+    public static string PreviewUnderground8b(byte[] data,string json){var e=ParseUnderground8b(json);var output=Underground8bEditing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Ug8bPreview(e with{TargetHash=hash},Underground8bEditing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Ug8bPreview);}
     public static byte[] EditUnderground8b(byte[] data,string json){var e=ParseUnderground8b(json);if(e.TargetHash is null)throw new ArgumentException("Underground8b requires a frozen preview.");return Underground8bEditing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
 }

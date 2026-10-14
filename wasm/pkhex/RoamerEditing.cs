@@ -35,7 +35,7 @@ public static partial class SaveService
         if(!CanEdit(save)||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Editing requires a supported save with valid checksums.");
         if(json.Length>1024)throw new ArgumentException("Roamer request is too large.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.RoamerEdit)??throw new ArgumentException("Missing roamer edit.");
-        RoamerEditing.Apply(save,edit);var expected=RoamerEditing.Snapshot(save);var output=save.Write().ToArray();var check=Open(output);
+        RoamerEditing.Apply(save,edit);var expected=RoamerEditing.Snapshot(save);var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||RoamerEditing.Snapshot(check)!=expected)throw new InvalidOperationException("Roamer export verification failed.");
         return output;
     }

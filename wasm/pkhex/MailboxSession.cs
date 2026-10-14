@@ -17,9 +17,9 @@ internal static class MailboxSession
     internal static MailboxTicket Prepare(byte[] original,MailboxRequest request)
     {
         Reset();string hash=Br4Editing.Hash(original);if(request.SourceHash!=hash)throw new ArgumentException("Mailbox preview is stale.");
-        var source=SaveUtil.GetSaveFile(original.ToArray())??throw new ArgumentException("Mailbox save is unrecognized.");
+        var source=SaveDetectionContext.OpenCurrent(original)??throw new ArgumentException("Mailbox save is unrecognized.");
         var before=new MailboxEditing(source).Read(hash);var prepared=MailboxEditing.Prepare(original,request.Actions);string target=Br4Editing.Hash(prepared.Output);
-        var reopened=SaveUtil.GetSaveFile(prepared.Output.ToArray())??throw new InvalidOperationException("Mailbox prepared save is unrecognized.");
+        var reopened=SaveDetectionContext.OpenDerived(prepared.Output)??throw new InvalidOperationException("Mailbox prepared save is unrecognized.");
         var result=new MailboxEditing(reopened).Read(target);string token="mailbox:"+(++revision).ToString(CultureInfo.InvariantCulture);
         var ticket=new MailboxTicket(token,hash,target,before,result,Enumerable.Range(0,original.Length).Where(i=>original[i]!=prepared.Output[i]).ToArray(),prepared.Issues);
         output=prepared.Output;current=ticket;return ticket;

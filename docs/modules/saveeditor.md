@@ -8,15 +8,37 @@ SlotExport 含 BoxExportSettings、DefaultBoxExportNamer 及默认 false 的 All
 
 后续逐设置对象核对 Core／工作流使用点、范围、三语及本机持久化；已有主题／语言和单模块选项不能代替全局设置接入。本段仅来源证据，不是功能实现或验收。
 
+补充来源核对：Core SlotWriteSettings 的 SetUpdateDex／SetUpdatePKM／SetUpdateRecords／ModifyUnset 均默认 true，分别作用于图鉴、处理训练家与格式适配、获得计数和切换未保存提示；接入必须到写格位与切换入口，不能只保存四个开关。Privacy 的 HideSAVDetails／HideSecretDetails 默认 false。SaveLanguageSettings.Apply 针对 Gen1／Gen2／Gen3RS／Gen3FRLG 分别更新语言 fallback，版本只接受来源对应 IsGen1、GD／SI、R／S、FR／LG，不把设置覆盖所有已识别版本。WinForms Display 的 Unicode／FlagIllegal 默认 true，其余显示 bool 默认 false，FocusBorderDeflate 默认 1；DPI／剪贴板提示采用浏览器对应行为时需明确范围。SpriteSettings 包含蛋／相遇球、相遇颜色背景／条带、不匹配透明度／灰度与太晶条带，不能以现有静态 sprite 图片代替这些设置的实际反馈。以上仍仅只读核对，当前手动识别模块未提交前不开始设置模块代码。
+
+Core `Editing/Program/StartupUtil.ReloadSettings` 还将 SlotWrite bool 映射为 SaveFile 静态 EntityImportOption、Import 映射 CommonEdits.ShowdownSetIVMarkings／ShowdownSetBehaviorNature、Legality 传 ParseSettings.Initialize、Converter 映射五个全局转换参数。该函数也扫描 Directory.Exists 的备份与神秘礼物路径，Web 不直接调用整个函数，逐项应用纯 Core 设置，文件仍从明确选择的本机副本获得。WinForms `MainWindow/Main.cs:ReloadProgramSettings` 另更新编辑器 ModifyPKM、隐私、非法格位、Hover、字体性别符号、SpriteBuilder、声音及备份扩展名。设置应随 Worker 重建重新应用，并明确编辑预览发生期间如何保持冻结结果；本段未宣称这些行为已接入。
+
+SettingsEditor 的页面按翻译后当前文化排序并记忆最近页；默认空存档选择独立于 Startup PropertyGrid，排除 0／GO／CP，版本 setter 还要求 IsValidSavedVersion。Startup.RecentlyLoadedMaxCount 在加载路径时去重、只保留数量范围，Web 对应已有 save library 的明确本机文件记录。Legality 含八个嵌套对象，Nickname 再含各世代 NicknameRestriction；不能仅暴露第一层几个布尔值。转换默认 DisallowIncompatible／MissingDataHOME／Gen1 RD／Gen2 SI／不保留转移日期，实际行为来自 StartupUtil 指定的 EntityConverter 静态参数，而非独立前端猜测转换。
+
 ## 手动存档识别工具（SaveHandlerTroubleshooter，来源核对）
 
-尚未实现本模块。只读来源为 WinForms `Subforms/SaveHandlerTroubleshooter.cs`／Designer、Core `SaveUtil`、`SaveTypeInfo`、`SaveFileType` 及 `ISaveHandler`。来源选择全部非 None 类型、对应 GameUtil 子版本、全部 LanguageID 和 Default 加 SaveUtil.Handlers；无子版本时隐藏选择器并传 Any。浏览器使用明确选择文件，不读取或扫描用户输入的磁盘路径。
+API163 工程收口：默认完整原生 `49264` 已退出 0，核心 `12273`、裁剪元数据、网页 `34704`、完整前端 `73623`（301 文件／1431 项）均通过；99 框架资源完全一致，原 E.sav 哈希保持。正式共享 Select 三语入口、来源参数目录、每请求 Worker 上下文、输出核验、撤销与重建重绑定、失败打开恢复旧选择已接。全部 32 类型和容器专项通过，不扩大通用编辑白名单或修改原件。下面的运行中／未接入描述为历史记录；当前待完成的是实际 Chrome 页面和所有者验收。最后格式后按授权提交推送本模块，完整目标仍未完成，全局设置等后续范围保留。
+
+最新全类型专项 `9883` 已退出 0，覆盖全部 32 类型、GB 全来源版本／语言、Bank7 两版、Ranch 两版及既有 GCI／NSO／RTC／DSV／ARDS；每例使用独立来源构造或自动来源读取比较完整导出，核验原件不变。API163 公开上下文与生产编辑／确认路径专项也保持通过。核心 `12273`、裁剪元数据专项、新资产网页 `34704`、最后格式 `43593` 均已通过；完整前端 `73623` 包含全仓 Lint／类型与 301 文件／1431 项测试，通过并仅保留既有 Gen3Static 警告。99 框架资源一致，原 E.sav 哈希保持。默认完整原生 `49264` 仍在原活跃句柄，尚无总终态；本批未提交，Chrome 和所有者页面验收未完成。下列记录为开发过程与失败证据，以本段和 progress 最新记录判断当前状态。
+
+全类型构造核验正在扩大，RS／FRLG 使用完整 sector 表，LA／SV／ZA 合成 LastSaved 合法日期，Stadium 使用与手动读取一致的 bytes 构造，避免来源空构造 ClearBoxes 失败。失败记录 89029／71634／74148／36530 保留；最新专项 32966 尚无终态，不能声明全部类型通过。生产来源不自动修正损坏日期或修改原件。格式与 Default／RTC 容器展示按三语，内部枚举／处理器标识继续匹配来源。
+
+2026-10-14 API163 已加入公开来源目录及严格必填识别参数，独立 Worker 请求配置／finally 清理、客户端重建重发与输出重绑定、正式工具栏入口和共享 Select 三语表单。新文件自动打开时清除选择，打开失败或取消恢复旧工作区选择，撤销使用原选择重新绑定工作 bytes；最近记录保留原文件而不把手动结果伪造成自动样本。公开原生专项 `83498`、客户端一文件 92 项 `66246` 与定向 Lint `62215` 已退出 0；类型 `97301` 仍运行，尚无终态。GB 全来源子版本／语言扩大专项 `85608` 当前运行，编译输入冻结。本轮仍需其他类型覆盖、核心构建／裁剪、完整前端与默认原生检查；Chrome 仍未核验，未提交，不能声明该模块或完整 PKHeX 目标收尾。
+
+2026-10-14 内部生产路径专项 `20291` 退出 0，覆盖 12 游戏原始存档、RTC、DSV、ARDS、九个 GCI 游戏／区域组合及四个 NSO 语言／RTC 组合。识别上下文专项验证自动识别失败的 DP 工作副本经正式 Inspect、ExportWorkingCopy、训练家 Export、SimpleTrainer 冻结预览／确认后仍保持所选构造方式；输出不改签名来伪造自动识别成功。当前文件读取使用 OpenCurrent，派生输出核验使用 OpenDerived，外来比较／数据库文件继续自动识别。清理、错误替换、撤销重绑定与 Worker 重建所需重绑定均有内部证据；公开协议／正式 UI 尚未接入，API162 保持。真实 E.sav SHA-256 仍为 `7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442`。Chrome 标签读取仍 fetch 失败，未完成浏览器或所有者验收。
+
+本模块处于内部开发阶段。只读来源为 WinForms `Subforms/SaveHandlerTroubleshooter.cs`／Designer、Core `SaveUtil`、`SaveTypeInfo`、`SaveFileType` 及 `ISaveHandler`。来源选择全部非 None 类型、对应 GameUtil 子版本、全部 LanguageID 和 Default 加 SaveUtil.Handlers；无子版本时隐藏选择器并传 Any。浏览器使用明确选择文件，不读取或扫描用户输入的磁盘路径。
 
 处理器顺序为 Default、FooterRTC、GCI、DeSmuME、ARDS、NSO。RTC 允许基础长度加 7 bytes 或 12–48 的偶数尾部；DSV 为 G4RAW+0x7A 且以 `|-DESMUME SAVE-|` 结束；ARDS 为 G4RAW+0xA4，无额外头部认证；GCI 为三个 GameCube 原长度+0x40 并核对四字符游戏代码；NSO 核对 SRAM 头及长度，最终写入须重算小写十六进制 SHA1 存档摘要。头／尾和 Handler 均由 Metadata 保存，不能将拆出的主体误称为原容器。
 
 `SaveUtil.TryGetSaveFileHandler(..., handler, typeInfo)` 在成功 TrySplit 后调用 `GetSaveFileInternal(data, typeInfo)`，传入原 data 而非 split.Data；自动识别重载则使用 split.Data。此来源差异可能让手动头／尾格式错误地把容器当主体，后续必须通过各处理器完整文件对照确定修正，不能直接复刻该分支并宣称支持。原始 bytes、失败路径、选定类型／语言／子版本和正确容器导出均应单独验证。当前仅源码证据，不属于产品能力，也不缩小完整接入范围。
 
 现有 `SaveService.Open` 每次以复制后的 bytes 调用自动 SaveUtil.GetSaveFile，前端保存原／工作 bytes 后也会在后续操作重新打开。因此手动识别不能只返回一次报告或把数据包装成可自动识别样本；选择的类型、子版本、语言和处理器必须绑定明确存档上下文，并在后续读取、编辑、撤销、导出和 Worker 重建时保留，切换存档时清理。原容器与 Metadata 的头／尾也须对应同一上下文，确认不可作用于另一个文件。
+
+内部 `SaveDetection` 已加入全部 32 个非 None 类型的来源构造分支、六处理器顺序、严格参数／类型子版本／文件名检查及独立容器副本。修正手动路径的 split.Data 边界，Metadata 保留独立头／尾与所选处理器；文件输入沿现有 1 byte–32 MiB，本机名称沿 TextBox 默认 32767 字符，拒绝控制字符。构造器仍使用对应 Core 行为，不增加自动猜测或转换。API162 保持，无公开接口／Worker／正式 UI／识别上下文。本轮专项 `44554` 运行中（TEMP/pokerngkit-save-detection-native.log/.exit），只收原句柄、不改编译输入；仍需 GCI／NSO／区域／全部类型、完整错误恢复及上下文生命周期覆盖，不能据此标记模块完成。
+
+原始／RTC／DeSmuME／ARDS 内部专项 `44554` 已退出 0，覆盖 12 游戏、完整独立输出、头尾／Metadata、结果修改不影响原件及错误参数。NSO 英／日、有无 RTC 与摘要重算新增专项 `2699` 在损坏构建长度仍被接受时失败；适配器现核对 split.Data 长度属于 HeaderInfoNSO.AllowedBaseSizes，拒绝把头部截入主体，未删除失败断言。修正专项 `48283` 当前运行（TEMP/pokerngkit-save-detection-nso-bounds.log/.exit），编译输入冻结；仍无公开上下文／接线，GCI 和其他类型／区域等范围保持待完成。
+
+NSO 修正专项 `48283` 已退出 0，合法英／日与有无 RTC 四组合完整导出／摘要／原件保护保持，损坏构建长度拒绝；原始／RTC／DSV／ARDS 专项仍通过。仍为内部开发阶段，下一步补 GCI、其他类型／区域及识别上下文，不声明完整模块或目标完成。
 
 ## 基础训练家窗口（SAV_SimpleTrainer，API162 工程检查通过）
 

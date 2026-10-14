@@ -16,7 +16,7 @@ internal static class SCBlockSession
     internal static void Reset() { output = null; current = null; }
     internal static SCBlockTicket Prepare(byte[] original, SCBlockRequest request)
     {
-        Reset(); var source = SaveUtil.GetSaveFile(original.ToArray()) ?? throw new ArgumentException("SCBlock save is unrecognized.");
+        Reset(); var source = SaveDetectionContext.OpenCurrent(original) ?? throw new ArgumentException("SCBlock save is unrecognized.");
         return Prepare(source, original, request);
     }
     internal static SCBlockTicket Prepare(SaveFile source, byte[] original, SCBlockRequest request)

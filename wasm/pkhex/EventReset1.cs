@@ -49,7 +49,7 @@ public static partial class SaveService
         if(!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Event reset requires a valid exportable save.");
         if(json.Length>8192)throw new ArgumentException("Event reset request is too large.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.EventResetEdit)??throw new ArgumentException("Missing event reset edit.");
-        EventReset1.Apply(save,edit);var flags=save.GetEventFlags();var spawn=save.EventSpawnFlags;var output=save.Write().ToArray();var check=EventReset1.Save(Open(output));
+        EventReset1.Apply(save,edit);var flags=save.GetEventFlags();var spawn=save.EventSpawnFlags;var output=save.Write().ToArray();var check=EventReset1.Save(OpenDerived(output));
         if(check.Version!=save.Version||check.SaveRevision!=save.SaveRevision||!SaveChecksums.Valid(check)||!flags.SequenceEqual(check.GetEventFlags())||!spawn.SequenceEqual(check.EventSpawnFlags))
             throw new InvalidOperationException("Event reset export verification failed.");
         return output;

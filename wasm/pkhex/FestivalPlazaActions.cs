@@ -10,7 +10,7 @@ internal sealed class FestivalPlazaActions
 {
     internal static byte[] Prepare(byte[] original,FestaAction[] actions,int selected,FestaFacilityState current)
     {
-        var save=SaveUtil.GetSaveFile(original.ToArray())??throw new ArgumentException("Festival Plaza save is unrecognized.");var model=new FestivalPlazaActions(save);model.Apply(actions);if(actions.LastOrDefault() is{Kind:"type"} type&&type.Index==selected&&type.Value==current.Type)current=FestivalPlazaEditing.NormalizeType(current,current.Type,save is SAV7USUM);model.Save(selected,current);var output=save.Write().ToArray();var reread=SaveUtil.GetSaveFile(output.ToArray());if(reread is null||reread.GetType()!=save.GetType()||!SaveChecksums.Valid(reread))throw new InvalidOperationException("Festival Plaza export verification failed.");return output;
+        var save=SaveDetectionContext.OpenCurrent(original)??throw new ArgumentException("Festival Plaza save is unrecognized.");var model=new FestivalPlazaActions(save);model.Apply(actions);if(actions.LastOrDefault() is{Kind:"type"} type&&type.Index==selected&&type.Value==current.Type)current=FestivalPlazaEditing.NormalizeType(current,current.Type,save is SAV7USUM);model.Save(selected,current);var output=save.Write().ToArray();var reread=SaveDetectionContext.OpenDerived(output);if(reread is null||reread.GetType()!=save.GetType()||!SaveChecksums.Valid(reread))throw new InvalidOperationException("Festival Plaza export verification failed.");return output;
     }
     private readonly SAV7 save;
     private readonly PKM[] agency;

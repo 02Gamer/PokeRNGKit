@@ -77,7 +77,7 @@ internal static class HallOfFame6Editing
                 case "trash":if(e.Fields is not null||e.Trash is null)throw new ArgumentException("Invalid Hall6 trash edit.");Hall6TrashEditing.Apply(copy,team,member,e.Trash);break;
                 default:throw new ArgumentException("Invalid Hall6 action.");}
         }
-        var expected=fame.Data.ToArray();var output=copy.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray())as SAV6;
+        var expected=fame.Data.ToArray();var output=copy.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output)as SAV6;
         if(check is null||check.GetType()!=copy.GetType()||check.Version!=copy.Version||output.Length!=length||!SaveChecksums.Valid(check)||!Fame(check).Data.SequenceEqual(expected))throw new InvalidOperationException("Hall6 export verification failed.");if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("Hall6 preview target is stale.");return output;
     }
 }
@@ -85,6 +85,6 @@ public static partial class SaveService
 {
     private static Hall6Edit ParseHall6(string json)=>json.Length>150000?throw new ArgumentException("Hall6 request too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Hall6Edit)??throw new ArgumentException("Missing Hall6 edit.");
     public static string ReadHall6(byte[] data)=>JsonSerializer.Serialize(HallOfFame6Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Hall6Catalog);
-    public static string PreviewHall6(byte[] data,string json){var e=ParseHall6(json);var output=HallOfFame6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Hall6Preview(e with{TargetHash=hash},HallOfFame6Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Hall6Preview);}
+    public static string PreviewHall6(byte[] data,string json){var e=ParseHall6(json);var output=HallOfFame6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Hall6Preview(e with{TargetHash=hash},HallOfFame6Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Hall6Preview);}
     public static byte[] EditHall6(byte[] data,string json){var e=ParseHall6(json);if(e.TargetHash?.Length!=64)throw new ArgumentException("Hall6 requires a frozen preview.");return HallOfFame6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
 }

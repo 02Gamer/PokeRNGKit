@@ -47,7 +47,7 @@ internal static class Zygarde7Editing
         }
         // The source Save button synchronizes USUM record 72 even when only a state changes.
         if(copy is SAV7USUM)copy.SetRecord(72,w.ZygardeCellCount);
-        var output=copy.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray());
+        var output=copy.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output);
         if(check is null||check.GetType()!=copy.GetType()||check.Version!=copy.Version||output.Length!=length||!SaveChecksums.Valid(check)||!check.Data.SequenceEqual(copy.Data))throw new InvalidOperationException("Collectibles7 export verification failed.");
         if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("Collectibles7 preview target is stale.");
         return output;
@@ -57,6 +57,6 @@ public static partial class SaveService
 {
     private static Zygarde7Edit ParseZygarde7(string json)=>json.Length>30000?throw new ArgumentException("Collectibles7 request too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Zygarde7Edit)??throw new ArgumentException("Missing Collectibles7 edit.");
     public static string ReadZygarde7(byte[] data)=>JsonSerializer.Serialize(Zygarde7Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Zygarde7Catalog);
-    public static string PreviewZygarde7(byte[] data,string json){var e=ParseZygarde7(json);var output=Zygarde7Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Zygarde7Preview(e with{TargetHash=hash},Zygarde7Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Zygarde7Preview);}
+    public static string PreviewZygarde7(byte[] data,string json){var e=ParseZygarde7(json);var output=Zygarde7Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Zygarde7Preview(e with{TargetHash=hash},Zygarde7Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Zygarde7Preview);}
     public static byte[] EditZygarde7(byte[] data,string json){var e=ParseZygarde7(json);if(e.TargetHash is null)throw new ArgumentException("Collectibles7 requires a frozen preview.");return Zygarde7Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
 }

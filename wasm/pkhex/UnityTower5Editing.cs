@@ -40,7 +40,7 @@ internal static class UnityTower5Editing
                 case "resave":var points=Coordinates().Select(p=>(p.Country,p.Region,Point:b.GetCountrySubregion((byte)p.Country,(byte)p.Region))).ToArray();var floors=Enumerable.Range(1,232).Select(c=>(Country:c,Unlocked:b.GetUnityTowerFloor((byte)c))).ToArray();bool global=b.GlobalFlag,unlocked=b.UnityTowerFlag;b.ClearAll();foreach(var p in points)b.SetCountrySubregion((byte)p.Country,(byte)p.Region,p.Point);foreach(var f in floors)b.SetUnityTowerFloor((byte)f.Country,f.Unlocked);b.SetSAVCountry();b.GlobalFlag=global;b.UnityTowerFlag=unlocked;break;
                 default:throw new ArgumentException("Invalid UnityTower5 action.");}
         }
-        var expected=b.Data.ToArray();var output=copy.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray())as SAV5;
+        var expected=b.Data.ToArray();var output=copy.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output)as SAV5;
         if(check is null||check.GetType()!=copy.GetType()||check.Version!=copy.Version||output.Length!=length||!SaveChecksums.Valid(check)||!check.UnityTower.Data.SequenceEqual(expected))throw new InvalidOperationException("UnityTower5 export verification failed.");
         if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("UnityTower5 preview target is stale.");return output;
     }
@@ -49,6 +49,6 @@ public static partial class SaveService
 {
     private static Tower5Edit ParseUnityTower5(string json)=>json.Length>150000?throw new ArgumentException("UnityTower5 request is too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Tower5Edit)??throw new ArgumentException("Missing UnityTower5 edit.");
     public static string ReadUnityTower5(byte[] data)=>JsonSerializer.Serialize(UnityTower5Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Tower5Catalog);
-    public static string PreviewUnityTower5(byte[] data,string json){var e=ParseUnityTower5(json);var output=UnityTower5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Tower5Preview(e with{TargetHash=hash},UnityTower5Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Tower5Preview);}
+    public static string PreviewUnityTower5(byte[] data,string json){var e=ParseUnityTower5(json);var output=UnityTower5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Tower5Preview(e with{TargetHash=hash},UnityTower5Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Tower5Preview);}
     public static byte[] EditUnityTower5(byte[] data,string json){var e=ParseUnityTower5(json);if(e.TargetHash?.Length!=64)throw new ArgumentException("UnityTower5 editing requires a frozen preview.");return UnityTower5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
 }

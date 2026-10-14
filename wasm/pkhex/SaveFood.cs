@@ -82,7 +82,7 @@ public static partial class SaveService
         if (json.Length > 8192) throw new ArgumentException("Food request is too large.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.SaveFoodEdit) ?? throw new ArgumentException("Missing food edit.");
         SaveFood.Apply(save, edit);
-        var expected = SaveFood.Snapshot(save); var output = save.Write().ToArray(); var check = Open(output);
+        var expected = SaveFood.Snapshot(save); var output = save.Write().ToArray(); var check = OpenDerived(output);
         if (!SaveChecksums.Valid(check) || check.GetType() != save.GetType() || SaveFood.Snapshot(check) != expected) throw new InvalidOperationException("Food export verification failed.");
         return output;
     }

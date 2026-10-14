@@ -45,9 +45,9 @@ internal static class Roamer3Editing
     internal static byte[] Edit(byte[] data, Roamer3Edit edit)
     {
         if (data.Length is 0 or > (32 * 1024 * 1024)) throw new ArgumentException("Save file must be between 1 byte and 32 MiB.");
-        var s = Save(SaveUtil.GetSaveFile(data.ToArray()) ?? throw new ArgumentException("Unrecognized save."));
+        var s = Save(SaveDetectionContext.OpenCurrent(data) ?? throw new ArgumentException("Unrecognized save."));
         Apply(s, edit); var expected = s.LargeBlock.RoamerData.ToArray(); var output = s.Write().ToArray();
-        var check = Save(SaveUtil.GetSaveFile(output.ToArray()) ?? throw new InvalidOperationException("Gen3 roamer output was not recognized."));
+        var check = Save(SaveDetectionContext.OpenDerived(output) ?? throw new InvalidOperationException("Gen3 roamer output was not recognized."));
         if (output.Length != data.Length || check.GetType() != s.GetType() || check.Version != s.Version || check.SaveRevision != s.SaveRevision
             || !SaveChecksums.Valid(check) || !expected.AsSpan().SequenceEqual(check.LargeBlock.RoamerData.Span))
             throw new InvalidOperationException("Gen3 roamer export verification failed.");

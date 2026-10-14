@@ -8,7 +8,7 @@ internal static class Trainer9Actions
 {
     internal static byte[] Prepare(byte[] original,Trainer9Request request)
     {
-        if(request.SourceHash!=Br4Editing.Hash(original))throw new ArgumentException("Trainer9 preview is stale.");var save=SaveUtil.GetSaveFile(original.ToArray())as SAV9SV??throw new ArgumentException("Trainer9 save is unrecognized.");return Prepare(save,original,request);
+        if(request.SourceHash!=Br4Editing.Hash(original))throw new ArgumentException("Trainer9 preview is stale.");var save=SaveDetectionContext.OpenCurrent(original)as SAV9SV??throw new ArgumentException("Trainer9 save is unrecognized.");return Prepare(save,original,request);
     }
     internal static byte[] Prepare(SAV9SV source,byte[] original,Trainer9Request request){if(request.SourceHash!=Br4Editing.Hash(original))throw new ArgumentException("Trainer9 preview is stale.");var save=new SAV9SV(source.Write().ToArray());Apply(save,request);var output=save.Write().ToArray();var reread=new SAV9SV(output.ToArray());if(!SaveChecksums.Valid(reread))throw new InvalidOperationException("Trainer9 export verification failed.");return output;}
     internal static void Apply(SAV9SV save,Trainer9Request request)

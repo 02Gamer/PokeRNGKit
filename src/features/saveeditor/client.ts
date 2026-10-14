@@ -5,6 +5,13 @@ export class SaveEditorClient {
   private worker?: Worker;
   private nextId = 0;
   private brProfile = -1;
+  private recognition?: import("./saveDetection").SaveDetectionChoice;
+  getRecognition() {
+    return this.recognition ? { ...this.recognition } : undefined;
+  }
+  setRecognition(choice?: import("./saveDetection").SaveDetectionChoice) {
+    this.recognition = choice ? { ...choice } : undefined;
+  }
   private pending = new Map<
     number,
     {
@@ -85,7 +92,9 @@ export class SaveEditorClient {
   ): Promise<SaveEditorResult> {
     if (kind === "trainer" && edit === undefined) this.brProfile = -1;
     if (
-      (!bytes.length && !kind.startsWith("saveFolder")) ||
+      (!bytes.length &&
+        !kind.startsWith("saveFolder") &&
+        kind !== "saveDetectionCatalog") ||
       bytes.length > MAX_SAVE_BYTES
     )
       return Promise.reject(
@@ -135,6 +144,7 @@ export class SaveEditorClient {
           edit,
           kind,
           brProfile: this.brProfile,
+          recognition: this.getRecognition(),
           databaseFiles: fileCopy,
         },
         fileCopy ? [copy.buffer, fileCopy.buffer] : [copy.buffer],

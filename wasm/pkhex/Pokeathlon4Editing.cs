@@ -94,7 +94,7 @@ internal static class Pokeathlon4Editing
     internal static byte[] Snapshot(SaveFile save)=>Save(save).General.Slice(0xD9D0,Pokeathlon4.SIZE+8).ToArray();
     internal static byte[] Edit(byte[] data,Pokeathlon4Edit edit)
     {
-        if(data.Length is 0 or >32*1024*1024)throw new ArgumentException("Save file must be between 1 byte and 32 MiB.");var s=Save(SaveUtil.GetSaveFile(data.ToArray())??throw new ArgumentException("Unrecognized save."));Apply(s,edit,PokeGear4Editing.Hash(data));var expected=Snapshot(s);var output=s.Write().ToArray();var check=Save(SaveUtil.GetSaveFile(output.ToArray())??throw new InvalidOperationException("Pokeathlon4 output was not recognized."));if(output.Length!=data.Length||check.Version!=s.Version||check.Magic!=s.Magic||!SaveChecksums.Valid(check)||!expected.SequenceEqual(Snapshot(check)))throw new InvalidOperationException("Pokeathlon4 export verification failed.");return output;
+        if(data.Length is 0 or >32*1024*1024)throw new ArgumentException("Save file must be between 1 byte and 32 MiB.");var s=Save(SaveDetectionContext.OpenCurrent(data)??throw new ArgumentException("Unrecognized save."));Apply(s,edit,PokeGear4Editing.Hash(data));var expected=Snapshot(s);var output=s.Write().ToArray();var check=Save(SaveDetectionContext.OpenDerived(output)??throw new InvalidOperationException("Pokeathlon4 output was not recognized."));if(output.Length!=data.Length||check.Version!=s.Version||check.Magic!=s.Magic||!SaveChecksums.Valid(check)||!expected.SequenceEqual(Snapshot(check)))throw new InvalidOperationException("Pokeathlon4 export verification failed.");return output;
     }
 }
 public static partial class SaveService

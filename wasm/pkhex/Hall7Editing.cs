@@ -40,7 +40,7 @@ internal static class Hall7Editing
                 break;
             default:throw new ArgumentException("Invalid Hall7 action.");
         }
-        var output=copy.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray());
+        var output=copy.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output);
         if(check is null||check.GetType()!=copy.GetType()||check.Version!=copy.Version||output.Length!=length||!SaveChecksums.Valid(check)||!check.Data.SequenceEqual(copy.Data))throw new InvalidOperationException("Hall7 export verification failed.");
         if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("Hall7 preview target is stale.");return output;
     }
@@ -49,6 +49,6 @@ public static partial class SaveService
 {
     private static Hall7Edit ParseHall7(string json)=>json.Length>5000?throw new ArgumentException("Hall7 request too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Hall7Edit)??throw new ArgumentException("Missing Hall7 edit.");
     public static string ReadHall7(byte[] data)=>JsonSerializer.Serialize(Hall7Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Hall7Catalog);
-    public static string PreviewHall7(byte[] data,string json){var e=ParseHall7(json);var output=Hall7Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Hall7Preview(e with{TargetHash=hash},Hall7Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Hall7Preview);}
+    public static string PreviewHall7(byte[] data,string json){var e=ParseHall7(json);var output=Hall7Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Hall7Preview(e with{TargetHash=hash},Hall7Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Hall7Preview);}
     public static byte[] EditHall7(byte[] data,string json){var e=ParseHall7(json);if(e.TargetHash is null)throw new ArgumentException("Hall7 requires a frozen preview.");return Hall7Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
 }

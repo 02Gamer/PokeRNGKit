@@ -157,7 +157,7 @@ public static partial class SaveService
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.EventEdit) ?? throw new ArgumentException("Missing event edit.");
         EventEditing.Apply(save, edit);
         var flags = EventEditing.Flags(save); var values = EventEditing.Values(save); var system = EventEditing.SystemFlags(save); var qr = EventEditing.Qr(save);
-        var output = save.Write().ToArray(); var check = Open(output);
+        var output = save.Write().ToArray(); var check = OpenDerived(output);
         if (check.GetType() != save.GetType() || check.Version != save.Version ||
             (save is SAV2 two && (check is not SAV2 reloaded || two.SaveRevision != reloaded.SaveRevision)) ||
             (save is SAV8BS bs && (check is not SAV8BS bsCheck || bs.SaveRevision != bsCheck.SaveRevision || output.Length != data.Length)) ||

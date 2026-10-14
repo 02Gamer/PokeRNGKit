@@ -35,6 +35,6 @@ public static partial class SaveService
 {
     private static Raid8Edit ParseRaid8(string json)=>json.Length>1000000?throw new ArgumentException("Raid8 request too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Raid8Edit)??throw new ArgumentException("Missing Raid8 edit.");
     public static string ReadRaid8(byte[] data)=>JsonSerializer.Serialize(Raid8Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Raid8Catalog);
-    public static string PreviewRaid8(byte[] data,string json){var e=ParseRaid8(json);var output=Raid8Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Raid8Preview(e with{TargetHash=hash},Raid8Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Raid8Preview);}
+    public static string PreviewRaid8(byte[] data,string json){var e=ParseRaid8(json);var output=Raid8Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Raid8Preview(e with{TargetHash=hash},Raid8Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Raid8Preview);}
     public static byte[] EditRaid8(byte[] data,string json){var e=ParseRaid8(json);if(e.TargetHash is null)throw new ArgumentException("Raid8 requires a frozen preview.");return Raid8Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
 }

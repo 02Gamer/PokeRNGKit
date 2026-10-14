@@ -27,9 +27,9 @@ internal static class GsBall2
     internal static byte[] Edit(byte[] data)
     {
         if (data.Length is 0 or > (32 * 1024 * 1024)) throw new ArgumentException("Save file must be between 1 byte and 32 MiB.");
-        var s = Save(SaveUtil.GetSaveFile(data.ToArray()) ?? throw new ArgumentException("Unrecognized save."));
+        var s = Save(SaveDetectionContext.OpenCurrent(data) ?? throw new ArgumentException("Unrecognized save."));
         Apply(s); var output = s.Write().ToArray();
-        var check = Save(SaveUtil.GetSaveFile(output.ToArray()) ?? throw new InvalidOperationException("GS Ball output was not recognized."));
+        var check = Save(SaveDetectionContext.OpenDerived(output) ?? throw new InvalidOperationException("GS Ball output was not recognized."));
         var (primary, backup) = Positions(check);
         if (output.Length != data.Length || check.Version != s.Version || check.SaveRevision != s.SaveRevision || !SaveChecksums.Valid(check)
             || check.Data.Length <= backup || check.Data[primary] != 0x0B || check.Data[backup] != 0x0B)

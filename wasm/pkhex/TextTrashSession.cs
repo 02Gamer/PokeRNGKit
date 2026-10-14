@@ -21,12 +21,12 @@ internal static class TextTrashSession
     }
     internal static TextTrashCatalog Read(byte[] input,TextTrashTarget target) {
         if(target is null)throw new ArgumentException("Missing name-edit target.");
-        if(target.Kind=="save") {var save=SaveUtil.GetSaveFile(input.ToArray())??throw new ArgumentException("Unrecognized name-edit save.");return Catalog(PokemonEditing.Read(save,target.Box,target.Slot),target.Field,Br4Editing.Hash(input),save.State.Exportable&&SaveChecksums.Valid(save)&&StandalonePokemon.CanEdit(save.BlankPKM)&&(target.Box<0||!save.IsBoxSlotLocked(target.Box,target.Slot)));}
+        if(target.Kind=="save") {var save=SaveDetectionContext.OpenCurrent(input)??throw new ArgumentException("Unrecognized name-edit save.");return Catalog(PokemonEditing.Read(save,target.Box,target.Slot),target.Field,Br4Editing.Hash(input),save.State.Exportable&&SaveChecksums.Valid(save)&&StandalonePokemon.CanEdit(save.BlankPKM)&&(target.Box<0||!save.IsBoxSlotLocked(target.Box,target.Slot)));}
         PKM entity=target.Kind switch{"file"=>StandalonePokemon.Open(input,FileName(target),target.InputEncrypted,target.UseFileFormat).Entity,_=>throw new ArgumentException("Unknown name-edit target.")};
         return Catalog(entity,target.Field,Br4Editing.Hash(input));
     }
     internal static TextTrashDraft Draft(byte[] input,TextTrashRequest request) {
-        Validate(input,request);PKM entity=request.Target.Kind switch{"file"=>StandalonePokemon.Open(input,FileName(request.Target),request.Target.InputEncrypted,request.Target.UseFileFormat).Entity,"save"=>PokemonEditing.Read(SaveUtil.GetSaveFile(input.ToArray())??throw new ArgumentException("Unrecognized name-edit save."),request.Target.Box,request.Target.Slot),_=>throw new ArgumentException("Unknown name-edit target.")};
+        Validate(input,request);PKM entity=request.Target.Kind switch{"file"=>StandalonePokemon.Open(input,FileName(request.Target),request.Target.InputEncrypted,request.Target.UseFileFormat).Entity,"save"=>PokemonEditing.Read(SaveDetectionContext.OpenCurrent(input)??throw new ArgumentException("Unrecognized name-edit save."),request.Target.Box,request.Target.Slot),_=>throw new ArgumentException("Unknown name-edit target.")};
         return PokemonTextTrash.Apply(entity,request.Target.Field,request.InitialText,request.Events);
     }
     private static void Validate(byte[] input,TextTrashRequest request){if(request is null||request.Target is null||request.SourceHash!=Br4Editing.Hash(input))throw new ArgumentException("Missing or stale name-edit request.");}
@@ -37,13 +37,13 @@ internal static class TextTrashSession
             return Freeze(input,request,file.Entity,prepared,StandalonePokemon.Serialize(prepared,file.Party,false));
         }
         if(target.Kind!="save")throw new ArgumentException("Unknown name-edit target.");
-        var source=SaveUtil.GetSaveFile(input.ToArray())??throw new ArgumentException("Unrecognized name-edit save.");
+        var source=SaveDetectionContext.OpenCurrent(input)??throw new ArgumentException("Unrecognized name-edit save.");
         if(!source.State.Exportable||!SaveChecksums.Valid(source)||!StandalonePokemon.CanEdit(source.BlankPKM))throw new ArgumentException("Save cannot export name edits.");
         var before=PokemonEditing.Read(source,target.Box,target.Slot);if(target.Box>=0&&source.IsBoxSlotLocked(target.Box,target.Slot))throw new ArgumentException("Storage slot is locked.");
         var after=PokemonTextTrash.Prepare(before,target.Field,request.InitialText,request.Events);var copy=source.Clone();
         if(target.Box==-1)copy.SetPartySlotAtIndex(after,target.Slot,EntityImportSettings.None);else copy.SetBoxSlotAtIndex(after,target.Box,target.Slot,EntityImportSettings.None);
         byte[] expected=StorageEditing.StoredData(copy,new(target.Box,target.Slot)),bytes=copy.Write().ToArray();
-        var reopened=SaveUtil.GetSaveFile(bytes.ToArray())??throw new InvalidOperationException("Name-edited save recognition failed.");
+        var reopened=SaveDetectionContext.OpenDerived(bytes)??throw new InvalidOperationException("Name-edited save recognition failed.");
         if(bytes.Length!=input.Length||reopened.GetType()!=source.GetType()||!SaveChecksums.Valid(reopened)||reopened.PartyCount!=copy.PartyCount||!StorageEditing.StoredData(reopened,new(target.Box,target.Slot)).SequenceEqual(expected))throw new InvalidOperationException("Name-edited save export verification failed.");
         var expectedEntity=PokemonEditing.Read(copy,target.Box,target.Slot);var actualEntity=PokemonEditing.Read(reopened,target.Box,target.Slot);
         if(!expectedEntity.NicknameTrash.SequenceEqual(actualEntity.NicknameTrash)||!expectedEntity.OriginalTrainerTrash.SequenceEqual(actualEntity.OriginalTrainerTrash)||!expectedEntity.HandlingTrainerTrash.SequenceEqual(actualEntity.HandlingTrainerTrash))throw new InvalidOperationException("Name-edited save text buffers changed during export.");

@@ -39,7 +39,7 @@ internal static class BoxImportFiles
             files.Sum(f => (long)f.Data.Length) > FilePropertyBatch.MaximumInputBytes ||
             files.Sum(f => (long)(f.Path?.Length ?? 0)) > FilePropertyBatch.MaximumPathCharacters)
             throw new ArgumentException("Box import file input exceeds limits.");
-        var context = SaveUtil.GetSaveFile(contextData.ToArray()) ?? throw new ArgumentException("Box import context is unsupported.");
+        var context = SaveDetectionContext.OpenCurrent(contextData) ?? throw new ArgumentException("Box import context is unsupported.");
         var paths = files.Select(f => FilePropertyBatch.SafePath(f.Path)).ToArray();
         if (paths.Distinct(StringComparer.OrdinalIgnoreCase).Count() != paths.Length)
             throw new ArgumentException("Box import source paths collide.");

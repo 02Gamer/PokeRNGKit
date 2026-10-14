@@ -106,7 +106,7 @@ internal static class Avenue5Editing
                 IJoinAvenueEntity5 source=data.Length switch{JoinAvenueVisitor5.SIZE=>new JoinAvenueVisitor5(data),JoinAvenueFan5.SIZE=>new JoinAvenueFan5(data),JoinAvenueAssistant5.SIZE=>new JoinAvenueAssistant5(data),_=>throw new ArgumentException("Invalid Avenue5 entity size.")};Entity(copy,e.Group,e.Index.Value).CopyFrom(source);break;
             default:throw new ArgumentException("Invalid Avenue5 action.");
         }
-        var expected=copy.JoinAvenue.Data.ToArray();var output=copy.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray())as SAV5B2W2;
+        var expected=copy.JoinAvenue.Data.ToArray();var output=copy.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output)as SAV5B2W2;
         if(check is null||check.Version!=copy.Version||output.Length!=length||!SaveChecksums.Valid(check)||!check.JoinAvenue.Data.SequenceEqual(expected))throw new InvalidOperationException("Avenue5 export verification failed.");
         if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("Avenue5 preview target is stale.");return output;
     }
@@ -115,7 +115,7 @@ public static partial class SaveService
 {
     private static Avenue5Edit ParseAvenue5(string json)=>json.Length>300000?throw new ArgumentException("Avenue5 request is too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Avenue5Edit)??throw new ArgumentException("Missing Avenue5 edit.");
     public static string ReadAvenue5(byte[] data)=>JsonSerializer.Serialize(Avenue5Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Avenue5Catalog);
-    public static string PreviewAvenue5(byte[] data,string json){var e=ParseAvenue5(json);var output=Avenue5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Avenue5Preview(e with{TargetHash=hash},Avenue5Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Avenue5Preview);}
+    public static string PreviewAvenue5(byte[] data,string json){var e=ParseAvenue5(json);var output=Avenue5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Avenue5Preview(e with{TargetHash=hash},Avenue5Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Avenue5Preview);}
     public static byte[] EditAvenue5(byte[] data,string json){var e=ParseAvenue5(json);if(e.TargetHash?.Length!=64)throw new ArgumentException("Avenue5 editing requires a frozen preview.");return Avenue5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
     public static byte[] ExportAvenue5(byte[] data,string json){var e=ParseAvenue5(json);if(e.Action!="export"||e.Index is null||e.Fields is not null||e.DataBase64 is not null||e.TargetHash is not null||e.Group=="self")throw new ArgumentException("Invalid Avenue5 export fields.");var hash=Br4Editing.Hash(data);if(e.SourceHash!=hash)throw new ArgumentException("Avenue5 export is stale.");var save=Open(data)as SAV5B2W2??throw new ArgumentException("Avenue5 requires B2W2.");return Avenue5Editing.Entity(save,e.Group,e.Index.Value).Write().ToArray();}
 }

@@ -51,7 +51,7 @@ internal static class SuperTrain6Editing
         }else if(e.Action is "bags" or "resave"){
             if(e.Stage is not null||e.Lane is not null||e.Species is not null||e.Form is not null||e.Gender is not null||e.Time is not null||e.Action=="bags"&&e.Bags is null||e.Action=="resave"&&e.Bags is not null)throw new ArgumentException("Invalid SuperTrain6 bag fields.");Pack(b,e.UiLanguage!,e.Bags);
         }else throw new ArgumentException("Invalid SuperTrain6 action.");
-        ignored=skipped.ToArray();var expected=b.Data.ToArray();var output=copy.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray())as SAV6;
+        ignored=skipped.ToArray();var expected=b.Data.ToArray();var output=copy.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output)as SAV6;
         if(check is null||check.GetType()!=copy.GetType()||check.Version!=copy.Version||output.Length!=length||!SaveChecksums.Valid(check)||!Block(check).Data.SequenceEqual(expected))throw new InvalidOperationException("SuperTrain6 export verification failed.");if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("SuperTrain6 preview target is stale.");return output;
     }
 }
@@ -59,6 +59,6 @@ public static partial class SaveService
 {
     private static St6Edit ParseSuperTrain6(string json)=>json.Length>110000?throw new ArgumentException("SuperTrain6 request too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.St6Edit)??throw new ArgumentException("Missing SuperTrain6 edit.");
     public static string ReadSuperTrain6(byte[] data)=>JsonSerializer.Serialize(SuperTrain6Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.St6Catalog);
-    public static string PreviewSuperTrain6(byte[] data,string json){var e=ParseSuperTrain6(json);var output=SuperTrain6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length,out var ignored);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new St6Preview(e with{TargetHash=hash},SuperTrain6Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray(),ignored),SaveJsonContext.Default.St6Preview);}
+    public static string PreviewSuperTrain6(byte[] data,string json){var e=ParseSuperTrain6(json);var output=SuperTrain6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length,out var ignored);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new St6Preview(e with{TargetHash=hash},SuperTrain6Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray(),ignored),SaveJsonContext.Default.St6Preview);}
     public static byte[] EditSuperTrain6(byte[] data,string json){var e=ParseSuperTrain6(json);if(e.TargetHash?.Length!=64)throw new ArgumentException("SuperTrain6 requires a frozen preview.");return SuperTrain6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length,out _);}
 }

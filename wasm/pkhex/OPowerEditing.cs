@@ -41,7 +41,7 @@ public static partial class SaveService
         if(json.Length>8192) throw new ArgumentException("O-Power request is too large.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.OPowerEdit)??throw new ArgumentException("Missing O-Power edit.");
         OPowerEditing.Apply(save,edit);
-        var expected=OPowerEditing.Block(save).Data.ToArray();var output=save.Write().ToArray();var check=Open(output);
+        var expected=OPowerEditing.Block(save).Data.ToArray();var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check.GetType()!=save.GetType() || !SaveChecksums.Valid(check) || !OPowerEditing.Block(check).Data.SequenceEqual(expected)) throw new InvalidOperationException("O-Power export verification failed.");
         return output;
     }

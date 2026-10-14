@@ -109,7 +109,7 @@ internal static class Misc5Editing
             case "importFc":if(c is not SAV5BW bw)throw new ArgumentException("Misc5 fc5 requires BW.");byte[] data;try{data=Convert.FromBase64String(e.DataBase64??"");}catch(FormatException){throw new ArgumentException("Invalid Misc5 fc5 data.");}if(data.Length!=WhiteBlack5BW.ForestCitySize)throw new ArgumentException("Invalid Misc5 fc5 size.");data.CopyTo(bw.Forest.ForestCity.Span);break;
             default:throw new ArgumentException("Invalid Misc5 action.");
         }
-        c.Records.EndAccess();c.EntreeForest.EndAccess();var expected=Regions(c);var output=c.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray())as SAV5;
+        c.Records.EndAccess();c.EntreeForest.EndAccess();var expected=Regions(c);var output=c.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output)as SAV5;
         if(check is null||check.GetType()!=c.GetType()||check.Version!=c.Version||output.Length!=length||!SaveChecksums.Valid(check)||!expected.Zip(Regions(check)).All(pair=>pair.First.SequenceEqual(pair.Second)))throw new InvalidOperationException("Misc5 export verification failed.");
         if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("Misc5 preview target is stale.");return output;
     }
@@ -133,7 +133,7 @@ public static partial class SaveService
 {
     private static Misc5Edit ParseMisc5(string json)=>json.Length>150000?throw new ArgumentException("Misc5 request is too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Misc5Edit)??throw new ArgumentException("Missing Misc5 edit.");
     public static string ReadMisc5(byte[] data)=>JsonSerializer.Serialize(Misc5Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Misc5Catalog);
-    public static string PreviewMisc5(byte[] data,string json){var e=ParseMisc5(json);if(e.Action=="forestRandom"&&e.FrozenForest is null)e=e with{FrozenForest=Misc5Forest.Randomize(Misc5Editing.Save(Open(data)))};var output=Misc5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Misc5Preview(e with{TargetHash=hash},Misc5Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Misc5Preview);}
+    public static string PreviewMisc5(byte[] data,string json){var e=ParseMisc5(json);if(e.Action=="forestRandom"&&e.FrozenForest is null)e=e with{FrozenForest=Misc5Forest.Randomize(Misc5Editing.Save(Open(data)))};var output=Misc5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Misc5Preview(e with{TargetHash=hash},Misc5Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Misc5Preview);}
     public static byte[] EditMisc5(byte[] data,string json){var e=ParseMisc5(json);if(e.TargetHash?.Length!=64)throw new ArgumentException("Misc5 editing requires a frozen preview.");return Misc5Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
     public static byte[] ExportMisc5Fc(byte[] data)=>(Open(data)as SAV5BW??throw new ArgumentException("Misc5 fc5 requires BW.")).Forest.ForestCity.ToArray();
 }

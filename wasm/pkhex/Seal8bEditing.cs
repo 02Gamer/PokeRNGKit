@@ -28,7 +28,7 @@ internal static class Seal8bEditing
         if(e.Entries is {} rows)foreach(var v in rows){var item=items[v.Index];if(v.Count is {} c)item.Count=c;if(v.Total is {} t)item.TotalCount=t;if(v.Obtained is {} g)item.IsGet=g;}
         if(e.Action is "all" or "none")foreach(var v in items.Where(v=>Visible(v.Index))){if(e.Action=="all"){v.Count=unchecked(v.Count+unchecked(99-v.TotalCount));v.TotalCount=99;v.IsGet=true;}else{v.Count=v.TotalCount=0;v.IsGet=false;}}
         // The source Save button writes all 200 rows, including hidden IsGet normalization.
-        copy.SealList.WriteItems(items);var output=copy.Write().ToArray();var parsed=SaveUtil.GetSaveFile(output.ToArray());
+        copy.SealList.WriteItems(items);var output=copy.Write().ToArray();var parsed=SaveDetectionContext.OpenDerived(output);
         if(parsed is not SAV8BS p||p.Version!=copy.Version||p.SaveRevision!=s.SaveRevision||output.Length!=length||!SaveChecksums.Valid(p)||!p.Data.SequenceEqual(copy.Data))throw new InvalidOperationException("Seal8b export verification failed.");
         if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("Seal8b preview target is stale.");return output;
     }
@@ -37,6 +37,6 @@ public static partial class SaveService
 {
     private static Seal8bEdit ParseSeal8b(string json)=>json.Length>30000?throw new ArgumentException("Seal8b request too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Seal8bEdit)??throw new ArgumentException("Missing Seal8b edit.");
     public static string ReadSeal8b(byte[] data)=>JsonSerializer.Serialize(Seal8bEditing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Seal8bCatalog);
-    public static string PreviewSeal8b(byte[] data,string json){var e=ParseSeal8b(json);var output=Seal8bEditing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Seal8bPreview(e with{TargetHash=hash},Seal8bEditing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Seal8bPreview);}
+    public static string PreviewSeal8b(byte[] data,string json){var e=ParseSeal8b(json);var output=Seal8bEditing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Seal8bPreview(e with{TargetHash=hash},Seal8bEditing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Seal8bPreview);}
     public static byte[] EditSeal8b(byte[] data,string json){var e=ParseSeal8b(json);if(e.TargetHash is null)throw new ArgumentException("Seal8b requires a frozen preview.");return Seal8bEditing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
 }

@@ -13,11 +13,11 @@ internal sealed class MailboxEditing
 {
     internal static (byte[] Output, string[] Issues) Prepare(byte[] original, MailboxAction[] actions)
     {
-        var source=SaveUtil.GetSaveFile(original.ToArray())??throw new ArgumentException("Mailbox save is unrecognized.");
+        var source=SaveDetectionContext.OpenCurrent(original)??throw new ArgumentException("Mailbox save is unrecognized.");
         var model=new MailboxEditing(source);model.Apply(actions);model.Save();
         var expected=new MailboxEditing(source).Read("");
         var issues=model.Issues();var output=source.Write().ToArray();
-        var reopened=SaveUtil.GetSaveFile(output.ToArray());
+        var reopened=SaveDetectionContext.OpenDerived(output);
         if(reopened is null||reopened.GetType()!=source.GetType()||!SaveChecksums.Valid(reopened))throw new InvalidOperationException("Mailbox export verification failed.");
         var actual=new MailboxEditing(reopened).Read("");
         if(expected.BoxCount!=actual.BoxCount||expected.Entries.Length!=actual.Entries.Length||!expected.Entries.Zip(actual.Entries).All(pair=>EntryEqual(pair.First,pair.Second)))throw new InvalidOperationException("Mailbox persisted fields verification failed.");

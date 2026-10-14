@@ -28,7 +28,7 @@ internal static class BoxImportPreview
     {
         if (input.Length is 0 or > SaveService.MaximumSize || entities.Count > 10000)
             throw new ArgumentException("Box import input exceeds limits.");
-        var save = SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Box import save is unsupported.");
+        var save = SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Box import save is unsupported.");
         if (!SaveService.CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save) || !save.HasBox ||
             (uint)firstBox >= save.BoxCount || (uint)settings.UpdateToSaveFile > 2 ||
             (uint)settings.UpdatePokeDex > 2 || (uint)settings.UpdateRecord > 2)
@@ -71,7 +71,7 @@ internal static class BoxImportPreview
         }
         var expected = Snapshot(save);
         var output = deleted == 0 && written == 0 ? input.ToArray() : save.Write().ToArray();
-        var check = SaveUtil.GetSaveFile(output.ToArray());
+        var check = SaveDetectionContext.OpenDerived(output);
         if (check is null || check.GetType() != save.GetType() || !SaveChecksums.Valid(check) || Snapshot(check) != expected)
             throw new InvalidOperationException("Box import export verification failed.");
         return new(SHA256.HashData(input), output, new(deleted, written, overwritten, outcomes.ToArray()));

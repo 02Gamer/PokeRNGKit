@@ -73,9 +73,9 @@ internal static class Ferry3Editing
     internal static byte[] Edit(byte[] data,Ferry3Edit edit)
     {
         if (data.Length is 0 or > (32*1024*1024)) throw new ArgumentException("Save file must be between 1 byte and 32 MiB.");
-        var s = Save(SaveUtil.GetSaveFile(data.ToArray()) ?? throw new ArgumentException("Unrecognized save."));
+        var s = Save(SaveDetectionContext.OpenCurrent(data) ?? throw new ArgumentException("Unrecognized save."));
         Apply(s,edit,Hash(data)); var expected=Snapshot(s); var output=s.Write().ToArray();
-        var check=Save(SaveUtil.GetSaveFile(output.ToArray()) ?? throw new InvalidOperationException("Gen3 ferry output was not recognized."));
+        var check=Save(SaveDetectionContext.OpenDerived(output) ?? throw new InvalidOperationException("Gen3 ferry output was not recognized."));
         if(output.Length!=data.Length || check.GetType()!=s.GetType() || check.Version!=s.Version || check.SaveRevision!=s.SaveRevision || check.Japanese!=s.Japanese
             || !SaveChecksums.Valid(check) || !expected.SequenceEqual(Snapshot(check))) throw new InvalidOperationException("Gen3 ferry export verification failed.");
         return output;

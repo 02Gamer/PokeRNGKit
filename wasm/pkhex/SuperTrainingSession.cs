@@ -20,7 +20,7 @@ internal static class SuperTrainingSession
         if (target is null) throw new ArgumentException("Missing super training target.");
         PKM entity;
         if (target.Kind == "file") entity = StandalonePokemon.Open(input, FileName(target), target.InputEncrypted, target.UseFileFormat).Entity;
-        else if (target.Kind == "save") entity = PokemonEditing.Read(SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Unrecognized super training save."), target.Box, target.Slot);
+        else if (target.Kind == "save") entity = PokemonEditing.Read(SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Unrecognized super training save."), target.Box, target.Slot);
         else throw new ArgumentException("Unknown super training target.");
         return PokemonSuperTraining.Read(entity, Br4Editing.Hash(input));
     }
@@ -32,7 +32,7 @@ internal static class SuperTrainingSession
             return Freeze(input, request, file.Entity, prepared, StandalonePokemon.Serialize(prepared, file.Party, false));
         }
         if (request.Target.Kind != "save") throw new ArgumentException("Unknown super training target.");
-        return Prepare(SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Unrecognized super training save."), input, request);
+        return Prepare(SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Unrecognized super training save."), input, request);
     }
     internal static SuperTrainingTicket Prepare(SaveFile source, byte[] input, SuperTrainingRequest request) {
         Reset(); Validate(input, request);

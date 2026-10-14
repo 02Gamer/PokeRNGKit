@@ -47,7 +47,7 @@ internal static class PropertyBatch
 {
     public static PropertyBatchPlan Preview(byte[] input, PropertyBatchRequest request)
     {
-        var save = SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Property batch save is unsupported.");
+        var save = SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Property batch save is unsupported.");
         if (!SaveService.CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Property batch save is unsupported.");
         if (request.Language is not ("zh" or "en" or "ja") || request.Scope is not ("boxes" or "box" or "party") ||
@@ -108,7 +108,7 @@ internal static class PropertyBatch
         else foreach (int i in changed) slots[i].Source.WriteTo(save, slots[i].Entity, EntityImportSettings.None);
         var expected = Snapshot(save);
         var output = changed.Length == 0 ? input.ToArray() : save.Write().ToArray();
-        var reopened = SaveUtil.GetSaveFile(output.ToArray());
+        var reopened = SaveDetectionContext.OpenDerived(output);
         if (reopened is null || reopened.GetType() != save.GetType() || !SaveChecksums.Valid(reopened) || Snapshot(reopened) != expected)
             throw new InvalidOperationException("Property batch export verification failed.");
         return new(SHA256.HashData(input), output, new(sets.Length, sets.Sum(s => s.Filters.Count), sets.Sum(s => s.Instructions.Count),

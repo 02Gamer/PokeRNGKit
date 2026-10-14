@@ -24,7 +24,7 @@ internal static class BlockAccessorSession
         string hash = Br4Editing.Hash(original);
         if (request.SourceHash != hash) throw new ArgumentException("Block accessor preview is stale.");
         var prepared = BlockAccessorEditing.Prepare(source, original, request);
-        var reopened = SaveUtil.GetSaveFile(prepared.ToArray()) ?? throw new InvalidOperationException("Block accessor output is unrecognized.");
+        var reopened = SaveDetectionContext.OpenDerived(prepared) ?? throw new InvalidOperationException("Block accessor output is unrecognized.");
         string target = Br4Editing.Hash(prepared);
         var results = request.Changes.Select(c => c.Block).Distinct(StringComparer.Ordinal).Select(key => new AccessorResult(key, BlockAccessorReading.Read(source, hash, key, request.Culture), BlockAccessorReading.Read(reopened, target, key, request.Culture))).ToArray();
         var beforeMetadata = new SaveBlockMetadata<BlockInfo>(BlockAccessorReading.Accessor(source.Clone()));

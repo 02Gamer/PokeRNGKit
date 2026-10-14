@@ -20,10 +20,10 @@ internal static class WondercardSession
     {
         Reset(); string hash = Br4Editing.Hash(original);
         if (request.SourceHash != hash) throw new ArgumentException("Mystery gift preview is stale.");
-        var source = SaveUtil.GetSaveFile(original.ToArray()) ?? throw new ArgumentException("Mystery gift save is unrecognized.");
+        var source = SaveDetectionContext.OpenCurrent(original) ?? throw new ArgumentException("Mystery gift save is unrecognized.");
         var before = new WondercardEditing(source).Read(hash);
         var prepared = WondercardEditing.Prepare(original, request.Actions); string target = Br4Editing.Hash(prepared.Output);
-        var reopened = SaveUtil.GetSaveFile(prepared.Output.ToArray()) ?? throw new InvalidOperationException("Mystery gift result is unrecognized.");
+        var reopened = SaveDetectionContext.OpenDerived(prepared.Output) ?? throw new InvalidOperationException("Mystery gift result is unrecognized.");
         var result = new WondercardEditing(reopened).Read(target);
         string token = "wondercard:" + (++revision).ToString(CultureInfo.InvariantCulture);
         var ticket = new WondercardTicket(token, hash, target, before, result, Enumerable.Range(0, original.Length).Where(i => original[i] != prepared.Output[i]).ToArray(), prepared.Issues);

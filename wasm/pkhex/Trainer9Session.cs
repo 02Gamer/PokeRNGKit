@@ -10,7 +10,7 @@ internal static class Trainer9Session
 {
     private static byte[]? output;private static Trainer9Confirmation? current;private static long revision;
     internal static void Reset(){output=null;current=null;}
-    internal static Trainer9Ticket Prepare(byte[] original,Trainer9Request request)=>Prepare(SaveUtil.GetSaveFile(original.ToArray())as SAV9SV??throw new ArgumentException("Trainer9 save is unrecognized."),original,request);
+    internal static Trainer9Ticket Prepare(byte[] original,Trainer9Request request)=>Prepare(SaveDetectionContext.OpenCurrent(original)as SAV9SV??throw new ArgumentException("Trainer9 save is unrecognized."),original,request);
     internal static Trainer9Ticket Prepare(SAV9SV source,byte[] original,Trainer9Request request)
     {
         Reset();string hash=Br4Editing.Hash(original);if(request.SourceHash!=hash)throw new ArgumentException("Trainer9 preview is stale.");var before=Trainer9Editing.Read(source,hash);var prepared=Trainer9Actions.Prepare(source,original,request);string target=Br4Editing.Hash(prepared);var after=new SAV9SV(prepared.ToArray());var result=Trainer9Editing.Read(after,target);string token="trainer9:"+(++revision).ToString(CultureInfo.InvariantCulture);var ticket=new Trainer9Ticket(token,hash,target,before,result,Enumerable.Range(0,original.Length).Where(i=>original[i]!=prepared[i]).ToArray(),request.Operations?.ToArray()??[]);output=prepared;current=new(token,hash,target);return ticket;

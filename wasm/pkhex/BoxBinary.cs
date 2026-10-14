@@ -44,7 +44,7 @@ internal static class BoxBinary
         }
         var expected = Snapshot(save);
         var output = save.Write().ToArray();
-        var check = SaveUtil.GetSaveFile(output.ToArray());
+        var check = SaveDetectionContext.OpenDerived(output);
         if (check is null || check.GetType() != save.GetType() || !SaveChecksums.Valid(check) || Snapshot(check) != expected)
             throw new InvalidOperationException("Box binary export verification failed.");
         return new(SHA256.HashData(input), output, new(deleted, count, overwritten, outcomes.ToArray()));
@@ -53,7 +53,7 @@ internal static class BoxBinary
     private static SaveFile Open(byte[] input, int box, bool all, bool edit)
     {
         if (input.Length is 0 or > SaveService.MaximumSize) throw new ArgumentException("Box binary save size is invalid.");
-        var save = SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Box binary save is unsupported.");
+        var save = SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Box binary save is unsupported.");
         if (!save.State.Exportable || !SaveChecksums.Valid(save) || !save.HasBox ||
             save.SlotCount is <= 0 or > 10000 || (!all && (uint)box >= save.BoxCount) || (edit && !SaveService.CanEdit(save)))
             throw new ArgumentException("Box binary options or save are invalid.");

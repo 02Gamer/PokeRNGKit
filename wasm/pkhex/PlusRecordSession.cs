@@ -20,7 +20,7 @@ internal static class PlusRecordSession
         if (target is null) throw new ArgumentException("Missing plus record target.");
         PKM entity;
         if (target.Kind == "file") entity = StandalonePokemon.Open(input, FileName(target), target.InputEncrypted, target.UseFileFormat).Entity;
-        else if (target.Kind == "save") entity = PokemonEditing.Read(SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Unrecognized plus record save."), target.Box, target.Slot);
+        else if (target.Kind == "save") entity = PokemonEditing.Read(SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Unrecognized plus record save."), target.Box, target.Slot);
         else throw new ArgumentException("Unknown plus record target.");
         return PokemonPlusRecord.Read(entity, Br4Editing.Hash(input));
     }
@@ -32,7 +32,7 @@ internal static class PlusRecordSession
             return Freeze(input, request, file.Entity, prepared, StandalonePokemon.Serialize(prepared, file.Party, false));
         }
         if (request.Target.Kind != "save") throw new ArgumentException("Unknown plus record target.");
-        return Prepare(SaveUtil.GetSaveFile(input.ToArray()) ?? throw new ArgumentException("Unrecognized plus record save."), input, request);
+        return Prepare(SaveDetectionContext.OpenCurrent(input) ?? throw new ArgumentException("Unrecognized plus record save."), input, request);
     }
     internal static PlusRecordTicket Prepare(SaveFile source, byte[] input, PlusRecordRequest request) {
         Reset(); Validate(input, request);

@@ -20,10 +20,10 @@ internal static class ChatterSession
     {
         Reset(); var hash = Br4Editing.Hash(original);
         if (request.SourceHash != hash) throw new ArgumentException("Chatter preview is stale.");
-        var beforeSave = SaveUtil.GetSaveFile(original.ToArray()) ?? throw new ArgumentException("Chatter save is unrecognized.");
+        var beforeSave = SaveDetectionContext.OpenCurrent(original) ?? throw new ArgumentException("Chatter save is unrecognized.");
         var before = ChatterEditing.Read(beforeSave, hash);
         var prepared = ChatterEditing.Prepare(original, request.Actions);
-        var afterSave = SaveUtil.GetSaveFile(prepared.ToArray()) ?? throw new InvalidOperationException("Chatter prepared save is unrecognized.");
+        var afterSave = SaveDetectionContext.OpenDerived(prepared) ?? throw new InvalidOperationException("Chatter prepared save is unrecognized.");
         var target = Br4Editing.Hash(prepared); var after = ChatterEditing.Read(afterSave, target);
         var oldPcm = Convert.FromBase64String(before.Pcm); var newPcm = Convert.FromBase64String(after.Pcm);
         string token = "chatter:" + (++revision).ToString(CultureInfo.InvariantCulture);

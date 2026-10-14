@@ -38,7 +38,7 @@ public static partial class SaveService
         if(!CanEdit(save)||!save.State.Exportable||!SaveChecksums.Valid(save))throw new ArgumentException("Editing requires a supported save with valid checksums.");
         if(json.Length>2048)throw new ArgumentException("Clock request is too large.");
         var edit=JsonSerializer.Deserialize(json,SaveJsonContext.Default.RtcEdit)??throw new ArgumentException("Missing clock edit.");
-        RtcEditing.Apply(save,edit);var expected=RtcEditing.Snapshot(save);var output=save.Write().ToArray();var check=Open(output);
+        RtcEditing.Apply(save,edit);var expected=RtcEditing.Snapshot(save);var output=save.Write().ToArray();var check=OpenDerived(output);
         if(check.GetType()!=save.GetType()||!SaveChecksums.Valid(check)||RtcEditing.Snapshot(check)!=expected)throw new InvalidOperationException("Clock export verification failed.");
         return output;
     }

@@ -62,7 +62,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 162;
+  apiVersion: 163;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -799,6 +799,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  saveDetectionCatalog?: import("./saveDetection").SaveDetectionCatalog;
   giftDatabase?: import("./mysteryGiftDatabaseProtocol").MysteryGiftDatabaseView;
   giftDatabaseCatalog?: import("./mysteryGiftDatabaseProtocol").MysteryGiftDatabaseCatalog;
   giftDatabasePreview?: import("./mysteryGiftDatabaseProtocol").MysteryGiftDatabaseTicket;

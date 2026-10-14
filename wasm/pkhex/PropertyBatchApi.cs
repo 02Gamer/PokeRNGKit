@@ -31,7 +31,7 @@ internal static class PropertyBatchSession
     public static void Discard(string value) { if (token == value) { plan = null; token = null; } }
     public static PropertyBatchCatalog Catalog(byte[] data)
     {
-        var save = SaveUtil.GetSaveFile(data.ToArray()) ?? throw new ArgumentException("Property batch save is unsupported.");
+        var save = SaveDetectionContext.OpenCurrent(data) ?? throw new ArgumentException("Property batch save is unsupported.");
         if (!SaveService.CanEdit(save)) throw new ArgumentException("Property batch save is unsupported.");
         var editor = EntityBatchEditor.Instance;
         var index = editor.Types.ToList().IndexOf(save.PKMType) + 1;

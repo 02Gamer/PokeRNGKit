@@ -150,13 +150,13 @@ internal sealed class WondercardEditing
         if (cards is MysteryBlock4 four) { four.IsDeliveryManActive = album.Any(g => !g.IsEmpty); MysteryBlock4.UpdateSlotPGT(album, save is SAV4HGSS); if (save is SAV4HGSS hgss) hgss.LockCapsuleSlot = (PCD)album[^1]; }
         for (int i = 0; i < cards.GiftCountMax; i++) cards.SetMysteryGift(i, album[i]);
         if (cards is MysteryBlock5 five) five.EndAccess();
-        byte[] output = save.Write().ToArray(); var reopened = SaveUtil.GetSaveFile(output.ToArray());
+        byte[] output = save.Write().ToArray(); var reopened = SaveDetectionContext.OpenDerived(output);
         if (reopened is null || reopened.GetType() != save.GetType() || output.Length != original.Length || !SaveChecksums.Valid(reopened)) throw new InvalidOperationException("Mystery gift export verification failed.");
         return output;
     }
     internal static (byte[] Output, string[] Issues) Prepare(byte[] original, WondercardAction[] actions)
     {
-        var source = SaveUtil.GetSaveFile(original.ToArray()) ?? throw new ArgumentException("Unrecognized mystery gift save.");
+        var source = SaveDetectionContext.OpenCurrent(original) ?? throw new ArgumentException("Unrecognized mystery gift save.");
         if (!SaveChecksums.Valid(source)) throw new ArgumentException("Mystery gift editing requires valid checksums.");
         var editor = new WondercardEditing(source); editor.Apply(actions); return (editor.Save(original), editor.issues.Distinct().ToArray());
     }

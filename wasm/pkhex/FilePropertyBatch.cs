@@ -54,7 +54,7 @@ internal static class FilePropertyBatch
 
     public static FileBatchPlan Preview(byte[] contextData, FileBatchInput[] files, string text, string language)
     {
-        var context = SaveUtil.GetSaveFile(contextData.ToArray()) ?? throw new ArgumentException("File batch context is unsupported.");
+        var context = SaveDetectionContext.OpenCurrent(contextData) ?? throw new ArgumentException("File batch context is unsupported.");
         if (files is null || files.Length == 0 || files.Length > MaximumFiles ||
             files.Any(f => f is null || f.Data is null) || files.Sum(f => (long)f.Data.Length) > MaximumInputBytes ||
             files.Sum(f => (long)(f.Path?.Length ?? 0)) > MaximumPathCharacters ||

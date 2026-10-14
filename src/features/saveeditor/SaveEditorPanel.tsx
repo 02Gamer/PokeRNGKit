@@ -1,4 +1,6 @@
 import { SCBlockEditor } from "./SCBlockEditor";
+import { SaveDetectionEditor } from "./SaveDetectionEditor";
+import { saveDetectionWords, type SaveDetectionChoice } from "./saveDetection";
 import { SimpleTrainerEditor } from "./SimpleTrainerEditor";
 import { supportsSimpleTrainer, simpleTrainerWords } from "./simpleTrainer";
 import {
@@ -405,17 +407,34 @@ export function SaveEditorPanel(
     }
   };
 
-  const openFile = async (file: File) => {
+  const [showSaveDetection, setShowSaveDetection] = useState(false);
+  const openFile = async (file: File, recognition?: SaveDetectionChoice) => {
     let opened = false;
     await perform(async (id) => {
       if (!file.size || file.size > MAX_SAVE_BYTES)
         throw new Error("Save file must be between 1 byte and 32 MiB.");
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (id !== operation.current) return;
-      const result = await client.current.run(bytes);
-      if (id !== operation.current) return;
+      const previousRecognition = client.current.getRecognition();
+      client.current.setRecognition(recognition);
+      let result;
+      try {
+        result = await client.current.run(bytes);
+      } catch (cause) {
+        client.current.setRecognition(previousRecognition);
+        if (recognition)
+          throw new Error(saveDetectionWords[batchLang].openError, { cause });
+        throw cause;
+      }
+      if (id !== operation.current) {
+        client.current.setRecognition(previousRecognition);
+        return;
+      }
       await rememberSaveFolderFile(file, bytes).catch(() => undefined);
-      if (id !== operation.current) return;
+      if (id !== operation.current) {
+        client.current.setRecognition(previousRecognition);
+        return;
+      }
       original.current = bytes;
       working.current = bytes;
       setHistory([]);
@@ -4688,6 +4707,14 @@ export function SaveEditorPanel(
         <button
           type="button"
           disabled={busy}
+          aria-pressed={showSaveDetection}
+          onClick={() => setShowSaveDetection((value) => !value)}
+        >
+          {saveDetectionWords[batchLang].title}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
           aria-pressed={showSaveFolders}
           onClick={() => setShowSaveFolders((value) => !value)}
         >
@@ -4756,6 +4783,7 @@ export function SaveEditorPanel(
             setError("");
             setStatus("");
             client.current.dispose();
+            client.current.setRecognition();
           }}
         >
           <Unplug size={18} aria-hidden="true" /> {words.close}
@@ -4801,13 +4829,20 @@ export function SaveEditorPanel(
       {busy && <p role="status">{words.loading}</p>}
       {error && (
         <p role="alert" className="save-editor-error">
-          {localizeSaveError(error, words)}
+          {Object.values(saveDetectionWords).some(
+            (value) => value.openError === error,
+          )
+            ? saveDetectionWords[batchLang].openError
+            : localizeSaveError(error, words)}
         </p>
       )}
       {status && (
         <p role="status">
           {words[status as "exported" | "linked" | "pokemonSaved"]}
         </p>
+      )}
+      {showSaveDetection && (
+        <SaveDetectionEditor lang={batchLang} busy={busy} onOpen={openFile} />
       )}
       {showSaveFolders && (
         <SaveFolderViewer

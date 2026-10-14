@@ -39,7 +39,7 @@ internal static class Link6Editing
             case "import":if(e.BattlePoints is not null||e.Pokemiles is not null||e.DataBase64 is null||e.DataBase64.Length>3508)throw new ArgumentException("Invalid Link6 import fields.");byte[] bytes;try{bytes=Convert.FromBase64String(e.DataBase64);}catch(FormatException){throw new ArgumentException("Invalid Link6 import data.");}if(bytes.Length!=PL6.Size)throw new ArgumentException("Invalid Link6 pl6 size.");bytes.CopyTo(gifts.Data);break;
             default:throw new ArgumentException("Invalid Link6 action.");
         }
-        var expected=b.Data.ToArray();var output=copy.Write().ToArray();var check=SaveUtil.GetSaveFile(output.ToArray())as SAV6;
+        var expected=b.Data.ToArray();var output=copy.Write().ToArray();var check=SaveDetectionContext.OpenDerived(output)as SAV6;
         if(check is null||check.GetType()!=copy.GetType()||check.Version!=copy.Version||output.Length!=length||!SaveChecksums.Valid(check)||!Block(check).Data.SequenceEqual(expected))throw new InvalidOperationException("Link6 export verification failed.");if(e.TargetHash is {} target&&target!=Br4Editing.Hash(output))throw new ArgumentException("Link6 preview target is stale.");return output;
     }
 }
@@ -47,7 +47,7 @@ public static partial class SaveService
 {
     private static Link6Edit ParseLink6(string json)=>json.Length>20000?throw new ArgumentException("Link6 request too large."):JsonSerializer.Deserialize(json,SaveJsonContext.Default.Link6Edit)??throw new ArgumentException("Missing Link6 edit.");
     public static string ReadLink6(byte[] data)=>JsonSerializer.Serialize(Link6Editing.Read(Open(data),Br4Editing.Hash(data)),SaveJsonContext.Default.Link6Catalog);
-    public static string PreviewLink6(byte[] data,string json){var e=ParseLink6(json);var output=Link6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Link6Preview(e with{TargetHash=hash},Link6Editing.Read(Open(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Link6Preview);}
+    public static string PreviewLink6(byte[] data,string json){var e=ParseLink6(json);var output=Link6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);var hash=Br4Editing.Hash(output);return JsonSerializer.Serialize(new Link6Preview(e with{TargetHash=hash},Link6Editing.Read(OpenDerived(output),hash),Enumerable.Range(0,data.Length).Where(i=>data[i]!=output[i]).ToArray()),SaveJsonContext.Default.Link6Preview);}
     public static byte[] EditLink6(byte[] data,string json){var e=ParseLink6(json);if(e.TargetHash?.Length!=64)throw new ArgumentException("Link6 requires a frozen preview.");return Link6Editing.Prepare(Open(data),e,Br4Editing.Hash(data),data.Length);}
     public static byte[] ExportLink6(byte[] data,string json){var e=ParseLink6(json);if(e.Action!="export"||e.BattlePoints is not null||e.Pokemiles is not null||e.DataBase64 is not null||e.TargetHash is not null)throw new ArgumentException("Invalid Link6 export fields.");if(e.SourceHash!=Br4Editing.Hash(data))throw new ArgumentException("Link6 export is stale.");if(Open(data) is not SAV6XY and not SAV6AO)throw new ArgumentException("Link6 requires X/Y or ORAS.");var b=Link6Editing.Block((SAV6)Open(data));if(!b.Gifts.Enabled)throw new ArgumentException("Link6 export is disabled by the source window.");return b.Gifts.Data.ToArray();}
 }
