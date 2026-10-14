@@ -1,4 +1,7 @@
 import { SCBlockEditor } from "./SCBlockEditor";
+import { SaveFolderViewer } from "./SaveFolderViewer";
+import { saveFolderWords } from "./saveFolderWords";
+import { rememberSaveFolderFile } from "./saveFolderRepository";
 import { PersonalChartViewer } from "./PersonalChartViewer";
 import { PokemonReportViewer } from "./PokemonReportViewer";
 import { PokemonDatabaseViewer } from "./PokemonDatabaseViewer";
@@ -309,6 +312,7 @@ export function SaveEditorPanel(
   const [workingRevision, setWorkingRevision] = useState(0);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [section, setSection] = useState<SaveSection>("pokemon");
+  const [showSaveFolders, setShowSaveFolders] = useState(false);
   const [draft, setDraft] = useState<TrainerDraft>({
     nickname: "",
     fashionGender: "",
@@ -392,13 +396,16 @@ export function SaveEditorPanel(
     }
   };
 
-  const openFile = (file: File) =>
-    perform(async (id) => {
+  const openFile = async (file: File) => {
+    let opened = false;
+    await perform(async (id) => {
       if (!file.size || file.size > MAX_SAVE_BYTES)
         throw new Error("Save file must be between 1 byte and 32 MiB.");
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (id !== operation.current) return;
       const result = await client.current.run(bytes);
+      if (id !== operation.current) return;
+      await rememberSaveFolderFile(file, bytes).catch(() => undefined);
       if (id !== operation.current) return;
       original.current = bytes;
       working.current = bytes;
@@ -518,7 +525,10 @@ export function SaveEditorPanel(
       setVersion(games.length === 1 ? games[0] : "");
       setTarget("new");
       setReviewDefaults(false);
+      opened = true;
     });
+    return opened;
+  };
 
   const exportFile = () =>
     perform(async (id) => {
@@ -2988,7 +2998,11 @@ export function SaveEditorPanel(
       if (!working.current) return;
       const result = await client.current.run(
         working.current,
-        JSON.stringify({ index, data: entry?.data, fileName: entry?.fileName }),
+        JSON.stringify({
+          index,
+          data: entry?.data,
+          fileName: entry?.fileName,
+        }),
         "wondercardQR",
       );
       if (id !== operation.current) return;
@@ -4596,6 +4610,14 @@ export function SaveEditorPanel(
     >
       {!report && <p>{words.intro}</p>}
       <div className="save-editor-toolbar">
+        <button
+          type="button"
+          disabled={busy}
+          aria-pressed={showSaveFolders}
+          onClick={() => setShowSaveFolders((value) => !value)}
+        >
+          {saveFolderWords[batchLang].title}
+        </button>
         {report && (
           <button
             type="button"
@@ -4712,7 +4734,15 @@ export function SaveEditorPanel(
           {words[status as "exported" | "linked" | "pokemonSaved"]}
         </p>
       )}
-      {report && (
+      {showSaveFolders && (
+        <SaveFolderViewer
+          lang={batchLang}
+          busy={busy}
+          onOpen={openFile}
+          onClose={() => setShowSaveFolders(false)}
+        />
+      )}
+      {report && !showSaveFolders && (
         <>
           <p className="save-open-file">{name}</p>
           {!report.checksumsValid && (

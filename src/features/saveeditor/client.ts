@@ -45,6 +45,22 @@ export class SaveEditorClient {
       );
     return this.runRequest(bytes, json, kind, entity);
   }
+  runSaveFolder(
+    json: string,
+    kind: import("./saveFolderProtocol").SaveFolderRequestKind,
+    files?: Uint8Array,
+  ): Promise<import("./saveFolderProtocol").SaveFolderResult> {
+    if (files && files.byteLength > 128 * 1024 * 1024)
+      return Promise.reject(
+        new Error("Save folder exceeds the local size limit."),
+      );
+    return this.runRequest(
+      new Uint8Array(),
+      json,
+      kind,
+      files,
+    ) as unknown as Promise<import("./saveFolderProtocol").SaveFolderResult>;
+  }
   private runRequest(
     bytes: Uint8Array,
     edit: string | undefined,
@@ -52,7 +68,10 @@ export class SaveEditorClient {
     databaseFiles?: Uint8Array,
   ): Promise<SaveEditorResult> {
     if (kind === "trainer" && edit === undefined) this.brProfile = -1;
-    if (!bytes.length || bytes.length > MAX_SAVE_BYTES)
+    if (
+      (!bytes.length && !kind.startsWith("saveFolder")) ||
+      bytes.length > MAX_SAVE_BYTES
+    )
       return Promise.reject(
         new Error("Save file must be between 1 byte and 32 MiB."),
       );
