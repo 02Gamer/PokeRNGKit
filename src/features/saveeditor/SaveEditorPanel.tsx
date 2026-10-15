@@ -504,6 +504,10 @@ export function SaveEditorPanel(
     recognition?: SaveDetectionChoice,
     sourceId?: string,
   ) => {
+    if (running.current) {
+      playSaveSound("other");
+      return false;
+    }
     let opened = false;
     await perform(async (id) => {
       if (!file.size || file.size > MAX_SAVE_BYTES)
@@ -4055,6 +4059,15 @@ export function SaveEditorPanel(
   const analyzePokemon = (position: PokemonPosition) =>
     perform(async (id) => {
       if (!working.current) return;
+      const pokemon = report?.pokemon.find(
+        (p) => p.box === position.box && p.slot === position.slot,
+      );
+      if (!pokemon?.valid || pokemon.species === 0) {
+        setLegality(undefined);
+        setError(words.invalidPokemon);
+        playSaveSound("other", "hand");
+        return;
+      }
       const result = await client.current.run(
         working.current,
         JSON.stringify(position),

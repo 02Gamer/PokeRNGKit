@@ -2,6 +2,8 @@ import { useMemo, type CSSProperties, type DragEvent } from "react";
 import { boxWallpaper } from "./art";
 import { pokemonAccess } from "./savePokemonEditing";
 import { PokemonSprite } from "./PokemonSprite";
+import { boxBackgroundDragOver, boxBackgroundDrop } from "./boxDropFeedback";
+import { playSaveSound } from "./saveSound";
 import { defaultSpriteFilter } from "./spritePixels";
 import {
   BOX_SLOT_DRAG_TYPE,
@@ -67,6 +69,8 @@ export function SaveBoxGrid({
   return (
     <div
       className="save-pokemon-slots"
+      onDragOver={boxBackgroundDragOver}
+      onDrop={boxBackgroundDrop}
       data-party={party}
       data-box={box}
       role="group"
@@ -155,7 +159,10 @@ export function SaveBoxGrid({
               if (!recognized(e)) return;
               e.preventDefault();
               e.stopPropagation();
-              if (!writable) return;
+              if (!writable) {
+                playSaveSound("other");
+                return;
+              }
               void onDrop(position, e.dataTransfer, {
                 shiftKey: e.shiftKey,
                 altKey: e.altKey,

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { playSaveSound } from "./saveSound";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
 import { saveEditorResources } from "./locales";
@@ -106,6 +107,7 @@ export function StandaloneGbEditor({
             : null,
       });
     } catch {
+      playSaveSound("other", "exclamation");
       setError(true);
     }
   };

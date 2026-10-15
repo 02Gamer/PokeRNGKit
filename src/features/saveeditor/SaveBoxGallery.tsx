@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { boxBackgroundDragOver, boxBackgroundDrop } from "./boxDropFeedback";
 import { adjacentBoxEdit, type GalleryModifiers } from "./boxGallery";
 import { boxGalleryWords } from "./boxGalleryWords";
 import { SaveBoxGrid } from "./SaveBoxGrid";
@@ -54,7 +55,12 @@ export function SaveBoxGallery({
     !report.boxOptions.canSwap ||
     report.boxCount < 2;
   return (
-    <div className="save-box-gallery" aria-label={w.all}>
+    <div
+      className="save-box-gallery"
+      aria-label={w.all}
+      onDragOver={boxBackgroundDragOver}
+      onDrop={boxBackgroundDrop}
+    >
       {Array.from({ length: report.boxCount }, (_, box) => {
         const entries = grouped.get(box) ?? [],
           name =

@@ -23,6 +23,22 @@ export interface MailEntry {
   misc: number[];
   ending: number;
 }
+export function mailDeleteNeedsQuestion(
+  c: {
+    party: readonly Pick<
+      MailCatalog["party"][number],
+      "itemIsMail" | "heldMailId"
+    >[];
+  },
+  index: number,
+) {
+  return (
+    Number.isInteger(index) &&
+    index >= 0 &&
+    index < c.party.length &&
+    c.party.some((p) => p.itemIsMail && p.heldMailId === index)
+  );
+}
 export interface MailCatalog {
   canEdit: boolean;
   sourceHash: string;

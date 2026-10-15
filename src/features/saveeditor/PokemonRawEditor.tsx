@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { playSaveSound } from "./saveSound";
 import { useTranslation } from "react-i18next";
 import {
   parsePokemonHex,
@@ -59,6 +60,7 @@ export function PokemonRawEditor({
       }
       await onApply(edit);
     } catch {
+      playSaveSound("other", "exclamation");
       setError(words.rawValueError);
     }
   };

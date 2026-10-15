@@ -23,6 +23,7 @@ import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonMarkingsEditor } from "./PokemonMarkingsEditor";
 import { useGenderLabel } from "./useGenderLabel";
+import { playSaveSound } from "./saveSound";
 import { PokemonVitalsEditor } from "./PokemonVitalsEditor";
 import { PokemonEggEditor } from "./PokemonEggEditor";
 import { PokemonOriginEditor } from "./PokemonOriginEditor";
@@ -231,7 +232,18 @@ export function SavePokemonBrowser({
     box: detailBox,
     slot: selection?.slot ?? selected?.slot ?? 0,
   };
-  const select = (position: PokemonPosition) => setSelection(position);
+  const select = (position: PokemonPosition, notifyEmpty = true) => {
+    if (
+      notifyEmpty &&
+      !locked &&
+      !report.pokemon.some(
+        (p) =>
+          p.box === position.box && p.slot === position.slot && p.species > 0,
+      )
+    )
+      playSaveSound("other");
+    setSelection(position);
+  };
   const chooseMain = (next: number) => {
     if (
       locked ||
@@ -286,6 +298,7 @@ export function SavePokemonBrowser({
   ) {
     if (locked || flight.current) return;
     if (!access.canStorage || !report.checksumsValid) {
+      playSaveSound("other");
       setGalleryError("readonly");
       return;
     }
@@ -299,11 +312,11 @@ export function SavePokemonBrowser({
         const source = decodeBoxDrag(payload, scope, revision, report);
         const edit = boxDropEdit(report, source, target, mode, keys);
         if (edit) {
-          select(target);
+          select(target, false);
           await onStorage(edit);
         }
       } else if (files[0]) {
-        select(target);
+        select(target, false);
         await onImport(target, files[0]);
       } else throw Error("Invalid box drop.");
     } catch {

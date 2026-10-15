@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef, useState } from "react";
+import { playSaveSound } from "./saveSound";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
 import { pokemonStatusImage } from "./art";
@@ -72,6 +73,7 @@ export function PokemonVitalsEditor({
     try {
       await onApply(edit);
     } catch {
+      playSaveSound("other", "exclamation");
       setError(true);
     } finally {
       pending.current = false;
@@ -95,6 +97,7 @@ export function PokemonVitalsEditor({
           : { action: kind, level: levelInput(level) },
       );
     } catch {
+      playSaveSound("other", "exclamation");
       setError(true);
     }
   }
@@ -369,6 +372,7 @@ export function PokemonVitalsEditor({
                       : {}),
                   });
                 } catch {
+                  playSaveSound("other", "exclamation");
                   setError(true);
                 }
               }}

@@ -776,6 +776,11 @@ export function StandalonePokemonPanel({
     perform(async (id) => {
       if (!working) return;
       setLegality(undefined);
+      if (!report?.pokemon.valid || report.pokemon.species === 0) {
+        setError("failed");
+        playSaveSound("other", "hand");
+        return;
+      }
       const result = await client.current.run(
         working.bytes,
         {

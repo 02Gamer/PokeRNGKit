@@ -1,5 +1,15 @@
 # PKHeX 存档读取与编辑
 
+## 交互提示与音效（API172 前端）
+
+依据 WinFormsUtil.Asterisk／Exclamation／Hand／Question 和 18 个剩余直接调用位置，逐项对应见 docs/pkhex-sound-coverage.md。浏览器使用本机合成的四种短音，不复制 Windows 音频；保持 170 ms 与现有音量包络，页面激活前不创建音频，失焦／隐藏／设置变化时停止，三个来源开关独立。新增三语类型选择与试听，复用共享 Select 和既有控件令牌；PlaySoundOther 开关开始消费已连接的操作。
+
+成功型声音只在现有工作副本写入或当前冻结预览确认有效后触发；信件询问按当前预览的队伍引用处理，不自动选择修改持有物。背景拖放只识别 Files 或项目内部格位类型，阻止默认导航／冒泡，不读取负载；格位自身处理后停止冒泡，避免重复提示。表单验证、无效实体分析与不可写目标使用对应反馈，保持文字错误和原有范围校验。无新增存档数值参数或 Native／Worker 协议变化。
+
+首轮前端／类型失败与修正见进度文档；工程重跑中。禁用态、流程适配和实际声音分别记账，集中草稿校验与间接对话框仍在范围内；不得将这些说明当作所有者验收或完整接入。实际 Chrome 音频、拖放和弹层交互待核验。
+
+最终十文件 287 项与定向 Lint、完整类型通过；.tmp/pkhex-feedback-verify.log 的完整 npm run verify 退出 0（343 文件／1966 项、类型、格式、网页／PWA）。保留第三世代定点模块既有的一条 Lint 提醒及既有包体提示。Core／Worker 未改，不重复运行相同版本原生基线；原存档哈希保持。外部 Chrome 页面读取仍失败，音频与拖放的真实行为待核验，不能由模拟事件测试推定浏览器投递不可写目标的 drop。
+
 ## 共用经验值、状态与觉醒力量（API172）
 
 新增 PokemonVitals 元数据与处理，由存档和独立实体共用。GB 通过 GbSpecialEdit.vitals，其他格式通过 PokemonRawEdit.vitals，继续沿原工作副本／撤销／写入回读。PokemonReader 逐只返回实际成长曲线边界、状态存储能力及觉醒力量目录，Worker／协议统一为 API172。EntityEditor.HiddenPowerOnChangeMaxPower、ShowExperienceBar、ShowStatusCondition 和 ShowGenderGen1 均已接消费；第一世代性别同时影响详情与悬浮预览，设置变更仍沿既有报告重读及悬浮失效路径。

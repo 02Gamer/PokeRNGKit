@@ -3,7 +3,13 @@
 import { readSaveSettings, subscribeSaveSettings } from "./settingsRepository";
 import { loadBoxExportDefaults } from "./programExportSettings";
 export type SaveSoundEvent = "load" | "legality" | "other";
-export type SaveSoundCue = "asterisk" | "exclamation";
+export type SaveSoundCue = "asterisk" | "exclamation" | "hand" | "question";
+const cueNotes: Record<SaveSoundCue, readonly [number, number]> = {
+  asterisk: [660, 880],
+  exclamation: [440, 330],
+  hand: [220, 165],
+  question: [440, 660],
+};
 export function saveSoundEnabled(json: string, event: SaveSoundEvent) {
   if (!json) return true;
   const sounds = JSON.parse(json).sounds;
@@ -111,11 +117,9 @@ export class SaveSoundPlayback {
       this.gain = gain;
       source.type = "sine";
       const start = context.currentTime;
-      source.frequency.setValueAtTime(cue === "asterisk" ? 660 : 440, start);
-      source.frequency.setValueAtTime(
-        cue === "asterisk" ? 880 : 330,
-        start + 0.08,
-      );
+      const notes = cueNotes[cue];
+      source.frequency.setValueAtTime(notes[0], start);
+      source.frequency.setValueAtTime(notes[1], start + 0.08);
       gain.gain.setValueAtTime(0, start);
       gain.gain.linearRampToValueAtTime(0.035, start + 0.01);
       gain.gain.setValueAtTime(0.035, start + 0.12);

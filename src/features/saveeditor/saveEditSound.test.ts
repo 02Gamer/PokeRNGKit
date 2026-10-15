@@ -8,6 +8,9 @@ import {
 } from "./saveEditSound";
 
 it.each([
+  ["inventoryBatch", { action: "giveAll" }],
+  ["box", { batch: "DeleteAll" }],
+  ["box", { batch: "SortSpecies" }],
   ["gsBall2Edit", { action: "enableGsBall" }],
   ["hall3Edit", { action: "party" }],
   ["misc3Edit", { action: "mirage" }],
@@ -80,6 +83,12 @@ it.each([
   ["video4Export", {}],
   ["video4Read", {}],
   ["unknownEdit", { action: "all" }],
+  ["inventoryBatch", { action: "sortId" }],
+  ["inventoryBatch", { action: "setCount" }],
+  ["inventoryBatch", { action: "clear" }],
+  ["box", { batch: "unknown" }],
+  ["box", { swapWith: 2 }],
+  ["box", { batch: "" }],
   ["rtcEdit", null],
   ["video4Import", []],
   ["video4Import", undefined],

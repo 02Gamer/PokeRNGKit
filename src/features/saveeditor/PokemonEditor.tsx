@@ -1,4 +1,5 @@
 import { useGenderLabel } from "./useGenderLabel";
+import { playSaveSound } from "./saveSound";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -187,6 +188,7 @@ export function PokemonEditor({
         ),
       });
     } catch (cause) {
+      playSaveSound("other", "exclamation");
       setError(
         cause instanceof Error ? cause.message : words.pokemonValueError,
       );

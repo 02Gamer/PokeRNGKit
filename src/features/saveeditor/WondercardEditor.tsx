@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef, useState } from "react";
+import { playSaveSound } from "./saveSound";
 import { Select } from "../shared/Select";
 import { WondercardImage } from "./WondercardImage";
 import {
@@ -125,7 +126,7 @@ function Form({
       if (life.current.alive) setPending(false);
     }
   }
-  async function preview(next: WondercardAction[]) {
+  async function preview(next: WondercardAction[], sourceCue = false) {
     if (!catalog || !editable) return;
     await operation(async () => {
       const state = life.current,
@@ -150,6 +151,7 @@ function Form({
       setActions(next);
       setAccept(false);
       setQrImage("");
+      if (sourceCue) playSaveSound("other");
     });
   }
   async function inspect(data: string, fileName: string, qr: boolean) {
@@ -456,7 +458,10 @@ function Form({
                   type="button"
                   disabled={!editable}
                   onClick={() =>
-                    void preview([...actions, { kind: "usedAll", value: true }])
+                    void preview(
+                      [...actions, { kind: "usedAll", value: true }],
+                      true,
+                    )
                   }
                 >
                   {w.allUsed}
@@ -465,10 +470,10 @@ function Form({
                   type="button"
                   disabled={!editable}
                   onClick={() =>
-                    void preview([
-                      ...actions,
-                      { kind: "usedAll", value: false },
-                    ])
+                    void preview(
+                      [...actions, { kind: "usedAll", value: false }],
+                      true,
+                    )
                   }
                 >
                   {w.allUnused}

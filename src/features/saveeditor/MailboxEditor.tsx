@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
+import { playSaveSound } from "./saveSound";
 import {
   mailConfirmation,
+  mailDeleteNeedsQuestion,
   mailDraft,
   mailRequest,
   mailType,
@@ -491,7 +493,10 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                 <button
                   type="button"
                   disabled={locked || !catalog.canEdit}
-                  onClick={() =>
+                  onClick={() => {
+                    if (locked || flight.current || !catalog.canEdit) return;
+                    if (mailDeleteNeedsQuestion(frame, selected))
+                      playSaveSound("other", "question");
                     void preview([
                       ...actions,
                       {
@@ -499,8 +504,8 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                         index: selected,
                         modifyHeldItem: linked,
                       },
-                    ])
-                  }
+                    ]);
+                  }}
                 >
                   {w.delete}
                 </button>

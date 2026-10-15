@@ -133,6 +133,7 @@ export function SaveSettingsWorkspace({
     "draw.shinyDefault",
     "sounds.playSoundSAVLoad",
     "sounds.playSoundLegalityCheck",
+    "sounds.playSoundOther",
     "localResources.soundPath",
     "hover.hoverSlotShowText",
     "hover.hoverSlotShowEncounter",

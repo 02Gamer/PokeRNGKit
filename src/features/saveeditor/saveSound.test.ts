@@ -128,6 +128,35 @@ it("keeps notice and unsuccessful-search tones distinct without increasing durat
   );
   expect(sources[0].stop).toHaveBeenCalledWith(10.17);
 });
+it.each([
+  ["asterisk", 660, 880],
+  ["exclamation", 440, 330],
+  ["hand", 220, 165],
+  ["question", 440, 660],
+] as const)(
+  "keeps the %s cue bounded, distinct and behind page activation",
+  async (cue, first, last) => {
+    const { player, sources } = harness();
+    player.play(cue);
+    expect(sources).toHaveLength(0);
+    await player.enable();
+    player.play(cue);
+    expect(sources[0].frequency.setValueAtTime).toHaveBeenNthCalledWith(
+      1,
+      first,
+      10,
+    );
+    expect(sources[0].frequency.setValueAtTime).toHaveBeenNthCalledWith(
+      2,
+      last,
+      10.08,
+    );
+    expect(sources[0].stop).toHaveBeenCalledWith(10.17);
+    player.disable();
+    player.play(cue);
+    expect(sources).toHaveLength(1);
+  },
+);
 it("dispatches only the enabled operation and ignores corrupt settings", () => {
   const play = vi.spyOn(saveSoundPlayback, "play").mockImplementation(() => {});
   stored.json =

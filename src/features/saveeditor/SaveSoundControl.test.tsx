@@ -11,5 +11,11 @@ it.each(["zh", "en", "ja"] as const)(
     expect(html).toContain('aria-pressed="false"');
     expect(html).toContain('disabled=""');
     expect(html).not.toContain('role="alert"');
+    for (const label of {
+      zh: ["提示类型", "提示"],
+      en: ["Cue type", "Notice"],
+      ja: ["通知の種類", "通知"],
+    }[lang])
+      expect(html).toContain(label);
   },
 );

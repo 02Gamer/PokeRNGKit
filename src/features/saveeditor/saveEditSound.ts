@@ -2,6 +2,7 @@
 // Explicit source operation mapping; call only after a working-copy edit succeeds.
 import type { CGear5Preview } from "./cgear5";
 import type { TrGGPreview } from "./trainerGG";
+import { boxBatchNames } from "./boxBatchNames";
 export function saveEditHasSound(
   kind: string,
   value: unknown,
@@ -12,6 +13,13 @@ export function saveEditHasSound(
   const action = typeof edit.action === "string" ? edit.action : "";
   const group = typeof edit.group === "string" ? edit.group : "";
   switch (kind) {
+    case "inventoryBatch":
+      return action === "giveAll";
+    case "box":
+      return (
+        typeof edit.batch === "string" &&
+        Object.hasOwn(boxBatchNames.en, edit.batch)
+      );
     case "gsBall2Edit":
       return edit.action === "enableGsBall";
     case "hall3Edit":
