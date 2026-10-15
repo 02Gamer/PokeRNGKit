@@ -318,7 +318,7 @@
   background: #d8efffcc;
   border-color: var(--brand);
 }
-.save-pokemon-slots img {
+.save-pokemon-slots :is(img, .save-pokemon-art) {
   width: 68px;
   max-width: 100%;
   height: auto;
@@ -429,6 +429,11 @@
   overflow-wrap: anywhere;
   font-size: 14px;
   line-height: 22px;
+}
+.save-editor-panel .save-bulk-legality-report {
+  max-height: 55vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .save-editor-fields.save-ribbon-list {

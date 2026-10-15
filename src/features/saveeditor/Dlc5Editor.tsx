@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
 import type { Br4Lang } from "./br4";
-import { pokemonImage, speciesImage } from "./art";
+import { speciesImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
 import { saveEditorResources } from "./locales";
 import {
   dlc5Words,
@@ -154,13 +155,23 @@ function DlcDetails({ s, lang }: { s: Dlc5Slot; lang: Br4Lang }) {
                   const p = member.pokemon;
                   return (
                     <div key={member.slot} className="save-dlc5-member">
-                      <img
-                        src={p ? pokemonImage(p) : speciesImage(member.species)}
-                        alt=""
-                        width="48"
-                        height="48"
-                        loading="lazy"
-                      />
+                      {p ? (
+                        <PokemonSprite
+                          pokemon={p}
+                          alt=""
+                          width={48}
+                          height={48}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <img
+                          src={speciesImage(member.species)}
+                          alt=""
+                          width={48}
+                          height={48}
+                          loading="lazy"
+                        />
+                      )}
                       <div>
                         <strong>
                           {member.slot + 1}.{" "}

@@ -1,4 +1,14 @@
+import { useGenderLabel } from "./useGenderLabel";
+import { playSaveSound, playSilentBoxExportSound } from "./saveSound";
+import { cgear5PreviewHasSound, saveEditHasSound } from "./saveEditSound";
+import { copyDonut9aHex } from "./donut9aClipboard";
 import { SCBlockEditor } from "./SCBlockEditor";
+import { useSaveSettingsJson } from "./useSaveSettingsJson";
+import { PokemonHoverSurface } from "./PokemonHoverSurface";
+import { useMysteryGiftChanges } from "./useMysteryGiftChanges";
+import { useSavePrivacy } from "./useSavePrivacy";
+import { saveDocumentTitle } from "./saveDocumentTitle";
+import { beginSaveRequest } from "./clientActivity";
 import { SaveDetectionEditor } from "./SaveDetectionEditor";
 import { saveDetectionWords, type SaveDetectionChoice } from "./saveDetection";
 import { SimpleTrainerEditor } from "./SimpleTrainerEditor";
@@ -10,9 +20,34 @@ import {
 import { mysteryGiftDatabaseWords } from "./mysteryGiftDatabaseWords";
 import { SaveFolderViewer } from "./SaveFolderViewer";
 import { saveFolderWords } from "./saveFolderWords";
-import { rememberSaveFolderFile } from "./saveFolderRepository";
+import { loadSaveFolder, rememberSaveFolderFile } from "./saveFolderRepository";
+import { saveLibraryLocations } from "./saveLibraryLocations";
+import {
+  saveLibrarySettings,
+  saveLibraryWords,
+  startupSaveCandidates,
+} from "./saveLibrarySettings";
 import { PersonalChartViewer } from "./PersonalChartViewer";
 import { PokemonReportViewer } from "./PokemonReportViewer";
+import { SaveBulkLegalityEditor } from "./SaveBulkLegalityEditor";
+import { BattleTemplateWorkspace } from "./BattleTemplateWorkspace";
+import {
+  battleImportWords,
+  parseBattleTemplateImport,
+  type BattleTemplateImportActions,
+} from "./battleTemplateImport";
+import {
+  battleTemplateWords,
+  parseBattleTemplate,
+  type BattleTemplateQuery,
+  type BattleTemplateReport,
+} from "./battleTemplate";
+import {
+  bulkLegalityWords,
+  bulkLegalitySourceHash,
+  parseBulkLegality,
+  type SaveBulkLegalityReport,
+} from "./bulkLegality";
 import { PokemonDatabaseViewer } from "./PokemonDatabaseViewer";
 import {
   PokemonEncounterViewer,
@@ -163,7 +198,13 @@ import { zygarde7Words } from "./zygarde7Words";
 import { supportsTrainer6, tr6IdInput, tr6Tsv } from "./trainer6";
 import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
 import { TrainerDateFields } from "./TrainerDateFields";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react";
 import { PropertyBatchEditor } from "./PropertyBatchEditor";
 import { FileBatchEditor } from "./FileBatchEditor";
 import {
@@ -264,14 +305,29 @@ import { TrainerGameOptionFields } from "./TrainerGameOptionFields";
 import { TrainerPositionFields } from "./TrainerPositionFields";
 
 export function SaveEditorPanel(
-  controllers: Omit<SaveProfileControllers, "gen5">,
+  controllers: Omit<SaveProfileControllers, "gen5"> & {
+    onOpenSettings?(group: string): void;
+    onTemplateSource?(
+      source: import("./entityTemplate").EntityTemplateSource | undefined,
+    ): void;
+  },
 ) {
+  const genderLabel = useGenderLabel();
   const { t, i18n } = useTranslation();
+  const batchLang = i18n.language.startsWith("zh")
+    ? "zh"
+    : i18n.language.startsWith("ja")
+      ? "ja"
+      : "en";
   const words = t("saveEditor", {
     returnObjects: true,
   }) as typeof saveEditorResources.en;
   const gen5 = useGen5Profiles();
   const client = useRef(new SaveEditorClient());
+  const settingsJson = useSaveSettingsJson();
+  const previousSettings = useRef(settingsJson);
+  const giftRevision = useMysteryGiftChanges();
+  const previousGiftRevision = useRef(giftRevision);
   const original = useRef<Uint8Array | undefined>(undefined);
   const working = useRef<Uint8Array | undefined>(undefined);
   const [history, setHistory] = useState<Uint8Array[]>([]);
@@ -318,7 +374,40 @@ export function SaveEditorPanel(
     contextRevision.current = fileRevision;
   }, [fileRevision]);
   const [report, setReport] = useState<SaveReport>();
+  const privacy = useSavePrivacy();
+  useEffect(() => {
+    if (!report) return;
+    const language = i18n.language.startsWith("zh")
+      ? "zh"
+      : i18n.language.startsWith("ja")
+        ? "ja"
+        : "en";
+    const before = document.title;
+    const title = saveDocumentTitle(
+      report,
+      name,
+      language,
+      privacy.hideSAVDetails,
+    );
+    document.title = title;
+    return () => {
+      if (document.title === title) document.title = before;
+    };
+  }, [report, name, i18n.language, privacy.hideSAVDetails]);
   const [workingRevision, setWorkingRevision] = useState(0);
+  const onTemplateSource = controllers.onTemplateSource;
+  useEffect(() => {
+    onTemplateSource?.(
+      working.current
+        ? {
+            bytes: working.current,
+            recognition: client.current.getRecognition(),
+            brProfile: client.current.getBRProfile(),
+          }
+        : undefined,
+    );
+  }, [onTemplateSource, workingRevision, fileRevision, report]);
+  useEffect(() => () => onTemplateSource?.(undefined), [onTemplateSource]);
   const [legality, setLegality] = useState<PokemonLegalityReport>();
   const [section, setSection] = useState<SaveSection>("pokemon");
   const [showSaveFolders, setShowSaveFolders] = useState(false);
@@ -394,12 +483,14 @@ export function SaveEditorPanel(
     setCancellable(canCancel);
     setError("");
     setStatus("");
+    const finishActivity = beginSaveRequest();
     try {
       await action(id);
     } catch (cause) {
       if (id === operation.current)
         setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
+      finishActivity();
       if (id === operation.current) {
         running.current = false;
         setBusy(false);
@@ -408,7 +499,11 @@ export function SaveEditorPanel(
   };
 
   const [showSaveDetection, setShowSaveDetection] = useState(false);
-  const openFile = async (file: File, recognition?: SaveDetectionChoice) => {
+  const openFile = async (
+    file: File,
+    recognition?: SaveDetectionChoice,
+    sourceId?: string,
+  ) => {
     let opened = false;
     await perform(async (id) => {
       if (!file.size || file.size > MAX_SAVE_BYTES)
@@ -430,7 +525,25 @@ export function SaveEditorPanel(
         client.current.setRecognition(previousRecognition);
         return;
       }
-      await rememberSaveFolderFile(file, bytes).catch(() => undefined);
+      let libraryFailed = false;
+      try {
+        const policy = saveLibrarySettings(settingsJson);
+        const backupName = policy.backup
+          ? (await client.current.run(bytes, file.name, "saveBackupName"))
+              .saveBackupName
+          : "";
+        if (policy.backup && backupName === undefined)
+          throw new Error("Missing backup file name.");
+        if (id !== operation.current) return;
+        await rememberSaveFolderFile(file, bytes, {
+          backupName: backupName ?? "",
+          backupFolder: policy.folder,
+          recentMax: policy.recentMax,
+          sourceId,
+        });
+      } catch {
+        libraryFailed = true;
+      }
       if (id !== operation.current) {
         client.current.setRecognition(previousRecognition);
         return;
@@ -553,10 +666,101 @@ export function SaveEditorPanel(
       setVersion(games.length === 1 ? games[0] : "");
       setTarget("new");
       setReviewDefaults(false);
+      if (libraryFailed) setStatus("libraryFailed");
       opened = true;
+      playSaveSound("load");
     });
     return opened;
   };
+
+  const restoreOnStartup = useEffectEvent(async (active: () => boolean) => {
+    const initialOperation = operation.current;
+    const initialSettings = previousSettings.current;
+    const untouched = () =>
+      active() &&
+      operation.current === initialOperation &&
+      !working.current &&
+      !running.current &&
+      previousSettings.current === initialSettings;
+    try {
+      const policy = saveLibrarySettings(settingsJson);
+      if (!policy.startup || !untouched()) return;
+      const snapshot = await loadSaveFolder();
+      if (!untouched()) return;
+      const candidates = startupSaveCandidates(
+        snapshot.files,
+        policy.startup,
+        saveLibraryLocations(settingsJson),
+      );
+      for (const file of candidates) {
+        if (
+          !active() ||
+          working.current ||
+          running.current ||
+          previousSettings.current !== initialSettings
+        )
+          return;
+        const before = operation.current;
+        const opened = await openFile(
+          new File([file.data], file.name, { lastModified: file.modified }),
+          undefined,
+          file.id,
+        );
+        if (!active() || operation.current !== before + 1) return;
+        if (opened) {
+          // Preserve any storage failure notice produced during opening.
+          setStatus((previous) => previous || "libraryRestored");
+          return;
+        }
+      }
+      if (candidates.length && active()) setError("libraryRestoreFailed");
+    } catch {
+      if (untouched()) setError("libraryRestoreFailed");
+    }
+  });
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (active) void restoreOnStartup(() => active);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const refreshSettings = useEffectEvent(() => {
+    client.current.dispose(
+      "Settings changed. Read a new preview before confirming.",
+    );
+    setLegality(undefined);
+    setWorkingRevision((value) => value + 1);
+    setFileRevision((value) => value + 1);
+    if (!working.current) return;
+    void perform(async (id) => {
+      const result = await client.current.run(working.current!);
+      if (id !== operation.current) return;
+      setReport(result.report);
+      setDraft(trainerDraft(result.report));
+      setTrainer6Draft(false);
+      setSimpleTrainerDirty(false);
+    });
+  });
+  useEffect(() => {
+    if (settingsJson === previousSettings.current || busy) return;
+    previousSettings.current = settingsJson;
+    refreshSettings();
+  }, [settingsJson, busy]);
+  const refreshGiftData = useEffectEvent(() => {
+    setLegality(undefined);
+    // The gift workspace rebuilds its own session after a successful library
+    // transaction. Preserve its undo snapshot while other workspaces refresh.
+    if (section !== "giftDatabase") refreshSettings();
+  });
+  useEffect(() => {
+    if (giftRevision === previousGiftRevision.current || busy) return;
+    previousGiftRevision.current = giftRevision;
+    refreshGiftData();
+  }, [giftRevision, busy]);
 
   const exportFile = () =>
     perform(async (id) => {
@@ -586,11 +790,6 @@ export function SaveEditorPanel(
       setStatus("exported");
     });
 
-  const batchLang = i18n.language.startsWith("zh")
-    ? "zh"
-    : i18n.language.startsWith("ja")
-      ? "ja"
-      : "en";
   const discardPropertyPreview = useCallback((token: string) => {
     if (working.current)
       client.current.discardPropertyPreview(working.current, token);
@@ -714,6 +913,7 @@ export function SaveEditorPanel(
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
       downloaded = true;
+      if (kind === "boxArchive") playSilentBoxExportSound();
     });
     return downloaded;
   };
@@ -1425,6 +1625,7 @@ export function SaveEditorPanel(
           "." +
           extension;
         a.click();
+        playSaveSound("other");
       } finally {
         setTimeout(() => URL.revokeObjectURL(url), 0);
       }
@@ -1788,7 +1989,11 @@ export function SaveEditorPanel(
       /* A disposed/replaced Worker has already released its preview. */
     }
   };
-  const exportDonut9a = async (index: number, text: boolean) => {
+  const exportDonut9a = async (
+    index: number,
+    mode: import("./donut9a").Dn9aExportMode,
+  ) => {
+    let exported = false;
     await perform(async (id) => {
       if (!working.current) return;
       const result = await client.current.run(
@@ -1798,6 +2003,14 @@ export function SaveEditorPanel(
       );
       if (id !== operation.current) return;
       if (!result.donut9aFile) throw Error("No Donut9a export was returned.");
+      if (mode === "clipboard") {
+        await copyDonut9aHex(result.donut9aFile);
+        if (id !== operation.current) return;
+        exported = true;
+        playSaveSound("other");
+        return;
+      }
+      const text = mode === "text";
       const value = text
         ? new TextEncoder().encode(
             Array.from(result.donut9aFile, (b) =>
@@ -1816,10 +2029,12 @@ export function SaveEditorPanel(
         a.download =
           String(index + 1).padStart(3, "0") + (text ? ".donut.txt" : ".donut");
         a.click();
+        exported = true;
       } finally {
         URL.revokeObjectURL(url);
       }
     });
+    return exported;
   };
   const readTrainer8 = async () => {
     let c: import("./trainer8").Tr8Catalog | undefined;
@@ -2443,6 +2658,7 @@ export function SaveEditorPanel(
       if (id !== operation.current) return;
       if (!result.dlc5Preview) throw Error("No Dlc5 preview was returned.");
       p = result.dlc5Preview;
+      playSaveSound("other");
     });
     return p;
   };
@@ -2495,6 +2711,7 @@ export function SaveEditorPanel(
       if (id !== operation.current) return;
       if (!result.cgear5Preview) throw Error("No CGear5 preview was returned.");
       preview = result.cgear5Preview;
+      if (cgear5PreviewHasSound(preview)) playSaveSound("other");
     });
     return preview;
   };
@@ -2794,10 +3011,11 @@ export function SaveEditorPanel(
     });
     return ticket;
   };
-  const applyTrainer9a = async (edit: Tr9aConfirmation) => {
+  const applyTrainer9a = async (edit: Tr9aConfirmation, sourceSound?: true) => {
     let applied = false;
     await applyWorkingEdit(edit, "trainer9aCommit", () => {
       applied = true;
+      if (sourceSound) playSaveSound("other");
     });
     return applied;
   };
@@ -2843,10 +3061,11 @@ export function SaveEditorPanel(
     });
     return ticket;
   };
-  const applyTrainer9 = async (edit: Tr9Confirmation) => {
+  const applyTrainer9 = async (edit: Tr9Confirmation, sourceSound?: true) => {
     let applied = false;
     await applyWorkingEdit(edit, "trainer9Commit", () => {
       applied = true;
+      if (sourceSound) playSaveSound("other");
     });
     return applied;
   };
@@ -2894,10 +3113,14 @@ export function SaveEditorPanel(
     });
     return ticket;
   };
-  const applyFestivalPlaza = async (edit: FestaConfirmation) => {
+  const applyFestivalPlaza = async (
+    edit: FestaConfirmation,
+    sourceSound?: "glasses",
+  ) => {
     let applied = false;
     await applyWorkingEdit(edit, "festivalPlazaCommit", () => {
       applied = true;
+      if (sourceSound === "glasses") playSaveSound("other");
     });
     return applied;
   };
@@ -3557,6 +3780,88 @@ export function SaveEditorPanel(
     });
     return catalog;
   };
+  const battleImportActions: BattleTemplateImportActions = {
+    preview: async (target, text) => {
+      let value:
+        import("./battleTemplateImport").BattleTemplateImportTicket | undefined;
+      await perform(async (id) => {
+        const source = working.current;
+        if (!source) return;
+        const sourceHash = bulkLegalitySourceHash(source);
+        const result = await client.current
+          .run(
+            source,
+            JSON.stringify({ sourceHash, target, text }),
+            "battleTemplateImportPreview",
+          )
+          .catch(() => {
+            throw new Error(battleImportWords[batchLang].failed);
+          });
+        if (id !== operation.current || working.current !== source) {
+          if (result.battleTemplateImport)
+            await client.current.run(
+              source,
+              result.battleTemplateImport.token,
+              "battleTemplateImportDiscard",
+            );
+          return;
+        }
+        value = parseBattleTemplateImport(
+          result.battleTemplateImport,
+          sourceHash,
+          target,
+        );
+      });
+      return value;
+    },
+    apply: async (confirmation) => {
+      let applied = false;
+      await applyWorkingEdit(confirmation, "battleTemplateImportCommit", () => {
+        applied = true;
+      });
+      return applied;
+    },
+    discard: async (token) => {
+      if (working.current)
+        await client.current.run(
+          working.current,
+          token,
+          "battleTemplateImportDiscard",
+        );
+    },
+  };
+  const readBattleTemplate = async (query: BattleTemplateQuery) => {
+    let value: BattleTemplateReport | undefined;
+    await perform(async (id) => {
+      const source = working.current;
+      if (!source) return;
+      const hash = bulkLegalitySourceHash(source);
+      const result = await client.current.run(
+        source,
+        JSON.stringify(query),
+        "battleTemplate",
+      );
+      if (id !== operation.current || working.current !== source) return;
+      value = parseBattleTemplate(result.battleTemplate, hash, query);
+    });
+    return value;
+  };
+  const readBulkLegality = async () => {
+    let value: SaveBulkLegalityReport | undefined;
+    await perform(async (id) => {
+      const source = working.current;
+      if (!source) return;
+      const sourceHash = bulkLegalitySourceHash(source);
+      const result = await client.current.run(
+        source,
+        undefined,
+        "saveBulkLegality",
+      );
+      if (id !== operation.current || working.current !== source) return;
+      value = parseBulkLegality(result.bulkLegality, sourceHash);
+    });
+    return value;
+  };
   const reportActions: PokemonReportActions = {
     catalog: async () => {
       let value: import("./pokemonReport").PokemonReportCatalog | undefined;
@@ -3729,13 +4034,14 @@ export function SaveEditorPanel(
   const readOrigin = async (
     position: PokemonPosition,
     version?: number,
+    ball?: number,
   ): Promise<OriginCatalog | undefined> => {
     let catalog: OriginCatalog | undefined;
     await perform(async (id) => {
       if (!working.current) return;
       const result = await client.current.run(
         working.current,
-        JSON.stringify({ ...position, version }),
+        JSON.stringify({ ...position, version, ball }),
         "originCatalog",
       );
       if (id !== operation.current) return;
@@ -3757,6 +4063,7 @@ export function SaveEditorPanel(
       if (id !== operation.current) return;
       if (!result.legality) throw new Error("No legality report was returned.");
       setLegality(result.legality);
+      playSaveSound("legality");
     });
 
   const applyWorkingEdit = (
@@ -3771,10 +4078,12 @@ export function SaveEditorPanel(
       | import("./textTrash").TextTrashConfirmation
       | import("./plusRecord").PlusRecordConfirmation
       | import("./techRecord").TechRecordConfirmation
+      | import("./battleTemplateImport").BattleTemplateImportConfirmation
       | AccessorConfirmation
       | WondercardConfirmation
       | SCBlockConfirmation
       | PokemonEdit
+      | import("./savePokemonEditing").GbSavePokemonEdit
       | PokemonRawEdit
       | import("./simpleTrainer").SimpleTrainerConfirmation
       | BoxEdit
@@ -3867,8 +4176,10 @@ export function SaveEditorPanel(
       | "scblockCommit"
       | "boxBinaryCommit"
       | "boxImportCommit"
+      | "battleTemplateImportCommit"
       | "propertyCommit"
       | "pokemon"
+      | "pokemonGb"
       | "pokemonRaw"
       | "box"
       | "storage"
@@ -3951,11 +4262,13 @@ export function SaveEditorPanel(
       const before = working.current;
       const values = typeof edit === "function" ? await edit() : edit;
       if (id !== operation.current) return;
-      const result = await client.current.run(
-        before,
-        JSON.stringify(values),
-        kind,
-      );
+      const result = await client.current
+        .run(before, JSON.stringify(values), kind)
+        .catch((cause) => {
+          if (kind === "battleTemplateImportCommit")
+            throw new Error(battleImportWords[batchLang].failed);
+          throw cause;
+        });
       if (id !== operation.current) return;
       if (!result.output) throw new Error("No output was returned.");
       setHistory((previous) => {
@@ -3977,7 +4290,21 @@ export function SaveEditorPanel(
       setWorkingRevision((previous) => previous + 1);
       setLegality(undefined);
       setStatus("pokemonSaved");
+      if (saveEditHasSound(kind, values, result.report.format))
+        playSaveSound("other");
     });
+  };
+  const applyReviewedEdit = async (
+    confirmation: { token: string; sourceHash: string; targetHash: string },
+    kind: "raid9Commit" | "fashion9Commit" | "donut9aCommit",
+    sourceSound?: true,
+  ) => {
+    let applied = false;
+    await applyWorkingEdit(confirmation, kind, () => {
+      applied = true;
+      if (sourceSound) playSaveSound("other");
+    });
+    return applied;
   };
   const importPokemon = (position: PokemonPosition, file: File) =>
     applyWorkingEdit(async () => {
@@ -4010,6 +4337,7 @@ export function SaveEditorPanel(
       anchor.download = result.video4File.fileName;
       anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      playSaveSound("other");
     });
 
   const exportBattlePass4 = (index: number, slot?: number) =>
@@ -4058,7 +4386,16 @@ export function SaveEditorPanel(
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
     });
 
+  const readHoverContext: import("./pokemonHover").ReadPokemonHoverTarget =
+    async (target) => {
+      const bytes = working.current;
+      if (!bytes) return;
+      return (
+        await client.current.run(bytes, JSON.stringify(target), "contextHover")
+      ).pokemonHover;
+    };
   const giftDatabaseActions: MysteryGiftDatabaseActions = {
+    hover: readHoverContext,
     request: async (kind, json, entity) => {
       let response: import("./domain").SaveEditorResult | undefined;
       await perform(async (id) => {
@@ -4074,6 +4411,7 @@ export function SaveEditorPanel(
     },
   };
   const encounterActions: EncounterActions = {
+    hover: readHoverContext,
     request: async (kind, json, entity) => {
       let response: import("./domain").SaveEditorResult | undefined;
       await perform(async (id) => {
@@ -4089,6 +4427,7 @@ export function SaveEditorPanel(
     },
   };
   const databaseActions: DatabaseActions = {
+    hover: readHoverContext,
     request: async (kind, json, files) => {
       let response: import("./domain").SaveEditorResult | undefined;
       await perform(async (id) => {
@@ -4364,6 +4703,16 @@ export function SaveEditorPanel(
         {
           id: "pokemonReport",
           label: reportWords[batchLang].title,
+          available: true,
+        },
+        {
+          id: "bulkLegality",
+          label: bulkLegalityWords[batchLang].title,
+          available: true,
+        },
+        {
+          id: "battleTemplate",
+          label: battleTemplateWords[batchLang].title,
           available: true,
         },
         {
@@ -4728,6 +5077,7 @@ export function SaveEditorPanel(
               busy ||
               !(
                 report.canEdit ||
+                report.pokemonEditing?.canEdit ||
                 report.boxOptions.canSetCurrentBox ||
                 report.trainerOnly ||
                 report.pokedex?.canEdit ||
@@ -4829,16 +5179,22 @@ export function SaveEditorPanel(
       {busy && <p role="status">{words.loading}</p>}
       {error && (
         <p role="alert" className="save-editor-error">
-          {Object.values(saveDetectionWords).some(
-            (value) => value.openError === error,
-          )
-            ? saveDetectionWords[batchLang].openError
-            : localizeSaveError(error, words)}
+          {error === "libraryRestoreFailed"
+            ? saveLibraryWords[batchLang].restoreFailed
+            : Object.values(saveDetectionWords).some(
+                  (value) => value.openError === error,
+                )
+              ? saveDetectionWords[batchLang].openError
+              : localizeSaveError(error, words)}
         </p>
       )}
       {status && (
         <p role="status">
-          {words[status as "exported" | "linked" | "pokemonSaved"]}
+          {status === "libraryFailed"
+            ? saveLibraryWords[batchLang].failed
+            : status === "libraryRestored"
+              ? saveLibraryWords[batchLang].restored
+              : words[status as "exported" | "linked" | "pokemonSaved"]}
         </p>
       )}
       {showSaveDetection && (
@@ -4848,7 +5204,7 @@ export function SaveEditorPanel(
         <SaveFolderViewer
           lang={batchLang}
           busy={busy}
-          onOpen={openFile}
+          onOpen={(file, sourceId) => openFile(file, undefined, sourceId)}
           onClose={() => setShowSaveFolders(false)}
         />
       )}
@@ -4885,6 +5241,9 @@ export function SaveEditorPanel(
                   report={report}
                   actions={giftDatabaseActions}
                   databaseActions={databaseActions}
+                  onOpenSettings={() =>
+                    controllers.onOpenSettings?.("mysteryDb")
+                  }
                 />
               ) : section === "encounters" ? (
                 <PokemonEncounterViewer
@@ -4894,6 +5253,9 @@ export function SaveEditorPanel(
                   report={report}
                   actions={encounterActions}
                   databaseActions={databaseActions}
+                  onOpenSettings={() =>
+                    controllers.onOpenSettings?.("encounterDb")
+                  }
                 />
               ) : section === "database" ? (
                 <PokemonDatabaseViewer
@@ -4901,9 +5263,36 @@ export function SaveEditorPanel(
                   lang={batchLang}
                   busy={busy}
                   actions={databaseActions}
+                  onOpenSettings={() =>
+                    controllers.onOpenSettings?.("entityDb")
+                  }
+                />
+              ) : section === "battleTemplate" ? (
+                <BattleTemplateWorkspace
+                  key={`${name}:${fileRevision}:${batchLang}`}
+                  revision={workingRevision}
+                  lang={batchLang}
+                  busy={busy}
+                  report={report}
+                  onRead={readBattleTemplate}
+                  importActions={battleImportActions}
+                  onOpenSettings={() =>
+                    controllers.onOpenSettings?.("battleTemplate")
+                  }
+                />
+              ) : section === "bulkLegality" ? (
+                <SaveBulkLegalityEditor
+                  key={`${name}:${fileRevision}:${workingRevision}:${batchLang}`}
+                  lang={batchLang}
+                  busy={busy}
+                  onRead={readBulkLegality}
+                  onOpenSettings={() =>
+                    controllers.onOpenSettings?.("legality")
+                  }
                 />
               ) : section === "pokemonReport" ? (
                 <PokemonReportViewer
+                  onOpenSettings={() => controllers.onOpenSettings?.("report")}
                   key={`${name}:${fileRevision}:${workingRevision}:${batchLang}`}
                   revision={workingRevision}
                   lang={batchLang}
@@ -5280,7 +5669,9 @@ export function SaveEditorPanel(
                   lang={batchLang}
                   onRead={readRaid9}
                   onPreview={previewRaid9}
-                  onApply={(e) => applyWorkingEdit(e, "raid9Commit")}
+                  onApply={(e, sourceSound) =>
+                    applyReviewedEdit(e, "raid9Commit", sourceSound)
+                  }
                   onDiscard={discardRaid9}
                 />
               ) : section === "fashion9" && supportsFashion9(report.format) ? (
@@ -5290,7 +5681,9 @@ export function SaveEditorPanel(
                   lang={batchLang}
                   onRead={readFashion9}
                   onPreview={previewFashion9}
-                  onApply={(e) => applyWorkingEdit(e, "fashion9Commit")}
+                  onApply={(e, sourceSound) =>
+                    applyReviewedEdit(e, "fashion9Commit", sourceSound)
+                  }
                   onDiscard={discardFashion9}
                 />
               ) : section === "event9a" && supportsEvent9a(report.format) ? (
@@ -5312,7 +5705,9 @@ export function SaveEditorPanel(
                   lang={batchLang}
                   onRead={readDonut9a}
                   onPreview={previewDonut9a}
-                  onApply={(e) => applyWorkingEdit(e, "donut9aCommit")}
+                  onApply={(e, sourceSound) =>
+                    applyReviewedEdit(e, "donut9aCommit", sourceSound)
+                  }
                   onDiscard={discardDonut9a}
                   onExport={exportDonut9a}
                 />
@@ -5398,7 +5793,15 @@ export function SaveEditorPanel(
                   lang={batchLang}
                   onRead={readTrainerGG}
                   onPreview={previewTrainerGG}
-                  onApply={(edit) => applyWorkingEdit(edit, "trainerGGEdit")}
+                  onApply={(edit, sourceSound) =>
+                    applyWorkingEdit(
+                      edit,
+                      "trainerGGEdit",
+                      sourceSound === "parkBatch"
+                        ? () => playSaveSound("other")
+                        : undefined,
+                    )
+                  }
                   onExport={exportTrainerGG}
                 />
               ) : section === "hall7" && supportsHall7(report.format) ? (
@@ -5708,52 +6111,79 @@ export function SaveEditorPanel(
                   onDiscard={discardChatter}
                 />
               ) : section === "registeredGroups" && report.registeredTeams ? (
-                <RegisteredGroupViewer
-                  key={`${name}:${fileRevision}`}
-                  revision={workingRevision}
-                  busy={busy}
-                  onRead={readRegisteredGroups}
-                  onAnalyze={analyzeRegisteredGroup}
-                />
-              ) : section === "pokemon" ? (
-                <SavePokemonBrowser
-                  searchActions={pokemonSearchActions}
-                  moveShop={moveShopActions}
-                  pokemonSuperTraining={pokemonSuperTrainingActions}
-                  textTrash={textTrashActions}
-                  plusRecord={plusRecordActions}
-                  techRecord={techRecordActions}
-                  profileLink={profileLinkPanel}
-                  key={`${name}:${fileRevision}`}
+                <PokemonHoverSurface
                   report={report}
                   revision={workingRevision}
                   busy={busy}
-                  onApply={(edit) => applyWorkingEdit(edit, "pokemon")}
-                  onApplyRaw={(edit) => applyWorkingEdit(edit, "pokemonRaw")}
-                  onApplyBox={(edit) => applyWorkingEdit(edit, "box")}
-                  onStorage={(edit) => applyWorkingEdit(edit, "storage")}
-                  onImport={importPokemon}
-                  onExport={exportPokemon}
-                  onExportBoxes={downloadBoxes}
-                  onPreviewBoxImport={previewBoxImport}
-                  onApplyBoxImport={(confirmation) =>
-                    applyWorkingEdit(confirmation, "boxImportCommit")
-                  }
-                  onDiscardBoxImport={discardBoxImport}
-                  onPreviewBoxBinary={previewBoxBinary}
-                  onApplyBoxBinary={(confirmation) =>
-                    applyWorkingEdit(confirmation, "boxBinaryCommit")
-                  }
-                  onDiscardBoxBinary={discardBoxBinary}
-                  onExportBoxBinary={downloadBoxBinary}
-                  legality={legality}
-                  onReadOrigin={readOrigin}
-                  onSuggestRelearn={suggestRelearn}
-                  onReadRibbons={readRibbons}
-                  onReadHistory={readHistory}
-                  onReadMemory={readMemory}
-                  onAnalyze={analyzePokemon}
-                />
+                  lang={batchLang}
+                  readTarget={readHoverContext}
+                >
+                  <RegisteredGroupViewer
+                    key={`${name}:${fileRevision}`}
+                    revision={workingRevision}
+                    busy={busy}
+                    onRead={readRegisteredGroups}
+                    onAnalyze={analyzeRegisteredGroup}
+                  />
+                </PokemonHoverSurface>
+              ) : section === "pokemon" ? (
+                <PokemonHoverSurface
+                  report={report}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  read={async (position) => {
+                    const bytes = working.current;
+                    if (!bytes) return;
+                    return (
+                      await client.current.run(
+                        bytes,
+                        JSON.stringify(position),
+                        "pokemonHover",
+                      )
+                    ).pokemonHover;
+                  }}
+                >
+                  <SavePokemonBrowser
+                    searchActions={pokemonSearchActions}
+                    moveShop={moveShopActions}
+                    pokemonSuperTraining={pokemonSuperTrainingActions}
+                    textTrash={textTrashActions}
+                    plusRecord={plusRecordActions}
+                    techRecord={techRecordActions}
+                    profileLink={profileLinkPanel}
+                    key={`${name}:${fileRevision}`}
+                    report={report}
+                    revision={workingRevision}
+                    busy={busy}
+                    onApply={(edit) => applyWorkingEdit(edit, "pokemon")}
+                    onApplyRaw={(edit) => applyWorkingEdit(edit, "pokemonRaw")}
+                    onApplyGb={(edit) => applyWorkingEdit(edit, "pokemonGb")}
+                    onApplyBox={(edit) => applyWorkingEdit(edit, "box")}
+                    onStorage={(edit) => applyWorkingEdit(edit, "storage")}
+                    onImport={importPokemon}
+                    onExport={exportPokemon}
+                    onExportBoxes={downloadBoxes}
+                    onPreviewBoxImport={previewBoxImport}
+                    onApplyBoxImport={(confirmation) =>
+                      applyWorkingEdit(confirmation, "boxImportCommit")
+                    }
+                    onDiscardBoxImport={discardBoxImport}
+                    onPreviewBoxBinary={previewBoxBinary}
+                    onApplyBoxBinary={(confirmation) =>
+                      applyWorkingEdit(confirmation, "boxBinaryCommit")
+                    }
+                    onDiscardBoxBinary={discardBoxBinary}
+                    onExportBoxBinary={downloadBoxBinary}
+                    legality={legality}
+                    onReadOrigin={readOrigin}
+                    onSuggestRelearn={suggestRelearn}
+                    onReadRibbons={readRibbons}
+                    onReadHistory={readHistory}
+                    onReadMemory={readMemory}
+                    onAnalyze={analyzePokemon}
+                  />
+                </PokemonHoverSurface>
               ) : (
                 <>
                   <dl className="save-editor-summary">
@@ -6001,8 +6431,12 @@ export function SaveEditorPanel(
                               #{draft.gender}
                             </option>
                           )}
-                          <option value="0">{words.trainerMale}</option>
-                          <option value="1">{words.trainerFemale}</option>
+                          <option value="0">
+                            {genderLabel(0, words.trainerMale)}
+                          </option>
+                          <option value="1">
+                            {genderLabel(1, words.trainerFemale)}
+                          </option>
                         </Select>
                       </label>
                     )}

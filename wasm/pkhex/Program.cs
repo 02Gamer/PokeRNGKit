@@ -615,7 +615,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 163;
+    public const int ApiVersion = 171;
     public static string ReadPersonalChart(byte[] data) => JsonSerializer.Serialize(PersonalChart.Read(Open(data)), SaveJsonContext.Default.PersonalChartCatalog);
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
@@ -731,7 +731,7 @@ public static partial class SaveService
     public static byte[] ExportWorkingCopy(byte[] data)
     {
         var save = Open(data);
-        if ((!CanEditTrainer(save) && !SimplePokedex.Supports(save) && !ZaPokedex.Supports(save) && !BoxEditing.Options(save).CanSetCurrentBox && save is not (SAV7b or SAV8LA or SAV9SV or SAV4BR)) || !save.State.Exportable || !SaveChecksums.Valid(save))
+        if ((!SavePokemonEditing.Supports(save) && !CanEditTrainer(save) && !SimplePokedex.Supports(save) && !ZaPokedex.Supports(save) && !BoxEditing.Options(save).CanSetCurrentBox && save is not (SAV7b or SAV8LA or SAV9SV or SAV4BR)) || !save.State.Exportable || !SaveChecksums.Valid(save))
             throw new ArgumentException("Export requires a supported save with valid checksums.");
         // Every edit already recomputes checksums and verifies a reload. Preserve those exact verified bytes.
         return data.ToArray();
@@ -865,8 +865,8 @@ public static partial class SaveService
     public static byte[] EditPokemon(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
-            throw new ArgumentException("Editing requires a supported save with valid checksums.");
+        SavePokemonEditing.Require(save);
+        if(save.BlankPKM is GBPKM)throw new ArgumentException("GB Pokemon require their format-specific editor.");
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.PokemonEdit)
             ?? throw new ArgumentException("Missing Pokemon values.");
         edit = PokemonEditing.Apply(save, edit);
@@ -893,7 +893,8 @@ public static partial class SaveService
             valid && CanEdit(save) && save.State.Exportable,
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
             PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), ZaPokedex.Supports(save) ? new PokedexCapability("za", valid && save.State.Exportable) : save is SAV9SV ? new PokedexCapability("sv", valid && save.State.Exportable) : save is SAV8LA ? new PokedexCapability("legends", valid && save.State.Exportable) : save is SAV8SWSH ? new PokedexCapability("swsh", valid && save.State.Exportable) : save is SAV8BS ? new PokedexCapability("bdsp", valid && save.State.Exportable) : save is SAV7 or SAV7b ? new PokedexCapability("gen7", valid && save.State.Exportable) : save is SAV6XY or SAV6AO ? new PokedexCapability("gen6", valid && save.State.Exportable) : save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
-        report = report with { BrProfiles = Br4Editing.Profiles(save), TrainerOnly = valid && save.State.Exportable && save is SAV1 or SAV2 or SAV6AODemo, RegisteredTeams = RegisteredGroups.Supports(save) };
+        report = report with { BrProfiles = Br4Editing.Profiles(save), TrainerOnly = valid && save.State.Exportable && save is SAV1 or SAV2 or SAV6AODemo, RegisteredTeams = RegisteredGroups.Supports(save), SpriteMode=SaveSpriteView.Mode,
+            GameName=PokemonReader.Text(strings=>(uint)save.Version<strings.gamelist.Length?strings.gamelist[(int)save.Version]:save.Version.ToString()),SpriteFilter=SaveSlotArtwork.Filter(),EmptySlotMarkers=SaveSlotArtwork.EmptyMarkers(save),PokemonEditing=SavePokemonEditing.Read(save,valid),GbInfo=save.BlankPKM is GBPKM gb?StandaloneGbSpecial.Read(gb):null };
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -917,8 +918,7 @@ public static partial class SaveService
     public static byte[] ImportPokemon(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
-            throw new ArgumentException("Editing requires a supported save with valid checksums.");
+        SavePokemonEditing.Require(save);
         var request = JsonSerializer.Deserialize(json, SaveJsonContext.Default.PokemonImport)
             ?? throw new ArgumentException("Missing Pokemon file.");
         var position = PokemonFiles.Import(save, request);
@@ -935,8 +935,7 @@ public static partial class SaveService
     public static byte[] EditPokemonRaw(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
-            throw new ArgumentException("Editing requires a supported save with valid checksums.");
+        SavePokemonEditing.Require(save);
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.PokemonRawEdit)
             ?? throw new ArgumentException("Missing Pokemon values.");
         PokemonRawEditing.Apply(save, edit);
@@ -953,8 +952,7 @@ public static partial class SaveService
     public static byte[] EditStorage(byte[] data, string json)
     {
         var save = Open(data);
-        if (!CanEdit(save) || !save.State.Exportable || !SaveChecksums.Valid(save))
-            throw new ArgumentException("Editing requires a supported save with valid checksums.");
+        SavePokemonEditing.Require(save);
         var edit = JsonSerializer.Deserialize(json, SaveJsonContext.Default.StorageEdit)
             ?? throw new ArgumentException("Missing storage values.");
         if (edit.Source is null) throw new ArgumentException("Storage source is missing.");
@@ -1014,10 +1012,11 @@ public sealed record SaveReport(
     ushort Tid, ushort Sid, uint DisplayTid, uint DisplaySid, int Language,
     byte Gender, uint Money, int MaxMoney, int MaxNameLength, int BoxCount,
     int PartyCount, string PlayTime, bool ChecksumsValid, bool CanEdit,
-    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer, PokedexCapability? Pokedex, Br4Profiles? BrProfiles=null,bool TrainerOnly=false, bool RegisteredTeams=false);
+    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer, PokedexCapability? Pokedex, Br4Profiles? BrProfiles=null,bool TrainerOnly=false, bool RegisteredTeams=false,string SpriteMode="b",LocalizedText? GameName=null,SpriteFilterProfile? SpriteFilter=null,SpriteStorageMarker[]? EmptySlotMarkers=null,SavePokemonCapability? PokemonEditing=null,GbSpecialInfo? GbInfo=null);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
+[JsonSerializable(typeof(GbSavePokemonEdit))]
 [JsonSerializable(typeof(SuperTrainingTarget))]
 [JsonSerializable(typeof(TextTrashTarget))]
 [JsonSerializable(typeof(TextTrashRequest))]

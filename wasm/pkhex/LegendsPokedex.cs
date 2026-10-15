@@ -37,7 +37,7 @@ internal static class LegendsPokedex
     private static PokedexResearchTask8a[] Tasks(ushort species) => PokedexConstants8a.ResearchTasks[PokedexSave8a.GetDexIndex(PokedexType8a.Hisui, species) - 1];
     private static LocalizedText Local(Func<string, string> f) => new(f("zh-Hans"), f("en"), f("ja"));
     private static string Float(float value) => value.ToString("R", Culture);
-    private static string[] FormNames(ushort species, string lang) { var s = GameInfo.GetStrings(lang); return FormConverter.GetFormList(species, s.types, s.forms, GameInfo.GenderSymbolASCII, EntityContext.Gen8a); }
+    private static string[] FormNames(ushort species, string lang) { var s = GameInfo.GetStrings(lang); return FormConverter.GetFormList(species, s.types, s.forms, PokemonDisplay.GenderSymbols, EntityContext.Gen8a); }
     public static byte[] Forms(SAV8LA save, ushort species)
     {
         var names = FormNames(species, "en");

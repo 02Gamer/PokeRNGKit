@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { saveCommitHasSound } from "./saveEditSound";
 import { Select } from "../shared/Select";
 import type { Br4Lang } from "./br4";
 import { raid9Words } from "./raid9Words";
@@ -24,7 +25,7 @@ type Props = {
   lang: Br4Lang;
   onRead(): Promise<R9Catalog | undefined>;
   onPreview(edit: R9Edit): Promise<R9Ticket | undefined>;
-  onApply(confirmation: R9Confirmation): Promise<void>;
+  onApply(confirmation: R9Confirmation, sourceSound?: true): Promise<boolean>;
   onDiscard(token: string): Promise<void>;
 };
 const contents = ["Base05", "Black6", "Distribution", "Might7"] as const;
@@ -443,7 +444,13 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                 setPending(true);
                 setError("");
                 try {
-                  await onApply(raid9Frozen(original, ticket));
+                  const applied = await onApply(
+                    raid9Frozen(original, ticket),
+                    saveCommitHasSound("raid9Commit", operations)
+                      ? true
+                      : undefined,
+                  );
+                  if (!applied && alive.current) setError("stale");
                 } catch {
                   if (alive.current) setError("stale");
                 } finally {

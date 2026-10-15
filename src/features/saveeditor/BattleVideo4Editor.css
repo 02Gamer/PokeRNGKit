@@ -41,7 +41,7 @@
   gap: 8px;
   min-height: 48px;
 }
-.save-video4-team img {
+.save-video4-team :is(img, .save-pokemon-art) {
   width: 48px;
   height: 40px;
   object-fit: contain;

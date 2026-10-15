@@ -42,6 +42,12 @@ internal static class RegisteredGroups
             throw new ArgumentException("Invalid registered team position.");
         return groups[position.Group].Slots[position.Slot].Clone();
     }
+    internal static (PKM Entity,StorageSlotType Storage) HoverMember(SaveFile save,RegisteredGroupPosition position)
+    {
+        var groups=Groups(save);
+        if((uint)position.Group>=groups.Length||(uint)position.Slot>=groups[position.Group].Slots.Length)throw new ArgumentException("Invalid registered team position.");
+        return(groups[position.Group].Slots[position.Slot].Clone(),groups[position.Group].Type);
+    }
 
     public static PokemonLegalityReport Analyze(SaveFile save, RegisteredGroupPosition position)
     {

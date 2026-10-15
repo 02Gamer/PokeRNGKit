@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { EncounterOptions, EncounterTrainer } from "./encounterProtocol";
+import { unifiedEncounterOptions } from "./programDatabaseSettings";
 export const encounterDefaults: EncounterOptions = {
   returnNoneIfEmptySearch: true,
   filterUnavailableSpecies: true,
@@ -8,7 +9,7 @@ export const encounterDefaults: EncounterOptions = {
   gridRows: 9,
 };
 const key = "pokerngkit:encounter-settings:v1";
-export function loadEncounterSettings(): {
+export function loadLegacyEncounterSettings(): {
   options: EncounterOptions;
   trainers: EncounterTrainer[];
 } {
@@ -24,6 +25,16 @@ export function loadEncounterSettings(): {
   } catch {
     return { options: { ...encounterDefaults }, trainers: [] };
   }
+}
+export function loadEncounterSettings(): {
+  options: EncounterOptions;
+  trainers: EncounterTrainer[];
+} {
+  const legacy = loadLegacyEncounterSettings();
+  return {
+    options: unifiedEncounterOptions() ?? legacy.options,
+    trainers: legacy.trainers,
+  };
 }
 export function validateEncounterSettings(
   options: EncounterOptions,

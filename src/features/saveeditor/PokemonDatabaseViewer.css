@@ -1,6 +1,22 @@
 .save-pokemon-database {
   min-width: 0;
 }
+.save-pokemon-database > details > summary {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding-block: 11px;
+  font-size: 15px;
+  line-height: 22px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.save-pokemon-database > details > summary:hover {
+  background: var(--surface-hover);
+}
+.save-pokemon-database > details > summary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
 .save-pokemon-database .save-editor-toolbar {
   align-items: end;
 }
@@ -52,7 +68,7 @@
   justify-content: center;
   gap: 4px;
 }
-.save-db-slot img {
+.save-db-slot :is(img, .save-pokemon-art) {
   width: 40px;
   height: 32px;
   object-fit: contain;

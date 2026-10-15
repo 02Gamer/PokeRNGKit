@@ -1,3 +1,4 @@
+import { useGenderLabel } from "./useGenderLabel";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
@@ -26,6 +27,7 @@ export function SwshPokedexEditor({
   onRead(): Promise<Dex8Catalog | undefined>;
   onApply(edit: Dex8Edit): Promise<void>;
 }) {
+  const genderLabel = useGenderLabel();
   const { t, i18n } = useTranslation();
   const words = t("saveEditor", {
     returnObjects: true,
@@ -235,11 +237,13 @@ export function SwshPokedexEditor({
                           {labels.unknown} · {state.gender}
                         </option>
                       )}
-                      {["♂", "♀", "—"].map((name, i) => (
-                        <option key={i} value={i}>
-                          {name}
-                        </option>
-                      ))}
+                      {[genderLabel(0), genderLabel(1), genderLabel(2)].map(
+                        (name, i) => (
+                          <option key={i} value={i}>
+                            {name}
+                          </option>
+                        ),
+                      )}
                     </Select>
                   </label>
                   <label className="field">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type { PokemonEntry } from "./domain";
 import type {
   GbSpecialEdit,

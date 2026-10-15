@@ -1,3 +1,4 @@
+import { useGenderLabel } from "./useGenderLabel";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
 import { AutoCompleteComboBox } from "../shared/AutoCompleteComboBox";
@@ -94,6 +95,7 @@ function Form({
   onPreview,
   onApply,
 }: Props & { c: Tr8Catalog }) {
+  const genderLabel = useGenderLabel();
   const w = trainer8Words[lang];
   const [group, setGroup] = useState<Group>("basic"),
     [draft, setDraft] = useState<Record<string, string>>({}),
@@ -220,7 +222,9 @@ function Form({
             )}
             {f.choices.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.name[lang]}
+                {f.key === "gender"
+                  ? genderLabel(v.id, v.name[lang])
+                  : v.name[lang]}
               </option>
             ))}
           </Select>
@@ -707,14 +711,20 @@ function Preview({
   onCancel(): void;
   onApply(): Promise<void>;
 }) {
+  const genderLabel = useGenderLabel();
   const w = trainer8Words[lang];
   const fields = p.result.fields.filter(
     (f) => f.value !== c.fields.find((o) => o.key === f.key)?.value,
   );
   const value = (f: TrGGField, text: string | undefined) =>
-    f.kind === "choice"
-      ? (f.choices.find((v) => String(v.id) === text)?.name[lang] ?? text)
-      : text;
+    f.key === "gender" && text !== undefined
+      ? genderLabel(
+          Number(text),
+          f.choices.find((v) => String(v.id) === text)?.name[lang],
+        )
+      : f.kind === "choice"
+        ? (f.choices.find((v) => String(v.id) === text)?.name[lang] ?? text)
+        : text;
   const changes: {
     key: string;
     name: string;

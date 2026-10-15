@@ -1,5 +1,8 @@
 import { useMemo, type CSSProperties, type DragEvent } from "react";
-import { boxWallpaper, pokemonImage } from "./art";
+import { boxWallpaper } from "./art";
+import { pokemonAccess } from "./savePokemonEditing";
+import { PokemonSprite } from "./PokemonSprite";
+import { defaultSpriteFilter } from "./spritePixels";
 import {
   BOX_SLOT_DRAG_TYPE,
   boxSlotNavigation,
@@ -51,7 +54,11 @@ export function SaveBoxGrid({
       ),
     [entries, report.pokemon, box],
   );
-  const writable = !busy && report.canEdit && report.checksumsValid && !party;
+  const writable =
+    !busy &&
+    pokemonAccess(report).canStorage &&
+    report.checksumsValid &&
+    !party;
   const recognized = (e: DragEvent) =>
     e.dataTransfer.types.includes(BOX_SLOT_DRAG_TYPE) ||
     e.dataTransfer.types.includes("Files");
@@ -76,6 +83,11 @@ export function SaveBoxGrid({
       {Array.from({ length: count }, (_, slot) => {
         const p = slots.get(slot),
           position = { box, slot };
+        const emptyMarkers = !p
+          ? report.emptySlotMarkers?.find(
+              (entry) => entry.box === box && entry.slot === slot,
+            )?.markers
+          : undefined;
         const label = [
           w.slot + " " + (slot + 1),
           p ? p.speciesName[lang] : w.empty,
@@ -93,13 +105,14 @@ export function SaveBoxGrid({
             type="button"
             key={slot}
             data-slot={slot}
+            data-hover-box={p ? box : undefined}
+            data-hover-slot={p ? slot : undefined}
             data-search-match={
               searchMatches && box >= 0 && p
                 ? searchMatches.has(`${box}:${slot}`)
                 : undefined
             }
             aria-label={label}
-            title={label}
             aria-pressed={isSelected}
             disabled={busy}
             tabIndex={
@@ -152,10 +165,30 @@ export function SaveBoxGrid({
             }}
           >
             <span className="save-pokemon-slot-number">{slot + 1}</span>
+            {!p && emptyMarkers?.length ? (
+              <PokemonSprite
+                pokemon={{
+                  species: 0,
+                  sprite: "b_0",
+                  slotMarkers: emptyMarkers,
+                }}
+                alt=""
+                width={68}
+                height={56}
+                draggable={false}
+              />
+            ) : null}
             {p && (
               <>
-                <img
-                  src={pokemonImage(p)}
+                <PokemonSprite
+                  pokemon={p}
+                  filterProfile={
+                    searchMatches &&
+                    box >= 0 &&
+                    !searchMatches.has(`${box}:${slot}`)
+                      ? (report.spriteFilter ?? defaultSpriteFilter)
+                      : undefined
+                  }
                   alt=""
                   draggable={false}
                   width={68}

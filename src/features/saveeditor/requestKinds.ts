@@ -1,5 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "entityTemplateCatalog"
+  | "entityTemplateCreate"
+  | "pokemonHover"
+  | "contextHover"
+  | "programSettingsRead"
+  | "programSettingsValidate"
+  | "saveBackupName"
   | "saveDetectionCatalog"
   | "simpleTrainer"
   | "simpleTrainerPreview"
@@ -10,6 +17,15 @@ export type SaveEditorRequestKind =
   | import("./encounterProtocol").EncounterRequestKind
   | import("./databaseProtocol").DatabaseRequestKind
   | "pokemonReport"
+  | "saveBulkLegality"
+  | "battleTemplate"
+  | "entityBattleTemplate"
+  | "battleTemplateImportPreview"
+  | "battleTemplateImportCommit"
+  | "battleTemplateImportDiscard"
+  | "entityBattleTemplateImportPreview"
+  | "entityBattleTemplateImportCommit"
+  | "entityBattleTemplateImportDiscard"
   | "pokemonReportCatalog"
   | "pokemonReportExport"
   | "pokemonSearchCatalog"
@@ -307,6 +323,7 @@ export type SaveEditorRequestKind =
   | "inventoryEdit"
   | "inventoryBatch"
   | "pokemon"
+  | "pokemonGb"
   | "pokemonRaw"
   | "legality"
   | "box"

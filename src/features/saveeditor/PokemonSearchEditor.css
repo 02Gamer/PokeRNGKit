@@ -13,9 +13,6 @@
   min-height: 44px;
   padding-block: 10px;
 }
-.save-pokemon-slots button[data-search-match="false"] img {
-  opacity: 0.35;
-}
 .save-pokemon-slots button[data-search-match="true"] {
   background-color: var(--brand-soft);
 }

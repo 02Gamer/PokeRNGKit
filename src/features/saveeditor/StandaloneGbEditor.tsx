@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import { saveEditorResources } from "./locales";
 import { standaloneWords } from "./standaloneWords";
 import type {
@@ -13,7 +13,10 @@ export function StandaloneGbEditor({
   disabled,
   onApply,
 }: {
-  report: StandalonePokemonReport;
+  report: Pick<
+    StandalonePokemonReport,
+    "pokemon" | "generation" | "attributeChoices" | "moveChoices"
+  >;
   disabled: boolean;
   onApply(edit: GbPokemonEdit): Promise<void>;
 }) {
@@ -56,11 +59,15 @@ export function StandaloneGbEditor({
   const submit = async () => {
     setError(false);
     try {
-      for (const [name, max] of [
-        [draft.nickname, p.limits.nickname],
-        [draft.ot, p.limits.trainerName],
+      for (const [name, max, previous] of [
+        [draft.nickname, p.limits.nickname, p.nickname],
+        [draft.ot, p.limits.trainerName, p.ot],
       ] as const)
-        if (!name.length || name.length > max || /\p{Cc}/u.test(name))
+        if (
+          (!name.length && name !== previous) ||
+          name.length > max ||
+          /\p{Cc}/u.test(name)
+        )
           throw Error("name");
       const moves = draft.moves.map((v) => integer(v, p.limits.move));
       const movePpUps = draft.movePpUps.map((v) => integer(v, 3));
@@ -106,6 +113,17 @@ export function StandaloneGbEditor({
     <details className="save-pokemon-editor">
       <summary>{common.editPokemon}</summary>
       <p className="save-editor-note">{words.gbNote}</p>
+      {p.gbRental && (
+        <p className="save-editor-note">
+          {
+            {
+              zh: "租借宝可梦不保存训练家姓名。",
+              en: "Rental Pokémon do not store an original trainer name.",
+              ja: "レンタルポケモンには親の名前が保存されません。",
+            }[lang]
+          }
+        </p>
+      )}
       <div className="save-editor-fields">
         <label className="field">
           <span>{common.species}</span>
@@ -130,7 +148,7 @@ export function StandaloneGbEditor({
           <label className="field" key={key}>
             <span>{label}</span>
             <input
-              disabled={disabled}
+              disabled={disabled || (key === "ot" && p.gbRental)}
               value={draft[key]}
               maxLength={max}
               onChange={(e) => setDraft({ ...draft, [key]: e.target.value })}

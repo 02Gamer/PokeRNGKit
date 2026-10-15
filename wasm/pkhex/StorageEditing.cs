@@ -74,7 +74,7 @@ internal static class StorageEditing
                 throw new ArgumentException("Storage party must contain a non-egg Pokemon when adding an egg.");
         }
         foreach (var (position, pokemon) in changes.Where(pair => pair.Key.Box >= 0))
-            save.SetBoxSlotAtIndex(pokemon, position.Box, position.Slot, EntityImportSettings.None);
+            PokemonSlotWriter.Box(save,pokemon,position.Box,position.Slot);
         if (party is not null)
             for (var i = 0; i < 6; i++)
                 save.SetPartySlotAtIndex(i < party.Length ? party[i] : save.BlankPKM, i, EntityImportSettings.None);
@@ -86,6 +86,9 @@ internal static class StorageEditing
     {
         var pokemon = position.Box == -1 ? save.GetPartySlotAtIndex(position.Slot) :
             PokemonEditing.Read(save, position.Box, position.Slot);
+        bool party=position.Box==-1;
+        if(pokemon is PK1 g1){var data=new byte[PokeList1.GetListLength(1,g1.Japanese,party)];PokeList1.WriteToList(data,g1,isParty:party);return data;}
+        if(pokemon is PK2 g2){var data=new byte[PokeList2.GetListLength(1,g2.Japanese,party)];PokeList2.WriteToList(data,g2,isParty:party);return data;}
         return pokemon.Data[..(position.Box == -1 ? pokemon.SIZE_PARTY : pokemon.SIZE_STORED)].ToArray();
     }
 }

@@ -21,6 +21,8 @@ import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
 import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
+import { PokemonMarkingsEditor } from "./PokemonMarkingsEditor";
+import { useGenderLabel } from "./useGenderLabel";
 import { PokemonEggEditor } from "./PokemonEggEditor";
 import { PokemonOriginEditor } from "./PokemonOriginEditor";
 import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
@@ -28,6 +30,10 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonFileTools } from "./PokemonFileTools";
 import { PokemonRawEditor } from "./PokemonRawEditor";
+import { pokemonAccess, type GbSavePokemonEdit } from "./savePokemonEditing";
+import { StandaloneGbEditor } from "./StandaloneGbEditor";
+import { StandaloneGbSpecialEditor } from "./StandaloneGbSpecialEditor";
+import { standaloneWords } from "./standaloneWords";
 import { PokemonFormArgumentEditor } from "./PokemonFormArgumentEditor";
 import { StorageEditor } from "./StorageEditor";
 import { BoxEditor } from "./BoxEditor";
@@ -38,7 +44,8 @@ import type { BoxImportOptions, BoxImportConfirmation } from "./boxImport";
 import type { BoxArchiveRequest } from "./boxArchive";
 import { PokemonLegality } from "./PokemonLegality";
 import { PokemonEditor, type PokemonEdit } from "./PokemonEditor";
-import { pokemonImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
+import { useSavePrivacy } from "./useSavePrivacy";
 import { SaveBoxGrid } from "./SaveBoxGrid";
 import { SaveBoxGallery } from "./SaveBoxGallery";
 import {
@@ -75,6 +82,7 @@ export function SavePokemonBrowser({
   busy,
   onApply,
   onApplyRaw,
+  onApplyGb,
   legality,
   onReadOrigin,
   onSuggestRelearn,
@@ -107,6 +115,7 @@ export function SavePokemonBrowser({
   busy: boolean;
   onApply(edit: PokemonEdit): Promise<void>;
   onApplyRaw(edit: PokemonRawEdit): Promise<void>;
+  onApplyGb(edit: GbSavePokemonEdit): Promise<void>;
   onApplyBox(edit: BoxEdit): Promise<void>;
   onStorage(edit: StorageEdit): Promise<void>;
   onImport(position: PokemonPosition, file: File): Promise<void>;
@@ -136,10 +145,14 @@ export function SavePokemonBrowser({
   onReadOrigin(
     position: PokemonPosition,
     version?: number,
+    ball?: number,
   ): Promise<OriginCatalog | undefined>;
   onAnalyze(position: PokemonPosition): Promise<void>;
 }) {
   const { t, i18n } = useTranslation();
+  const genderLabel = useGenderLabel();
+  const privacy = useSavePrivacy();
+  const access = pokemonAccess(report);
   const words = t("saveEditor", {
     returnObjects: true,
   }) as typeof saveEditorResources.en;
@@ -271,7 +284,7 @@ export function SavePokemonBrowser({
     keys: GalleryModifiers,
   ) {
     if (locked || flight.current) return;
-    if (!report.canEdit || !report.checksumsValid) {
+    if (!access.canStorage || !report.checksumsValid) {
       setGalleryError("readonly");
       return;
     }
@@ -299,14 +312,25 @@ export function SavePokemonBrowser({
       if (alive.current) setPending(false);
     }
   }
-  const stats = [
-    words.hp,
-    words.attack,
-    words.defense,
-    words.spAttack,
-    words.spDefense,
-    words.speed,
-  ];
+  const statIndices =
+    report.generation < 3 ? [0, 1, 2, 5, 3] : [0, 1, 2, 3, 4, 5];
+  const stats =
+    report.generation < 3
+      ? [
+          words.hp,
+          words.attack,
+          words.defense,
+          words.speed,
+          standaloneWords[lang].special,
+        ]
+      : [
+          words.hp,
+          words.attack,
+          words.defense,
+          words.spAttack,
+          words.spDefense,
+          words.speed,
+        ];
   return (
     <section
       ref={browserRef}
@@ -397,7 +421,7 @@ export function SavePokemonBrowser({
             <span>{galleryWords.mode}</span>
             <Select
               value={mode}
-              disabled={locked || !report.canEdit || !report.checksumsValid}
+              disabled={locked || !access.canStorage || !report.checksumsValid}
               onChange={(e) => setMode(e.target.value as GalleryDropMode)}
             >
               {(["auto", "copy", "overwrite"] as const).map((m) => (
@@ -467,7 +491,7 @@ export function SavePokemonBrowser({
         <PokemonFileTools
           key={`file-${toolBox}:${filePosition.slot}`}
           position={filePosition}
-          canImport={report.canEdit}
+          canImport={access.canImport}
           canExport={report.checksumsValid && !!selected?.valid}
           busy={busy}
           onImport={async (position, file) => {
@@ -544,8 +568,8 @@ export function SavePokemonBrowser({
                 </p>
               )}
               <div className="save-pokemon-identity">
-                <img
-                  src={pokemonImage(selected)}
+                <PokemonSprite
+                  pokemon={selected}
                   alt=""
                   width={68}
                   height={56}
@@ -565,9 +589,12 @@ export function SavePokemonBrowser({
                   [words.form, selected.form],
                   [
                     words.gender,
-                    [words.male, words.female, words.genderless][
-                      selected.gender
-                    ] ?? "—",
+                    genderLabel(
+                      selected.gender,
+                      [words.male, words.female, words.genderless][
+                        selected.gender
+                      ],
+                    ),
                   ],
                   [words.shiny, selected.shiny ? words.yes : words.no],
                   [words.egg, selected.egg ? words.yes : words.no],
@@ -577,10 +604,17 @@ export function SavePokemonBrowser({
                   [words.originalTrainer, selected.ot],
                   [words.tid, selected.tid],
                   [words.sid, selected.sid],
-                  [
-                    "PID",
-                    selected.pid.toString(16).toUpperCase().padStart(8, "0"),
-                  ],
+                  ...(privacy.hideSecretDetails
+                    ? []
+                    : [
+                        [
+                          "PID",
+                          selected.pid
+                            .toString(16)
+                            .toUpperCase()
+                            .padStart(8, "0"),
+                        ],
+                      ]),
                   [words.experience, selected.experience],
                   [
                     selected.egg ? words.hatchCounter : words.friendship,
@@ -593,7 +627,7 @@ export function SavePokemonBrowser({
                   </div>
                 ))}
               </dl>
-              {report.canEdit && (
+              {access.canStorage && (
                 <StorageEditor
                   key={`storage-${JSON.stringify(selected)}`}
                   report={report}
@@ -608,205 +642,260 @@ export function SavePokemonBrowser({
                 busy={busy}
                 onAnalyze={onAnalyze}
               />
-              <PokemonEditor
-                key={`pokemon-${JSON.stringify(selected)}`}
-                pokemon={selected}
-                moveChoices={report.moveChoices}
-                attributeChoices={report.attributeChoices}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onApply={onApply}
-              />
-              <PokemonEggEditor
-                key={`egg-${JSON.stringify(selected)}`}
-                egg={selected.eggInfo}
-                position={{ box: selected.box, slot: selected.slot }}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onApply={onApplyRaw}
-              />
-              <PokemonOriginEditor
-                readDisabled={busy || !selected.valid}
-                key={`origin-${JSON.stringify(selected)}`}
-                origin={selected.origin}
-                position={{ box: selected.box, slot: selected.slot }}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onRead={onReadOrigin}
-                onApply={onApplyRaw}
-              />
-              <PokemonTrainingEditor
-                key={`training-${revision}-${JSON.stringify(selected)}`}
-                training={selected.training}
-                generation={report.generation}
-                position={{ box: selected.box, slot: selected.slot }}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onApply={onApplyRaw}
-              />
-              {report.format === "SAV8LA" &&
-                selected.valid &&
-                selected.species > 0 && (
-                  <MoveShopEditor
-                    key={`move-shop-${revision}-${selected.box}-${selected.slot}`}
-                    target={{
-                      kind: "save",
-                      box: selected.box,
-                      slot: selected.slot,
-                      fileName: null,
-                      inputEncrypted: false,
-                      useFileFormat: false,
+              {access.editor === "gb" ? (
+                <>
+                  <StandaloneGbEditor
+                    key={`gb-${JSON.stringify(selected)}`}
+                    report={{
+                      pokemon: selected,
+                      generation: report.generation,
+                      attributeChoices: report.attributeChoices,
+                      moveChoices: report.moveChoices,
                     }}
-                    lang={lang}
-                    busy={busy}
-                    {...moveShop}
+                    disabled={busy || !access.canEdit || !selected.valid}
+                    onApply={(basic) =>
+                      onApplyGb({
+                        box: selected.box,
+                        slot: selected.slot,
+                        basic,
+                      })
+                    }
                   />
-                )}
-              {selected.valid && selected.species > 0 && (
-                <TextTrashEditor
-                  key={`text-trash-${revision}-${selected.box}-${selected.slot}`}
-                  target={{
-                    kind: "save",
-                    box: selected.box,
-                    slot: selected.slot,
-                    fileName: null,
-                    inputEncrypted: false,
-                    useFileFormat: false,
-                  }}
-                  fields={
-                    report.generation >= 6
-                      ? ["nickname", "originalTrainer", "handlingTrainer"]
-                      : ["nickname", "originalTrainer"]
-                  }
-                  lang={lang}
-                  busy={busy}
-                  {...textTrash}
-                />
-              )}
-              {[
-                "SAV6XY",
-                "SAV6AO",
-                "SAV6AODemo",
-                "SAV7SM",
-                "SAV7USUM",
-              ].includes(report.format) &&
-                selected.valid &&
-                selected.species > 0 && (
-                  <PokemonSuperTrainingEditor
-                    key={`super-training-${revision}-${selected.box}-${selected.slot}`}
-                    target={{
-                      kind: "save",
-                      box: selected.box,
-                      slot: selected.slot,
-                      fileName: null,
-                      inputEncrypted: false,
-                      useFileFormat: false,
-                    }}
-                    lang={lang}
-                    busy={busy}
-                    {...pokemonSuperTraining}
+                  {report.gbInfo && selected.gbFields && (
+                    <StandaloneGbSpecialEditor
+                      key={`gb-special-${JSON.stringify(selected)}`}
+                      pokemon={selected}
+                      info={{
+                        ...report.gbInfo,
+                        fields: selected.gbFields,
+                        language: selected.gbLanguage ?? report.gbInfo.language,
+                      }}
+                      disabled={busy || !access.canEdit || !selected.valid}
+                      initialLanguage={selected.gbLanguage ?? report.language}
+                      onApply={(special) =>
+                        onApplyGb({
+                          box: selected.box,
+                          slot: selected.slot,
+                          special,
+                        })
+                      }
+                    />
+                  )}
+                </>
+              ) : access.editor === "standard" ? (
+                <>
+                  <PokemonEditor
+                    key={`pokemon-${JSON.stringify(selected)}`}
+                    pokemon={selected}
+                    moveChoices={report.moveChoices}
+                    attributeChoices={report.attributeChoices}
+                    disabled={busy || !access.canEdit || !selected.valid}
+                    onApply={onApply}
                   />
-                )}
-              {report.format === "SAV9ZA" &&
-                selected.valid &&
-                selected.species > 0 && (
-                  <PlusRecordEditor
-                    key={`plus-record-${revision}-${selected.box}-${selected.slot}`}
-                    target={{
-                      kind: "save",
-                      box: selected.box,
-                      slot: selected.slot,
-                      fileName: null,
-                      inputEncrypted: false,
-                      useFileFormat: false,
-                    }}
-                    lang={lang}
-                    busy={busy}
-                    {...plusRecord}
+                  <PokemonEggEditor
+                    key={`egg-${JSON.stringify(selected)}`}
+                    egg={selected.eggInfo}
+                    position={{ box: selected.box, slot: selected.slot }}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onApply={onApplyRaw}
                   />
-                )}
-              {["SAV8SWSH", "SAV8BS", "SAV8LA", "SAV9SV", "SAV9ZA"].includes(
-                report.format,
-              ) &&
-                selected.valid &&
-                selected.species > 0 && (
-                  <TechRecordEditor
-                    key={`tech-record-${revision}-${selected.box}-${selected.slot}`}
-                    target={{
-                      kind: "save",
-                      box: selected.box,
-                      slot: selected.slot,
-                      fileName: null,
-                      inputEncrypted: false,
-                      useFileFormat: false,
-                    }}
-                    lang={lang}
-                    busy={busy}
-                    {...techRecord}
+                  <PokemonOriginEditor
+                    readDisabled={busy || !selected.valid}
+                    key={`origin-${JSON.stringify(selected)}`}
+                    origin={selected.origin}
+                    position={{ box: selected.box, slot: selected.slot }}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onRead={onReadOrigin}
+                    onApply={onApplyRaw}
                   />
-                )}
-              <PokemonEncounterEditor
-                key={`encounter-${JSON.stringify(selected)}`}
-                encounter={selected.encounter}
-                position={{ box: selected.box, slot: selected.slot }}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onApply={onApplyRaw}
-              />
-              {report.generation >= 6 && (
-                <PokemonMemoryEditor
-                  readDisabled={busy || !selected.valid}
-                  key={`memory-${revision}-${JSON.stringify(selected)}`}
-                  position={{ box: selected.box, slot: selected.slot }}
-                  disabled={busy || !report.canEdit || !selected.valid}
-                  onApply={onApplyRaw}
-                  onRead={onReadMemory}
-                />
-              )}
-              {report.generation >= 6 && (
-                <PokemonHistoryEditor
-                  readDisabled={busy || !selected.valid}
-                  key={`history-${revision}-${JSON.stringify(selected)}`}
-                  position={{ box: selected.box, slot: selected.slot }}
-                  disabled={busy || !report.canEdit || !selected.valid}
-                  onRead={onReadHistory}
-                  onApply={onApplyRaw}
-                />
-              )}
-              <PokemonRibbonEditor
-                readDisabled={busy || !selected.valid}
-                key={`ribbons-${revision}-${JSON.stringify(selected)}`}
-                position={{ box: selected.box, slot: selected.slot }}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onApply={onApplyRaw}
-                onRead={onReadRibbons}
-                generation={report.generation}
-              />
-              <PokemonRelearnEditor
-                key={`relearn-${JSON.stringify(selected)}`}
-                moves={selected.relearnMoves}
-                choices={report.moveChoices}
-                position={{ box: selected.box, slot: selected.slot }}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onApply={onApplyRaw}
-                onSuggest={onSuggestRelearn}
-              />
-              <PokemonShinyEditor
-                key={`shiny-${JSON.stringify(selected)}`}
-                position={{ box: selected.box, slot: selected.slot }}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onApply={onApplyRaw}
-              />
-              <PokemonRawEditor
-                key={`raw-${JSON.stringify(selected)}`}
-                pokemon={selected}
-                disabled={busy || !report.canEdit || !selected.valid}
-                onApply={onApplyRaw}
-              />
-              {selected.formArgument && (
-                <PokemonFormArgumentEditor
-                  key={`form-argument-${JSON.stringify(selected)}`}
-                  argument={selected.formArgument}
-                  position={selected}
-                  disabled={busy || !report.canEdit || !selected.valid}
-                  onApply={onApplyRaw}
-                />
-              )}
+                  <PokemonTrainingEditor
+                    key={`training-${revision}-${JSON.stringify(selected)}`}
+                    training={selected.training}
+                    generation={report.generation}
+                    position={{ box: selected.box, slot: selected.slot }}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onApply={onApplyRaw}
+                  />
+                  {report.format === "SAV8LA" &&
+                    selected.valid &&
+                    selected.species > 0 && (
+                      <MoveShopEditor
+                        key={`move-shop-${revision}-${selected.box}-${selected.slot}`}
+                        target={{
+                          kind: "save",
+                          box: selected.box,
+                          slot: selected.slot,
+                          fileName: null,
+                          inputEncrypted: false,
+                          useFileFormat: false,
+                        }}
+                        lang={lang}
+                        busy={busy}
+                        {...moveShop}
+                      />
+                    )}
+                  {selected.valid && selected.species > 0 && (
+                    <TextTrashEditor
+                      key={`text-trash-${revision}-${selected.box}-${selected.slot}`}
+                      target={{
+                        kind: "save",
+                        box: selected.box,
+                        slot: selected.slot,
+                        fileName: null,
+                        inputEncrypted: false,
+                        useFileFormat: false,
+                      }}
+                      fields={
+                        report.generation >= 6
+                          ? ["nickname", "originalTrainer", "handlingTrainer"]
+                          : ["nickname", "originalTrainer"]
+                      }
+                      lang={lang}
+                      busy={busy}
+                      {...textTrash}
+                    />
+                  )}
+                  {[
+                    "SAV6XY",
+                    "SAV6AO",
+                    "SAV6AODemo",
+                    "SAV7SM",
+                    "SAV7USUM",
+                  ].includes(report.format) &&
+                    selected.valid &&
+                    selected.species > 0 && (
+                      <PokemonSuperTrainingEditor
+                        key={`super-training-${revision}-${selected.box}-${selected.slot}`}
+                        target={{
+                          kind: "save",
+                          box: selected.box,
+                          slot: selected.slot,
+                          fileName: null,
+                          inputEncrypted: false,
+                          useFileFormat: false,
+                        }}
+                        lang={lang}
+                        busy={busy}
+                        {...pokemonSuperTraining}
+                      />
+                    )}
+                  {report.format === "SAV9ZA" &&
+                    selected.valid &&
+                    selected.species > 0 && (
+                      <PlusRecordEditor
+                        key={`plus-record-${revision}-${selected.box}-${selected.slot}`}
+                        target={{
+                          kind: "save",
+                          box: selected.box,
+                          slot: selected.slot,
+                          fileName: null,
+                          inputEncrypted: false,
+                          useFileFormat: false,
+                        }}
+                        lang={lang}
+                        busy={busy}
+                        {...plusRecord}
+                      />
+                    )}
+                  {[
+                    "SAV8SWSH",
+                    "SAV8BS",
+                    "SAV8LA",
+                    "SAV9SV",
+                    "SAV9ZA",
+                  ].includes(report.format) &&
+                    selected.valid &&
+                    selected.species > 0 && (
+                      <TechRecordEditor
+                        key={`tech-record-${revision}-${selected.box}-${selected.slot}`}
+                        target={{
+                          kind: "save",
+                          box: selected.box,
+                          slot: selected.slot,
+                          fileName: null,
+                          inputEncrypted: false,
+                          useFileFormat: false,
+                        }}
+                        lang={lang}
+                        busy={busy}
+                        {...techRecord}
+                      />
+                    )}
+                  <PokemonEncounterEditor
+                    key={`encounter-${JSON.stringify(selected)}`}
+                    encounter={selected.encounter}
+                    position={{ box: selected.box, slot: selected.slot }}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onApply={onApplyRaw}
+                  />
+                  {report.generation >= 6 && (
+                    <PokemonMemoryEditor
+                      readDisabled={busy || !selected.valid}
+                      key={`memory-${revision}-${JSON.stringify(selected)}`}
+                      position={{ box: selected.box, slot: selected.slot }}
+                      disabled={busy || !access.canRaw || !selected.valid}
+                      onApply={onApplyRaw}
+                      onRead={onReadMemory}
+                    />
+                  )}
+                  {report.generation >= 6 && (
+                    <PokemonHistoryEditor
+                      readDisabled={busy || !selected.valid}
+                      key={`history-${revision}-${JSON.stringify(selected)}`}
+                      position={{ box: selected.box, slot: selected.slot }}
+                      disabled={busy || !access.canRaw || !selected.valid}
+                      onRead={onReadHistory}
+                      onApply={onApplyRaw}
+                    />
+                  )}
+                  <PokemonRibbonEditor
+                    readDisabled={busy || !selected.valid}
+                    key={`ribbons-${revision}-${JSON.stringify(selected)}`}
+                    position={{ box: selected.box, slot: selected.slot }}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onApply={onApplyRaw}
+                    onRead={onReadRibbons}
+                    generation={report.generation}
+                  />
+                  <PokemonRelearnEditor
+                    key={`relearn-${JSON.stringify(selected)}`}
+                    moves={selected.relearnMoves}
+                    choices={report.moveChoices}
+                    position={{ box: selected.box, slot: selected.slot }}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onApply={onApplyRaw}
+                    onSuggest={onSuggestRelearn}
+                  />
+                  <PokemonMarkingsEditor
+                    key={`markings-${JSON.stringify(selected)}`}
+                    pokemon={selected}
+                    lang={lang}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onApply={onApplyRaw}
+                  />
+                  <PokemonShinyEditor
+                    key={`shiny-${JSON.stringify(selected)}`}
+                    position={{ box: selected.box, slot: selected.slot }}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onApply={onApplyRaw}
+                  />
+                  <PokemonRawEditor
+                    key={`raw-${JSON.stringify(selected)}`}
+                    pokemon={selected}
+                    disabled={busy || !access.canRaw || !selected.valid}
+                    onApply={onApplyRaw}
+                  />
+                  {selected.formArgument && (
+                    <PokemonFormArgumentEditor
+                      key={`form-argument-${JSON.stringify(selected)}`}
+                      argument={selected.formArgument}
+                      position={selected}
+                      disabled={busy || !access.canRaw || !selected.valid}
+                      onApply={onApplyRaw}
+                    />
+                  )}
+                </>
+              ) : null}
               <h4>{words.moves}</h4>
               <ul className="save-pokemon-moves">
                 {selected.moves.map((move, i) => (
@@ -829,15 +918,23 @@ export function SavePokemonBrowser({
                   </thead>
                   <tbody>
                     <tr>
-                      <th scope="row">{words.ivs}</th>
-                      {selected.ivs.map((v, i) => (
-                        <td key={i}>{v}</td>
+                      <th scope="row">
+                        {report.generation < 3
+                          ? standaloneWords[lang].dvs
+                          : words.ivs}
+                      </th>
+                      {statIndices.map((i) => (
+                        <td key={i}>{selected.ivs[i]}</td>
                       ))}
                     </tr>
                     <tr>
-                      <th scope="row">{words.evs}</th>
-                      {selected.evs.map((v, i) => (
-                        <td key={i}>{v}</td>
+                      <th scope="row">
+                        {report.generation < 3
+                          ? standaloneWords[lang].statExperience
+                          : words.evs}
+                      </th>
+                      {statIndices.map((i) => (
+                        <td key={i}>{selected.evs[i]}</td>
                       ))}
                     </tr>
                   </tbody>

@@ -62,6 +62,7 @@ export interface EncounterQuery {
   instructions: string;
 }
 export interface EncounterRow {
+  artwork?: import("./PokemonSprite").SpriteData | null;
   id: number;
   species: number;
   form: number;

@@ -1,6 +1,6 @@
 import { Select } from "../shared/Select";
 import { PokemonLegality } from "./PokemonLegality";
-import { pokemonImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
 import { saveEditorResources } from "./locales";
 import { boxSlotNavigation } from "./boxGallery";
 import {
@@ -106,11 +106,18 @@ export function RegisteredGroupWorkspace({
                   type="button"
                   key={member.slot}
                   data-group-slot={member.slot}
-                  aria-label={label}
-                  title={
+                  data-hover-target={
                     p
-                      ? `${label} · ${p.nickname} · ${words.level} ${p.level}`
-                      : label
+                      ? JSON.stringify({
+                          kind: "registered",
+                          group: entry.index,
+                          slot: member.slot,
+                        })
+                      : undefined
+                  }
+                  aria-label={label}
+                  aria-description={
+                    p ? `${p.nickname} · ${words.level} ${p.level}` : undefined
                   }
                   disabled={busy}
                   aria-pressed={slot === member.slot}
@@ -136,8 +143,8 @@ export function RegisteredGroupWorkspace({
                 >
                   {p ? (
                     <>
-                      <img
-                        src={pokemonImage(p)}
+                      <PokemonSprite
+                        pokemon={p}
                         alt=""
                         width={68}
                         height={56}
@@ -180,8 +187,8 @@ export function RegisteredGroupWorkspace({
           {selected ? (
             <>
               <div className="save-pokemon-identity">
-                <img
-                  src={pokemonImage(selected)}
+                <PokemonSprite
+                  pokemon={selected}
                   alt=""
                   width={68}
                   height={56}

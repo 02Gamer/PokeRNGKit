@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { saveCommitHasSound } from "./saveEditSound";
 import { Select } from "../shared/Select";
 import { AutoCompleteComboBox } from "../shared/AutoCompleteComboBox";
 import {
@@ -18,6 +19,7 @@ import {
   type Dn9aEdit,
   type Dn9aTicket,
   type Dn9aConfirmation,
+  type Dn9aExportMode,
 } from "./donut9a";
 import { donut9aWords } from "./donut9aWords";
 import "./Donut9aEditor.css";
@@ -27,9 +29,9 @@ type Props = {
   lang: Br4Lang;
   onRead(): Promise<Dn9aCatalog | undefined>;
   onPreview(e: Dn9aEdit): Promise<Dn9aTicket | undefined>;
-  onApply(e: Dn9aConfirmation): Promise<void>;
+  onApply(e: Dn9aConfirmation, sourceSound?: true): Promise<boolean>;
   onDiscard(token: string): Promise<void>;
-  onExport(index: number, text: boolean): Promise<void>;
+  onExport(index: number, mode: Dn9aExportMode): Promise<boolean>;
 };
 export function Donut9aEditor(p: Props) {
   const [loaded, setLoaded] = useState<{ revision: number; c: Dn9aCatalog }>();
@@ -156,7 +158,12 @@ function Form({
     ),
     [reviewIndex, setReviewIndex] = useState<number>();
   const [reviewInput, setReviewInput] = useState<string>();
+  const [copyStatus, setCopyStatus] = useState<"copied" | "failed" | "">("");
+  const alive = useRef(true);
   const discard = useRef(onDiscard),
+    cueOrigin = useRef<
+      { token: string; action: Dn9aEdit["action"] } | undefined
+    >(undefined),
     token = useRef<string | undefined>(undefined),
     origin = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -165,12 +172,13 @@ function Form({
   useEffect(() => {
     token.current = ticket?.token;
   }, [ticket]);
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
       if (token.current) void discard.current(token.current);
-    },
-    [],
-  );
+    };
+  }, []);
   const entry = c.entries.find((e) => e.index === index);
   if (!entry) return <p>{w.missing}</p>;
   const locked = busy || pending || !!ticket || !c.canEdit;
@@ -197,6 +205,7 @@ function Form({
     try {
       const p = await onPreview(donut9aRequest(c, { ...e, index }));
       if (p) {
+        cueOrigin.current = { token: p.token, action: e.action };
         setTicket(p);
         setReviewIndex(p.changedEntries[0] ?? index);
         setReviewInput(undefined);
@@ -621,18 +630,42 @@ function Form({
             <button
               type="button"
               disabled={operationLocked || !entry.canLoad}
-              onClick={() => void onExport(index, false)}
+              onClick={() => void onExport(index, "file")}
             >
               {w.export}
             </button>
             <button
               type="button"
               disabled={operationLocked || !entry.canLoad}
-              onClick={() => void onExport(index, true)}
+              onClick={() => void onExport(index, "text")}
             >
               {w.exportHex}
             </button>
+            <button
+              type="button"
+              disabled={operationLocked || !entry.canLoad}
+              onClick={async () => {
+                setPending(true);
+                setCopyStatus("");
+                try {
+                  const copied = await onExport(index, "clipboard");
+                  if (alive.current)
+                    setCopyStatus(copied ? "copied" : "failed");
+                } catch {
+                  if (alive.current) setCopyStatus("failed");
+                } finally {
+                  if (alive.current) setPending(false);
+                }
+              }}
+            >
+              {w.copyHex}
+            </button>
           </div>
+          {copyStatus && (
+            <p role={copyStatus === "failed" ? "alert" : "status"}>
+              {copyStatus === "copied" ? w.copied : w.copyFailed}
+            </p>
+          )}
         </>
       )}
       {draft && (
@@ -802,8 +835,18 @@ function Form({
                 setPending(true);
                 setError("");
                 try {
-                  await onApply(donut9aFrozen(c, ticket));
-                  token.current = undefined;
+                  const applied = await onApply(
+                    donut9aFrozen(c, ticket),
+                    cueOrigin.current?.token === ticket.token &&
+                      saveCommitHasSound(
+                        "donut9aCommit",
+                        cueOrigin.current.action,
+                      )
+                      ? true
+                      : undefined,
+                  );
+                  if (applied) token.current = undefined;
+                  else if (alive.current) setError(w.stale);
                 } catch {
                   setError(w.invalid);
                 } finally {

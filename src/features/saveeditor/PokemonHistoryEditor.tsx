@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type {
   GeoValue,
   HistoryCatalog,
@@ -76,7 +76,9 @@ export function PokemonHistoryEditor({
   const options = (choices: OriginChoice[], value: number) => (
     <>
       {!choices.some((c) => c.id === value) && (
-        <option value={value}>#{value}</option>
+        <option value={value} disabled data-source-invalid>
+          #{value}
+        </option>
       )}
       {choices.map((c) => (
         <option key={c.id} value={c.id}>
@@ -114,7 +116,9 @@ export function PokemonHistoryEditor({
                 onChange={(e) => setHandler(Number(e.target.value))}
               >
                 {![0, 1].includes(handler) && (
-                  <option value={handler}>#{handler}</option>
+                  <option value={handler} disabled data-source-invalid>
+                    #{handler}
+                  </option>
                 )}
                 <option value={0}>
                   {words.originalTrainer}: {catalog.holder.original}

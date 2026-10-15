@@ -30,7 +30,7 @@
   white-space: nowrap;
   border-bottom: 1px solid var(--border);
 }
-.save-report-scroll img {
+.save-report-scroll :is(img, .save-pokemon-art) {
   width: 40px;
   height: 32px;
   object-fit: contain;

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StandalonePokemonClient } from "./standaloneClient";
+import { readSaveSettings, replaceSaveSettings } from "./settingsRepository";
 import { MAX_ENTITY_BYTES } from "./standalonePokemon";
 
 class FakeWorker {
@@ -18,6 +19,42 @@ const request = {
   useFileFormat: true,
 };
 describe("independent entity worker lifecycle", () => {
+  it("sends saved policies and restores the visible entity mode after settings reconstruction", async () => {
+    let raw: string | null = null;
+    const storage = {
+      getItem: () => raw,
+      setItem: (_key: string, value: string) => {
+        raw = value;
+      },
+    };
+    vi.stubGlobal("localStorage", storage);
+    const first = replaceSaveSettings('{"mode":"artwork"}', undefined, storage);
+    const client = new StandalonePokemonClient();
+    const pending = client.run(new Uint8Array([1]), request);
+    let worker = FakeWorker.instances.at(-1)!,
+      message = worker.postMessage.mock.calls[0][0];
+    expect(message.programSettingsJson).toBe(first.json);
+    worker.onmessage?.({
+      data: { id: message.id, entity: { spriteMode: "a" } },
+    });
+    await pending;
+    replaceSaveSettings(
+      '{"mode":"keep"}',
+      readSaveSettings(storage)?.revision,
+      storage,
+    );
+    const next = client.run(new Uint8Array([1]), request);
+    expect(worker.terminate).toHaveBeenCalledOnce();
+    worker = FakeWorker.instances.at(-1)!;
+    message = worker.postMessage.mock.calls[0][0];
+    expect(message.spriteMode).toBe("a");
+    expect(message.programSettingsJson).toBe('{"mode":"keep"}');
+    worker.onmessage?.({
+      data: { id: message.id, entity: { spriteMode: "a" } },
+    });
+    await next;
+    client.dispose();
+  });
   it.each([
     "entityTextTrash",
     "entityTextTrashDraft",
@@ -49,7 +86,7 @@ describe("independent entity worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect(transfer).toEqual([message.bytes.buffer]);
       worker.onmessage?.({
-        data: { id: message.id, entity: { apiVersion: 163 }, ...fields },
+        data: { id: message.id, entity: { apiVersion: 171 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(original);
@@ -200,7 +237,12 @@ describe("independent entity worker lifecycle", () => {
     vi.useFakeTimers();
     FakeWorker.instances = [];
     vi.stubGlobal("Worker", FakeWorker);
-    vi.stubGlobal("window", { location: { href: "http://127.0.0.1:5173/" } });
+    vi.stubGlobal(
+      "window",
+      Object.assign(new EventTarget(), {
+        location: { href: "http://127.0.0.1:5173/" },
+      }),
+    );
   });
   afterEach(() => {
     vi.useRealTimers();

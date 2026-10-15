@@ -1,6 +1,7 @@
+import { useGenderLabel } from "./useGenderLabel";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type { MoveChoice, PokemonEntry, SaveReport } from "./domain";
 import type { saveEditorResources } from "./locales";
 
@@ -43,6 +44,7 @@ export function PokemonEditor({
   disabled: boolean;
   onApply(edit: PokemonEdit): Promise<void>;
 }) {
+  const genderLabel = useGenderLabel();
   const { t, i18n } = useTranslation();
   const lang = i18n.language.startsWith("zh")
     ? "zh"
@@ -203,7 +205,9 @@ export function PokemonEditor({
             onChange={(e) => changeIdentity(e.target.value, "0")}
           >
             {!speciesChoice && (
-              <option value={values.species}>#{values.species}</option>
+              <option value={values.species} disabled data-source-invalid>
+                #{values.species}
+              </option>
             )}
             {attributeChoices.species.map((choice) => (
               <option key={choice.id} value={choice.id}>
@@ -219,7 +223,11 @@ export function PokemonEditor({
             value={values.form}
             onChange={(e) => changeIdentity(values.species, e.target.value)}
           >
-            {!formChoice && <option value={values.form}>#{values.form}</option>}
+            {!formChoice && (
+              <option value={values.form} disabled data-source-invalid>
+                #{values.form}
+              </option>
+            )}
             {speciesChoice?.forms.map((choice, id) => (
               <option key={id} value={id}>
                 {choice.name[lang] || words.defaultForm}
@@ -242,8 +250,11 @@ export function PokemonEditor({
                 key={gender}
                 value={gender}
               >
-                {[words.male, words.female, words.genderless][gender] ??
-                  `#${gender}`}
+                {[
+                  genderLabel(0, words.male),
+                  genderLabel(1, words.female),
+                  words.genderless,
+                ][gender] ?? `#${gender}`}
               </option>
             ))}
           </Select>
@@ -306,6 +317,11 @@ export function PokemonEditor({
         <legend>
           {words.ivs} / {words.evs}
         </legend>
+        {pokemon.potential ? (
+          <p className="save-editor-note">
+            {words.potential}: {pokemon.potential}
+          </p>
+        ) : null}
         {(
           [
             ["nature", words.nature, attributeChoices.natures],
@@ -330,7 +346,9 @@ export function PokemonEditor({
               onChange={(e) => setValues({ ...values, [key]: e.target.value })}
             >
               {!choices[Number(values[key])] && (
-                <option value={values[key]}>#{values[key]}</option>
+                <option value={values[key]} disabled data-source-invalid>
+                  #{values[key]}
+                </option>
               )}
               {choices.map((choice, id) => (
                 <option key={id} value={id}>

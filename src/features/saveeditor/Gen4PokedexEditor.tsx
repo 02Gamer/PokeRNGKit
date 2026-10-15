@@ -1,3 +1,4 @@
+import { useGenderLabel } from "./useGenderLabel";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
@@ -24,6 +25,7 @@ export function Gen4PokedexEditor({
   onRead(): Promise<Dex4Catalog | undefined>;
   onApply(edit: Dex4Edit): Promise<void>;
 }) {
+  const genderLabel = useGenderLabel();
   const { t, i18n } = useTranslation();
   const words = t("saveEditor", {
     returnObjects: true,
@@ -176,7 +178,10 @@ export function Gen4PokedexEditor({
                   values={state.genders}
                   choices={entry.genderChoices.map((id) => ({
                     id,
-                    name: id === 0 ? "♂" : id === 1 ? "♀" : labels.genderless,
+                    name:
+                      id === 0 || id === 1
+                        ? genderLabel(id)
+                        : labels.genderless,
                   }))}
                   disabled={disabled || !state.seen}
                   labels={labels}

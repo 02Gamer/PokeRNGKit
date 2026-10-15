@@ -20,6 +20,9 @@ internal static class BoxArchive
         var first = request.All ? 0 : request.Box;
         var end = request.All ? save.BoxCount : first + 1;
         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var preferred=SaveProgramSettingsRuntime.Current?.SlotExport.DefaultBoxExportNamer;
+        var namer=EntityFileNamer.AvailableNamers.FirstOrDefault(candidate=>candidate.Name==preferred)
+            ?? EntityFileNamer.AvailableNamers.FirstOrDefault() ?? EntityFileNamer.Namer;
         var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         using var stream = new MemoryStream();
         int written = 0;
@@ -43,7 +46,7 @@ internal static class BoxArchive
                     var pk = save.GetBoxSlotAtIndex(box, slot);
                     if (request.EmptySlots == 0 && (pk.Species == 0 || !pk.Valid)) continue;
                     string name;
-                    try { name = EntityFileNamer.GetName(pk); }
+                    try { name = namer.GetName(pk); }
                     catch { name = "Name Error"; }
                     string prefix = request.IndexPrefix switch
                     {

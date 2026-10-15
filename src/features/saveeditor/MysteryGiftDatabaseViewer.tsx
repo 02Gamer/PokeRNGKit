@@ -4,7 +4,9 @@ import { Select } from "../shared/Select";
 import { SearchCandidate } from "./PokemonSearchEditor";
 import { EncounterInstructionBuilder } from "./EncounterInstructionBuilder";
 import { PokemonDatabaseViewer } from "./PokemonDatabaseViewer";
-import { databaseWallpaperImage, pokemonImage } from "./art";
+import { databaseWallpaperImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
+import { PokemonHoverSurface } from "./PokemonHoverSurface";
 import { decodeDatabaseBytes, type DatabaseActions } from "./databaseProtocol";
 import type { OriginChoice, SaveEditorResult, SaveReport } from "./domain";
 import type { StandalonePokemonSnapshot } from "./standalonePokemon";
@@ -13,41 +15,38 @@ import {
   loadMysteryGiftLibrary,
   replaceMysteryGiftLibrary,
   readMysteryGiftFiles,
+  validateMysteryGiftLibrary,
   type MysteryGiftLibrary,
 } from "./mysteryGiftLibrary";
 import {
   defaultMysteryGiftQuery,
   type MysteryGiftDatabaseCatalog,
-  type MysteryGiftDatabaseOptions,
   type MysteryGiftDatabaseRequestKind,
   type MysteryGiftDatabaseTicket,
   type MysteryGiftDatabaseView,
 } from "./mysteryGiftDatabaseProtocol";
 import "./PokemonEncounterViewer.css";
 import "./PokemonDatabaseViewer.css";
+import { loadMysterySettings } from "./mysteryGiftSettings";
+import { settingsWords } from "./settingsLabels";
+import { useSaveSettingsJson } from "./useSaveSettingsJson";
+import { useMysteryGiftChanges } from "./useMysteryGiftChanges";
+import { playSaveSound } from "./saveSound";
+import {
+  mysteryGiftDirectory,
+  mysteryGiftDirectoryFiles,
+  mysteryGiftDirectorySources,
+  attachMysteryGiftDirectory,
+  removeMysteryGiftDirectoryFile,
+  mysteryGiftDirectoryWords,
+} from "./mysteryGiftDirectory";
 export interface MysteryGiftDatabaseActions {
+  hover?: import("./pokemonHover").ReadPokemonHoverTarget;
   request(
     kind: MysteryGiftDatabaseRequestKind,
     json: string,
     entity?: Uint8Array,
   ): Promise<SaveEditorResult | undefined>;
-}
-const settingsKey = "pokerngkit-mystery-gift-settings";
-function loadSettings(): MysteryGiftDatabaseOptions {
-  try {
-    const value = JSON.parse(localStorage.getItem(settingsKey) ?? "null");
-    if (
-      value &&
-      typeof value.filterUnavailableSpecies === "boolean" &&
-      Number.isInteger(value.gridRows) &&
-      value.gridRows >= 5 &&
-      value.gridRows <= 20
-    )
-      return value;
-  } catch {
-    /* Defaults remain usable when settings cannot be read. */
-  }
-  return { filterUnavailableSpecies: true, gridRows: 9 };
 }
 function download(fileName: string, bytes: Uint8Array<ArrayBuffer>) {
   const url = URL.createObjectURL(
@@ -65,12 +64,14 @@ export function MysteryGiftDatabaseViewer({
   report,
   actions,
   databaseActions,
+  onOpenSettings,
 }: {
   lang: "zh" | "en" | "ja";
   busy: boolean;
   report: SaveReport;
   actions: MysteryGiftDatabaseActions;
   databaseActions: DatabaseActions;
+  onOpenSettings?(): void;
 }) {
   const w = mysteryGiftDatabaseWords[lang],
     latest = useRef(actions),
@@ -80,7 +81,15 @@ export function MysteryGiftDatabaseViewer({
   const builderSource = useRef<StandalonePokemonSnapshot | undefined>(
     undefined,
   );
-  const [options, setOptions] = useState(loadSettings),
+  const settingsJson = useSaveSettingsJson();
+  const generation = useRef(0);
+  let directory = "";
+  try {
+    directory = mysteryGiftDirectory(settingsJson);
+  } catch {
+    /* The invalid directory is refused below. */
+  }
+  const [options, setOptions] = useState(loadMysterySettings),
     [query, setQuery] = useState(() =>
       defaultMysteryGiftQuery(report.generation),
     ),
@@ -99,8 +108,11 @@ export function MysteryGiftDatabaseViewer({
     [pending, setPending] = useState(true),
     [message, setMessage] = useState("");
   const input = useRef<HTMLInputElement>(null),
+    folderInput = useRef<HTMLInputElement>(null),
     prepareButton = useRef<HTMLButtonElement>(null),
     words = useRef(w);
+  const [writeOrigin] = useState(() => ({}));
+  const giftRevision = useMysteryGiftChanges(writeOrigin);
   useEffect(() => {
     latest.current = actions;
     words.current = w;
@@ -110,27 +122,34 @@ export function MysteryGiftDatabaseViewer({
   }, [ticket]);
   useEffect(() => {
     let active = true;
+    generation.current++;
     life.current = true;
     void (async () => {
       await Promise.resolve();
       if (!active) return;
       running.current = true;
       try {
+        setPending(true);
+        setView(undefined);
+        setCatalog(undefined);
+        setTicket(undefined);
+        setFocused(undefined);
+        setFileId(undefined);
+        setUndo(undefined);
+        if (!directory) throw new Error("Invalid mystery gift directory.");
         const saved = await loadMysteryGiftLibrary();
         if (!active) return;
         setLibrary(saved);
         const result = await latest.current.request(
           "giftDatabaseOpen",
           JSON.stringify({
-            options: loadSettings(),
-            files: saved.files.map(({ fileName, data }) => ({
-              fileName,
-              data,
-            })),
+            options: loadMysterySettings(),
+            files: mysteryGiftDirectorySources(saved.files, directory),
           }),
         );
         if (!active) return;
         if (!result?.giftDatabase) throw Error();
+        setOptions(loadMysterySettings());
         setView(result.giftDatabase);
         const next = await latest.current.request("giftDatabaseCatalog", "");
         if (!active) return;
@@ -155,26 +174,29 @@ export function MysteryGiftDatabaseViewer({
           old.confirmation.token,
         );
     };
-  }, []);
-  const locked = busy || pending,
+  }, [settingsJson, directory, giftRevision]);
+  const locked = busy || pending || !directory,
     blocked = locked || Boolean(ticket);
   async function run(task: () => Promise<void>) {
     if (running.current || busy) return;
     running.current = true;
+    const currentGeneration = generation.current;
     setPending(true);
     setMessage("");
     try {
       await task();
     } catch {
-      if (life.current) setMessage(w.failed);
+      if (life.current && currentGeneration === generation.current)
+        setMessage(w.failed);
     } finally {
-      if (life.current) {
+      if (life.current && currentGeneration === generation.current) {
         running.current = false;
         setPending(false);
       }
     }
   }
   async function open(next: MysteryGiftLibrary) {
+    const currentGeneration = generation.current;
     setView(undefined);
     setFocused(undefined);
     setTicket(undefined);
@@ -183,11 +205,11 @@ export function MysteryGiftDatabaseViewer({
       "giftDatabaseOpen",
       JSON.stringify({
         options,
-        files: next.files.map(({ fileName, data }) => ({ fileName, data })),
+        files: mysteryGiftDirectorySources(next.files, directory),
       }),
     );
     if (!result?.giftDatabase) throw Error();
-    if (!life.current) return;
+    if (!life.current || currentGeneration !== generation.current) return;
     setView(result.giftDatabase);
     const choices = await actions.request(
       "giftDatabaseCatalog",
@@ -195,31 +217,66 @@ export function MysteryGiftDatabaseViewer({
       builderSource.current?.bytes,
     );
     if (!choices?.giftDatabaseCatalog) throw Error();
-    if (life.current) {
+    if (life.current && currentGeneration === generation.current) {
       setCatalog(choices.giftDatabaseCatalog);
       setQuery(defaultMysteryGiftQuery(report.generation));
     }
   }
-  async function update(files: File[]) {
+  async function update(files: File[], folder = false) {
     if (!library) return;
-    const added = await readMysteryGiftFiles(files),
-      before = library;
+    const currentGeneration = generation.current;
+    let added = attachMysteryGiftDirectory(
+      await readMysteryGiftFiles(
+        folder
+          ? files.filter((file) => file.size > 0 && file.size <= 48 * 1024)
+          : files,
+      ),
+      directory,
+    );
+    if (folder) {
+      const result = await actions.request(
+        "giftDatabaseScanFiles",
+        JSON.stringify({
+          files: mysteryGiftDirectorySources(added, directory),
+        }),
+      );
+      if (!life.current || currentGeneration !== generation.current) return;
+      if (!life.current || currentGeneration !== generation.current) return;
+      if (
+        !result?.giftDatabaseAccepted ||
+        result.giftDatabaseAccepted.some(
+          (index) =>
+            !Number.isInteger(index) || index < 0 || index >= added.length,
+        )
+      )
+        throw Error();
+      const accepted = new Set(result.giftDatabaseAccepted);
+      added = added.filter((_file, index) => accepted.has(index));
+    }
+    if (!added.length) {
+      setMessage(mysteryGiftDirectoryWords[lang].empty);
+      return;
+    }
+    const before = library;
     const entries = [...before.files, ...added];
+    validateMysteryGiftLibrary({ revision: before.revision, files: entries });
     // Core validates every file before committing any local-library write.
     await open({ revision: before.revision, files: entries });
     if (!life.current) return;
+    let next;
     try {
-      const next = await replaceMysteryGiftLibrary(before, entries);
-      if (life.current) {
-        setLibrary(next);
-        setUndo(before);
-        setMessage(w.saved);
-      }
+      next = await replaceMysteryGiftLibrary(before, entries, writeOrigin);
     } catch {
       if (!life.current) return;
       await open(before);
       if (life.current) setMessage(w.storage);
+      return;
     }
+    if (!life.current) return;
+    setLibrary(next);
+    setUndo(before);
+    await open(next);
+    if (life.current) setMessage(w.saved);
   }
   async function replace(
     files: MysteryGiftLibrary["files"],
@@ -227,7 +284,17 @@ export function MysteryGiftDatabaseViewer({
   ) {
     if (!library) return;
     const before = library;
-    const next = await replaceMysteryGiftLibrary(before, files);
+    validateMysteryGiftLibrary({ revision: before.revision, files });
+    await open({ revision: before.revision, files });
+    if (!life.current) return;
+    let next;
+    try {
+      next = await replaceMysteryGiftLibrary(before, files, writeOrigin);
+    } catch {
+      await open(before);
+      if (life.current) setMessage(w.storage);
+      return;
+    }
     if (!life.current) return;
     setLibrary(next);
     setUndo(restoring ? undefined : before);
@@ -236,6 +303,7 @@ export function MysteryGiftDatabaseViewer({
     if (life.current) setMessage(w.saved);
   }
   async function search(offset = 0, apply = false) {
+    const currentGeneration = generation.current;
     setView(undefined);
     setFocused(undefined);
     const result = await actions.request(
@@ -243,7 +311,9 @@ export function MysteryGiftDatabaseViewer({
       JSON.stringify({ query: apply ? query : undefined, offset }),
     );
     if (!result?.giftDatabase) throw Error();
-    if (life.current) setView(result.giftDatabase);
+    if (!life.current || currentGeneration !== generation.current) return;
+    setView(result.giftDatabase);
+    if (apply) playSaveSound("other");
   }
   async function preview(convertToSave: boolean) {
     if (focused === undefined) return;
@@ -367,416 +437,435 @@ export function MysteryGiftDatabaseViewer({
     );
   }
   return (
-    <section
-      className="save-encounters save-pokemon-database"
-      aria-label={w.title}
+    <PokemonHoverSurface
+      report={report}
+      revision={view}
+      busy={locked}
+      lang={lang}
+      readTarget={actions.hover}
     >
-      <h3>{w.title}</h3>
-      <div className="save-editor-toolbar">
-        <button
-          type="button"
-          disabled={blocked}
-          onClick={() =>
-            void run(async () => {
-              const next = await loadMysteryGiftLibrary();
-              if (!life.current) return;
-              setLibrary(next);
-              setUndo(undefined);
-              await open(next);
-            })
-          }
-        >
-          {w.reload}
-        </button>
-        {prepared && (
-          <button
-            type="button"
-            disabled={blocked}
-            aria-pressed={showEditor}
-            onClick={() => setShowEditor((value) => !value)}
-          >
-            {showEditor ? w.closeEditor : w.editor}
-          </button>
-        )}
-      </div>
-      <details>
-        <summary>
-          {w.library} ({library?.files.length ?? 0})
-        </summary>
-        <p className="save-encounter-hint">{w.source}</p>
+      <section
+        className="save-encounters save-pokemon-database"
+        aria-label={w.title}
+      >
+        <h3>{w.title}</h3>
         <div className="save-editor-toolbar">
           <button
             type="button"
-            disabled={blocked || !library}
-            onClick={() => input.current?.click()}
-          >
-            {w.add}
-          </button>
-          <button
-            type="button"
-            disabled={blocked || !fileId}
+            disabled={blocked}
             onClick={() =>
-              void run(() =>
-                replace(library!.files.filter((file) => file.id !== fileId)),
-              )
+              void run(async () => {
+                const next = await loadMysteryGiftLibrary();
+                if (!life.current) return;
+                setLibrary(next);
+                setUndo(undefined);
+                await open(next);
+              })
             }
           >
-            {w.remove}
+            {w.reload}
           </button>
-          <button
-            type="button"
-            disabled={blocked || !undo}
-            onClick={() => void run(() => replace(undo!.files, true))}
-          >
-            {w.undo}
-          </button>
-        </div>
-        <input
-          ref={input}
-          type="file"
-          hidden
-          multiple
-          accept=".pcd,.pgt,.wc4,.pgf,.wc5full,.wc6,.wc6full,.wc7,.wc7full,.wr7,.wb7,.wb7full,.wc8,.wc8full,.wa8,.wb8,.wc9,.wa9"
-          onChange={(event) => {
-            const files = Array.from(event.target.files ?? []);
-            event.target.value = "";
-            if (files.length) void run(() => update(files));
-          }}
-        />
-        <ul>
-          {library?.files.map((file) => (
-            <li key={file.id}>
-              <button
-                type="button"
-                disabled={blocked}
-                aria-pressed={fileId === file.id}
-                onClick={() => setFileId(file.id)}
-              >
-                {file.fileName}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </details>
-      <details>
-        <summary>{w.settings}</summary>
-        <div className="save-encounter-fields">
-          <label className="save-db-check">
-            <input
-              type="checkbox"
+          {prepared && (
+            <button
+              type="button"
               disabled={blocked}
-              checked={options.filterUnavailableSpecies}
-              onChange={(event) =>
-                setOptions({
-                  ...options,
-                  filterUnavailableSpecies: event.target.checked,
-                })
-              }
-            />
-            {w.unavailable}
-          </label>
-          <label className="field">
-            <span>{w.rows}</span>
-            <Select
-              disabled={blocked}
-              value={options.gridRows}
-              onChange={(event) =>
-                setOptions({ ...options, gridRows: Number(event.target.value) })
-              }
+              aria-pressed={showEditor}
+              onClick={() => setShowEditor((value) => !value)}
             >
-              {Array.from({ length: 16 }, (_, i) => (
-                <option key={i + 5} value={i + 5}>
-                  {i + 5}
-                </option>
-              ))}
-            </Select>
-          </label>
+              {showEditor ? w.closeEditor : w.editor}
+            </button>
+          )}
         </div>
-        <button
-          type="button"
-          disabled={blocked || !library}
-          onClick={() =>
-            void run(async () => {
-              await open(library!);
-              try {
-                localStorage.setItem(settingsKey, JSON.stringify(options));
-              } catch {
-                setMessage(w.storage);
-              }
-            })
-          }
-        >
-          {w.apply}
-        </button>
-      </details>
-      {catalog && (
-        <>
-          <div className="save-encounter-fields">
-            {candidate(w.species, catalog.species, query.species, (value) =>
-              setQuery({ ...query, species: value }),
-            )}
-            {candidate(w.item, catalog.items, query.heldItem, (value) =>
-              setQuery({ ...query, heldItem: value }),
-            )}
-            {query.moves.map((move, index) => (
-              <div key={index}>
-                {candidate(
-                  `${w.move} ${index + 1}`,
-                  catalog.moves,
-                  move,
-                  (value) =>
-                    setQuery({
-                      ...query,
-                      moves: query.moves.map((old, i) =>
-                        i === index ? value : old,
-                      ),
-                    }),
-                )}
-              </div>
-            ))}
-            {tri(w.egg, query.egg, (value) =>
-              setQuery({ ...query, egg: value }),
-            )}
-            {tri(w.shiny, query.shiny, (value) =>
-              setQuery({ ...query, shiny: value }),
-            )}
-            <label className="field">
-              <span>{w.comparison}</span>
-              <Select
-                disabled={blocked}
-                value={query.comparison}
-                onChange={(event) =>
-                  setQuery({
-                    ...query,
-                    comparison: Number(event.target.value),
-                    generation: report.generation >= 4 ? report.generation : 10,
-                  })
-                }
-              >
-                <option value={0}>{w.any}</option>
-                <option value={1}>&gt;=</option>
-                <option value={2}>==</option>
-                <option value={3}>&lt;=</option>
-              </Select>
-            </label>
-            <label className="field">
-              <span>{w.generation}</span>
-              <Select
-                disabled={blocked || query.comparison === 0}
-                value={query.generation || 10}
-                onChange={(event) =>
-                  setQuery({ ...query, generation: Number(event.target.value) })
-                }
-              >
-                <option value={10}>{w.any}</option>
-                {[9, 8, 7, 6, 5, 4].map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </Select>
-            </label>
-          </div>
-          <details>
-            <summary>{w.instructions}</summary>
-            <EncounterInstructionBuilder
-              catalog={catalog}
-              lang={lang}
-              disabled={blocked}
-              value={query.instructions}
-              onChange={(value) => setQuery({ ...query, instructions: value })}
-            />
-            <label className="field">
-              <span>{w.instructions}</span>
-              <textarea
-                disabled={blocked}
-                maxLength={32767}
-                rows={4}
-                value={query.instructions}
-                onChange={(event) =>
-                  setQuery({ ...query, instructions: event.target.value })
-                }
-              />
-            </label>
-          </details>
-        </>
-      )}
-      <div className="save-editor-toolbar">
-        <button
-          type="button"
-          disabled={blocked || !view}
-          onClick={() => void run(() => search(0, true))}
-        >
-          {w.search}
-        </button>
-        <button
-          type="button"
-          disabled={blocked}
-          onClick={() =>
-            setQuery({
-              ...defaultMysteryGiftQuery(report.generation),
-              comparison: query.comparison,
-              generation: query.generation,
-            })
-          }
-        >
-          {w.reset}
-        </button>
-        <button
-          type="button"
-          disabled={blocked || !view?.matches}
-          onClick={() => void run(exportAll)}
-        >
-          {w.exportAll}
-        </button>
-      </div>
-      {message && <p role="status">{message}</p>}
-      {view && (
-        <>
-          <p>
-            {w.count}: {view.matches}
-          </p>
-          <div
-            className="save-db-grid"
-            style={{ backgroundImage: `url(${databaseWallpaperImage()})` }}
-          >
-            {view.rows.map((row) => (
-              <div key={row.id} className="save-db-slot">
-                <button
-                  type="button"
-                  disabled={blocked}
-                  aria-pressed={focused === row.id}
-                  onClick={() => setFocused(row.id)}
-                  title={row.details.map((line) => line[lang]).join("\n")}
-                >
-                  <img src={pokemonImage(row)} alt="" />
-                  <span>
-                    {row.cardId} · {row.title}
-                  </span>
-                </button>
-              </div>
-            ))}
-          </div>
-          {!view.matches && <p>{w.empty}</p>}
+        <p className="save-encounter-hint">
+          {mysteryGiftDirectoryWords[lang].title}: <strong>{directory}</strong>
+        </p>
+        <p className="save-encounter-hint">
+          {mysteryGiftDirectoryWords[lang].note}
+        </p>
+        <details>
+          <summary>
+            {w.library} (
+            {mysteryGiftDirectoryFiles(library?.files ?? [], directory).length})
+          </summary>
+          <p className="save-encounter-hint">{w.source}</p>
           <div className="save-editor-toolbar">
             <button
               type="button"
-              disabled={blocked || !view.offset}
+              disabled={blocked || !library}
+              onClick={() => input.current?.click()}
+            >
+              {w.add}
+            </button>
+            <button
+              type="button"
+              disabled={blocked || !library}
+              onClick={() => folderInput.current?.click()}
+            >
+              {mysteryGiftDirectoryWords[lang].folder}
+            </button>
+            <button
+              type="button"
+              disabled={blocked || !fileId}
               onClick={() =>
                 void run(() =>
-                  search(Math.max(0, view.offset - view.gridRows * 6)),
+                  replace(
+                    removeMysteryGiftDirectoryFile(
+                      library!.files,
+                      fileId!,
+                      directory,
+                    ),
+                  ),
                 )
               }
             >
-              {w.previous}
+              {w.remove}
             </button>
             <button
               type="button"
-              disabled={
-                blocked || view.offset + view.rows.length >= view.matches
-              }
-              onClick={() =>
-                void run(() => search(view.offset + view.gridRows * 6))
-              }
+              disabled={blocked || !undo}
+              onClick={() => void run(() => replace(undo!.files, true))}
             >
-              {w.next}
+              {w.undo}
             </button>
           </div>
-        </>
-      )}
-      {selected && (
-        <>
-          <h4>{w.details}</h4>
-          <pre>{selected.details.map((line) => line[lang]).join("\n")}</pre>
-          <div className="save-editor-toolbar">
-            <button
-              ref={prepareButton}
-              type="button"
-              disabled={blocked}
-              onClick={() => void run(() => preview(true))}
-            >
-              {w.prepare}
+          <input
+            ref={input}
+            type="file"
+            hidden
+            multiple
+            accept=".pcd,.pgt,.wc4,.pgf,.wc5full,.wc6,.wc6full,.wc7,.wc7full,.wr7,.wb7,.wb7full,.wc8,.wc8full,.wa8,.wb8,.wc9,.wa9"
+            onChange={(event) => {
+              const files = Array.from(event.target.files ?? []);
+              event.target.value = "";
+              if (files.length) void run(() => update(files));
+            }}
+          />
+          <input
+            ref={folderInput}
+            type="file"
+            hidden
+            multiple
+            {...{ webkitdirectory: "" }}
+            onChange={(event) => {
+              const files = Array.from(event.target.files ?? []);
+              event.target.value = "";
+              if (files.length) void run(() => update(files, true));
+            }}
+          />
+          <ul>
+            {mysteryGiftDirectoryFiles(library?.files ?? [], directory).map(
+              (file) => (
+                <li key={file.id}>
+                  <button
+                    type="button"
+                    disabled={blocked}
+                    aria-pressed={fileId === file.id}
+                    onClick={() => setFileId(file.id)}
+                  >
+                    {file.directory ?? "mgdb"}/{file.fileName}
+                  </button>
+                </li>
+              ),
+            )}
+          </ul>
+        </details>
+        <details>
+          <summary>{w.settings}</summary>
+          {onOpenSettings && (
+            <button type="button" disabled={blocked} onClick={onOpenSettings}>
+              {settingsWords[lang].title}
             </button>
-            <button
-              type="button"
-              disabled={blocked}
-              onClick={() => void run(() => preview(false))}
-            >
-              {w.native}
-            </button>
-            <button
-              type="button"
-              disabled={blocked}
-              onClick={() => void run(exportGift)}
-            >
-              {w.export}
-            </button>
-          </div>
-        </>
-      )}
-      {ticket && (
-        <div
-          className="save-encounter-preview"
-          role="region"
-          aria-label={w.preview}
-        >
-          <h4>{w.preview}</h4>
-          <img src={pokemonImage(ticket.pokemon)} alt="" />
-          <p>
-            {ticket.pokemon.nickname} · {ticket.pokemon.pid} ·{" "}
-            {ticket.pokemon.level}
-          </p>
-          <div className="save-editor-toolbar">
-            <button
-              type="button"
-              disabled={locked}
-              onClick={() => void run(confirm)}
-            >
-              {w.confirm}
-            </button>
-            <button
-              type="button"
-              disabled={locked}
-              onClick={() => void run(discard)}
-            >
-              {w.cancel}
-            </button>
-          </div>
-        </div>
-      )}
-      {showEditor && prepared && (
-        <PokemonDatabaseViewer
-          key={prepared.id}
-          lang={lang}
-          busy={locked}
-          actions={databaseActions}
-          preparedSeed={prepared.snapshot}
-          extraPreparedActions={[
-            {
-              label: w.editorProperties,
-              onPrepare: async (snapshot) => {
-                await run(async () => {
-                  if (snapshot.inputEncrypted || !snapshot.useFileFormat)
-                    throw Error();
-                  const result = await actions.request(
-                    "giftDatabaseCatalog",
-                    snapshot.fileName,
-                    snapshot.bytes,
-                  );
-                  if (!result?.giftDatabaseCatalog) throw Error();
-                  if (life.current) {
-                    builderSource.current = {
-                      ...snapshot,
-                      bytes: new Uint8Array(snapshot.bytes),
-                    };
-                    setCatalog(result.giftDatabaseCatalog);
+          )}
+        </details>
+        {catalog && (
+          <>
+            <div className="save-encounter-fields">
+              {candidate(w.species, catalog.species, query.species, (value) =>
+                setQuery({ ...query, species: value }),
+              )}
+              {candidate(w.item, catalog.items, query.heldItem, (value) =>
+                setQuery({ ...query, heldItem: value }),
+              )}
+              {query.moves.map((move, index) => (
+                <div key={index}>
+                  {candidate(
+                    `${w.move} ${index + 1}`,
+                    catalog.moves,
+                    move,
+                    (value) =>
+                      setQuery({
+                        ...query,
+                        moves: query.moves.map((old, i) =>
+                          i === index ? value : old,
+                        ),
+                      }),
+                  )}
+                </div>
+              ))}
+              {tri(w.egg, query.egg, (value) =>
+                setQuery({ ...query, egg: value }),
+              )}
+              {tri(w.shiny, query.shiny, (value) =>
+                setQuery({ ...query, shiny: value }),
+              )}
+              <label className="field">
+                <span>{w.comparison}</span>
+                <Select
+                  disabled={blocked}
+                  value={query.comparison}
+                  onChange={(event) =>
+                    setQuery({
+                      ...query,
+                      comparison: Number(event.target.value),
+                      generation:
+                        report.generation >= 4 ? report.generation : 10,
+                    })
                   }
-                });
+                >
+                  <option value={0}>{w.any}</option>
+                  <option value={1}>&gt;=</option>
+                  <option value={2}>==</option>
+                  <option value={3}>&lt;=</option>
+                </Select>
+              </label>
+              <label className="field">
+                <span>{w.generation}</span>
+                <Select
+                  disabled={blocked || query.comparison === 0}
+                  value={query.generation || 10}
+                  onChange={(event) =>
+                    setQuery({
+                      ...query,
+                      generation: Number(event.target.value),
+                    })
+                  }
+                >
+                  <option value={10}>{w.any}</option>
+                  {[9, 8, 7, 6, 5, 4].map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+            </div>
+            <details>
+              <summary>{w.instructions}</summary>
+              <EncounterInstructionBuilder
+                catalog={catalog}
+                lang={lang}
+                disabled={blocked}
+                value={query.instructions}
+                onChange={(value) =>
+                  setQuery({ ...query, instructions: value })
+                }
+              />
+              <label className="field">
+                <span>{w.instructions}</span>
+                <textarea
+                  disabled={blocked}
+                  maxLength={32767}
+                  rows={4}
+                  value={query.instructions}
+                  onChange={(event) =>
+                    setQuery({ ...query, instructions: event.target.value })
+                  }
+                />
+              </label>
+            </details>
+          </>
+        )}
+        <div className="save-editor-toolbar">
+          <button
+            type="button"
+            disabled={blocked || !view}
+            onClick={() => void run(() => search(0, true))}
+          >
+            {w.search}
+          </button>
+          <button
+            type="button"
+            disabled={blocked}
+            onClick={() => {
+              setQuery({
+                ...defaultMysteryGiftQuery(report.generation),
+                comparison: query.comparison,
+                generation: query.generation,
+              });
+              playSaveSound("other");
+            }}
+          >
+            {w.reset}
+          </button>
+          <button
+            type="button"
+            disabled={blocked || !view?.matches}
+            onClick={() => void run(exportAll)}
+          >
+            {w.exportAll}
+          </button>
+        </div>
+        {message && <p role="status">{message}</p>}
+        {view && (
+          <>
+            <p>
+              {w.count}: {view.matches}
+            </p>
+            <div
+              className="save-db-grid"
+              style={{ backgroundImage: `url(${databaseWallpaperImage()})` }}
+            >
+              {view.rows.map((row) => (
+                <div key={row.id} className="save-db-slot">
+                  <button
+                    type="button"
+                    disabled={blocked}
+                    aria-pressed={focused === row.id}
+                    onClick={() => setFocused(row.id)}
+                    data-hover-target={JSON.stringify({
+                      kind: "gift",
+                      id: row.id,
+                    })}
+                    title={
+                      actions.hover
+                        ? undefined
+                        : row.details.map((line) => line[lang]).join("\n")
+                    }
+                  >
+                    <PokemonSprite
+                      pokemon={row.artwork ?? row}
+                      alt=""
+                      width={40}
+                      height={32}
+                    />
+                    <span>
+                      {row.cardId} · {row.title}
+                    </span>
+                  </button>
+                </div>
+              ))}
+            </div>
+            {!view.matches && <p>{w.empty}</p>}
+            <div className="save-editor-toolbar">
+              <button
+                type="button"
+                disabled={blocked || !view.offset}
+                onClick={() =>
+                  void run(() =>
+                    search(Math.max(0, view.offset - view.gridRows * 6)),
+                  )
+                }
+              >
+                {w.previous}
+              </button>
+              <button
+                type="button"
+                disabled={
+                  blocked || view.offset + view.rows.length >= view.matches
+                }
+                onClick={() =>
+                  void run(() => search(view.offset + view.gridRows * 6))
+                }
+              >
+                {w.next}
+              </button>
+            </div>
+          </>
+        )}
+        {selected && (
+          <>
+            <h4>{w.details}</h4>
+            <pre>{selected.details.map((line) => line[lang]).join("\n")}</pre>
+            <div className="save-editor-toolbar">
+              <button
+                ref={prepareButton}
+                type="button"
+                disabled={blocked}
+                onClick={() => void run(() => preview(true))}
+              >
+                {w.prepare}
+              </button>
+              <button
+                type="button"
+                disabled={blocked}
+                onClick={() => void run(() => preview(false))}
+              >
+                {w.native}
+              </button>
+              <button
+                type="button"
+                disabled={blocked}
+                onClick={() => void run(exportGift)}
+              >
+                {w.export}
+              </button>
+            </div>
+          </>
+        )}
+        {ticket && (
+          <div
+            className="save-encounter-preview"
+            role="region"
+            aria-label={w.preview}
+          >
+            <h4>{w.preview}</h4>
+            <PokemonSprite pokemon={ticket.pokemon} alt="" />
+            <p>
+              {ticket.pokemon.nickname} · {ticket.pokemon.pid} ·{" "}
+              {ticket.pokemon.level}
+            </p>
+            <div className="save-editor-toolbar">
+              <button
+                type="button"
+                disabled={locked}
+                onClick={() => void run(confirm)}
+              >
+                {w.confirm}
+              </button>
+              <button
+                type="button"
+                disabled={locked}
+                onClick={() => void run(discard)}
+              >
+                {w.cancel}
+              </button>
+            </div>
+          </div>
+        )}
+        {showEditor && prepared && (
+          <PokemonDatabaseViewer
+            key={prepared.id}
+            lang={lang}
+            busy={locked}
+            actions={databaseActions}
+            preparedSeed={prepared.snapshot}
+            extraPreparedActions={[
+              {
+                label: w.editorProperties,
+                onPrepare: async (snapshot) => {
+                  await run(async () => {
+                    if (snapshot.inputEncrypted || !snapshot.useFileFormat)
+                      throw Error();
+                    const result = await actions.request(
+                      "giftDatabaseCatalog",
+                      snapshot.fileName,
+                      snapshot.bytes,
+                    );
+                    if (!result?.giftDatabaseCatalog) throw Error();
+                    if (life.current) {
+                      builderSource.current = {
+                        ...snapshot,
+                        bytes: new Uint8Array(snapshot.bytes),
+                      };
+                      setCatalog(result.giftDatabaseCatalog);
+                    }
+                  });
+                },
               },
-            },
-          ]}
-        />
-      )}
-    </section>
+            ]}
+          />
+        )}
+      </section>
+    </PokemonHoverSurface>
   );
 }

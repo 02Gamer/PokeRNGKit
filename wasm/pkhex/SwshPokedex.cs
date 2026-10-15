@@ -20,7 +20,7 @@ internal static class SwshPokedex
     private static List<Zukan8EntryInfo> Entries(SAV8SWSH save) => Zukan8.GetRawIndexes(save.Personal, save.SaveRevision, Zukan8Index.TotalCount);
     private static LocalizedText Text(Func<GameStrings, string> f) => new(f(GameInfo.GetStrings("zh-Hans")), f(GameInfo.GetStrings("en")), f(GameInfo.GetStrings("ja")));
     private static string[] Forms(ushort species, GameStrings s) => species == (ushort)Species.Alcremie
-        ? FormConverter.GetAlcremieFormList(s.forms) : FormConverter.GetFormList(species, s.Types, s.forms, GameInfo.GenderSymbolASCII, EntityContext.Gen8);
+        ? FormConverter.GetAlcremieFormList(s.forms) : FormConverter.GetFormList(species, s.Types, s.forms, PokemonDisplay.GenderSymbols, EntityContext.Gen8);
     private static string FormName(ushort species, int bit, GameStrings s)
     {
         var forms = Forms(species, s);

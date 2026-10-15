@@ -12,6 +12,7 @@ import {
 } from "./pokemonSearch";
 import { pokemonSearchWords, searchSourceLabel } from "./pokemonSearchWords";
 import type { DatabaseCatalog, DatabaseQuery } from "./databaseProtocol";
+import { playSaveSound } from "./saveSound";
 
 export function DatabaseFilters({
   catalog,
@@ -404,6 +405,7 @@ export function DatabaseFilters({
           onClick={() => {
             onChange({ ...query, filters: newPokemonSearch() });
             setReset(reset + 1);
+            playSaveSound("other");
           }}
         >
           {label("EntitySearchSetup.B_Reset")}

@@ -11,6 +11,22 @@ internal static class SaveEditorTests
 
     public static void Main()
     {
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "entity-template") { EntityTemplateTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "battle-template-import") { BattleTemplateImportTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "battle-template") { PokemonBattleTemplateTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "bulk-legality") { SaveBulkLegalityTests.Run(CreateFixture); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "unicode-pokedex") { Gen4PokedexTests.Run(); Gen5PokedexTests.Run(); Gen6PokedexTests.Run(); Gen7PokedexTests.Run(); BdspPokedexTests.Run(); SwshBlockFixtureTests.Run(); SwshPokedexTests.Run(); LegendsPokedexTests.Run(); SvBlockFixtureTests.Run(); SvPokedexTests.Run(); ZaBlockFixtureTests.Run(); ZaPokedexTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "pokemon-display") { PokemonDisplayTests.Run(); PersonalChartTests.Run(); Pokeathlon4EditingTests.Run(); HallOfFame6EditingTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "pokemon-markings") { PokemonMarkingsTests.Run(); PokemonRawTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "cries") { CryNamingTests.Run(); ContextHoverTests.Run(); PokemonHoverTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "context-hover") { ContextHoverTests.Run(); RegisteredGroupsTests.Run(); PokemonHoverTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "pokemon-hover") { PokemonHoverTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "external-gifts") { ExternalMysteryGiftTests.Run(); MysteryGiftFileScanTests.Run(); MysteryGiftDatabaseTests.Run(); MysteryGiftDatabaseApiTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "gift-directory") { MysteryGiftFileScanTests.Run(); MysteryGiftDatabaseTests.Run(); MysteryGiftDatabaseApiTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "save-library-scope") { SaveLibraryScopeTests.Run(); SaveFolderListTests.Run(); SaveFolderSessionTests.Run(); SaveFolderApiTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "save-backup") { SaveBackupTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "home-tracker") { HomeTrackerTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "save-settings") { SaveCoreSettingsTests.Run(); SaveProgramSettingsTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "save-detection") { SaveDetectionTests.Run(); SaveDetectionContextTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "simple-trainer") { SimpleTrainerEditingTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "legends-pokedex") { LegendsPokedexTests.Run(); return; }
@@ -117,6 +133,9 @@ internal static class SaveEditorTests
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-gb-special") { StandaloneGbSpecialTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-gb") { StandaloneGbTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-egg") { StandaloneEggTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "stadium-ranch") { StadiumRanchEntityTests.Run(); StandaloneGbTests.Run(); StandaloneGbSpecialTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "save-pokemon") { SavePokemonEditingTests.Run(); StandalonePokemonTests.Run(); StandaloneRawTests.Run(); StandaloneGbTests.Run(); StandaloneGbSpecialTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "ball-browser") { PokemonBallBrowserTests.Run(); StandaloneOriginTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-origin") { StandaloneOriginTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-raw") { StandaloneRawTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-legality") { StandaloneLegalityTests.Run(); return; }
@@ -165,7 +184,7 @@ internal static class SaveEditorTests
             var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
             Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
             Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
-            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 163, $"{version}: API version");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 171, $"{version}: API version");
             Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
             var boxes = document.RootElement.GetProperty("boxes");
             Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");
@@ -318,6 +337,10 @@ internal static class SaveEditorTests
         Gen4PokedexTests.Run();
         SimplePokedexTests.Run();
         PokemonLegalityTests.Run(CreateFixture);
+        PokemonBattleTemplateTests.Run();
+        BattleTemplateImportTests.Run();
+        EntityTemplateTests.Run();
+        SaveBulkLegalityTests.Run(CreateFixture);
         BoxEditingTests.Run();
         BoxLayoutTests.Run();
         CurrentBoxTests.Run();
@@ -352,6 +375,11 @@ internal static class SaveEditorTests
         PokemonDatabaseApiTests.Run();
         PokemonDatabasePreparedTests.Run();
         PokemonDatabaseCardTests.Run();
+        ExternalMysteryGiftTests.Run();
+        PokemonHoverTests.Run();
+        ContextHoverTests.Run();
+        CryNamingTests.Run();
+        MysteryGiftFileScanTests.Run();
         MysteryGiftDatabaseTests.Run();
         MysteryGiftDatabaseApiTests.Run();
         PokemonEncounterDatabaseTests.Run();
@@ -395,9 +423,15 @@ internal static class SaveEditorTests
         StorageEditingTests.Run();
         PartyStorageTests.Run();
         PokemonFileTests.Run();
+        PokemonDisplayTests.Run();
+        PokemonMarkingsTests.Run();
         PokemonRawTests.Run();
+        HomeTrackerTests.Run();
         PokemonFormArgumentTests.Run();
         PokemonEncounterTests.Run();
+        StadiumRanchEntityTests.Run();
+        SavePokemonEditingTests.Run();
+        PokemonBallBrowserTests.Run();
         PokemonOriginTests.Run();
         PokemonEggTests.Run();
         PokemonMakeEggTests.Run();

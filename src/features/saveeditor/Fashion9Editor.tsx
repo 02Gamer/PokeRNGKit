@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { saveCommitHasSound } from "./saveEditSound";
 import { Select } from "../shared/Select";
 import type { Br4Lang } from "./br4";
 import { fashion9Words } from "./fashion9Words";
@@ -27,7 +28,7 @@ type Props = {
   lang: Br4Lang;
   onRead(query: F9ReadQuery): Promise<F9Page | undefined>;
   onPreview(edit: F9Edit): Promise<F9Ticket | undefined>;
-  onApply(confirmation: F9Confirmation): Promise<void>;
+  onApply(confirmation: F9Confirmation, sourceSound?: true): Promise<boolean>;
   onDiscard(token: string): Promise<void>;
 };
 export function Fashion9Editor(props: Props) {
@@ -528,7 +529,13 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                 setPending(true);
                 setError("");
                 try {
-                  await onApply(fashion9Frozen(page, ticket));
+                  const applied = await onApply(
+                    fashion9Frozen(page, ticket),
+                    saveCommitHasSound("fashion9Commit", operations)
+                      ? true
+                      : undefined,
+                  );
+                  if (!applied && alive.current) setError("stale");
                 } catch {
                   if (alive.current) setError("stale");
                 } finally {

@@ -6,6 +6,8 @@ import {
   saveDetectionWords,
   saveFormatName,
   saveHandlerName,
+  unsupportedSaveChoice,
+  saveDetectionPairError,
   type SaveDetectionCatalog,
   type SaveDetectionChoice,
 } from "./saveDetection";
@@ -35,7 +37,7 @@ export function SaveDetectionEditor({
       .then((result) => {
         if (!active) return;
         const value = result.saveDetectionCatalog;
-        if (!value || value.apiVersion !== 163 || !value.types.length)
+        if (!value || value.apiVersion !== 171 || !value.types.length)
           throw new Error("Invalid catalog");
         setCatalog(value);
         setType(value.types[0].id);
@@ -50,6 +52,7 @@ export function SaveDetectionEditor({
     };
   }, []);
   const selected = catalog?.types.find((value) => value.id === type);
+  const unsupported = unsupportedSaveChoice(selected, version, language);
   return (
     <fieldset className="save-food-fields" disabled={busy || !catalog}>
       <legend>{words.title}</legend>
@@ -98,7 +101,11 @@ export function SaveDetectionEditor({
             onChange={(event) => setLanguage(Number(event.target.value))}
           >
             {catalog?.languages.map((value) => (
-              <option key={value.id} value={value.id}>
+              <option
+                key={value.id}
+                value={value.id}
+                disabled={unsupportedSaveChoice(selected, version, value.id)}
+              >
                 {value.name[lang]}
               </option>
             ))}
@@ -128,11 +135,16 @@ export function SaveDetectionEditor({
           />
         </label>
       </div>
+      {unsupported && (
+        <p role="alert" className="save-editor-error">
+          {saveDetectionPairError[lang]}
+        </p>
+      )}
       {file && <p>{file.name}</p>}
       <button
         type="button"
         className="primary"
-        disabled={busy || !catalog || !file}
+        disabled={busy || !catalog || !file || unsupported}
         onClick={() => {
           if (file)
             void onOpen(file, {

@@ -20,7 +20,7 @@ internal static class BdspPokedex
     public static Dex8bCatalog Read(SaveFile input)
     {
         var save=Require(input);return new(save.State.Exportable&&SaveChecksums.Valid(save),save.Zukan.HasNationalDex,Enumerable.Range(1,493).Select(i=>{
-            ushort species=(ushort)i;return new Dex8bEntry(State(save,species),Text(s=>s.specieslist[i]),Enumerable.Range(0,FormCount(species)).Select(f=>Text(s=>FormConverter.GetFormList(species,s.types,s.forms,save.Context)[f])).ToArray());
+            ushort species=(ushort)i;return new Dex8bEntry(State(save,species),Text(s=>s.specieslist[i]),Enumerable.Range(0,FormCount(species)).Select(f=>Text(s=>FormConverter.GetFormList(species,s.types,s.forms,PokemonDisplay.GenderSymbols,save.Context)[f])).ToArray());
         }).ToArray());
     }
     public static string Snapshot(SAV8BS save)=>Convert.ToHexString(save.Zukan.Data);

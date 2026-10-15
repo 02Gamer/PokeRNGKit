@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type { PokemonPosition, PokemonRawEdit } from "./domain";
 import type { saveEditorResources } from "./locales";
+import { useSaveSettingsJson } from "./useSaveSettingsJson";
+import { shinySymbol } from "./drawSettings";
+import "./PokemonShinyEditor.css";
 
 export function PokemonShinyEditor({
   position,
@@ -19,6 +22,13 @@ export function PokemonShinyEditor({
   }) as typeof saveEditorResources.en;
   const [method, setMethod] = useState<"pid" | "sid">("pid");
   const [type, setType] = useState<"any" | "star" | "square" | "off">("any");
+  const json = useSaveSettingsJson();
+  let symbol = "☆";
+  try {
+    symbol = shinySymbol(json);
+  } catch {
+    /* Core validates the complete policy. */
+  }
   return (
     <details className="save-pokemon-editor">
       <summary>{words.shinyEdit}</summary>
@@ -65,6 +75,9 @@ export function PokemonShinyEditor({
             })
           }
         >
+          <span aria-hidden="true" className="save-shiny-symbol">
+            {symbol}
+          </span>{" "}
           {words.applyShiny}
         </button>
       </div>

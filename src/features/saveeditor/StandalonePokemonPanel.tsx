@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react";
+import { useSaveSettingsJson } from "./useSaveSettingsJson";
+import { useMysteryGiftChanges } from "./useMysteryGiftChanges";
+import { beginSaveRequest } from "./clientActivity";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
 import { PokemonEditor, type PokemonEdit } from "./PokemonEditor";
@@ -12,11 +21,21 @@ import {
 } from "./standalonePokemon";
 import { standaloneWords } from "./standaloneWords";
 import { saveEditorResources } from "./locales";
-import { pokemonImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
 import { PokemonLegality } from "./PokemonLegality";
+import { BattleTemplateWorkspace } from "./BattleTemplateWorkspace";
+import {
+  parseBattleTemplateImport,
+  type BattleTemplateImportActions,
+} from "./battleTemplateImport";
+import { parseBattleTemplate } from "./battleTemplate";
+import { bulkLegalitySourceHash } from "./bulkLegality";
 import type { PokemonLegalityReport, PokemonRawEdit } from "./domain";
 import { PokemonRawEditor } from "./PokemonRawEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
+import { PokemonMarkingsEditor } from "./PokemonMarkingsEditor";
+import { useGenderLabel } from "./useGenderLabel";
+import { playSaveSound } from "./saveSound";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { TextTrashEditor, type TextTrashActions } from "./TextTrashEditor";
 import { MoveShopEditor, type MoveShopActions } from "./MoveShopEditor";
@@ -62,6 +81,7 @@ export function StandalonePokemonPanel({
   }[];
 } = {}) {
   const { i18n, t } = useTranslation();
+  const genderLabel = useGenderLabel();
   const lang = i18n.language.startsWith("zh")
     ? "zh"
     : i18n.language.startsWith("ja")
@@ -70,6 +90,10 @@ export function StandalonePokemonPanel({
   const words = standaloneWords[lang],
     common = saveEditorResources[lang];
   const client = useRef(new StandalonePokemonClient());
+  const settingsJson = useSaveSettingsJson();
+  const previousSettings = useRef(settingsJson);
+  const giftRevision = useMysteryGiftChanges();
+  const previousGiftRevision = useRef(giftRevision);
   const original = useRef<StandalonePokemonSnapshot | undefined>(undefined);
   const [working, setWorking] = useState<StandalonePokemonSnapshot>();
   const [history, setHistory] = useState<StandalonePokemonSnapshot[]>([]);
@@ -107,6 +131,7 @@ export function StandalonePokemonPanel({
       setError(undefined);
       setStatus(undefined);
       const id = ++operation.current;
+      const finishActivity = beginSaveRequest();
       try {
         return await action(id);
       } catch (cause) {
@@ -124,6 +149,7 @@ export function StandalonePokemonPanel({
                     : "failed",
           );
       } finally {
+        finishActivity();
         if (id === operation.current) {
           running.current = false;
           setBusy(false);
@@ -154,6 +180,32 @@ export function StandalonePokemonPanel({
       setRevision((value) => value + 1);
     });
   }, [seed, disabled, perform]);
+  const refreshSettings = useEffectEvent(() => {
+    client.current.dispose();
+    setLegality(undefined);
+    setRevision((value) => value + 1);
+    if (!working) return;
+    void perform(async (id) => {
+      const result = await client.current.run(working.bytes, {
+        fileName: working.fileName,
+        inputEncrypted: working.inputEncrypted,
+        useFileFormat: working.useFileFormat,
+      });
+      if (id === operation.current) setReport(result.entity);
+    });
+  });
+  useEffect(() => {
+    if (
+      (settingsJson === previousSettings.current &&
+        giftRevision === previousGiftRevision.current) ||
+      busy
+    )
+      return;
+    previousSettings.current = settingsJson;
+    previousGiftRevision.current = giftRevision;
+    refreshSettings();
+  }, [settingsJson, giftRevision, busy]);
+
   const open = (file: File) =>
     perform(async (id) => {
       if (!file.size || file.size > MAX_ENTITY_BYTES) throw new Error("size");
@@ -194,6 +246,7 @@ export function StandalonePokemonPanel({
       | "textTrashConfirmation"
       | "plusRecordConfirmation"
       | "techRecordConfirmation"
+      | "battleTemplateImportConfirmation"
     >,
     kind:
       | "entityEdit"
@@ -203,7 +256,8 @@ export function StandalonePokemonPanel({
       | "entitySuperTrainingCommit"
       | "entityTextTrashCommit"
       | "entityPlusRecordCommit"
-      | "entityTechRecordCommit",
+      | "entityTechRecordCommit"
+      | "entityBattleTemplateImportCommit",
     onApplied?: () => void,
   ) =>
     perform(async (id) => {
@@ -599,6 +653,7 @@ export function StandalonePokemonPanel({
     handler?: number,
     memory?: number,
     version?: number,
+    originBall?: number,
   ): Promise<NonNullable<StandaloneAdvancedData[K]> | undefined> =>
     perform(async (id) => {
       if (!working) return;
@@ -612,6 +667,7 @@ export function StandalonePokemonPanel({
           handler,
           memory,
           version,
+          originBall,
         },
         "entityDetails",
       );
@@ -636,6 +692,85 @@ export function StandalonePokemonPanel({
       setRevision((value) => value + 1);
       setStatus("restored");
     });
+  const battleImportActions: BattleTemplateImportActions = {
+    preview: (target, text) =>
+      perform(async (id) => {
+        if (!working) return;
+        const sourceHash = bulkLegalitySourceHash(working.bytes);
+        const result = await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            battleTemplateImport: { sourceHash, target, text },
+          },
+          "entityBattleTemplateImportPreview",
+        );
+        if (id !== operation.current) {
+          if (result.battleTemplateImport)
+            await client.current.run(
+              working.bytes,
+              {
+                fileName: working.fileName,
+                inputEncrypted: working.inputEncrypted,
+                useFileFormat: working.useFileFormat,
+                battleTemplateImportToken: result.battleTemplateImport.token,
+              },
+              "entityBattleTemplateImportDiscard",
+            );
+          return;
+        }
+        return parseBattleTemplateImport(
+          result.battleTemplateImport,
+          sourceHash,
+          target,
+        );
+      }),
+    apply: async (confirmation) => {
+      let applied = false;
+      await applyRequest(
+        { battleTemplateImportConfirmation: confirmation },
+        "entityBattleTemplateImportCommit",
+        () => {
+          applied = true;
+        },
+      );
+      return applied;
+    },
+    discard: async (token) => {
+      if (working)
+        await client.current.run(
+          working.bytes,
+          {
+            fileName: working.fileName,
+            inputEncrypted: working.inputEncrypted,
+            useFileFormat: working.useFileFormat,
+            battleTemplateImportToken: token,
+          },
+          "entityBattleTemplateImportDiscard",
+        );
+    },
+  };
+  const readBattleTemplate = () =>
+    perform(async (id) => {
+      if (!working) return;
+      const source = working;
+      const hash = bulkLegalitySourceHash(source.bytes);
+      const result = await client.current.run(
+        source.bytes,
+        {
+          fileName: source.fileName,
+          inputEncrypted: source.inputEncrypted,
+          useFileFormat: source.useFileFormat,
+        },
+        "entityBattleTemplate",
+      );
+      if (id !== operation.current) return;
+      return parseBattleTemplate(result.battleTemplate, hash, {
+        scope: "single",
+      });
+    });
   const analyze = () =>
     perform(async (id) => {
       if (!working) return;
@@ -652,6 +787,7 @@ export function StandalonePokemonPanel({
       if (id !== operation.current) return;
       if (!result.legality) throw new Error("Missing legality report");
       setLegality(result.legality);
+      playSaveSound("legality");
     });
   const exportFile = () =>
     perform(async (id) => {
@@ -835,8 +971,8 @@ export function StandalonePokemonPanel({
       {report && working && (
         <>
           <div className="save-pokemon-identity">
-            <img
-              src={pokemonImage(report.pokemon)}
+            <PokemonSprite
+              pokemon={report.pokemon}
               alt=""
               width={68}
               height={56}
@@ -870,9 +1006,12 @@ export function StandalonePokemonPanel({
                 ? [
                     [
                       common.gender,
-                      [common.male, common.female, common.genderless][
-                        report.pokemon.gender
-                      ] ?? "—",
+                      genderLabel(
+                        report.pokemon.gender,
+                        [common.male, common.female, common.genderless][
+                          report.pokemon.gender
+                        ],
+                      ),
                     ],
                     [
                       common.shiny,
@@ -949,6 +1088,24 @@ export function StandalonePokemonPanel({
               </tbody>
             </table>
           </div>
+          {working && (
+            <BattleTemplateWorkspace
+              key={`template:${lang}:${settingsJson}`}
+              revision={revision}
+              lang={lang}
+              busy={busy}
+              onRead={readBattleTemplate}
+              fileTarget={{
+                kind: "file",
+                box: 0,
+                slot: 0,
+                fileName: working.fileName,
+                inputEncrypted: working.inputEncrypted,
+                useFileFormat: working.useFileFormat ?? false,
+              }}
+              importActions={battleImportActions}
+            />
+          )}
           <PokemonLegality
             position={report.pokemon}
             report={legality}
@@ -1154,8 +1311,8 @@ export function StandalonePokemonPanel({
                     position={report.pokemon}
                     disabled={busy}
                     readDisabled={busy}
-                    onRead={(_, version) =>
-                      readDetails("origin", undefined, undefined, version)
+                    onRead={(_, version, ball) =>
+                      readDetails("origin", undefined, undefined, version, ball)
                     }
                     onApply={applyRaw}
                   />
@@ -1217,6 +1374,13 @@ export function StandalonePokemonPanel({
                     choices={report.moveChoices}
                     disabled={busy}
                     onSuggest={() => readDetails("relearn")}
+                    onApply={applyRaw}
+                  />
+                  <PokemonMarkingsEditor
+                    key={`markings-${revision}`}
+                    pokemon={report.pokemon}
+                    lang={lang}
+                    disabled={busy}
                     onApply={applyRaw}
                   />
                   <PokemonShinyEditor

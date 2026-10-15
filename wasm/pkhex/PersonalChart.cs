@@ -26,7 +26,7 @@ internal static class PersonalChart
         {
             int count = table[species, 0].FormCount;
             var forms = strings.Select(s => count <= 1 ? Array.Empty<string>() :
-                FormConverter.GetFormList(species, s.types, s.forms, ["♂", "♀", "-"], save.Context)).ToArray();
+                FormConverter.GetFormList(species, s.types, s.forms, PokemonDisplay.GenderSymbols, save.Context)).ToArray();
             for (byte form = 0; form < count; form++)
             {
                 if (!table.IsPresentInGame(species, form)) continue;

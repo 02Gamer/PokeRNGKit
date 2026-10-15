@@ -3,8 +3,9 @@ import {
   defaultDatabaseOptions,
   type DatabaseOptions,
 } from "./databaseProtocol";
+import { unifiedEntityOptions } from "./programDatabaseSettings";
 const KEY = "pokerngkit-pokemon-database-options-v1";
-export function loadDatabaseOptions(): DatabaseOptions {
+export function loadLegacyDatabaseOptions(): DatabaseOptions {
   try {
     const value = JSON.parse(
       localStorage.getItem(KEY) ?? "null",
@@ -28,6 +29,9 @@ export function loadDatabaseOptions(): DatabaseOptions {
     /* Restricted or damaged settings use source defaults. */
   }
   return defaultDatabaseOptions();
+}
+export function loadDatabaseOptions(): DatabaseOptions {
+  return unifiedEntityOptions() ?? loadLegacyDatabaseOptions();
 }
 export function saveDatabaseOptions(options: DatabaseOptions) {
   try {

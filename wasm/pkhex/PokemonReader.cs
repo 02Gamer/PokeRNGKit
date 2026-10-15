@@ -15,11 +15,11 @@ public sealed record PokemonEntry(
     uint Pid, uint EncryptionConstant, uint Experience, byte Friendship,
     LocalizedText SpeciesName, LocalizedText Nature, LocalizedText Ability,
     LocalizedText Item, LocalizedText[] Moves, int[] MovePp, int[] Ivs, int[] Evs, string Sprite, ushort[] MoveIds, PokemonLimits Limits, int[] MovePpUps,
-    int NatureId, int StatAlignment, bool CanStatAlignment, int AbilityIndex, LocalizedText[] AbilityChoices, int HeldItem, bool IsNicknamed, bool CanEditEncryptionConstant, FormArgumentInfo? FormArgument, EncounterInfo Encounter, OriginInfo Origin, EggInfo? EggInfo, ushort[]? RelearnMoves, TrainingInfo Training);
+    int NatureId, int StatAlignment, bool CanStatAlignment, int AbilityIndex, LocalizedText[] AbilityChoices, int HeldItem, bool IsNicknamed, bool CanEditEncryptionConstant, FormArgumentInfo? FormArgument, EncounterInfo Encounter, OriginInfo Origin, EggInfo? EggInfo, ushort[]? RelearnMoves, TrainingInfo Training,string? EggOverlay=null,bool EggAsItem=false,string? HomeTracker=null,string? ItemOverlay=null,string? ShinyOverlay=null,SpriteColorLayer? TeraLayer=null,SpriteExperienceLine? ExperienceLine=null,SpriteSpecialEffects? SpecialEffects=null,string? LegalityIndicator=null,SpriteColorLayer? EncounterLayer=null,bool? LegalityParsed=null,bool? LegalityValid=null,string[]? SlotMarkers=null,bool ExperienceBeforeMarkers=false,PokemonMarkingsInfo? Markings=null,string? Potential=null,GbSpecialFields? GbFields=null,int? GbLanguage=null,bool GbRental=false);
 
 internal static class PokemonReader
 {
-    private static LocalizedText Text(Func<GameStrings, string> read) =>
+    internal static LocalizedText Text(Func<GameStrings, string> read) =>
         new(read(GameInfo.GetStrings("zh-Hans")), read(GameInfo.GetStrings("en")), read(GameInfo.GetStrings("ja")));
     private static string Name(string[] names, int id) => (uint)id < names.Length ? names[id] : $"#{id}";
     public static AttributeChoices Attributes(SaveFile save) => new(
@@ -44,6 +44,7 @@ internal static class PokemonReader
 
     public static PokemonEntry[] Read(SaveFile save)
     {
+        SaveSpriteView.Select(save);
         var entries = new List<PokemonEntry>();
         if (save.HasParty)
             for (var slot = 0; slot < save.PartyCount; slot++)
@@ -56,12 +57,13 @@ internal static class PokemonReader
 
         void Add(PKM p, int box, int slot)
         {
-            if (p.Species != 0) entries.Add(Read(p, box, slot));
+            if (p.Species != 0) entries.Add(Read(p, box, slot,true,save));
         }
     }
 
-    public static PokemonEntry Read(PKM p, int box, int slot)
+    public static PokemonEntry Read(PKM p, int box, int slot,bool storageView=false,SaveFile? saveContext=null)
     {
+        var slotView=storageView&&saveContext is not null?SaveSlotArtwork.Read(saveContext,p,box):null;
         return new(box, slot, p.Species, p.Form, p.Nickname, p.CurrentLevel,
             p.Gender, p.IsShiny, p.IsEgg, p.ChecksumValid, p.OriginalTrainerName, p.TID16, p.SID16,
             p.PID, p.EncryptionConstant, p.EXP, p.IsEgg ? p.OriginalTrainerFriendship : p.CurrentFriendship,
@@ -71,12 +73,15 @@ internal static class PokemonReader
             [p.Move1_PP, p.Move2_PP, p.Move3_PP, p.Move4_PP],
             [p.IV_HP, p.IV_ATK, p.IV_DEF, p.IV_SPA, p.IV_SPD, p.IV_SPE],
             [p.EV_HP, p.EV_ATK, p.EV_DEF, p.EV_SPA, p.EV_SPD, p.EV_SPE],
-            p.IsEgg ? (p.Species == 490 ? "b_490_e" : "b_egg") : "b" + SpriteName.GetResourceStringSprite(
-                p.Species, p.Form, p.Gender, p is IFormArgument argument ? argument.FormArgument : 0, p.Context),
+            SaveSpriteView.Sprite(p),
             p.Moves, new(p.MaxStringLengthNickname, p.MaxStringLengthTrainer, p.MaxIV, p.MaxEV, p.MaxMoveID),
             [p.Move1_PPUps, p.Move2_PPUps, p.Move3_PPUps, p.Move4_PPUps],
             (int)p.Nature, (int)p.StatAlignment, p.Format >= 8,
             p.AbilityNumber switch { 1 => 0, 2 => 1, 4 => 2, _ => -1 },
-            Enumerable.Range(0, p.PersonalInfo.AbilityCount).Select(i => Text(s => Name(s.abilitylist, p.PersonalInfo.GetAbilityAtIndex(i)))).ToArray(), p.HeldItem, p.IsNicknamed, p.Format >= 6, PokemonFormArgument.Read(p, box), PokemonEncounter.Read(p), PokemonOrigin.Read(p), PokemonEgg.Read(p), PokemonRelearn.Read(p), PokemonTraining.Read(p));
+            Enumerable.Range(0, p.PersonalInfo.AbilityCount).Select(i => Text(s => Name(s.abilitylist, p.PersonalInfo.GetAbilityAtIndex(i)))).ToArray(), p.HeldItem, p.IsNicknamed, p.Format >= 6, PokemonFormArgument.Read(p, box), PokemonEncounter.Read(p), PokemonOrigin.Read(p), PokemonEgg.Read(p), PokemonRelearn.Read(p), PokemonTraining.Read(p),
+            p.IsEgg&&SaveProgramSettingsRuntime.Current is not null?SaveSpriteView.Egg(p.Species):null,
+            p.IsEgg&&p.SpriteItem==0&&SaveProgramSettingsRuntime.Current?.Sprite.ShowEggSpriteAsHeldItem==true,
+            p is IHomeTrack home?home.Tracker.ToString("X16"):null,SaveSpriteView.Item(p),SaveSpriteView.ShinyIcon(p),SaveSpriteView.Tera(p,storageView),slotView?.Experience??SaveSpriteView.ExperienceBar(p,storageView),SaveSpriteView.Special(p),slotView?.Indicator,slotView?.Encounter,slotView?.Parsed,slotView?.Valid,
+            storageView&&saveContext is not null?SaveSlotArtwork.Markers(saveContext,box,slot):null,slotView?.Parsed is not null,PokemonMarkings.Read(p),PokemonDisplay.Potential(p),p is GBPKM gb?StandaloneGbSpecial.Fields(gb):null,p is GBPKM gbl?gbl.GuessedLanguage():null,p is SK2 rental&&rental.IsRental);
     }
 }

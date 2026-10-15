@@ -1,3 +1,5 @@
+import { useGenderLabel } from "./useGenderLabel";
+import { saveCommitHasSound } from "./saveEditSound";
 import { SaveTrainerImage } from "./SaveTrainerImage";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
@@ -18,13 +20,14 @@ type Props = {
   lang: "zh" | "en" | "ja";
   onRead(): Promise<Tr9Catalog | undefined>;
   onPreview(edit: Tr9Request): Promise<Tr9Ticket | undefined>;
-  onApply(confirm: Tr9Confirmation): Promise<boolean>;
+  onApply(confirm: Tr9Confirmation, sourceSound?: true): Promise<boolean>;
   onDiscard(token: string): Promise<void>;
 };
 export function Trainer9Editor(props: Props) {
   return <Form key={props.revision} {...props} />;
 }
 function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
+  const genderLabel = useGenderLabel();
   const w = tr9Words[lang];
   const [catalog, setCatalog] = useState<Tr9Catalog>(),
     [draft, setDraft] = useState<Tr9Request>(),
@@ -166,7 +169,15 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
     setPending(true);
     const current = life.current;
     try {
-      if ((await onApply(tr9Confirmation(catalog, ticket))) && current.alive) {
+      if (
+        (await onApply(
+          tr9Confirmation(catalog, ticket),
+          saveCommitHasSound("trainer9Commit", ticket.operations)
+            ? true
+            : undefined,
+        )) &&
+        current.alive
+      ) {
         current.ticket = undefined;
         setTicket(undefined);
       }
@@ -287,8 +298,8 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                   disabled={locked || !catalog.canEdit}
                   onChange={(e) => update({ gender: Number(e.target.value) })}
                 >
-                  <option value={0}>{w.male}</option>
-                  <option value={1}>{w.female}</option>
+                  <option value={0}>{genderLabel(0, w.male)}</option>
+                  <option value={1}>{genderLabel(1, w.female)}</option>
                 </Select>
               </label>
               <label className="field">

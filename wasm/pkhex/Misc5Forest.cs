@@ -16,7 +16,7 @@ internal static class Misc5Forest
     internal static OriginChoice[] Forms(int species)
     {
         if(species<0||species>649)return[];
-        string[] Get(string lang){var s=GameInfo.GetStrings(lang);return FormConverter.GetFormList((ushort)species,s.types,s.forms,["♂","♀","-"],EntityContext.Gen5);}
+        string[] Get(string lang){var s=GameInfo.GetStrings(lang);return FormConverter.GetFormList((ushort)species,s.types,s.forms,PokemonDisplay.GenderSymbols,EntityContext.Gen5);}
         var en=Get("en");var zh=Get("zh-Hans");var ja=Get("ja");bool has=PersonalTable.B2W2[species].HasForms||species==(int)PKHeX.Core.Species.Mothim;int count=has?en.Length:1;
         return Enumerable.Range(0,count).Select(i=>new OriginChoice(i,new(i<zh.Length?zh[i]:i.ToString(),i<en.Length?en[i]:i.ToString(),i<ja.Length?ja[i]:i.ToString()))).ToArray();
     }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type {
   OriginCatalog,
   OriginChoice,
@@ -9,6 +9,9 @@ import type {
   PokemonRawEdit,
 } from "./domain";
 import type { saveEditorResources } from "./locales";
+import { PokemonBallBrowser } from "./PokemonBallBrowser";
+import { ballBrowserWords, originPreviewBall } from "./ballBrowser";
+import { useSaveSettingsRevision } from "./useSaveSettingsJson";
 
 export function PokemonOriginEditor({
   origin,
@@ -25,6 +28,7 @@ export function PokemonOriginEditor({
   onRead(
     position: PokemonPosition,
     version?: number,
+    ball?: number,
   ): Promise<OriginCatalog | undefined>;
   onApply(edit: PokemonRawEdit): Promise<void>;
 }) {
@@ -37,7 +41,16 @@ export function PokemonOriginEditor({
     : i18n.language.startsWith("ja")
       ? "ja"
       : "en";
-  const [catalog, setCatalog] = useState<OriginCatalog>();
+  const settingsRevision = useSaveSettingsRevision();
+  const [loaded, setLoaded] = useState<{
+    catalog: OriginCatalog;
+    settingsRevision: string;
+  }>();
+  const catalog =
+    loaded?.settingsRevision === settingsRevision ? loaded.catalog : undefined;
+  const [loadingRevision, setLoadingRevision] = useState<string>();
+  const pending = loadingRevision === settingsRevision;
+  const [error, setError] = useState("");
   const [draft, setDraft] = useState({
     version: origin.version,
     ball: origin.ball,
@@ -50,13 +63,31 @@ export function PokemonOriginEditor({
     return () => {
       lifecycle.current++;
     };
-  }, []);
-  const load = async (version = draft.version) => {
+  }, [settingsRevision]);
+  const load = async (version = draft.version, ball = draft.ball) => {
     const id = ++request.current;
-    const result = await onRead(position, version);
-    if (id !== request.current || !result || result.version !== version) return;
-    setCatalog(result);
-    setDraft((current) => ({ ...current, version }));
+    setLoadingRevision(settingsRevision);
+    setError("");
+    try {
+      const result = await onRead(position, version, ball);
+      if (id !== request.current) return;
+      if (!result || result.version !== version)
+        throw new Error("Missing origin catalog.");
+      setLoaded({ catalog: result, settingsRevision });
+      setDraft((current) => ({
+        ...current,
+        version,
+        ball: originPreviewBall(
+          current,
+          { version, ball },
+          result.ballBrowser.currentBall,
+        ),
+      }));
+    } catch {
+      if (id === request.current) setError(ballBrowserWords[language].error);
+    } finally {
+      if (id === request.current) setLoadingRevision(undefined);
+    }
   };
   const changed = (Object.keys(draft) as (keyof typeof draft)[]).some(
     (key) => draft[key] !== origin[key],
@@ -76,16 +107,18 @@ export function PokemonOriginEditor({
     <label className="field">
       <span>{label}</span>
       <Select
-        disabled={disabled}
+        disabled={disabled || pending}
         value={draft[key]}
         onChange={(e) =>
           key === "version"
             ? void load(Number(e.target.value))
-            : setDraft({ ...draft, [key]: Number(e.target.value) })
+            : key === "ball"
+              ? void load(draft.version, Number(e.target.value))
+              : setDraft({ ...draft, [key]: Number(e.target.value) })
         }
       >
         {!choices.some((c) => c.id === draft[key]) && (
-          <option value={draft[key]}>
+          <option value={draft[key]} disabled data-source-invalid>
             #{draft[key]} · {words.originUnlisted}
           </option>
         )}
@@ -105,7 +138,7 @@ export function PokemonOriginEditor({
         <div className="save-editor-toolbar">
           <button
             type="button"
-            disabled={readDisabled}
+            disabled={readDisabled || pending}
             onClick={() => void load()}
           >
             {words.loadOriginChoices}
@@ -113,7 +146,10 @@ export function PokemonOriginEditor({
         </div>
       ) : (
         <>
-          <fieldset disabled={disabled} className="save-editor-fields">
+          <fieldset
+            disabled={disabled || pending}
+            className="save-editor-fields"
+          >
             <legend>{words.originDetails}</legend>
             {field("version", words.originGame, catalog.games)}
             {field("ball", words.captureBall, catalog.balls)}
@@ -121,16 +157,31 @@ export function PokemonOriginEditor({
             {origin.canEggLocation &&
               field("eggLocation", words.eggLocation, catalog.eggLocations)}
           </fieldset>
+          <PokemonBallBrowser
+            catalog={catalog.ballBrowser}
+            value={draft.ball}
+            lang={language}
+            disabled={disabled || readDisabled || pending}
+            onChoose={(ball) => {
+              if (ball !== draft.ball) void load(draft.version, ball);
+            }}
+          />
           <div className="save-editor-toolbar">
             <button
               type="button"
-              disabled={disabled || !changed}
+              disabled={disabled || pending || !changed}
               onClick={() => void apply()}
             >
               {words.applyOriginDetails}
             </button>
           </div>
         </>
+      )}
+      {pending && <p role="status">{ballBrowserWords[language].loading}</p>}
+      {error && (
+        <p role="alert" className="save-editor-error">
+          {error}
+        </p>
       )}
     </details>
   );

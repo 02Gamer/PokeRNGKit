@@ -5,7 +5,7 @@ namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonFile(PKM Entity, bool Party);
 internal sealed record StandalonePokemonReport(string Format, string Extension, bool Party, bool CanEdit, PokemonEntry Pokemon,
-    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices, int Generation, bool CanMemories, CareField[] Care, GbSpecialInfo? Gb = null)
+    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices, int Generation, bool CanMemories, CareField[] Care, GbSpecialInfo? Gb = null, string SpriteMode="b")
 {
     public int ApiVersion => SaveService.ApiVersion;
 }
@@ -48,7 +48,7 @@ internal static class StandalonePokemon
         return new(pokemon, input.Length == pokemon.SIZE_PARTY);
     }
 
-    public static bool CanEdit(PKM p) => p is PK1 or PK2 or PK3 or CK3 or XK3 or PK4 or BK4 or PK5 or PK6 or PK7 or PB7 or PK8 or PB8 or PA8 or PK9 or PA9;
+    public static bool CanEdit(PKM p) => p is PK1 or PK2 or SK2 or PK3 or CK3 or XK3 or PK4 or BK4 or RK4 or PK5 or PK6 or PK7 or PB7 or PK8 or PB8 or PA8 or PK9 or PA9;
 
     private static PKM ReadDeclared(byte[] input, string extension)
     {
@@ -57,7 +57,7 @@ internal static class StandalonePokemon
         // reinterpret a working copy as another generation or pad a short file.
         PKM layout = extension switch
         {
-            ".pk3" => new PK3(), ".ck3" => new CK3(), ".xk3" => new XK3(), ".pk4" => new PK4(), ".bk4" => new BK4(),
+            ".sk2" => new SK2(), ".rk4" => new RK4(), ".pk3" => new PK3(), ".ck3" => new CK3(), ".xk3" => new XK3(), ".pk4" => new PK4(), ".bk4" => new BK4(),
             ".pk5" => new PK5(), ".pk6" => new PK6(), ".pk7" => new PK7(), ".pb7" => new PB7(), ".pk8" => new PK8(),
             ".pb8" => new PB8(), ".pa8" => new PA8(), ".pk9" => new PK9(), ".pa9" => new PA9(),
             _ => throw new ArgumentException("Explicit entity format is unsupported."),
@@ -67,7 +67,7 @@ internal static class StandalonePokemon
         Memory<byte> data = input.ToArray();
         PKM result = layout switch
         {
-            PK3 => new PK3(data), CK3 => new CK3(data), XK3 => new XK3(data), PK4 => new PK4(data), BK4 => new BK4(data),
+            SK2 => new SK2(data), RK4 => new RK4(data), PK3 => new PK3(data), CK3 => new CK3(data), XK3 => new XK3(data), PK4 => new PK4(data), BK4 => new BK4(data),
             PK5 => new PK5(data), PK6 => new PK6(data), PK7 => new PK7(data), PB7 => new PB7(data), PK8 => new PK8(data),
             PB8 => new PB8(data), PA8 => new PA8(data), PK9 => new PK9(data), PA9 => new PA9(data),
             _ => throw new ArgumentException("Explicit entity format is unsupported."),
@@ -82,7 +82,7 @@ internal static class StandalonePokemon
         if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         return new(p.GetType().Name, p.Extension, file.Party, CanEdit(p), PokemonReader.Read(p, file.Party ? -1 : 0, 0),
-            PokemonReader.Attributes(p), PokemonReader.MoveChoices(p), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : [], p is GBPKML gb ? StandaloneGbSpecial.Read(gb) : null);
+            PokemonReader.Attributes(p), PokemonReader.MoveChoices(p), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : [], p is GBPKM gb ? StandaloneGbSpecial.Read(gb) : null, SaveSpriteView.Mode);
     }
 
     public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
@@ -90,14 +90,7 @@ internal static class StandalonePokemon
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (p.Format < 3 || !CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file editing is unavailable for this data.");
-        var original = p.Clone();
         var applied = PokemonEditing.Apply(p, edit, file.Party, identity => PokemonIdentity.Apply(p, identity, file.Party ? -1 : 0));
-        if (p is PB7 letsGo && original is PB7 prior)
-        {
-            // Identity changes refresh all derived values, as in desktop auto mode. Unrelated edits preserve stored anomalies.
-            if (letsGo.Species != prior.Species || letsGo.Form != prior.Form) letsGo.ResetCalculatedValues();
-            else if (letsGo.CalcCP != prior.CalcCP) letsGo.ResetCP();
-        }
         var output = Serialize(p, file.Party, false);
         var reopened = Open(output, "." + p.Extension, useFileFormat: true).Entity;
         PokemonEditing.Verify(reopened, applied);
@@ -118,24 +111,12 @@ internal static class StandalonePokemon
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (p.Format < 3 || !CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file editing is unavailable for this data.");
-        var original = p.Clone();
         PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party, () =>
         {
             if (edit.Action == "origin") PokemonOrigin.Apply(p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
             else StandaloneEgg.Apply(p, edit.Egg ?? throw new ArgumentException("Entity egg edit is missing."),
                 eggTrainer ?? throw new ArgumentException("Entity egg operations require a trainer context."));
         });
-        if (p is PB7 letsGo && original is PB7 prior)
-        {
-            Span<ushort> before = stackalloc ushort[6]; Span<ushort> after = stackalloc ushort[6];
-            prior.LoadStats(prior.PersonalInfo, before); letsGo.LoadStats(letsGo.PersonalInfo, after);
-            if (!before.SequenceEqual(after))
-            {
-                var hp = letsGo.Stat_HPCurrent; var status = letsGo.Status_Condition;
-                letsGo.ResetPartyStats(); letsGo.Stat_HPCurrent = Math.Min(hp, letsGo.Stat_HPMax); letsGo.Status_Condition = status;
-            }
-            if (letsGo.CalcCP != prior.CalcCP) letsGo.ResetCP();
-        }
         return Serialize(p, file.Party, false);
     }
 

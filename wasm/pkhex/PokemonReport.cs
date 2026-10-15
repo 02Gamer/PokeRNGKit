@@ -7,7 +7,7 @@ using PKHeX.Drawing.PokeSprite;
 namespace PokeRNGKit.SaveEditor;
 
 public sealed record PokemonReportColumn(string Name, string Type, bool Visible, bool Sortable);
-public sealed record PokemonReportRow(string Sprite, string Source, int Box, int Slot, string[] Cells);
+public sealed record PokemonReportRow(string Sprite, string Source, int Box, int Slot, string[] Cells,PokemonArtwork? Artwork=null);
 public sealed record PokemonReportData(PokemonReportColumn[] Columns, PokemonReportRow[] Rows);
 public sealed record PokemonReportCatalog(string[] Extra, string[] Columns);
 public sealed record PokemonReportQuery(string Language = "zh-Hans", string[]? Extra = null,
@@ -30,6 +30,9 @@ internal static class PokemonReport
     {
         Validate(query);
         var save = source.Clone();
+        // The source clone can reset an ambiguous Gen3 version/personal table.
+        // SpriteBuilder is initialized from the currently opened original save.
+        SaveSpriteView.Select(source);
         var slots = new List<SlotCache>();
         SlotInfoLoader.AddFromSaveFile(save, slots);
         return Read(slots, query);
@@ -81,9 +84,10 @@ internal static class PokemonReport
             var sourceKind = entry.Slot.Source;
             int box = sourceKind is SlotInfoBox boxInfo ? boxInfo.Box : -1;
             int slot = sourceKind switch { SlotInfoBox b => b.Slot, SlotInfoParty p => p.Slot, SlotInfoMisc m => m.Slot, _ => -1 };
-            return new PokemonReportRow("b" + SpriteName.GetResourceStringSprite(entity.Species, entity.Form, entity.Gender,
+            var artwork=SaveProgramSettingsRuntime.Current is not null?SaveArtwork.Entity(entity):null;
+            return new PokemonReportRow(artwork?.Sprite??"b" + SpriteName.GetResourceStringSprite(entity.Species, entity.Form, entity.Gender,
                 entity is IFormArgument f ? f.FormArgument : 0, entity.Context, entity.IsShiny),
-                sourceKind is SlotInfoBox ? "box" : sourceKind is SlotInfoParty ? "party" : "extra", box, slot, cells);
+                sourceKind is SlotInfoBox ? "box" : sourceKind is SlotInfoParty ? "party" : "extra", box, slot, cells,artwork);
         }).ToArray();
         return new(columns.ToArray(), rows);
     }

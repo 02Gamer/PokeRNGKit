@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ribbonImage } from "./art";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type { PokemonPosition, PokemonRawEdit, RibbonCatalog } from "./domain";
 import type { saveEditorResources } from "./locales";
 
@@ -111,9 +111,13 @@ export function PokemonRibbonEditor({
                   }
                 >
                   <option value={-1}>{words.noAffixedRibbon}</option>
-                  {draft.affixed < -1 ||
-                  draft.affixed >= draft.affixedChoices.length ? (
-                    <option value={draft.affixed}>#{draft.affixed}</option>
+                  {draft.affixed !== -1 &&
+                  !draft.affixedChoices.some(
+                    (choice) => choice.id === draft.affixed,
+                  ) ? (
+                    <option value={draft.affixed} disabled data-source-invalid>
+                      #{draft.affixed}
+                    </option>
                   ) : null}
                   {draft.affixedChoices.map((r) => (
                     <option key={r.id} value={r.id}>

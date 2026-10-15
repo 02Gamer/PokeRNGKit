@@ -9,10 +9,11 @@ internal sealed record MysteryGiftDatabaseOpen(MysteryGiftDatabaseOptions? Optio
 internal sealed record MysteryGiftDatabaseRead(MysteryGiftDatabaseQuery? Query=null,int Offset=0);
 internal sealed record MysteryGiftDatabasePrepare([property:JsonRequired]int Id,[property:JsonRequired]bool ConvertToSave);
 internal sealed record MysteryGiftDatabaseRow(int Id,int CardId,string Title,string Type,string FileName,ushort Species,
-    byte Form,byte Generation,int Version,bool Egg,bool Shiny,string Sprite,LocalizedText[] Details);
+    byte Form,byte Generation,int Version,bool Egg,bool Shiny,string Sprite,LocalizedText[] Details,PokemonArtwork? Artwork=null);
 internal sealed record MysteryGiftDatabaseView(string SourceHash,int Matches,int Offset,int GridRows,MysteryGiftDatabaseRow[] Rows);
 public static partial class Program
 {
+    [JSExport] public static string ScanMysteryGiftFiles(string json)=>SaveService.ScanMysteryGiftFiles(json);
     [JSExport] public static string OpenMysteryGiftDatabase(byte[] data,string json)=>SaveService.OpenMysteryGiftDatabase(data,json);
     [JSExport] public static string ReadMysteryGiftDatabase(byte[] data,string json)=>SaveService.ReadMysteryGiftDatabase(data,json);
     [JSExport] public static string ReadMysteryGiftDatabaseCatalog(byte[] data,byte[] editor,string fileName)=>SaveService.ReadMysteryGiftDatabaseCatalog(data,editor,fileName);
@@ -26,6 +27,7 @@ public static partial class Program
 }
 public static partial class SaveService
 {
+    public static string ScanMysteryGiftFiles(string json)=>MysteryGiftDatabaseRuntime.ScanFiles(json);
     public static string OpenMysteryGiftDatabase(byte[] data,string json)=>MysteryGiftDatabaseRuntime.Open(data,json);
     public static string ReadMysteryGiftDatabase(byte[] data,string json)=>MysteryGiftDatabaseRuntime.Read(data,json);
     public static string ReadMysteryGiftDatabaseCatalog(byte[] data,byte[] editor,string fileName)=>MysteryGiftDatabaseRuntime.Catalog(data,editor,fileName);
@@ -37,6 +39,22 @@ public static partial class SaveService
 }
 internal static class MysteryGiftDatabaseRuntime
 {
+    internal static string ScanFiles(string json)
+    {
+        var request=Decode(json,MysteryGiftDatabaseJson.Default.MysteryGiftDatabaseOpen);
+        var files=request.Files??[];
+        if(files.Length>1024)throw new ArgumentException("Too many mystery gift files.");
+        var accepted=new List<int>();long total=0;
+        for(int index=0;index<files.Length;index++) {
+            var file=files[index];
+            if(file is null||string.IsNullOrEmpty(file.FileName)||file.FileName.Length>4096||file.Data is null||file.Data.Length>64*1024)
+                throw new ArgumentException("Invalid external mystery gift file.");
+            var bytes=Convert.FromBase64String(file.Data);total+=bytes.Length;
+            if(total>16*1024*1024)throw new ArgumentException("External mystery gift library exceeds 16 MiB.");
+            if(MysteryGift.IsMysteryGift(bytes.Length)&&MysteryGift.GetMysteryGift(bytes,Path.GetExtension(file.FileName)) is not null)accepted.Add(index);
+        }
+        return JsonSerializer.Serialize(accepted.ToArray(),MysteryGiftDatabaseJson.Default.Int32Array);
+    }
     private static MysteryGiftDatabaseSession? session;
     private static SaveFile? source;
     internal static string Open(byte[] input,string json)
@@ -53,7 +71,8 @@ internal static class MysteryGiftDatabaseRuntime
             if(gift.IsEntity && !gift.IsItem && gift.Species!=0)extra.Add(gift);
         }
         var save=SaveService.OpenDatabaseSave(input.ToArray());
-        var gifts=EncounterEvent.GetAllEvents().Concat(extra).OrderBy(gift=>gift.Species);
+        SaveSpriteView.Select(save);
+        var gifts=(request.Files is null?EncounterEvent.GetAllEvents():ExternalMysteryGifts.BuiltInEvents().Concat(extra)).OrderBy(gift=>gift.Species);
         var next=new MysteryGiftDatabaseSession(input,gifts,request.Options);session=next;source=save;
         return View(next,0);
     }
@@ -70,7 +89,7 @@ internal static class MysteryGiftDatabaseRuntime
         if(offset<0 || offset>results.Length)throw new ArgumentException("Invalid mystery gift page offset.");
         var rows=results.Skip(offset).Take(current.Database.GridRows*6).Select((gift,index)=>new MysteryGiftDatabaseRow(offset+index,
             gift.CardID,gift.CardTitle,gift.GetType().Name,gift.FileName,gift.Species,gift.Form,gift.Generation,(int)gift.Version,
-            gift.IsEgg,gift.IsShiny,PokemonEncounterRuntime.Sprite(gift),gift is DataMysteryGift data?WondercardDetails.Read(data):[])).ToArray();
+            gift.IsEgg,gift.IsShiny,PokemonEncounterRuntime.Sprite(gift),gift is DataMysteryGift data?WondercardDetails.Read(data):[],SaveProgramSettingsRuntime.Current is not null?SaveArtwork.Encounter(gift):null)).ToArray();
         return JsonSerializer.Serialize(new MysteryGiftDatabaseView(current.SourceHash,results.Length,offset,current.Database.GridRows,rows),MysteryGiftDatabaseJson.Default.MysteryGiftDatabaseView);
     }
     internal static string Catalog(byte[] input,byte[] editor,string fileName)
@@ -117,6 +136,11 @@ internal static class MysteryGiftDatabaseRuntime
         return output.ToArray();
     }
     internal static void Reset(){session?.Reset();session=null;source=null;}
+    internal static IEncounterInfo HoverEntry(byte[] input,int id)
+    {
+        var current=Session();current.AssertSource(input);var results=current.Database.Results;
+        return (uint)id<results.Length?results[id]:throw new ArgumentException("Invalid gift hover id.");
+    }
     private static MysteryGiftDatabaseSession Session()=>session??throw new ArgumentException("Load the mystery gift database first.");
     private static T Decode<T>(string json,System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> type)where T:class
     {
@@ -134,4 +158,5 @@ internal static class MysteryGiftDatabaseRuntime
 [JsonSerializable(typeof(MysteryGiftDatabaseConfirmation))]
 [JsonSerializable(typeof(PokemonFile))]
 [JsonSerializable(typeof(PokemonFile[]))]
+[JsonSerializable(typeof(int[]))]
 internal partial class MysteryGiftDatabaseJson:JsonSerializerContext;

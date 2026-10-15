@@ -23,7 +23,7 @@ internal static class Pokeathlon4Editing
     private static readonly string[] CounterNames=["TimeSpent","SessionsJoined","PlacedFirst","PlacedLast","BonusesEarned","Instructions","Failed","Jumped","Acquired","Tackled","FellDown","Dashed","Switched","SelfImpeded","ConnectionJoined","ConnectionFirst","ConnectionLast","HurdleDashFirst","PennantCaptureFirst","CirclePushFirst","BlockSmashFirst","DiscCatchFirst","LampJumpFirst","RelayRunFirst","RingDropFirst","SnowThrowFirst","GoalRollFirst","TotalEventLast","Fame"];
     private static uint Maximum(int id)=>id==0?59999u:id==28?65535u:9999999u;
     private static string Sprite(int species,int form,int gender=0)=>"b"+SpriteName.GetResourceStringSprite((ushort)species,(byte)form,(byte)Math.Min(gender,2),0,EntityContext.Gen4);
-    private static string[] Forms(int species,GameStrings s)=>FormConverter.GetFormList((ushort)species,s.types,s.forms,["♂","♀","-"],EntityContext.Gen4);
+    private static string[] Forms(int species,GameStrings s)=>FormConverter.GetFormList((ushort)species,s.types,s.forms,PokemonDisplay.GenderSymbols,EntityContext.Gen4);
     private static FilteredGameDataSource Choices(SAV4HGSS s)=>new(s,new GameDataSource(GameInfo.GetStrings("en")));
     internal static Pokeathlon4Catalog Read(SaveFile save,string hash)
     {

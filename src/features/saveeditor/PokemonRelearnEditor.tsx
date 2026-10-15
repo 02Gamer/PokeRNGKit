@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type { PokemonPosition, PokemonRawEdit, SaveReport } from "./domain";
 import type { saveEditorResources } from "./locales";
 
@@ -64,7 +64,11 @@ export function PokemonRelearnEditor({
                 )
               }
             >
-              {!choices[move] && <option value={move}>#{move}</option>}
+              {!choices[move] && (
+                <option value={move} disabled data-source-invalid>
+                  #{move}
+                </option>
+              )}
               {choices.map((choice, id) => (
                 <option key={id} value={id}>
                   {choice.name[language]}

@@ -6,6 +6,8 @@ import {
   type PokemonRawEdit,
 } from "./domain";
 import type { saveEditorResources } from "./locales";
+import { useSavePrivacy } from "./useSavePrivacy";
+import { normalizeHomeTracker } from "./homeTracker";
 
 const hex = (value: number) =>
   value.toString(16).toUpperCase().padStart(8, "0");
@@ -25,7 +27,9 @@ export function PokemonRawEditor({
   }) as typeof saveEditorResources.en;
   const [pid, setPid] = useState(hex(pokemon.pid));
   const [ec, setEc] = useState(hex(pokemon.encryptionConstant));
+  const [tracker, setTracker] = useState(pokemon.homeTracker ?? "");
   const [error, setError] = useState("");
+  const privacy = useSavePrivacy();
   const apply = async (action: PokemonRawEdit["action"]) => {
     setError("");
     try {
@@ -42,7 +46,15 @@ export function PokemonRawEditor({
           if (parsedEc !== pokemon.encryptionConstant)
             edit.encryptionConstant = parsedEc;
         }
-        if (edit.pid === undefined && edit.encryptionConstant === undefined)
+        if (pokemon.homeTracker != null) {
+          const value = normalizeHomeTracker(tracker);
+          if (value !== pokemon.homeTracker) edit.homeTracker = value;
+        }
+        if (
+          edit.pid === undefined &&
+          edit.encryptionConstant === undefined &&
+          edit.homeTracker === undefined
+        )
           return;
       }
       await onApply(edit);
@@ -50,6 +62,7 @@ export function PokemonRawEditor({
       setError(words.rawValueError);
     }
   };
+  if (privacy.hideSecretDetails) return null;
   return (
     <details className="save-pokemon-editor">
       <summary>{words.rawPokemonValues}</summary>
@@ -78,7 +91,23 @@ export function PokemonRawEditor({
             />
           </label>
         )}
+        {pokemon.homeTracker != null && (
+          <label className="field">
+            <span>{words.homeTrackerHex}</span>
+            <input
+              value={tracker}
+              maxLength={16}
+              spellCheck={false}
+              autoComplete="off"
+              onChange={(event) => setTracker(event.target.value)}
+              onBlur={() => setTracker(normalizeHomeTracker(tracker))}
+            />
+          </label>
+        )}
       </fieldset>
+      {pokemon.homeTracker != null && (
+        <p className="save-editor-note">{words.homeTrackerNote}</p>
+      )}
       {error && (
         <p role="alert" className="save-editor-error">
           {error}

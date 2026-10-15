@@ -103,7 +103,7 @@
   background: var(--surface-hover);
   border-color: var(--brand);
 }
-.save-bp4-team img {
+.save-bp4-team :is(img, .save-pokemon-art) {
   width: 48px;
   height: 40px;
   object-fit: contain;
@@ -129,7 +129,7 @@
   align-items: center;
   gap: 8px;
 }
-.save-bp4-import-pokemon img {
+.save-bp4-import-pokemon :is(img, .save-pokemon-art) {
   width: 48px;
   height: 40px;
   object-fit: contain;

@@ -25,6 +25,7 @@ export interface SaveFolderDescriptor extends Omit<
   length: number;
 }
 export interface SaveFolderQuery {
+  folderRoot?: string | null;
   backup: boolean;
   column: number;
   text: string;

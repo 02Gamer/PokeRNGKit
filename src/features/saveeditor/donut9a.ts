@@ -42,6 +42,7 @@ export type Dn9aAction =
   | "randomLv3"
   | "shiny"
   | "generate";
+export type Dn9aExportMode = "file" | "text" | "clipboard";
 export interface Dn9aEdit {
   action: Dn9aAction;
   sourceHash: string;

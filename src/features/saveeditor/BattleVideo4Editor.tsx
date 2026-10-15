@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
-import { pokemonImage, speciesImage } from "./art";
+import { speciesImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
 import {
   video4Words,
   video4Import,
@@ -233,14 +234,11 @@ function Teams({ video, lang }: { video: Video4Info; lang: Br4Lang }) {
             <ul>
               {team.members.map((member) => (
                 <li key={member.slot}>
-                  <img
-                    src={
-                      member.pokemon
-                        ? pokemonImage(member.pokemon)
-                        : speciesImage(member.species)
-                    }
-                    alt=""
-                  />
+                  {member.pokemon ? (
+                    <PokemonSprite pokemon={member.pokemon} alt="" />
+                  ) : (
+                    <img src={speciesImage(member.species)} alt="" />
+                  )}
                   <div>
                     <strong>
                       {member.pokemon?.speciesName[lang] ??

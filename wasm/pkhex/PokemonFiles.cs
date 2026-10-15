@@ -64,7 +64,7 @@ internal static class PokemonFiles
                 throw new ArgumentException("Storage party must contain a non-egg Pokemon when adding an egg.");
             save.SetPartySlotAtIndex(pokemon, position.Slot, EntityImportSettings.None);
         }
-        else save.SetBoxSlotAtIndex(pokemon, position.Box, position.Slot, EntityImportSettings.None);
+        else PokemonSlotWriter.Box(save,pokemon,position.Box,position.Slot);
         return position;
     }
 }

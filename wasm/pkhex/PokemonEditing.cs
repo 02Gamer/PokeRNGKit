@@ -136,8 +136,26 @@ internal static class PokemonEditing
                 p.Status_Condition = original.Status_Condition;
             }
         }
+        RefreshDerived(p, original, false);
         p.RefreshChecksum();
         return edit;
+    }
+
+    internal static void RefreshDerived(PKM current, PKM original, bool raw)
+    {
+        if(current is not PB7 letsGo || original is not PB7 prior)return;
+        if(raw)
+        {
+            Span<ushort> before=stackalloc ushort[6];Span<ushort> after=stackalloc ushort[6];
+            prior.LoadStats(prior.PersonalInfo,before);letsGo.LoadStats(letsGo.PersonalInfo,after);
+            if(!before.SequenceEqual(after))
+            {
+                int hp=letsGo.Stat_HPCurrent,status=letsGo.Status_Condition;
+                letsGo.ResetPartyStats();letsGo.Stat_HPCurrent=Math.Min(hp,letsGo.Stat_HPMax);letsGo.Status_Condition=status;
+            }
+        }
+        else if(letsGo.Species!=prior.Species||letsGo.Form!=prior.Form)letsGo.ResetCalculatedValues();
+        if(letsGo.CalcCP!=prior.CalcCP)letsGo.ResetCP();
     }
 
     public static void Verify(SaveFile save, PokemonEdit edit) => Verify(Read(save, edit.Box, edit.Slot), edit);

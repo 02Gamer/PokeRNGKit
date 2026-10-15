@@ -8,7 +8,8 @@ namespace PokeRNGKit.SaveEditor;
 internal sealed record SaveDetectionRequest([property:JsonRequired] SaveFileType Type,
     [property:JsonRequired] GameVersion SubVersion, [property:JsonRequired] LanguageID Language,
     [property:JsonRequired] string Handler, [property:JsonRequired] string FileName);
-internal sealed record SaveDetectionType(SaveFileType Id, string Name, OriginChoice[] Versions);
+internal sealed record SaveDetectionUnsupported(GameVersion SubVersion, LanguageID Language);
+internal sealed record SaveDetectionType(SaveFileType Id, string Name, OriginChoice[] Versions, SaveDetectionUnsupported[] Unsupported);
 internal sealed record SaveDetectionCatalog(int ApiVersion, SaveDetectionType[] Types, OriginChoice[] Languages, string[] Handlers);
 
 public static partial class Program
@@ -36,7 +37,7 @@ public static partial class SaveService
         }
         var types = Enum.GetValues<SaveFileType>().Where(type=>type!=SaveFileType.None)
             .Select(type=>new SaveDetectionType(type,type.ToString(),SaveDetection.Versions(type)
-                .Select(version=>new OriginChoice((int)version,new(Name(version,"zh-Hans"),Name(version,"en"),Name(version,"ja")))).ToArray())).ToArray();
+                .Select(version=>new OriginChoice((int)version,new(Name(version,"zh-Hans"),Name(version,"en"),Name(version,"ja")))).ToArray(),type==SaveFileType.GSC?[new(GameVersion.C,LanguageID.Korean)]:[])).ToArray();
         string LanguageName(LanguageID language,string ui) {
             var names = GameInfo.GetStrings(ui).languageNames;
             int id=(int)language;

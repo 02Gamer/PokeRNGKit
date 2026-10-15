@@ -28,7 +28,7 @@ internal static class Gen5Pokedex
         return new(save.State.Exportable&&SaveChecksums.Valid(save),new(d.IsNationalDexUnlocked,d.IsNationalDexMode,d.InitialSpecies,d.Spinda.ToString("X8")),
             Enumerable.Range(1,649).Select(i=>{
                 ushort species=(ushort)i;var (_,count)=d.GetFormIndex(species);
-                return new Dex5Entry(State(save,species),Text(s=>s.specieslist[i]),Allowed(save,species),Enumerable.Range(0,count).Select(f=>Text(s=>FormConverter.GetFormList(species,s.types,s.forms,save.Context)[f])).ToArray());
+                return new Dex5Entry(State(save,species),Text(s=>s.specieslist[i]),Allowed(save,species),Enumerable.Range(0,count).Select(f=>Text(s=>FormConverter.GetFormList(species,s.types,s.forms,PokemonDisplay.GenderSymbols,save.Context)[f])).ToArray());
             }).ToArray());
     }
     public static string Snapshot(SAV5 save) => Convert.ToHexString(save.Zukan.Data[..(save is SAV5BW?0x4D4:0x4DC)]);

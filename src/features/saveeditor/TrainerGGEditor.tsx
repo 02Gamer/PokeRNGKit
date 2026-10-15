@@ -1,3 +1,7 @@
+import { useGenderLabel } from "./useGenderLabel";
+import { goParkBatchHasSound } from "./saveEditSound";
+import { playSaveSound } from "./saveSound";
+import { copyGoParkSummary } from "./goParkSummary";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
 import { AutoCompleteComboBox } from "../shared/AutoCompleteComboBox";
@@ -29,7 +33,7 @@ type Props = {
   lang: Br4Lang;
   onRead(): Promise<TrGGCatalog | undefined>;
   onPreview(e: TrGGEdit): Promise<TrGGPreview | undefined>;
-  onApply(e: TrGGEdit): Promise<void>;
+  onApply(e: TrGGEdit, sourceSound?: "parkBatch"): Promise<void>;
   onExport(index?: number): Promise<boolean>;
   onDirtyChange?(value: boolean): void;
 };
@@ -78,6 +82,14 @@ function Form({
   onExport,
   onDirtyChange,
 }: Props & { c: TrGGCatalog }) {
+  const genderLabel = useGenderLabel();
+  const life = useRef(true);
+  useEffect(() => {
+    life.current = true;
+    return () => {
+      life.current = false;
+    };
+  }, []);
   const w = trainerGGWords[lang],
     t = trainer6Words[lang];
   const [group, setGroup] = useState("basic"),
@@ -186,12 +198,16 @@ function Form({
       )
       .join("\n");
     setSummaryText(summary);
-    try {
-      await navigator.clipboard.writeText(summary);
-      setError(w.copied);
-    } catch {
-      setError(w.copyFailed);
-    }
+    const result = await copyGoParkSummary(summary);
+    if (!life.current) return;
+    setError(
+      result === "empty"
+        ? w.noEntries
+        : result === "copied"
+          ? w.copied
+          : w.copyFailed,
+    );
+    if (result === "copied") playSaveSound("other");
   }
   function moveSlot(next: number) {
     next = Math.max(0, Math.min(999, next));
@@ -250,7 +266,9 @@ function Form({
                     )}
                     {f.choices.map((v) => (
                       <option key={v.id} value={v.id}>
-                        {v.name[lang]}
+                        {f.key === "gender"
+                          ? genderLabel(v.id, v.name[lang])
+                          : v.name[lang]}
                       </option>
                     ))}
                   </Select>
@@ -593,7 +611,7 @@ function Form({
                     [
                       w.gender,
                       selected.gender <= 2
-                        ? ["♂", "♀", "-"][selected.gender]
+                        ? genderLabel(selected.gender)
                         : w.unknown,
                     ],
                     [w.level, selected.levelRaw],
@@ -868,7 +886,10 @@ function Form({
               onClick={async () => {
                 setPending(true);
                 try {
-                  await onApply(ggFrozen(c, preview));
+                  await onApply(
+                    ggFrozen(c, preview),
+                    goParkBatchHasSound(preview) ? "parkBatch" : undefined,
+                  );
                 } catch {
                   setError(w.invalid);
                 } finally {

@@ -1,6 +1,323 @@
 # PKHeX 存档读取与编辑
 
+## 竞技场二代与牧场实体适配（API171）
+
+新增 SK2／RK4 独立文件读取、基础编辑与导出，并接通竞技场二代／牧场存档内的共用编辑入口。SK2 沿 GBPKM 与 ICaughtData2 处理 DV、能力经验、招式、相遇、病毒及蛋字段，不经 PK2 中转；日文／国际版存档使用实际存档编码，独立文件沿 Core 构造器推断编码。租借标记及保留位保持，租借宝可梦不存训练家姓名，三语界面说明并禁用该输入，服务端拒绝改写。RK4 沿 G4PKM 编辑，保留标准记录以外的 28 字节牧场资料，原 Core 负责前 136 字节的加密与校验。
+
+输入依据：PKHeX.Core/PKM/SK2.cs、RK4.cs、PKHeX.WinForms/Controls/PKM Editor/EditPK2.cs、EditPK4.cs，以及 SAV2Stadium.cs／SAV4Ranch.cs。SK2 固定 60 字节，DV 0–15、能力经验 0–65535、PP 0–63、PP 提升 0–3、等级 1–100、TID 0–65535；名称沿实体 MaxStringLength，未改动的空名称保留。相遇等级 0–63、地点 0–127 且取来源目录、时段 0–3、训练家性别 0–1、病毒菌株／天数 0–15 并检查持续期。RK4 固定 164 字节，复用第四世代字段范围；文件选择与模板协议同步接受 .sk2／.rk4，API 与 Worker 统一为 171。
+
+原生专项 .tmp/pkhex-stadium-ranch-native-final.log 退出 0：SK2 日文／国际与租借四组合、RK4 基础／进阶／四种导出布局、竞技场二代两个区域、牧场及白金更新版，逐项完整字节／校验／回读与输入保持，并追加既有 GB 基础／特殊字段回归。首轮日版样本缺少 P3v0 区域识别标记，按来源补齐合成样本后通过，未放宽产品识别或校验。十文件 248 项前端、定向 Lint、完整类型与全仓格式通过；i18next 选项修正后五项专项再次通过。浏览器核心与网页构建继续核验，真实页面尚未检查，不作所有者验收或完整接入结论。
+
+最终浏览器核心构建通过（.tmp/pkhex-stadium-ranch-core.log）。默认完整原生回归 .tmp/pkhex-api171-native-full.log 与完整 npm run verify 的 .tmp/pkhex-api171-verify.log 均退出 0；340 文件／1935 项前端通过，完整类型、网页／PWA 与格式通过，Lint 无错误且保留第三世代定点模块原有的一条 Hook 依赖提醒。Chrome 4 本地页读取仍失败，真实页面及所有者验收保持待核验。
+
+剩余实体编辑入口的来源已核对，尚未实现：PKMEditor.Designer 的经验值为七位十进制掩码、等级为三位，PKMEditor.UpdateEXPLevel 使用实体成长曲线与 Core Experience，普通模式在等级 100 截至该级基础经验值，等级输入限制 1–100。ExperienceBar 的拖动只改当前等级内经验，滚轮允许跨级，Alt／Shift／Ctrl 组合分别执行等级起止、升降级等来源动作。后续应由 Core 返回曲线边界并执行变更，浏览器不另写成长算法。
+
+StatusConditionView 保留状态值高位，仅替换低八位；第四世代及以前使用 StatusCondition，之后使用 StatusType。StatusBrowser 睡眠回合为 1–7，剧毒仅第三／第四世代显示；濒死来自当前 HP 为零，不能将清除状态写成恢复 HP。缺少 PartyStatsPresent 时来源清空图示，各格式／存储宽度是否真正保存状态仍须逐一验证。StatEditor 的觉醒力量有 16 个类型（目录下标 0–15，对应属性表 1–16），格式不高于第七世代或 PB8 显示，威力仅第五世代及以前显示；选择类型先按设置决定是否填满 IV，再调用 HiddenPower.SetIVs(type, ivs, Entity.Context)。ShowGenderGen1 同时影响编辑器及悬浮预览，不能只开放设置开关。
+
+## 存档内宝可梦编辑能力（API170）
+
+SaveReport 新增 PokemonEditing，分别声明 CanEdit、Editor、CanRaw、CanImport、CanStorage，原 CanEdit 保留既有训练家／背包／整箱等行为。支持实体适配、拥有队伍或箱子、可导出且存档校验正确时才允许对应写入；锁定位、位置、实际实体与各字段约束仍在原处理函数独立检查。GB 使用专用接口，拒绝误用后续世代的普通编辑请求；标准／GB／不支持三种界面不会互相套用。Worker 核对新增能力及 API170，UI 不以识别成功推断可编辑。
+
+GB 基础处理从 StandaloneGb.Edit 提取为 Apply，由文件和存档共用，不复制域规则。范围沿既有 `PKMEditor.EditPK1／EditPK2`、`StatEditor.ToggleInterface`、`MoveChoice` 与 Core PK1／PK2：种类 1..MaxSpeciesID、等级 1..100、TID 0..65535、四个 DV 0..15、五项能力经验 0..65535、四招式 0..MaxMoveID、PP 0..63 且不超过 Core.GetMovePP、PP Ups 0..3，空招式的 PP／PP Ups 为 0。昵称／训练家姓名使用实际地区布局 MaxStringLengthNickname／MaxStringLengthTrainer，空名和无法往返编码字符拒绝；二代亲密度 0..255、道具沿自身 MaxItemID。类型、捕获率、相遇、病毒、蛋和语言继续沿 StandaloneGbSpecial 的原上下限与跨字段规则。存档请求的 JSON 长度上限 32768 是本地资源边界，不是上游文本控件宽度。
+
+写入只修改解析后的独立对象，用 EntityImportSettings.None 避免额外导入行为。导出后按当前手动识别与 BR 角色上下文重开，核对格式、校验和、队伍数及完整格位数据。GB 格位使用 Core.PokeList1／2.GetListLength 与 WriteToList，比较真实容器头、名称与队伍／盒装宽度；不能把 SIZE_STORED 当作 PKM.Data 的长度。LGPE 的 ResetCalculatedValues／ResetCP 与能力变化后的队伍状态刷新移入共用编辑函数，使存档和独立文件行为一致，保留原健康值与状态策略。
+
+竞技场日版初作单独适配：Core.SAV1StadiumJ.GetPKM 读取 33 字节原始 PK1、6 字节昵称、6 字节训练家姓名；继承写入器却调用 PK1 单只列表写出。项目侧 PokemonSlotWriter 按 GetBoxSlotOffset 与 SIZE_STORED 定位，使用该读取器的逆布局并核对总宽度，按原存储规则更新 Stat_LevelBox，不改 Core。编辑／导入／仓储共用，拒绝非日文 PK1，Core.Write 负责校验和与最终容器。原生完整文件对照和读回覆盖此修复。
+
+手动识别增加版本／语言组合约束。Core.SAV2Offsets.LoadOffsetsKorean 的 Gender 为 -1，SAV2.Version=C 的 Gender getter 却会访问该偏移；因此 GSC／C／Korean 在构造前明确拒绝。目录返回 Unsupported 对，前端据该目录禁用组合并三语提示，不在 JS 推测地区枚举值。其他组合保持来源目录与原语义。完整手动识别及六类容器回归通过。
+
+早期现代样本缺少自动识别签名、秘密箱布尔块及完整日期／游戏时长标量类型，已复用现有显式识别和类型正确的工程夹具，未扩展生产检测或跳过完整读取。最终现代格式、银行／盒子／BR／竞技场、支持的 GB 区域布局、整文件输出／回读／原件保持以及共用独立文件回归退出 0（.tmp/pkhex-save-pokemon-native-slot.log）；九文件 243 项前端、定向 Lint、完整类型、浏览器核心与网页／PWA 构建均通过。全仓格式与 diff 已通过，最后文档批次再清理；所有编译任务已结束，Chrome 4 读取已授权本地页仍失败。原 CanEdit 与新增能力保持独立，不开放未适配的 SK2 等实体。实际页面、键盘／触摸、主题及下载仍需外部 Chrome 核验，不将工程证据写作所有者验收。
+
+## 图示球种选择（API169）
+
+来源为 `PKHeX.WinForms/Controls/PKM Editor/BallBrowser.cs` 的 LoadBalls／GetBallView／SelectBall、`PKMEditor.cs` 的 ClickBall，以及 Core `Editing/Applicators/BallApplicator.cs`。存档与独立实体共用 PokemonOriginEditor；展开来源编辑、读取目录后可展开图示球种选择。复用本机 `_ball<ID>` 图像和源 BallDataSource 的三语名称，不新增外部资源请求。
+
+选择器按实体 `MaxBallID` 列出整数 ID 1..MaxBallID，与来源 byte 循环一致；零值仍可在既有下拉框保留。球种不是自由数值输入，没有空字符串、独立字符宽度或推测的 Designer 数值上限。协议预览参数仅允许整数 0..255，再调用实际格式 setter；CurrentBall／StoredValue 返回读回值。尤其 `PKM/Shared/G4PKM.cs` 的 Ball setter 根据版本、配信与双字段规则将不能保存的球种调整为精灵球，UI 随该实际值更新，不在预览时写入源实体。
+
+Core.GetLegalBalls 及 ApplyBallLegalByColor 仅作用于克隆。LegalFirst 默认 true，消费原 EntityEditor.ShowLegalBallsFirst：稳定地将通过项前移，各组内保留球 ID 顺序，关闭则完整按 ID 排列。未通过项仍可选择；此结果只涉及球种，不等于整只宝可梦合法。显式颜色推荐／恢复按钮提供桌面 Shift／Alt 点击的可访问对应；普通选择、快捷操作和显式按钮均先更新草稿与目录，应用才写工作副本。草稿版本／球种变化重新检查，设置修订变化使旧目录失效，迟到／退出请求沿序号保护。
+
+Worker 协议升级 API169；存档及独立文件目录均核对完整三语、唯一 ID、完整 1..N 球种范围、稳定排序与字节值范围。内部来源写入校验不重复计算仅用于显示的球种合法性，不改变原有球种／版本／地点范围和导出回读约束。单纯读取目录保留未列出的原始球种草稿，明确改球或版本时才采用 Core 读回值。14 格式及合法上游夹具、真实 E.sav、两种排序、Core 完整输出、公开独立文件编辑导出重开和跨版本预览专项最终退出 0；十文件 231 项前端、定向 Lint、完整类型、浏览器核心及网页／PWA 构建均通过。全仓格式和 diff 已通过，最后文档批次再清理；实际 Chrome 布局、键盘／触摸、主题及交互未核验。
+
+上述存档入口仍受既有 report.canEdit 控制。当前通用 CanEdit 未包含 SAV1／SAV2／SAV7b／SAV8LA／SAV9SV／SAV9ZA／SAV4BR；各格式专属编辑器和独立实体可用，不等于这些存档中的普通宝可梦表单可写。后续须以各路径的真实读取、队伍／盒装写入与完整回读拆分能力，不复用一个全局开关放开不支持的训练家或其他编辑器。
+
+## 宝可梦模板创建（API168）
+
+来源为 Main.LoadBlankSaveFile／ResetSAVPKMEditors、SettingsEditor.CB_Blank、Core BlankSaveFile.Get、EntityTemplates.TemplateFields 及 SaveExtensions.LoadTemplate。默认版本目录沿 VersionDataSource 排除 0／GO／CP；不自行拟造版本数值。新工具创建独立实体，保留源模板的招式、球、日期、种类、语言、默认训练家身份和 GB 尾部规则，进入已有单体编辑／校验／导出，不导出空白游戏存档。源存档语言参考使用原 GetSafeLanguage／GetSafeTrainerName，默认身份仍为 PKHeX 的身份，不冒称沿用玩家姓名和 ID。
+
+部分 SAV 格式 Version 是组值，TemplateFields.GetTemplateVersion 会选择组内版本；保留该行为。原生比较先验证版本属于来源组，再仅对齐两次独立选择的版本字段后比较每个序列化字节。目录中 41 个版本的默认／自定义及名称不匹配回退已通过，来源上下文／路径与默认版本亦通过；追加异常大小、空模板、无效数据拒绝及真实 E.sav 原件／输入保持专项退出 0。
+
+模板分类沿已保存 TemplatePath，空白对应 local，斜杠与末尾分隔符统一；只匹配该分类下的“末级分类名.PKM格式”，文件名比较忽略大小写，不扫描磁盘或递归子分类。按上游 EntityDetection／EntityFormat／EntityConverter 读取与转换，找不到或不能识别时使用 Core 默认字段。模板文件沿独立实体的 1 MiB 产品上限，库沿已有 1024 文件／单文件 64 MiB／总量 128 MiB、名称 4096 字符与分类 32767 字符；创建 API 的 JSON 上限 2 MiB。版本和目录输入通过共享设置与下拉框，不增加推测的 Qt／WinForms 数值范围。
+
+库操作只替换唯一匹配文件，重复候选不任意选取。保存前先以 Core 验证所选文件可作为当前格式模板，使用全库快照 CAS 保留其他分类与同时更新；移除可撤销，撤销同样拒绝冲突。独立模板编辑器与已有存档／独立文件编辑器并存，不在再次创建时默默替换未导出的编辑。切换工具期间保留编辑，关闭需要明确丢弃确认。只读来源有哈希及 Worker 调用前后字节核对，设置或源文件变化取消旧读取。九文件 217 项前端、定向 Lint、完整类型、核心及网页／PWA 均通过，首轮 Lint 生命周期提醒已修正。日志 .tmp/pkhex-entity-template-{native-real,front-final,lint-final,types,core,web}.log；最后文档格式与 diff 继续清理，Chrome 页面读取仍超时，真实页面与 IndexedDB 交互未核验，不作为所有者验收。
+
+## 对战文本导入（API167）
+
+依据 Main.cs:452–484 与 PKMEditor.cs:2221–2226。沿 ShowdownParsing.GetShowdownSets 解析第一组并使用 PKM.ApplySetDetails，保留上游的种类限制、能力值、性格、道具、招式、PP、异色／加密常量、记录旗标与队伍状态等联动；不以自行拼字段替代原 Core。上游 BattleTemplateTeams.TryGetSets 会解析联网团队网址，静态本地架构改为显式粘贴文本后纯本地解析，不主动请求外网。
+
+预览冻结完整文件输出及前后文本、解析文本、PID／加密常量、变化字节、三语 InvalidLines。确认校验源／目标哈希、位置、设置与存档上下文，冻结结果一次消费，不重新运行随机应用。解析问题显示并要求明确确认，保留上游仍可应用已识别数据的能力。输入文本与目标变化或离开视图时丢弃旧预览；工作副本更新沿现有撤销栈，原件保持。
+
+目标箱子／格位来自当前报告；可选择空箱位，队伍仅列真实 PartyCount 的格位。Core 复用 PokemonEditing.Read 和 StorageEditing.Writable，保存时回读并核对实体、队伍数与校验和。GB 使用完整名称／列表容器比较，不按 PKM.Data 的原始长度误切。文本输入上限 1048576 UTF-16 字符、Native JSON 上限 7 倍加 4096 是明确的浏览器资源限制，上游剪贴板无对应控件上限。13 组游戏样本、全部 16 种独立实体、GB 中日文队伍／箱子与真实 E.sav 工作副本专项最终通过。GB 比较使用 PokeList1／2.GetListLength 与 WriteToList 的 isParty 参数，保留实际列表头、名称、蛋标记和存储字段；不比较盒装不会保存的队伍专用字节，不放宽其他断言。核心构建通过。正式视图改为共享导入／导出模式按钮，退出导入模式时丢弃预览；最终八文件 208 项前端、定向 Lint、完整类型、网页／PWA 和全仓格式／diff 均通过。追加三语回导、仅第一组、空／超限输入拒绝及前述全部原生专项退出 0，原件 SHA-256 未变。日志 .tmp/pkhex-battle-import-language.log、.tmp/pkhex-battle-import-front-final.log、.tmp/pkhex-battle-import-types-final.log、.tmp/pkhex-battle-import-core.log、.tmp/pkhex-battle-import-web.log。最后文档再清理格式；Chrome 页面读取仍超时，页面待核验，不将工程检查写成完整接入。
+
+## 对战文本导出（API166）
+
+来源 Main.cs:486–503 与 SAVEditor.cs:1389–1409，直接使用 Core ShowdownParsing.GetShowdownText 和 GetShowdownSets。保留单只 InterpretAsPreview 与集合导出路径的来源差异，集合按来源以两个环境换行分隔，空种类由 Core 跳过。提供单只、队伍、单箱、全部箱子与独立实体读取；三语文本以当前界面语言作为 GetSettings 的回退，模板固定语言优先，不自行翻译文本内容。
+
+新增 JSExport／Worker／正式工作区与独立实体面板。范围没有新增自由数值输入：宝可梦与箱子均从当前报告选择，Core 使用 PokemonEditing.Read 校验 0..PartyCount-1、0..BoxCount-1、0..BoxSlotCount-1；集合只在对应 HasParty／HasBox 时读取，不兼容的参数组合拒绝。请求 JSON 上限 1024 字符是浏览器协议边界，不宣称 Qt／WinForms 控件范围。输入与来源哈希保持，复制只在显式按钮触发且非空；离开或切换版本后不展示旧结果。
+
+模板语言、四类能力值格式、招式格式、Champions 点数、预置／自定义顺序直接消费原 Core 的 BattleTemplateTypeSetting.GetSettings，悬浮模板沿已有 PokemonHover。StatsCustom 属性在提供的上游版本中没有实际读取，暂不开放这些子字段。原生专项对照七种存档的完整三语结果、三种顺序、固定／跟随语言、队伍和独立文件，另测输入保持与参数拒绝。原生最终专项、追加三种能力值格式／方向招式／Champions 点数及真实 E.sav 的三语完整文本与数量比对均退出 0；真实副本和原件哈希保持。八文件 194 项前端测试、定向 Lint、完整类型、浏览器核心及网页／PWA 均通过，全仓格式与 diff 已通过，最后文档再格式清理。Chrome 4 标签读取仍超时，浏览器页面未核验；文本导入仍属后续缺口，不将此导出入口视为整个对战文本工作流完成。日志 .tmp/pkhex-battle-template-real.log、.tmp/pkhex-battle-template-front.log、.tmp/pkhex-battle-template-types.log、.tmp/pkhex-battle-template-core.log、.tmp/pkhex-battle-template-web.log。
+
+## 存储关联合法性检查（API165，工程核验中）
+
+来源为 `SAVEditor.ClickVerifyStoredEntities` 与 Core `Legality/Bulk/BulkAnalysis.cs`。此前单只报告、资料库及报表不能代替此功能：来源还运行跨条目的克隆、训练家、PID、加密常量、处理训练家和配信检查，并通过 SaveFile 构造器追加存档专属的合体与唯一道具检查。输出的 Clean 只表示这些存储关联检查通过，不代表所有单只宝可梦的完整合法性。
+
+原生服务 `SaveService.AnalyzeStoredPokemon` 已加入内部开发，直接调用原 Core 的 SaveFile 重载，读取当前 `Legality.Bulk.CheckActiveHandler`，返回来源哈希、实际分析条目数、发现数与完整三语报告。空格、异常物种和坏实体校验和按 Core 原规则排除；空存档沿来源的 clean 分支，不调用会访问 AllAnalysis[0] 的详细报告函数。无新增数值输入或过滤范围；浏览器入口沿现有存档读取的 1 byte–32 MiB 限制。
+
+首次专项在数据保持断言失败。原因是 GBA 的 `CloneInternal` 调用 GetFinalData，会执行扇区序列化；已移除该克隆，改为仅分析现有 SaveService.Open 创建的独立 SaveFile，不序列化或写回输入。保留原数据断言，未修改 Core 源码。最终专项覆盖 11 格式、两种处理训练家设置、空存档、克隆和坏校验和排除；真实 E.sav 的 25 个条目及三语报告均与独立 Core 调用一致，输入／原文件保持。
+
+现已公开 JSExport 与 saveBulkLegality Worker 请求，协议升级 API165。正式存档工作区在宝可梦分组增加存储关联检查，按需运行、三语结果和显式复制报告，沿共享控件与滚动区域；bulk.checkActiveHandler 设置开放。Worker 对调用前后字节计算 SHA-256，校验原生报告来源与版本；主线程再次绑定当前工作副本和操作编号，视图退出后忽略迟到结果。复制成功且视图存活后消费来源 Other 提示，分析返回不新增该提示。下一步运行专项、重建浏览器核心和网页并核验，不能标记整体功能完成。原生日志为 `.tmp/pkhex-bulk-legality-native.log`（首次失败）与 `.tmp/pkhex-bulk-legality-native-final.log`（退出 0）。
+
+追加未修改的上游合法 Castform PK6 夹具，来源路径与 SHA-256 记录在 `third_party/pkhex/legality-fixtures/README.md` 和 source-manifest。它保留单只合法性，通过改变测试存档身份形成处理训练家不匹配；启用 CheckActiveHandler 时发现关联问题，停用时 clean，从而验证设置实际改变 Core 结果。追加专项 `.tmp/pkhex-bulk-legality-policy.log` 退出 0，原 11 格式和真实存档检查同步通过；完整来源清单 3555 文件哈希核验及设置页定向 Lint 通过。此处为原生专项证据；API165 新核心构建、前端检查与页面结果在下文另记，不扩展为所有者验收。
+
+API165 公开接线专项 `.tmp/pkhex-bulk-public-native.log`、六文件 172 项 `.tmp/pkhex-bulk-public-front.log`、定向 Lint、完整类型及浏览器核心构建均退出 0。前端覆盖精确字节视图哈希、旧版本／旧来源／坏字段拒绝、三语只读动作及 Worker 取消释放。核心保留已有反射裁剪警告；网页／PWA、最终格式与 diff 已通过；完整 npm run verify 退出 0（333 文件 1837 项），日志 .tmp/pkhex-bulk-public-verify.log。完整默认原生回归最终退出 0（.tmp/pkhex-bulk-public-native-full.log），本批所有检查任务均已结束。Chrome 列表及已授权本地 URL 直接读取仍超时，未取得本批页面证据，不能视为所有者验收。
+
+## 单只合法性报告复制保护（2026-10-16）
+
+共享 PokemonLegality 消费来源 Main.cs:1177：当前报告完整文字复制成功后播放 Other 提示。复制期间禁用重复操作，报告／格位／语言／视图变化后忽略迟到成功或拒绝，不显示旧状态或播放提示。存档和独立宝可梦共用，无新增输入或 Core 变动。四文件 20 项专项、定向 Lint、完整类型及网页／PWA 构建通过，格式与 diff 已通过；本段文档更新后再做格式清理。Chrome 页面交互仍待核验，整体目标未完成。
+
+## 加载与合法性提示音（2026-10-15）
+
+- 来源为 `Main.OpenSAV` 的 PlaySoundSAVLoad 和 `Main.DisplayLegalityReport` 的 PlaySoundLegalityCheck，均调用 SystemSounds.Asterisk。存档工作副本成功打开后，以及存档／独立宝可梦合法性报告成功返回后触发；迟到或失败请求沿既有操作编号保护不播放。两个设置分别消费，其他提示音仍待逐项接线。
+- 浏览器不能调用 Windows 系统声音，采用本机生成的 170ms 短提示作为平台对应，不携带 Windows WAV。新提示替换旧提示，音量以包络渐入／渐出；不与叫声启用状态捆绑，不改变原有叫声资料。
+- 设置页新增独立三语页级启用／停用和试听控件，默认关闭，只在用户点击后创建并恢复 AudioContext；策略仅保留当前页面。隐藏页面、设置变更或停用时停止，迟到启用不能重新打开已停用播放器，浏览器拒绝音频时显示错误而不影响存档操作。
+- 本批只开放 Sounds.PlaySoundSAVLoad／PlaySoundLegalityCheck。PlaySoundOther、其他系统提示类型及其调用点尚未接入，不以这两个事件代表全部声音。工程检查见进度；外部 Chrome 实际播放及听感尚未核验。
+- [其他提示音清单](../pkhex-sound-coverage.md) 记录当前来源 164 个直接调用位置；各项标记实际对应状态，尚不含通用消息函数内部路径，不以全局成功通知替代原调用条件。
+
+2026-10-15 首批 Other 接 5 个直接来源位置：用户搜索和重置、逐个定位找到／未找到、Notify=Silent(1) 的箱子导出。成功提示使用上行短音，未找到使用下行短音，均为浏览器对应；后台自动刷新、失败或迟到请求不播放。导出只在既有下载分支成功发起后读取静默策略，声音偏好错误不得改变导出状态。PlaySoundOther 独立消费，但设置入口继续禁用，剩余 159 个直接调用及通用消息路径未齐。实际播放和听感仍待外部 Chrome 核验。
+
+2026-10-15 追加相遇／配信的 6 处来源：两个窗口的用户搜索完成和手动重置，以及相遇条件的重置／从编辑器读取成功。翻页、窗口初始化、失败及卸载后的返回不触发；手动应用条件不新增来源没有的提示。配信搜索同时核对请求开始时的资料版本，目录／设置／配信资料变化后拒绝旧结果及声音。对应 `SAV_Encounters.cs:133/139/329/512` 与 `SAV_MysteryGiftDB.cs:276/392`；累计 11 处已绑定，另 153 处与通用消息路径仍待处理，PlaySoundOther 设置入口继续禁用。候选只渲染实际结果，未将桌面空白图片框的越界点击提示套用到正常候选选择。
+
+2026-10-15 实体资料库追加 `SAV_Database.cs:263/316/554` 的删除成功、手动重置及用户搜索完成提示。删除须先完成冻结确认和存档／本机资料提交，存储失败不播放；查找取消旧预览前后、返回结果及提交前后核对资料版本，防止目录／设置切换后恢复旧列表或提交提示。翻页和初始化不播放，其他提交动作不增加删除提示；重置沿既有 `newPokemonSearch` 清空指令与筛选，保留来源范围。累计 14 处已绑定，另 150 处与通用消息路径未齐，PlaySoundOther 设置入口仍禁用；浏览器操作及声音待核验。
+
+2026-10-15 第二至第四世代再接 20 处直接来源。`saveEditHasSound` 仅列已核对的请求类型与动作：GS 球事件、名人堂导入队伍、幻岛、RTC 重置／树果修复、秘密基地训练家／队伍成员、电话簿全部／非训练家／清空、运动场奖章全部／清空、宝可表全部、封印／饰品／背景全部或合法项、第四世代图鉴五种全物种批量、录像导入及对战通行证导入。统一在既有 applyWorkingEdit 完成 Core 回读、工作副本更新和操作编号核对后播放；单项字段、清空饰品、重新保存、普通应用等未列动作继续静默。录像导出在现有下载分支发起后播放，失败不触发。不新增输入或改动 Core 算法。
+
+资料库取消预览另补代次核对，迟到的取消不得清除新资料上下文中的预览。来源清单累计 34 处已绑定；三个候选窗口的 6 处空白图片框越界提示记录浏览器平台对应，网页只渲染实际结果，Core 的 Row／At／Results 索引检查保留，不给正常候选选择增加错误音。其余 124 处直接调用及通用消息内部路径未齐，PlaySoundOther 设置入口继续禁用，工程与页面证据分开记录。
+
+2026-10-15 第五世代追加 13 处来源。图鉴按单物种 give／giveNone、全图鉴五种动作及三种形态批量分别对应，字段编辑和不存在的 DexNav 动作不加提示；奖章只处理全部领取、导入、栖息地完成／清空和等级计算，杂项只处理森林随机填充和解锁装扮。以上沿成功应用工作副本入口；加盟大道实体导出在既有下载发起后播放。
+
+下载内容和 C-Gear 原始文件在 Core 导入预览成功后提示，确认保存不重复；对应来源 ImportFile 已完成尺寸检查后的提示。C-Gear 图片转换沿 `SAV_DLC5.CheckResult<CGearBackground>` 及 Core `CGearBackground` 的 16 色／255 图块，只在 Core 返回非负整数且不超限时播放成功音；超限仍保留原转换预览与警告，不改变图像算法或导出限制。图像尺寸、像素数据与颜色统计继续来自原 Core；未在 JavaScript 重算。累计 47 处已绑定、6 处平台对应、111 处直接调用待接，通用消息路径仍待处理，PlaySoundOther 设置入口继续禁用。
+
+2026-10-15 第六、七世代追加 23 处来源。第六世代接图鉴单种／全图鉴／形态三类操作（XY 与 ORAS）、训练家饰品和秘密基地导入。第七世代接全图鉴五种动作、LGPE 捕获计数批量／求和、SM／USUM 豆子填满／清空、集齐细胞、服饰、GO Park 删除单格／全部、称号／服饰、批量导入与摘要，以及圆庆广场眼镜。
+
+普通动作仍在原工作副本成功应用后提示；食物操作额外核对结果格式，豆子提示不作用于泡芙、宝可方块或宝芬。GO Park 单只导入和普通字段保存不加提示；批量导入仅在 Core 预览 receipt.unplaced 为空时传来源标记给成功提交回调，保留原版容量不足提前返回而无结束提示的条件。圆庆广场只为当前冻结预览中的 glasses 动作传提示标记，不给其他提交加音；这两个标记仅在 React 回调之间传递，不加入 Worker／Core 请求。预览本身、失败与迟到结果不播放。
+
+GO Park 空摘要现在显示已有三语 noEntries 信息，不向剪贴板写空字符串；非空摘要只在浏览器写入成功且视图存活后提示，失败继续显示可手动复制文字。圆庆广场超长十六进制字段采用已存在的 maxLength=24／8／8 与 Core 校验对应原截断保护，不为合法输入发声。累计 70 处已绑定、7 处平台对应、87 处直接调用待接；第六世代箱子移动边界提示仍待核对，不以原有整箱交换代替该调用。PlaySoundOther 总入口继续禁用，真实页面与剪贴板权限／声音待外部 Chrome 核验。
+
+2026-10-15 第八世代再接 29 处来源，继续使用已核对的请求类型／动作表与成功应用入口。剑盾包括单种 Give、全图鉴五种动作与全部战斗次数，训练家包括队伍复制到卡片／标题、服饰和地鼠；LA 只为研究报告提示，不给高级研究或条目保存新增声音；BDSP 图鉴只为全图鉴五种动作提示，单种及形态操作保持静默。BDSP 杂项十种来源事件、贴纸和地下道全部／清空均已对应。
+
+宝芬填满／清空仅限结果格式 SAV8BS 的 caseFill／caseClear；不作用于第四世代宝芬、第三世代方块、豆子或普通排列／字段保存。所有请求仍先经过 Core 校验、冻结预览与现有工作副本保护，声音表不充当领域校验。累计 99 处已绑定、7 处平台对应、58 处直接调用及通用消息路径未齐，PlaySoundOther 总入口继续禁用；不改原生算法、输入限制或实际存档字节布局。
+
+2026-10-15 第九世代追加 38 处来源。朱紫本体／DLC 与 Z-A 图鉴各对应六种动作；训练家解锁操作以 Core 冻结票据的 operations 判断，Z-A 只将 resetAndCollectScrews 对应直接提示，普通收集与技术机器的通用消息仍另行核对。团体战传播和服饰 owned 以当前冻结预览的动作表判断，普通字段／种子／衣物记录导入不加成功音；同次服饰批量的内外重复调用在浏览器合并为一声。训练家 PNG／JPEG／BMP 图像导出沿共享下载分支和既有存活／代次检查提示。
+
+甜甜圈的随机三级、克隆、异色组合、范围生成和文件／文本导入在成功提交后提示；来源动作与预览 token 绑定，取消和普通保存／重置不播放。团体战、服饰及甜甜圈的提交回调改为返回是否实际应用，失败保留预览与令牌并显示原三语过期提示，不再将返回 void 误当成功。来源标记只在 React 回调之间传递，不进入 Core 确认 JSON，API164 不变。
+
+补齐甜甜圈复制十六进制入口，保留原二进制与文本文件导出。来源为 `SAV_Donut9a.B_ExportClick` 的 Ctrl 分支和 Core `DonutPocket9a.cs` 内 `Donut9a.Size=0x48`；只读 Core 导出后核对恰好 72 字节，按原字节顺序生成两位大写十六进制、单空格分隔、无尾空格，不重排端序或改数据。按钮及复制成功／失败消息使用三语与现有工具栏；复制不支持或被拒绝时不报成功，不修改工作副本。迟到导出／剪贴板响应不恢复旧提示。累计 137 处已绑定、7 处平台对应、20 处直接调用及通用消息路径仍待处理，PlaySoundOther 总入口继续禁用；真实页面、剪贴板和音频仍待 Chrome 核验。
+
+## Unicode 与异色符号显示（2026-10-15，进行中）
+
+- 来源为 WinForms `Main.Unicode`、`PKMEditor.UpdateUnicode`、`StatEditor.UpdateIVs`，以及 Core `GameInfo.GenderSymbolUnicode/GenderSymbolASCII`、`FormConverter.GetFormList`、`PowerPotential.GetPotentialString`。
+- 实体读取新增可选潜力文字，由原 Core 按当前 Display.Unicode 返回星级或加号。形态选择沿同一符号表；性别限制的原始判断固定使用 Unicode 语义表，不因 M／F 文本切换改变可编辑范围。显示读取不修改实体或存档。
+- 基础编辑器显示当前已读取宝可梦的 Core 潜力评价，应用个体值修改后随新报告更新；草稿未应用前仍为当前值，不在 JavaScript 重写评价算法。异色操作按钮按保存的 Display.Unicode 使用 Draw.ShinyUnicode／ShinyDefault；两项符号设置已开放，普通文本转义显示，允许来源空字符串及最多 32767 字符，显示宽度限制为 5em，完整设置不截短，三语操作名称和可访问名称保持。
+- 图鉴、个人数据图表、森林、运动场、名人堂及训练家形态列表统一使用 Core 符号表，数量／编号／语义校验保持；形态文字偏好不改变性别可选范围。默认显示偏好沿来源 Unicode，而非各模块自行固定 ASCII。
+- 原生双模式及跨模块回归、真实 E.sav 两模式共 50 条读取、前端类型、最新核心与顺序网页产物均通过。训练家性别等其他界面消费点及原版游戏字体映射尚未接齐，Display.Unicode 全局入口仍禁用，不作为完整 Unicode 功能或页面验收。
+
+2026-10-15 补接前端性别显示：共用来源的三项符号表及设置订阅，基础训练家、剑盾／BDSP／阿尔宙斯／Let's Go／朱紫／ZA、宝可梦编辑与两处详情、第六世代名人堂、第四世代与剑盾图鉴入口沿同一规则。三语名称保留并附加来源符号，原始未知编号显示 `#编号`；不改数值、校验、选项顺序或存档字节。字段式训练家仅对明确 gender 字段处理，语言等其他选项保持，剑盾确认预览共用显示。无新增字体、字号或控件皮肤，普通浏览器字体继续使用。字体平台对应及其余消费点仍需核对，Display.Unicode 暂不开放。
+
+字体来源复核发现 `PKHeX.WinForms/Resources/byte/PGLDings-NormalRegular.ttf`，21004 字节，SHA-256 为 `22ABF315BAF5101516903390513AD2EBE1DF727F6B87285A8B91F9BB019CE26E`；`FontUtil.GetFontFileName` 将各上下文指向该资源。读取 name 表只得到家族名，未找到版权／许可文本或链接，OS/2.fsType 为 4。按 [OpenType fsType 规范](https://learn.microsoft.com/en-us/typography/opentype/spec/os2#fstype) 该值为 Preview & Print，而非 Editable embedding；这些元数据不足以确认可随 Web 编辑器分发。当前未复制、转换或改写字体，继续浏览器字体及既有原始码位编辑；字体许可／平台对应保持未解决，不作为完整字体兼容结论。
+
+## 无效选项颜色（2026-10-15）
+
+- 来源为 `PKMEditor.ValidateComboBox` 与 `DrawConfig.InvalidSelection`：无有效选中值时使用配置底色及黑色文字，恢复有效选项后恢复普通控件。颜色沿已有设置协议 `#RRGGBB` 六位十六进制，默认 `#e9967a`；不改变任何实体数值限制、基数或字节。
+- 新增存档功能内的 `PokemonSelect` 包装，复用共享 Select 的尺寸、焦点、键盘及菜单。未知原始值显示 `#编号` 并声明 `aria-invalid`，不伪装成首项；原有未列出占位与不适用选项明确禁选，当前值仍可见，不自动写回其他值。有效零值、分组选项及正常样式保持。损坏颜色策略沿安全默认提示，Core 继续独立拒绝无效完整设置。
+- 基础属性／招式、回忆招式、来源、记忆、历史、形态参数、缎带、异色和超级训练实体编辑入口共用该规则，存档与独立宝可梦同步生效。查询工作台不套用实体错误状态；开放 `Draw.InvalidSelection` 设置。原有域及 Core 校验继续决定能否提交，颜色不作为合法性判定。
+- 缎带当前编号按 `affixedChoices` 的实际 ID 查找，不能用列表长度判断稀疏编号；无佩戴的 -1 仍为有效选项。不修改来源缎带编号或条目顺序。
+- 前端与工程证据见进度。浏览器实际焦点、菜单、颜色与修正后恢复仍待外部 Chrome 核验，不把静态渲染检查当作页面验收。
+
+## 宝可梦形状标记（2026-10-15）
+
+- 来源为 `PKMEditor.SetMarkings/ClickMarking/ToggleInterface`、Core `IAppliedMarkings`、`MarkingApplicator.ToggleMarking`、`G3PKM` 与各格式 `GetMarking/SetMarking`。第三世代显示圆形／正方形／三角形／心形四项，Core 的 G3PKM 已规范化三角形／正方形位，因此界面顺序额外映射为 0／2／1／3；后续格式显示圆形／三角形／正方形／心形／星形／菱形六项。不从原始打包字节另写格式算法。
+- 实体读取新增可选标记资料，存档与独立宝可梦共用三语编辑入口。普通标记为 0／1，彩色标记为 0／1／2，依来源顺序切换；原始保留值 3 可保留未编辑状态，不能通过请求新建，点击时沿来源转为蓝色。按钮声明形状与状态，不只依靠颜色，目标至少 44px；应用和本地还原只在草稿有变化时启用。
+- 请求沿原 `PokemonRawEdit` 新增 markings 操作，值数组必须等于 Core 的 MarkingCount（4 或 6）；全部元素校验后才调用来源 setter，保留打包字段的其他位。旧世代、空实体、坏校验和及锁定格位沿原保护拒绝；标记不触发队伍能力值重算，沿工作副本、撤销及导出重读流程。无自由输入进制、空白或文本宽度参数。
+- `Draw.MarkBlue`／`MarkPink` 已绑定这两个入口。颜色使用设置协议的 `#RRGGBB`，前端再次校验六位十六进制；默认分别为 `#00bfff`／`#ff75b3`。普通与保留状态沿当前文字颜色，未标记图形沿来源显示为 1/8 不透明度。损坏设置禁用应用，Core 仍独立校验完整策略。
+- 工程检查与真实存档证据见进度。浏览器交互及控件视觉尚待外部 Chrome 核验，其他 Draw 设置仍在完整目标内。
+
+## 格位轮廓光晕（2026-10-15）
+
+- 来源为 `SpriteUtil.GetSpriteGlow(PKM)`、`ImageUtil.GlowEdges`、`BitmapAnimator` 与 `DrawConfig`。实体悬停响应新增独立图像资料：基础形态、蛋和异色，不加入道具、暗黑洛奇亚替换图、巨大化／头目标记、合法性及储存状态；霸主形态沿基础绘图保留原效果。查询沿既有 1024 字符及真实位置限制，不改存档字节。
+- 普通轮廓使用原污染像素算法，蛋沿原空心算法；复用同一本机图像加载和合成函数，不用 CSS 阴影代替。真实箱子／队伍与登记队伍在共享入口显示，资料库及相遇候选继续原有预览。`HoverSlotGlowEdges` 已绑定设置页、布尔校验和实际启停；关闭时保留普通格位反馈。即使文字和叫声关闭，光晕开启的真实格位仍可读取轮廓反馈。
+- Windows 的 ActiveCaption／Highlight 在浏览器明确映射为当前 Ant Neutral 的 `--teal-soft`／`--brand`，不是读取电脑系统色。动画沿来源 16ms 间隔、16 阶单程及 512ms 往返；减少动态效果时固定为高亮色。遮罩置于原图后方，不接收输入，不改变控件尺寸；离开、切换、隐藏页面、滚动或改资料时沿共享悬停生命周期移除，迟到图像不得恢复旧反馈。
+- 三组普通光晕黄金数据来自未修改的上游 `ImageUtil.cs`，覆盖边界、半透明与透明像素；原有空心夹具保留。工程检查见进度；外部 Chrome 的实际叠层、主题及交互仍待核验。
+
+## 本机叫声资料与播放（2026-10-15）
+
+- 来源为 `PKHeX.WinForms/Controls/Slots/CryPlayer.cs`、`SummaryPreviewer.cs`、Core `LocalResourceSettings.SoundPath` 与 drawing `SpriteName.GetResourceStringSprite`。Worker 返回形态 WAV 名与物种编号回退名，忽略性别并保留武道熊师 Form 1 的 `892-1.wav` 特例；前端不重写形态／世代命名规则。
+- 设置页新增可折叠的三语本机资料入口，支持 WAV 文件／目录导入、当前分类列表、明确移除与单步撤销。选择的目录根映射到已保存 SoundPath，子目录保留独立分类；播放只查当前目录根层，不递归或扫描电脑。默认 sounds，空白沿本机根分类 local。形态名优先，缺少时回退物种编号，名称按 Windows 来源规则忽略大小写。
+- 资料放在独立 IndexedDB，Blob 保留原字节。最多 4096 文件，单文件 16 MiB，总量 256 MiB；只接受来源可匹配的数字／连字符形式 WAV 名，导入核对 RIFF/WAVE 文件头。重名不覆盖，须先明确移除；完整快照按版本号比较后原子写入，存储失败保留旧资料。广播与 storage 通知其他本机标签，更新后停止旧播放。
+- 播放需用户在本机资料入口启用，状态仅在当前页面保留。共享 Web Audio 通道只播放当前悬停来源，离开、切换、隐藏页面、改设置／资料或关闭声音都会停止；迟到读取和解码不得启动旧声音。即使两类文字预览均关闭，启用叫声后仍可按来源规则播放。
+- 关闭开关、缺少文件或浏览器拒绝启用时不会自动发声。解码缓存最多 8 项／32 MiB；单段解码结果最多 120 秒／32 MiB。WAV 解码由浏览器完成，不兼容或超限时给出当前语言提示。目录和悬停叫声两个设置已开放，SoundSettings 的其他提示音仍未绑定。
+- 本批不包含系统颜色相关的边缘光晕；来源 `DrawConfig` 使用 Windows 系统色，不能以普通 CSS 阴影冒充原像素效果。工程检查见项目进度；真实 WAV 在外部 Chrome 中的解码、播放与听感仍待核验。
+
+## 跨来源悬停预览（2026-10-15）
+
+- 资料库当前存档／实体文件／其他存档条目、Stadium 登记队伍、相遇与配信候选共用原有预览组件。弹层字体、定位、键鼠与触屏规则保持统一；嵌套编辑器按最近的预览作用域处理，避免同一格位被重复请求。
+- 新增只读 `ReadContextHover`，用 `kind` 区分 slot、database、registered、encounter、gift。真实格位使用 box／slot，资料与候选使用 id，登记队伍使用 group／slot；非真实格位响应的旧 box／slot 字段为 null，不伪装为箱子位置。查询最多 1024 字符，数字为有符号 32 位整数，各命名空间核对必填项、非负索引、互斥字段与真实集合边界。
+- 资料库沿 `SAV_Database.ShowHoverTextForSlot`，以条目自带的 `Source.Type` 做合法性分析；登记队伍沿实际 `SlotGroup.Type` 和原存档个人表。全部实体先复制，保留原来源、文件与存档字节。
+- 候选沿 `SummaryPreviewer.Show(IEncounterInfo)`，只读 `GetTextLines` 三语文字，不生成实体或调用转换。`HoverSlotShowEncounterVerbose` 已开放，仅用于候选；配信类型依来源不追加 record 属性。预览只读取当前会话结果，不重置搜索和冻结确认，不消耗新的生成结果。
+- 每次结果带原始 target 与完整存档 SHA-256；前端同时核对目标、当前列表对象与格位元素属性，拒绝切换搜索或来源后的迟到响应。独立悬停请求不进入前台编辑的操作编号或忙碌状态；更改设置、存档和资料集合仍按现有 Worker 生命周期失效。
+- 本批工程检查与日志见项目进度。声音／本机叫声资料与边缘光晕仍未接入，不将文字／图像预览当作全部 Hover 完成；实际外部 Chrome 页面仍待核验。
+
+## 格位悬停预览（2026-10-15）
+
+- 箱子、队伍、箱子全览和双箱视图共用格位预览。来源为 `PKHeX.WinForms/Controls/Slots/SummaryPreviewer.cs`、`PokePreview.cs` 与 `Settings/HoverSettings.cs`；文字与合法性仍由原始 Core 在 Worker 内生成。
+- 沿来源拆分战斗模板、招式及有效性、首条非法原因与相遇信息。三语模板通过 `BattleTemplate.Hover.GetSettings` 和 `ShowdownParsing.GetLocalizedPreviewText` 输出，保留觉醒力量类型／威力及其他能力值附加规则；名称、属性图标、精灵球和宝可梦图像使用当前本机资源。区段开关同时作用于 Core 返回内容，预览／文字模式由共享前端选择。
+- 开放 `HoverSlotShowPreview`、`HoverSlotShowText`、`HoverSlotShowEncounter`、`HoverSlotShowLegalityHint`、`PreviewShowPaste` 与 `PreviewCursorShift.X/Y`。Alt 临时切换为文字提示；两种显示都关闭时不请求。属性图标与非法提示保留语义色，辅助预览不修改选择、焦点或存档。
+- 浏览器共用文字提示的 200 毫秒防抖；移出、换格、修改存档、切换设置、拖动和卸载均使旧结果失效，不取消前台编辑。键盘焦点可读，Escape 先关闭预览；触屏点击保留详情编辑。预览跟随指针并限制在视口内，内容本身可悬停和滚动。
+- 位置查询 JSON 最多 1024 字符，box／slot 必填整数，由 `PokemonEditing.Read` 核对实际箱子／队伍边界。偏移沿来源 Point 的有符号 32 位整数，默认 (16,8)，只在布局阶段限制到视口，不改写保存值。读取绑定完整存档 SHA-256，使用原存档个人表及真实 Party／Box 上下文，保留全部输入字节。
+- 首次接线覆盖真实存档的箱子与队伍格位；数据库、登记队伍与相遇候选的后续接线见上节。`HoverSlotShowEncounterVerbose` 沿来源仅影响候选，不影响 PKM 预览；声音／本机叫声资料及边缘光晕仍在完整目标内，未绑定选项继续只读。工程结果见项目进度，实际 Chrome 页面仍待核验。
+
+## 自定义配信共享数据（2026-10-15）
+
+- 存档与独立宝可梦客户端在派发前读取 IndexedDB 配信资料，并按当前 `LocalResources.MGDatabasePath` 选择分类及子分类。读取失败停止操作，保留工作副本，不静默退回内置资料。
+- 每个 Worker 调用原始 Core `EncounterEvent.RefreshMGDB`，从仅属于该 Worker 的临时内存文件系统加载资料并清理临时文件。文件名使用内部编号，不访问导入名称中的电脑路径；完整配信先由 Core 解析为标准卡片。
+- 合法性分析、相遇检索和默认配信数据库共用外部配信表。显式传入配信文件的窗口只组合内置表及本次文件，避免再次拼接全局外部表。重复文件仍遵循来源行为；Core 当前按对象身份保留内容相同的多个文件。
+- 数据集绑定 Worker 指纹，重复配置保留相遇对象身份，变化后必须重建 Worker。资料写入成功后通知本页和其他标签，取消处理中请求，清除旧合法性报告并刷新相关工作区；配信窗口重新建立会话，同时保留本次撤销快照。取消或超时后的资料读取结果不得再次派发。
+- 上限为 1024 文件、单文件 Base64 64 KiB、解码总量 16 MiB、JSON 24 MiB；文件名 4096 字符。PGT／WR7 沿来源规则可用于手动配信窗口，但不进入 `RefreshMGDB` 支持的十种全局外部表。
+- 来源：`PKHeX.Core/Legality/Encounters/Data/EncounterEvent.cs`、`MysteryGifts/MysteryGift.cs`、`MysteryGifts/MysteryUtil.cs`，及第六世代 `EncounterPossible6`／`EncounterEnumerator6`。实际 Chrome 页面、浏览器内存文件系统及跨标签交互仍待连接恢复后核验，不能以原生或前端检查代替页面验收。
+
 ## 全局设置（SettingsEditor，来源核对）
+
+2026-10-15 配信资料库接 LocalResources.MGDatabasePath，来源为 LocalResourceSettings.GetMGDatabasePath、SAV_MysteryGiftDB.DatabasePath 及 MysteryUtil.GetGiftsFromFolder。默认 mgdb，空白对应本机根分类 local，按目录边界包含子分类。自定义文件新增可选 directory 元数据；缺失时只读归属 mgdb，已有文件不迁移或改写。存储升至版本 2，保留已有对象仓库和快照，旧页面不能按版本 1 继续写入；完整快照 CAS 包含目录、名称、内容、时间与顺序。
+
+读取与筛选只向配信资料库会话传当前目录文件，内置配信保持；移除只接受当前分类的文件 ID，撤销保留完整快照及其他目录。目录与相对文件名组合进入 Core，保持原扩展名与字节。目录字段沿设置 32767 字符；Core 完整来源名仍限 4096 字符、最多 1024 文件、单文件 48 KiB／Base64 64 KiB、全库 16 MiB 和请求 JSON 24 MiB。先进行原生验证，再更新本机库；存储失败重开旧快照。导入／移除／撤销及目录说明沿三语与共享控件。
+
+新增目录选择导入，保留 webkitRelativePath。候选文件使用现有 48 KiB 产品上限，超出候选范围不读入；候选范围内由新增只读 Core 批量识别入口使用 MysteryGift.IsMysteryGift／GetMysteryGift 判定，忽略非配信文件，不在 JavaScript 重写格式识别。识别不会重置当前配信会话或修改内置数据；全部无效时显示当前语言结果说明。批量识别进入 Worker，输入仍有 1024 文件／16 MiB／24 MiB JSON 保护。
+
+前端五文件 17 项及定向 Lint 通过。修订测试中多余的 Span 访问后，原生识别及既有配信数据库回归通过；类型、新核心及顺序构建后的前端产物均通过。日志为 `.tmp/pkhex-gift-directory-{front,lint,native-final,types,core,build-final,format-final}.log`。本轮目录消费点为配信资料库；StartupUtil.InitializeStatics 的全局外部配信刷新对合法性与相遇的影响仍需单独接线，不将窗口已读自定义文件当作全局刷新完成。页面和真实 IndexedDB 升级未核验，本批未提交，完整目标继续。
+
+2026-10-15 接入 LocalResources.DatabasePath 的本机资料目录。来源 LocalResourceSettings.GetDatabasePath 默认 pkmdb，空白解析到本机根分类 local；SAV_Database.LoadEntitiesFromFolder 对资料目录递归读取实体文件。浏览器采用目录分类，包含子分类，区分 pkmdb 与 pkmdb2 等相邻名称，不执行磁盘扫描。手动选取的其他存档和只读存档库来源保持独立，不因实体资料目录变化而删除。
+
+实体文件新增可选 directory 元数据；缺失时只读解释为 pkmdb，不迁移或重写旧资料。IndexedDB 升至版本 2，已有对象仓库保留，旧版本页面不能继续按版本 1 写入。替换／撤销 CAS 同时核对目录、原名称、格式标记、时间与完整字节，失败保留旧集合。全库仍受 1024 文件／总计 128 MiB 上限，单文件 64 MiB；目录字段沿设置 32767 字符，组合后的 Core 来源名称仍受 4096 字符与二进制描述 JSON 1 MiB 上限，不静默截短。
+
+打开／重读／预览／确认／报表只向 Core 发送当前资料目录及子目录、手动其他存档与只读库快照。来源名称包含目录，使同字节的目录替换也进入原生绑定。加入资料库使用当前目录前缀，提交只接受当前目录的新增结果、拒绝移除非活动目录或库快照；持久化／撤销保留完整集合及其他目录。目录提示三语，设置入口开放 DatabasePath；破损目录设置拒绝操作，不回退到另一分类。
+
+前端五文件 32 项与定向 Lint 通过，覆盖旧记录默认归属、版本升级不重建仓库、目录／子目录边界、原生名称、跨目录拒绝、CAS 及原缓冲保护。完整原生数据库回归通过。本轮没有修改 C#／Wasm 产品代码，不重复核心构建；类型、前端构建与真实副本目录提交核验通过；真实 E.sav 的 PK3 以完整目录名读取、同字节错误目录替换被拒绝、加入／冻结确认保持目标名称和实体字节，原件哈希保持。日志为 `.tmp/pkhex-database-directory-{front,lint,native,types,build,format-final}.log` 和 `.tmp/pkhex-database-directory-check/run.log`。浏览器 IndexedDB 升级和页面操作仍需外部 Chrome 核验，本批未提交；其余本机资源设置及完整目标继续。
+
+2026-10-15 补齐目录设置在启动发现和存档库中的消费点。来源为 Core StartupUtil.InitializeStatics、SaveFinder.Get3DSBackupPaths／GetSwitchBackupPaths，以及 WinForms SAV_FolderList.GetPathList／构造器。额外目录按分类与子目录边界匹配；最近列表保留原有手动记录，并补充额外目录及已导入的常见主机目录，沿来源排除 .bak／backup 文件，明确记忆的最近文件保留备份名例外。备份列表保留手动标记，并识别配置备份分类内的文件。以上均为显示分类，不改持久化标记、原始字节或 CAS 哈希。
+
+启动 RecentBackup 发现范围为明确导入的最近／记忆文件、配置额外目录和已导入的常见主机目录，仍排除备份文件名并按修改时间排序；LastLoaded 保持最近打开顺序及数量标记。常见目录元数据为九项 Core 枚举路径，前端 JSON 由原生测试逐项对照。只识别已导入的分类，不枚举磁盘、挂载设备或自动取得文件权限。
+
+存档库新增三语配置目录快捷筛选及目录范围选择，使用共享 Select 与 44px 按钮。配置项只有在库内有对应文件时启用；浏览器以筛选分类替代 Windows Explorer 打开目录。范围筛选按目录边界包含子目录，和现有列筛选／排序／分页组合；范围模式可查看已导入但不在最近／备份列表内的文件。查询新增可选 FolderRoot，默认 null；域限制 32767 字符，表单只选现有分类。返回最近／备份页会清除范围。打开库内文件保留原来源 ID，不再另造一份最近缓存。配置备份根的整理只新增直属文件，子目录不因新分类而进入整理；旧手动备份标记沿既有规则保留。
+
+原生目录设置专项及原有列表／冻结会话／公开 API 回归通过，覆盖九项 Core 路径、13 存档格式、目录边界、原元数据和哈希保护；前端五文件 38 项和定向 Lint 通过。类型、最新核心与顺序重建后的前端产物均通过；首次前端构建主动停止，最终产物在新核心完成后生成。真实 E.sav 工作副本通过配置最近／备份分类、跨请求范围保留、目录子项筛选、打开重读及校验和／25 只宝可梦检查；打开所得副本与原件 SHA-256 完全相同。日志为 `.tmp/pkhex-library-locations-{native,front,lint,types,core,build-final,format-final}.log` 及 `.tmp/pkhex-library-locations-check/run.log`。页面尚未核验，本批未提交；其余 LocalResources 路径及剩余设置仍在完整目标内。
+
+2026-10-15 宝可梦数据库接本机存档库来源，开放 EntityDb.SearchBackups／SearchExtraSaves／SearchExtraSavesDeep 与 Backup.OtherBackupPaths。来源为 `PKHeX.WinForms/Subforms/SAV_Database.cs` 的 LoadDatabase／LoadEntitiesFromFolder、Core `EntityDatabaseSettings.cs`、`BackupSettings.cs` 和 SaveUtil.GetSavesFromFolder／IsBackupFilePath。三个开关默认 true；先读取额外目录并排除 .bak 与基础名 backup，再读取 BackupPath 分类并保留备份文件。“搜索子目录”同时作用于两类目录；保留重叠／重复目录产生重复结果的来源行为，每个扫描结果有独立会话 ID。
+
+路径对应已明确导入的浏览器存档库分类，统一分隔符及末尾分隔符，按分类名与子目录边界匹配，不访问或扫描电脑目录。额外空白路径跳过，备份空白路径沿既有约定对应 local。布尔字段在表单和解析层保持一致；目录列表沿现有完整设置协议的 8192 项、单项 32767 字符和完整 JSON 2 MiB 上限，无独立 Qt 数值或进制输入。组合来源仍受数据库 1024 文件、单文件 64 MiB、总量 128 MiB、ID 128 字符和显示名称 4096 字符限制；本机存档库单文件上限仍为 32 MiB。
+
+数据库打开、预览、确认、独立编辑加入／导入及报表使用同一份包含存档库来源的二进制快照；点击“读取数据库”重新选取当前分类内容。库来源只按其他存档交给既有 Core 读取，不进入宝可梦文件库的替换／撤销事务；前端拒绝删除或替换来源快照 ID，Core 继续拒绝对其他存档格位直接删除。设置变化会重新初始化资料视图，并用读取代次及存活检查拒绝旧来源读取。来源清单采用三语说明，文件来源折叠控件统一 44px、15px 字号、10px 圆角、悬停与键盘焦点。
+
+前端五文件 29 项与定向 Lint、完整原生数据库专项通过，包括既有 13 存档格式、18 实体布局、BR 区域／分区／四配置、COLO／XD／RSBOX 合成记忆卡及只读源保护。真实 E.sav 工作副本通过 25 个当前条目＋25 个备份条目、来源 ID、备份删除拒绝、导入一只至工作副本／确认／重读及校验和检查，来源文件 delta 为空，原件哈希保持。日志为 `.tmp/pkhex-database-library-{front,lint,lint-final,native,types-final,build-final,format-final}.log`、`.tmp/pkhex-database-library-check/run.log`。最终类型复查、定向 Lint 和前端产物构建通过；已补清空旧预览／加载状态、合并容量预检及旧目录结果保护；本轮没有修改 C#／Wasm 产品代码，不重复核心构建。Chrome 本轮识别为 id3，但标签为空且 fetch 失败，页面未核验；本批未提交，完整目标保持。
+
+2026-10-15 接入打开时自动备份、启动恢复和最近记录上限。`Backup.BAKEnabled` 默认 true；备份名称直接由 Core `SaveFileMetadata.SetExtraInfo/GetBackupFileName` 生成，保持摘要、文件名清理和既有后缀去重。沿 Main.TryBackupExportCheck，在成功读取时备份输入原始字节，同分类同名备份存在时不覆盖；编辑和导出不会覆盖这份备份或磁盘原件。本机最近条目与新备份在同一 IndexedDB CAS 事务提交，容量／并发失败保留旧目录，打开的文件仍可编辑并显示三语失败提示。目录仍受 1024 文件、单文件 32 MiB、总量 128 MiB 限制，不自动删除旧文件腾空间。
+
+`LocalResources.BackupPath` 对应浏览器存档库的分类名称，默认 bak；空白对应 local。仅访问已明确导入的本机内容，不按字符串扫描电脑目录，不申请额外文件系统权限。设置页面明确说明存储范围及清除网站数据会删除副本。`Startup.RecentlyLoadedMaxCount` 沿来源 uint setter 范围 1–1000、默认 10；下一次成功打开时按打开顺序修剪 recent 标记，同名同分类旧版本退出最近列表，所有旧字节及备份继续保留。
+
+`Startup.AutoLoadSaveOnStartup` 沿 Disabled=0／RecentBackup=1／LastLoaded=2、默认 1。RecentBackup 沿 SaveFinder.DetectSaveFiles 及 SaveUtil.IsBackupFilePath，忽略 .bak 与基础文件名 backup，并按文件写入时间降序；保留来源大小写判断。LastLoaded 按最近打开顺序尝试已记忆条目。范围限于本机存档库，跳过无法自动识别的文件，不猜手动识别参数；未导出的编辑不会恢复。异步恢复检查工作副本、操作序号、组件存活及设置变化，用户打开／取消／关闭后停止。来源 `TryDetectRecentSave` 是文件选择器默认项，与启动恢复不同，仍未开放。
+
+原生备份命名、后缀去重及原件保护、前端首轮三文件 108 项和最后两文件 11 项、定向 Lint、最新核心构建通过。真实 E.sav 工作副本备份名称与 Core 一致，默认设置 JSON 字段、备份重新识别和校验和通过，原件／输入副本／备份输出 SHA-256 完全相同。修正状态栏遗漏新提示、恢复错误被通用错误覆盖及 ES2023 toSorted 超出 ES2022 目标的问题，排序改在筛选后的新数组进行，保留原列表。最终类型复查、全仓格式及 diff 检查通过，页面未核验；当前浏览器清单无外部 Chrome。日志为 `.tmp/pkhex-save-library-{native,front,front-repaired,lint-final,lint-repaired,core,types-repaired,format}.log` 与 `.tmp/pkhex-real-save-check/backup-run.log`。当前未提交，剩余设置与完整目标继续。
+
+2026-10-15 合法性报告接入 Display 四项：IgnoreLegalPopup、ExportLegalityVerboseProperties、ExportLegalityAlwaysVerbose、ExportLegalityNeverClipboard。来源为 Main.DisplayLegalityReport：详细展开为 Control-only XOR AlwaysVerbose，复制始终使用完整 verboseReport、两个换行及原始相遇 GetTextLines；只有相遇描述部分受 VerboseProperties 控制，NeverClipboard 隐藏复制操作。当前语言分别由 Core zh-Hans／en／ja 生成，保持完整来源文本和换行。网页既有报告为内联区，IgnoreLegalPopup 适配为隐藏通过报告的正文／展开／复制，保留已完成状态，承接来源主窗口先更新合法性图标再忽略弹窗的行为。
+
+存档、独立实体及登记队伍复用同一报告视图。存档分析改为实体副本，复制结果绑定具体报告，切换格位或载入新报告不会显示旧复制提示。复制按钮沿共享工具栏控件，三语操作／成功／失败信息已接；剪贴板只在点击时写入，没有自动复制。原生合法／不合法两结果 × 16 设置组合及三语完整剪贴板／原件保护通过；前端四文件 131 项、最后三语视图五项、最终类型／Lint、最新核心及 property-trim 均通过。原有合法性模块通过临时运行器调用已编译的原测试，完整报告／三语、11 存档格式队伍／箱子上下文及无效位置拒绝通过；真实 E.sav 工作副本编辑导出重读与独立 Core 全字节对照继续通过，原件哈希保持。日志为 `.tmp/pkhex-legality-display-{native,front,ui-final,lint,types,core,trim,context-regression}.log` 及 `.tmp/pkhex-real-save-check/legality-display-run.log`。Chrome 仍 id4／标签为空／fetch 失败，实际复制与页面未核验，本批未提交。
+
+Backup／LocalResources／Startup 其余字段继续核对：桌面目录扫描、程序目录和路径解析需映射用户明确选定文件与浏览器本机存储，不能将路径字符串保存当作扫描生效。其余资源路径、额外扫描目录、文件选择器默认项及启动设置仍待绑定；不新增后端，不修改原件，完整目标保持。
+
+2026-10-15 补齐真实格位的对战队伍、锁定、同行编号和初始伙伴标记，来源为 `SpriteUtil.GetSprite(PKM,SaveFile,...)`、`StorageSlotSource` 及各 SAV.GetBoxSlotFlags。沿来源顺序绘制 team、locked、party1–6、starter；x 分别为 49／54／52／0，y=0，使用原始图像尺寸。保留来源 slot 小于 30 的判断与首个队伍／同行位优先规则。存档空格位也可有保护标记，单独返回空格位图像描述，使用来源 b_0 底图，不删除、重编号或构造宝可梦数据。
+
+图层顺序补齐来源分支：启用合法性标记时先加相遇背景／经验条，再加格位标记；关闭时经验条在标记之后，筛选灰度／透明度始终最后处理。共享 SVG 保留全部标记，Canvas 处理源像素与顺序。新增九个原始 PNG，累计导入 6421 项并记录 SHA-256／宽高。原生六种同行／队伍组合、SWSH 实际锁定队伍与空／非空状态、LGPE 物理格位和初始伙伴、原件保护及经验顺序通过；前端图像四文件 46 项和新增空格位全览七项通过，实体和 90 个物理格位保持。最终类型／Lint、最新核心及 property-trim 均通过，框架已更新；真实 E.sav 副本编辑／导出／重读及独立 Core 全字节对照通过，原件哈希保持。日志为 `.tmp/pkhex-storage-markers-{native,front,gallery,lint,types,core,trim}.log` 与 `.tmp/pkhex-real-save-check/storage-markers-run.log`。Chrome 本轮仍 id4／标签为空／fetch 失败，实际页面未核验；本批未提交，剩余全局设置与完整目标继续。
+
+2026-10-15 存档格位接入合法性警告／禁用招式提示与 PKM 相遇背景，开放 display.FlagIllegal、sprite.ShowEncounterColorPKM 及筛选灰度／透明度四项设置。来源为 `SAVEditor.FlagIllegal`、`BoxEditor.GetFlags` 与 `SpriteUtil.GetSprite(PKM,SaveFile,...)`：默认检查，高级模式抑制标记；匹配存档 PKM 类型时用该存档 Personal，否则用实体 PersonalInfo，保留队伍／箱子 StorageSlotType。分析只操作实体副本，校验和 Valid 与 LegalityParsed／LegalityValid 独立返回。警告为 warn、合法但含禁用招式为 hint，均为 16×16、x=0/y=40；Tera 之后绘制，再应用原始相遇背景及经验条。蛋的零经验进度沿 EncounterMatch.LevelMin 判色。
+
+箱子检索不匹配的图片按来源先灰度再改透明度，格位仍可导航。移除旧 CSS 固定 0.35 透明度，使用 Worker 生成的 256 项 alpha 映射及设置中的 float 灰度；前端明确保留 float32 中间运算和字节截断。`ImageUtil.ChangeOpacity` 与 ToGrayscale 对 <=0.01f 或 >1f 跳过处理，不把越界设置推断成全透明；灰度只处理非零 alpha 像素。临时 Windows 原生项目运行未修改的 ImageUtil 位图方法，七组完整字节 SHA-256 与前端匹配，覆盖正常、小边界、负值、超界及 float.MaxValue。System.Drawing 仅用于临时参考验证，产品不增加该依赖。
+
+原始图像累计 6412 项，新增 warn／hint 保留 PNG 哈希和尺寸。原生设置／公开报告／格位及原件保护专项、最终前端三文件 38 项、末次类型与定向 Lint、修订核心及 property-trim 均通过，浏览器框架已更新。真实 E.sav 副本在新增合法性图片状态下继续通过训练家／单只宝可梦编辑、导出、重读及独立 Core 全字节对照，原件哈希保持。初稿启动字段名和透明度 skip 区间已按源码修正，不改变控件输入范围。日志为 `.tmp/pkhex-slot-art-{native-final2,filter-reference-final,front-final2,types-final,lint-final,core-final,trim}.log` 和 `.tmp/pkhex-real-save-check/slot-art-run.log`；夹具为 `sprite-filter-fixtures.json`。Chrome 本轮仍 id4／标签为空／fetch 失败，实际灰度、警告及布局未核验。本批未提交；其他全局设置、格位队伍／锁定／伙伴标记等继续，完整目标保持。
+
+2026-10-14 相遇、配信数据库与宝可梦报告接入轻量共享图片视图，不再为行图片固定 b 模式或丢失物种编号。视图保留蛋／道具／异色／特殊标记与捕获球，沿当前存档初始化模式和第三世代版本；报告从原始存档初始化图片，避免 Clone 重置 FRLG 的版本或 PersonalTable。报告内容、列顺序、排序及 CSV 仍沿原规则，图片字段不加入数据列。
+
+来源为 `SpriteUtil.Sprite(IEncounterTemplate)`、`GetMysteryGiftPreviewPoke` 与 `EntitySummaryImage`。普通相遇依次加捕获球、超极巨化、头目及背景；配信不加相遇背景，只按来源加蛋、持有道具、普通异色星、固定球和超极巨化标记。玛纳霏蛋沿专门分支忽略道具、球、异色与特殊标记。球图片位于左下角，缺失资源回退 _ball4。普通相遇背景使用来源托管类型名称 GetHashCode 乘 0x43FD43FD 的 RGB，保留同一 Worker 内的颜色规则；不另写 JavaScript 类型哈希。开放捕获球开关、相遇背景模式、厚度、两项透明度共五个设置，PKM 合法性相遇背景仍待接。
+
+新增来源球图片后，累计导入 6410 个原始资源，保留 PNG 哈希／尺寸。原生共享视图、公开报告／相遇／配信 JSON 与三模式专项通过，覆盖真实物种、底图、分层、Manaphy、原件保护和 FRLG 原始个人表；前端六文件 35 项、类型及定向 Lint 通过。首轮编译缺少夹具 Location 和 byte 类型已修正；扩大夹具补有效 GBA 区块，第三世代配信明确关闭在场筛选以检查完整来源库，未改变产品筛选。设置／报告／相遇／配信四组原生回归、最新核心构建和 property-trim 均通过，浏览器框架已更新；真实 E.sav 工作副本的训练家／单只宝可梦编辑、导出、重读及独立 Core 全字节对照继续通过，原件哈希保持。日志为 `.tmp/pkhex-shared-art-*-regression.log`、`.tmp/pkhex-shared-art-{core,trim}.log` 与 `.tmp/pkhex-real-save-check/shared-art-run.log`。当前不提交。Chrome 仍 id4／标签为空／fetch 失败，真实页面未核验；下一步继续 PKM 合法性相遇背景和剩余设置，完整目标保持。
+
+2026-10-14 补齐超极巨化、头目与暗黑／霸主图片效果，来源为 `SpriteUtil.GetSprite(PKM)`、`GetSpriteGlow`、`SpriteBuilder.GetBaseImageTotem` 及 Core `FormInfo`。超极巨化 dyna 图标 20×20、横向居中 x=24；头目 alpha_alt 为 20×20、x=49，按来源画布裁掉右缘。图标位于蛋／道具／异色层之后，暗黑分支优先于超极巨化与头目标记。霸主使用来源基础形态和前景橙色光晕，保留存储中的形态；暗黑洛奇亚使用 b_249x，但背景紫色光晕来自普通形态的无携带道具图像，蛋与异色按来源单独构建，不能拿暗黑底图或实际携带道具图像生成光晕。
+
+光晕沿 `ImageUtil` 的 128 alpha 阈值、3px 邻域、0.0777 递增及挖空规则处理 RGBA，正确适配来源 BGRA 的蓝色借用通道。临时原生项目复制未修改的来源 `ImageUtil.cs`，只执行字节算法，生成六组原生 SHA-256 夹具；源码哈希为 `554131f495924be8eb23360da98c917552fe83bee3bf6713272061b8beccb3c7`。前端六组完整字节哈希与原生相同，覆盖半透明、孤立像素、画布角落和两种颜色，输入保持不变。System.Drawing 仅存在临时原生参考项目，产品没有新增该依赖或后端；产品仍采用本机 PNG 与 Canvas／SVG。
+
+新增两项原始 PNG 后，导入来源资源累计 6373 项并保留哈希／尺寸。共享渲染器按资源地址关联图层，移除容易错位的图层数组下标；取消或重新载入时撤回旧画布，离屏 Canvas 不可用则保持 SVG。原生设置专项、最终前端三文件 26 项、定向 Lint、类型、最新核心构建与 property-trim 均通过，浏览器框架已更新。真实 E.sav 工作副本在新增图片报告下继续通过训练家／单只宝可梦编辑、导出、重读和独立 Core 完整字节对照，原件保护成立。日志为 `.tmp/pkhex-special-sprites-{native,reference,front,lint,types,core,trim}.log` 与 `.tmp/pkhex-real-save-check/special-sprites-run.log`，夹具为 `sprite-glow-fixtures.json`。Chrome 本轮仍 id4／标签为空／fetch 失败，实际 Canvas 和页面未核验；合法性相遇背景、数据库／报告图像与其他设置继续，当前不提交。
+
+2026-10-14 接入存档图片的太晶背景与经验条，开放对应五项设置。来源为 `SpriteUtil.GetSprite(PKM,SaveFile,...)`／`ApplyTeraColor`／`ApplyColor`／`ApplyExperience`、`TypeColor.GetTeraSpriteColor` 与 `ImageUtil.SetAllTransparencyTo`／`BlendAllTransparencyTo`。太晶采用 Core 的有效属性及 IsOverrideValid，Stellar 为 LightYellow；四种背景枚举为 0–3，透明度为 byte 0–255，条带厚度设置保持完整 Int32 范围，显示时负值或超过 56 的值按来源截为整张高度。存档格位报告携带效果，独立宝可梦文件与非格位预览沿来源不添加格位背景。
+
+图片仍使用本机原始 PNG。共享组件在 68×56 Canvas 中按既有图层组合，背景只替换 alpha 小于 128 的像素；条带对 alpha 为 128–254 的像素使用来源 20% 原值／80% 背景的字节截断混合，保留完全不透明像素。经验条最后写入最底一行：100 级 Lime，升级进度 DodgerBlue，零进度按原始相遇地点与等级判断 Yellow／DarkOrange；本批接未启用合法性图片叠加的路径，合法性相遇背景另行接入。PNG 加载或 Canvas 不可用时保留原有 SVG，避免空白图像；该回退不代表背景效果已生效。
+
+同时修正插画模式 TM 使用 aitem_tm、第三世代代欧奇希斯按当前存档版本显示形态、FRLG 不确定版本按 PersonalTable 区分，以及第四世代阿尔宙斯 Curse 属性索引重排。缺失形态沿来源在种类底图上叠加 0.5 透明度未知标记；未识别种类保留完整未知图。原生设置专项、最终前端三文件 17 项、最终定向 Lint、类型、最新核心构建与 property-trim 均通过，浏览器框架已更新。日志为 `.tmp/pkhex-sprite-color-{native,front-final,lint,types,core,trim}.log`。新报告结构下的真实 E.sav 副本检查继续通过训练家与单只宝可梦编辑／导出／重读、独立 Core 全字节对照及原件保护，日志为 `.tmp/pkhex-real-save-check/sprite-color-run.log`。Chrome 本轮识别 id4，但标签列表为空且 fetch 失败，未运行实际 Canvas／页面检查。当前不提交，合法性相遇背景、超极巨化／头目／暗黑／霸主效果及其他设置继续。
+
+2026-10-14 图片补齐携带道具与异色标记。来源为 `SpriteBuilder.cs`、`SpriteBuilder5668s/a/c`、`HeldItemLumpUtil` 与 `ShinyExtensions.GetType`；普通道具按 a/b 图像模式选择资源，招式学习器／招式记录沿来源合并图标，星形／方形异色使用独立来源标记。导入脚本从 resx 复制原始 PNG，累计 6371 项来源资源，记录 SHA-256 与叠加图层的原始宽高，没有修改位图。统一组件在 68×56 坐标系按底图、蛋、道具、异色顺序组合；道具右下角采用来源最大 32px、偏移 2px 和整数除法，异色透明度 0.7。完整蛋底图保持 0.33，持有道具蛋偏移 18/1；SVG 外层保留页面的尺寸／样式类，组合图像只提供一个可访问名称。
+
+箱子、详情、独立文件、数据库、登记队伍、生成预览及对战通行证／对战代理继续复用统一组件，对战录像与 DLC 队伍本批也已接入。修正旧页面只为 img 设置尺寸导致组合图片变大的问题。原生设置专项通过，招式记录夹具由无法容纳编号的 PK3 改为 PK8；前端最终三文件 13 项、定向 Lint、类型、最新核心构建与 property-trim 均通过，浏览器框架已更新。日志为 `.tmp/pkhex-sprite-overlays-front.log`、`.tmp/pkhex-sprite-overlays-types.log`、`.tmp/pkhex-sprite-overlays-core.log`、`.tmp/pkhex-sprite-overlays-trim.log`。相遇、太晶、经验条及特殊形态效果仍未完全接入；Chrome 连接仍通信失败，不能宣称页面或完整设置验收通过。本批未提交。
+
+真实 E.sav 工作副本新增单只宝可梦原始 PID 编辑、导出及重新读取检查，输出与独立 SAV3E／PK3 修改的完整存档字节一致，其余 24 只宝可梦报告不变；训练家金钱修改检查也继续通过。检查导出仅写入 `.tmp/pkhex-real-save-check/`，原件 SHA-256 保持 `7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442`。日志为 `.tmp/pkhex-real-save-check/pokemon-run.log`。此项确认编辑导出行为，不代表更改 PID 后的合法性或页面操作验收。
+
+2026-10-14 隐私设置补齐 HOME 控件与浏览器标题。HOME 读取通过 IHomeTrack.Tracker，报告与编辑协议均使用 16 位十六进制字符串，避免 JavaScript number 的 64 位精度丢失；支持 PK8／PB8／PA8／PK9／PA9。来源 `PKMEditor.Designer.cs` 的 TB_HomeTracker.MaxLength=16，`PKMEditor.Update_ID64` 调用 Core `Util.GetHexValue64` 过滤非 ASCII 十六进制字符，空值为 0，显示 X16。值域为 0–FFFFFFFFFFFFFFFF，字段缺失的旧格式不显示且拒绝编辑。仅改 HOME 时不重置队伍能力值，存档、独立文件、明文／加密与箱子／队伍共用既有副本写回和完整导出检查。
+
+HideSecretDetails 隐藏 HOME／PID／加密常数控件与 PID 摘要，保留 SID。HideSAVDetails 映射到 document.title：隐藏时保留 PokeRNGKit、存档格式和当前语言游戏名，移除文件名及训练家姓名；关闭存档或卸载后恢复原标题，不覆盖其他组件后来设置的标题。游戏名由 Core 三语 gamelist 提供；网页以显式打开的文件名和训练家摘要替代桌面 BAKName。来源 Main.GetProgramTitle 同样在隐藏时保留格式和游戏版本。原始标识标题、字段与说明已三语化，两个隐私选项均开放。
+
+HOME／标题原生专项通过五种格式、四类实体文件路径、ulong 极值、空值／字符过滤、无支持格式／错误操作拒绝、完整实体和 BD 存档输出精确对照，包含 Core 三语游戏名映射。既有独立原始值编辑回归已通过，普通 PID／EC／表单范围和健康数据保护保留。四文件 53 项前端、三文件 5 项表单／隐私、最终核心／类型／Lint、property-trim 与全仓格式均通过，框架已更新。HOME 专项已加入默认完整原生测试路径，原 E.sav 哈希保持。日志为 `.tmp/pkhex-home-tracker-title.log`、`.tmp/pkhex-home-tracker-raw-regression.log`、`.tmp/pkhex-home-tracker-core.log` 和 `.tmp/pkhex-home-tracker-trim.log`。Chrome 本轮仍 fetch 失败，实际标题与控件操作未验收；当前批未提交，其他设置、图像叠加仍须完成。
+
+2026-10-14 ReportGrid 两个设置已接报告初始查询：ExtraProperties 作为额外列，HiddenProperties 传给核心并用返回的 Visible 初始化网页列状态；排序保留临时隐藏状态，恢复全部列与复制沿当前显示。原版 `ReportGrid.cs` 先隐藏默认列再添加额外列，CSV 的 Export_CSV 不过滤隐藏列，网页保留这些规则。报告字段沿既有 Web 查询保护限制为每组最多 256 项、每项最多 128 字符；这是产品请求上限，不是 WinForms PropertyGrid 的源码上限，完整设置校验与表单均同步拒绝超限值。
+
+SlotExport.BoxExport 的 Scope／FolderCreation／FolderPrefix／EmptySlots／FileIndexPrefix／Notify 已作为导出控件默认值，默认全为 0，范围依来源枚举分别 0–1／0–1／0–2／0–1／0–3／0–1。来源文件为 `PKHeX.Core/Editing/Saves/Slots/Exporting/BoxExportSettings.cs` 与 WinForms `Subforms/BoxExporter.cs`。无当前箱子时仍只能选全部箱子；本次导出可显式覆盖默认值。Notify=Silent 省略成功文字通知，失败仍保留网页错误反馈；系统提示音行为待声音设置接入。DefaultBoxExportNamer 按来源 AvailableNamers 查找，未找到时回退第一个命名器，ZIP 实际使用所选命名器；静态版本当前只提供来源 Default，不支持 WinForms DLL 插件。
+
+五文件 130 项前端、修订原生设置、最终核心／类型／Lint、property-trim 与全仓格式均通过，浏览器框架已更新。原生用登记命名器确认真实 ZIP 命名及完整存档字节保护；原 E.sav 哈希保持。日志为 `.tmp/pkhex-settings-report-export.log`、`.tmp/pkhex-settings-report-export-core.log` 和 `.tmp/pkhex-settings-report-export-trim.log`。当前未提交。AllowBoxDataDrop、其他图片叠加与全局设置仍待接，完整目标未完成；Chrome 本轮仍 fetch 失败，实际报告显示、排序与下载未验收。
+
+2026-10-14 三个数据库选项已接统一设置：宝可梦数据库的 InitialSortMode／FilterUnavailableSpecies／ResultsGridRowCount，相遇数据库全部五项与神秘礼物数据库全部两项，共十个字段。来源为 `PKHeX.Core/Editing/Program/Settings/EntityDatabaseSettings.cs`、`EncounterDatabaseSettings.cs`、`MysteryGiftDatabaseSettings.cs`：行数均经来源 setter 限定 5–20、默认 9，排序枚举 None／SpeciesForm／SlotIdentity 为 0／1／2。原生检索／分页接口继续消费现有 options 协议，不另写算法。宝可梦数据库的三个目录扫描字段仍禁用待接，不声明六项全部完成。
+
+各数据库原先重复的选项控件改为打开统一面板的对应分组，保留数据库导入设置、筛选和相遇训练家管理；键盘焦点转到顶部设置入口。旧 localStorage 选项只投影到初始草稿，完整 Core 校验及用户确认保存后，统一 JSON 与迁移标记单次写入。旧模块键与训练家列表保留不动。快照版本 2 阻止旧页面覆盖时丢掉标记；仍能读取原版本 1。无统一标记时继续沿旧设置读取，统一后从完整模型投影，保存失败不发布迁移。首轮不可用存储读取回归和旧布局断言已修订，八文件 153 项、最终类型／Lint、全仓格式与 diff 检查均通过。Chrome 本轮仍 fetch 失败，实际跨标签与页面操作未验收。当前批只改前端设置连接，不重复核心构建或 RNG 回归。
+
+2026-10-14 正式入口已接到存档工作区顶部的“存档工具设置”，支持三语分组、核对变化、保存和重新读取。当前开放五个已应用的 Core 分组及编辑器隐私、图像模式、异色图像与蛋显示；其余字段仍在完整 22 分组目录中，明确标为待接入且禁止修改。恢复默认草稿保留禁用字段的原值，无变化时禁止保存；数值控件沿目录的 min／max／step，嵌套字段显示来源层级以区分同名选项。该入口不代表全部设置行为完成。
+
+隐私沿来源 PKMEditor.ToggleSecrets 隐藏当前 PID／加密常数编辑和 PID 摘要，不隐藏 SID；HOME 标识编辑本身仍待补齐，不声明已覆盖该控件。存档标题隐私、其他 17 分组作用点与图片叠加仍待接。设置只在 Core 完整校验后写本机快照，保存失败不发变更通知。活动操作阻止同页切换；跨标签设置变更立即终止旧请求。存档与独立文件重新读取工作副本并清理旧预览，保留字节、原件和撤销记录，实际界面行为仍待 Chrome 验证。
+
+修复独立文件客户端未传入保存设置的问题：复用请求规则但保持独立 Worker 与 1 MiB 上限；独立报告回传 a／b／c 模式，重建时可保持之前的模式，强制偏好无需先读存档。六文件 131 项前端、修订的原生设置、类型／Lint 与最新核心构建均通过，框架已更新。首轮新增夹具误用了不存在的序列化／读取 API，改用来源 WriteDecryptedDataStored／Inspect 后通过。原 E.sav 哈希保持。现有 PWA 已对未带哈希的 dotnet.js 使用 NetworkFirst，其他框架资源使用 CacheFirst，无需重复引入同一策略。Chrome 本轮仍标签读取失败，未进行实际页面验收。
+
+2026-10-14 图像模式与蛋显示已接统一 `PokemonSprite`：箱子、宝可梦详情、独立文件编辑器、数据库、登记队伍及生成预览复用同一组件。按来源 `SpriteBuilder5668s/a/c` 选择 b/a/c 模式；蛋保留种类底图，完整蛋模式底图透明度为 0.33，无持有道具的小蛋模式使用来源 18/1 像素偏移，玛纳霏使用专属蛋资源。缺失形态先沿来源备用模式检索，再尝试非异色形态与种类底图。相遇、太晶、道具等其他叠加仍待补齐，不声明完整渲染对齐。
+
+设置原生专项修订后通过；首次新增玛纳霏夹具错误使用 PK3，改为 PK4 后通过。图像／组件 7 项、定向 Lint、类型、最新核心构建与 property-trim 均通过，浏览器框架已更新。当前 API164 在真实 `C:\Users\Hakuhiro\Desktop\200\battery\E.sav` 的工作副本上确认 SAV3E、14×30 箱子、5 个队伍成员和共 25 个非空宝可梦；修改金钱后导出并重新读取通过校验，全部宝可梦报告保持一致，输入副本与原件未改。工程记录位于 `.tmp/pkhex-real-save-check/run.log`、`.tmp/pkhex-settings-egg-check.log`、`.tmp/pkhex-settings-sprites-build.log` 与 `.tmp/pkhex-settings-sprites-trim.log`。Chrome 本轮仍无法读取标签，不属于页面或所有者验收。全局设置其余作用点与正式入口未接完，当前批不提交。
+
+当前API164核心32508已成功，框架资源已生成。目录9099、公开93380、颜色87743与真实读取报告异色15117通过；97项前端专项、组件类型78965和定向Lint均通过，格式39115通过。当前仍有完整设置作用点、模式与图片叠加及入口未接，Core构建成功不能当作设置模块完成或页面验收。裁剪专项正在运行，本批未提交。312条基础标签已扩大为含枚举值的413条，来源文件和哈希不变。
+
+API164 目录末次9099与异色报告15117均通过；413条来源三语标签包含枚举选项，97项存储／客户端／标签专项及组件Lint、类型通过。Sprite.ShinySprites已作用于SpriteName，并修正PokemonReader传p.IsShiny，实际报告字段有专项；请求结束恢复先前值。source resx导入脚本import-pkhex-sprite-modes按原始b／a／c名称复制5230资源并记录每个来源SHA256，包含异色／头像／插画，不变换PNG。模式选择及蛋／相遇／太晶叠加仍未全部接，不能把图片入库当作完整渲染实现；其他设置作用点仍需接，组件未挂正式入口。新核心构建中，编译输入冻结，当前无完整构建终态或页面验收，本批未提交。
+
+API164 新增 SaveProgramSettings 全部22对象与 source-generated 完整JSON编解码、元数据字段目录；Core类直接复用，WinForms特有 Startup／Display／Sprite／Hover／Draw／SlotExport 按已核对公开属性建浏览器模型。三数据库行数沿Core setter 5–20、最近数沿来源1–1000、语言旧码迁移与默认版本setter沿来源；StatDisplayConfig静态默认经独立深拷贝。每请求Scope配置、相同Worker设置指纹锁与 finally旧状态恢复已接，客户端设置变化终止Worker以废弃旧冻结票据。本机快照具有版本／revision并在冲突或配额失败时保留旧值，完整Core验证后才应保存。模型5141／目录49562／公开93380原生与存储／客户端96项通过，尚未完成核心构建／裁剪／整仓／真实页面；共享编辑组件暂未挂入口，剩余设置实际使用点仍待接，不能把保存配置当作全部功能生效。
+
+设置标签资源 settings-labels.json 的312条 PropertyGrid／LocalizedDescription／SettingsEditor 文本由只读 PKHeX26.08.26 WinForms Resources/text 的 en／zh-Hans／ja 提取，本地打包，继续受GPL-3.0-or-later和既有PKHeX归属约束。来源SHA256：en `C323311799D0101CFD05DDEDDD46FB210BF22AE4AB8FADF96B67052681AD554C`；zh-Hans `AEBFC1DB32289C37D8E6CD1D337BDE0F84F4B596EC8BF824D4EE7F398CDF2C64`；ja `503665381D3C040B589A90839D9F99A5326B18BE6EA22861C3724B407160E330`。颜色名称转RGB专项87743当前运行，不能把未终态检查计为通过。
+
+当前内部工程证据：实际格位八组合31248、严格JSON77565、原子与嵌套作用域55999均退出0，五对象深拷贝／完整嵌套验证／全局应用／旧状态恢复／完整输出对照通过。尚未接公开22对象目录、Worker、本机持久化、正式设置界面与其他设置对象作用点，API163不变。本节后续运行中记录是过程证据，不作为最新状态；当前模块未提交，完整PKHeX目标未完成。
+
+严格 JSON 专项77565已通过完整嵌套配置、遗漏／未知／重复字段拒绝；原子与作用域检查继续通过。实际写入专项31248正在运行，八种全局写入设置分别通过默认 SetBoxSlotAtIndex 与来源显式 EntityImportSettings 对比完整 G3E 文件，保留原件断言。来源 SAVEditor.GetImportSettingsOverride 的 Yes／No／其他返回 All／None／default，全局设置只替代默认行为，显式操作选项继续优先；22对象完整公开目录、持久化及正式 UI 未接。
+
+内部作用域专项 55999 已退出 0，覆盖空嵌套／非法 enum 在改全局状态前拒绝、旧合法性对象 identity、分组语言 fallback 和原始 EntityImportOption（含 UseDefault）恢复、嵌套与重复 dispose。严格 JSON Decode 新增 256 KiB 字符请求保护与每级完整可读写字段、未知／重复字段拒绝，专项77565正在运行。现有 PokemonEditing／PropertyBatch 存在显式 EntityImportSettings.None，后续按来源操作作用点区分显式选项与全局默认，不直接批量替换以强迫设置生效。公开目录、22对象实际使用、持久化和页面仍待接。
+
+内部原子层已经写入：通过 source-generated JsonTypeInfo 遍历可读写属性，先验证全部嵌套非空与 Severity／LanguageID／GameVersion／两个转换 enum，再应用。快照保留 Core 旧合法性对象及全部已应用参数，失败恢复与嵌套请求 IDisposable 结束恢复同一状态；原 EntityImportOption 可为 UseDefault，不能转成 bool 后丢失。SaveLanguage.Apply 可能跳过 GS／RS 等分组版本，恢复显式重设四版本，避免请求残留。原子专项初稿41197的无效 enum 测试常量超出 sbyte 范围已改127，修正55999尚无终态；这些内部代码不构成公开22对象接入或页面验收。
+
+SettingsEditor 已开始内部开发，SaveCoreSettings 包含五个纯 Core 设置对象（Legality／Converter／Import／SlotWrite／SaveLanguage），使用 source-generated JSON 深拷贝再逐项应用来源全局行为，避免用户后来修改嵌套对象影响运行中的 Core。初稿专项 97280 正在编译运行，尚无结果；API163 保持。该内部层尚未开放输入，完整嵌套输入验证／原子应用／旧全局状态恢复、公开 Worker 协议、本机持久化、22对象目录和真实 UI 仍待接入；不是全局设置功能完成。
 
 尚未实现全局设置模块。来源 WinForms `Settings/PKHeXSettings.cs` 声明 Startup、Backup、LocalResources、Legality、Converter、Import、SlotWrite、Privacy、SaveLanguage、Display、Sprite、Sounds、Hover、BattleTemplate、Draw、Advanced、EntityEditor、EntityDb、EncounterDb、MysteryDb、Report、SlotExport 共 22 个设置对象。`SettingsEditor.LoadSettings` 按 ReflectUtil.GetPropertiesCanWritePublicDeclared 获取非 null 对象，没有按 Browsable 属性过滤页面，因此标记 Browsable(false) 的 SlotExport 仍须纳入范围；来源语言文件也有 SettingsEditor.SlotExport 标签。
 

@@ -18,6 +18,9 @@ internal static class SaveDetection
             choice.FileName is null || choice.FileName.Length > 32767 || choice.FileName.Any(char.IsControl)) throw Invalid();
         var versions = Versions(choice.Type);
         if (versions.Length == 0 ? choice.SubVersion != GameVersion.Any : !versions.Contains(choice.SubVersion)) throw Invalid();
+        // The Korean offset table has no Crystal gender/palette fields. Core
+        // accepts the constructor pair but fails when reading its trainer data.
+        if(choice.Type==SaveFileType.GSC&&choice.SubVersion==GameVersion.C&&choice.Language==LanguageID.Korean)throw Invalid();
         var handler = Handlers.SingleOrDefault(value => HandlerName(value) == choice.Handler) ?? throw Invalid();
         if (!handler.IsRecognized(original.Length)) throw Invalid();
         // Selected handler runs on its own memory; the caller's container is never parsed in place.

@@ -21,7 +21,7 @@
   min-width: 0;
   align-content: start;
 }
-.save-festa-agency img {
+.save-festa-agency :is(img, .save-pokemon-art) {
   width: 68px;
   height: 56px;
   object-fit: contain;

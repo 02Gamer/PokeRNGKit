@@ -17,7 +17,7 @@ internal static class Trainer6Editing
     private static string Text(int n)=>n.ToString(CultureInfo.InvariantCulture);
     private static LocalizedText Label(string key,string fallback)=>Trainer6Names.Get("SAV_Trainer."+key,fallback);
     private static OriginChoice[] Sprites(SAV6 s){var values=Enum.GetValues<TrainerSprite6>();int count=s is SAV6XY?(int)TrainerSprite6.Trevor:values.Length;return values.Take(count).Select(v=>new OriginChoice((int)v,Trainer6Names.Get("TrainerSprite6."+v,v.ToString()))).ToArray();}
-    private static OriginChoice[] Vivillon(SAV6 s){string[] List(string l){var g=GameInfo.GetStrings(l);return FormConverter.GetFormList((ushort)Species.Vivillon,g.types,g.forms,["♂","♀","-"],s.Context);}var z=List("zh-Hans");var e=List("en");var j=List("ja");return Enumerable.Range(0,z.Length).Select(i=>new OriginChoice(i,new(z[i],e[i],j[i]))).ToArray();}
+    private static OriginChoice[] Vivillon(SAV6 s){string[] List(string l){var g=GameInfo.GetStrings(l);return FormConverter.GetFormList((ushort)Species.Vivillon,g.types,g.forms,PokemonDisplay.GenderSymbols,s.Context);}var z=List("zh-Hans");var e=List("en");var j=List("ja");return Enumerable.Range(0,z.Length).Select(i=>new OriginChoice(i,new(z[i],e[i],j[i]))).ToArray();}
     private static string[] Sayings(SAV6 s)=>[s.Status.Saying1,s.Status.Saying2,s.Status.Saying3,s.Status.Saying4,s.Status.Saying5];
     private static void Saying(SAV6 s,int i,string v){switch(i){case 0:s.Status.Saying1=v;break;case 1:s.Status.Saying2=v;break;case 2:s.Status.Saying3=v;break;case 3:s.Status.Saying4=v;break;case 4:s.Status.Saying5=v;break;default:throw new ArgumentException("Invalid Trainer6 saying.");}}
     private static Tr6Field[] Fields(SAV6 s)

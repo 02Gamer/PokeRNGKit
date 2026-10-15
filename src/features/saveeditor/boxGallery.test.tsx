@@ -43,6 +43,28 @@ const report = (): SaveReport =>
   }) as SaveReport;
 const none = { shiftKey: false, altKey: false, ctrlKey: false, metaKey: false };
 describe("Box-list gallery", () => {
+  it("shows real empty storage flags while preserving every physical slot", () => {
+    const r = report();
+    r.emptySlotMarkers = [{ box: 2, slot: 3, markers: ["team", "locked"] }];
+    const before = structuredClone(r);
+    const html = renderToStaticMarkup(
+      <SaveBoxGallery
+        report={r}
+        revision={1}
+        scope="scope"
+        selected={{ box: 0, slot: 0 }}
+        busy={false}
+        lang="zh"
+        onSelect={() => {}}
+        onSwap={async () => {}}
+        onDrop={async () => {}}
+      />,
+    );
+    expect(html.match(/data-slot=/g)).toHaveLength(90);
+    expect(html).toContain("locked.png");
+    expect(html).toContain("team.png");
+    expect(r).toEqual(before);
+  });
   it("marks matches without removing or renumbering occupied and empty physical slots", () => {
     const r = report(),
       before = structuredClone(r);
@@ -161,4 +183,44 @@ describe("Box-list gallery", () => {
     expect(markup).toContain("Swap previous");
     expect(JSON.stringify(r)).toBe(before);
   });
+  it.each(["zh", "en", "ja"] as const)(
+    "uses independent slot-write capability in the shared grid for %s",
+    (lang) => {
+      const r = {
+        ...report(),
+        canEdit: false,
+        pokemonEditing: {
+          canEdit: true,
+          editor: "standard" as const,
+          canRaw: true,
+          canImport: true,
+          canStorage: true,
+        },
+      };
+      const render = (value: SaveReport) =>
+        renderToStaticMarkup(
+          <SaveBoxGallery
+            report={value}
+            revision={7}
+            scope="scope"
+            selected={{ box: 0, slot: 0 }}
+            busy={false}
+            lang={lang}
+            onSelect={() => {}}
+            onSwap={async () => {}}
+            onDrop={async () => {}}
+          />,
+        );
+      expect(render(r)).toContain('draggable="true"');
+      expect(render({ ...r, checksumsValid: false })).not.toContain(
+        'draggable="true"',
+      );
+      expect(
+        render({
+          ...r,
+          pokemonEditing: { ...r.pokemonEditing, canStorage: false },
+        }),
+      ).not.toContain('draggable="true"');
+    },
+  );
 });

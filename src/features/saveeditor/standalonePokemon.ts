@@ -15,7 +15,8 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 163;
+  apiVersion: 171;
+  spriteMode?: "a" | "b" | "c";
   format: string;
   extension: string;
   party: boolean;
@@ -29,6 +30,9 @@ export interface StandalonePokemonReport {
   gb?: GbSpecialInfo | null;
 }
 export interface StandalonePokemonRequest {
+  battleTemplateImport?: import("./battleTemplateImport").BattleTemplateImportRequest;
+  battleTemplateImportConfirmation?: import("./battleTemplateImport").BattleTemplateImportConfirmation;
+  battleTemplateImportToken?: string;
   textTrashTarget?: import("./textTrash").TextTrashTarget;
   textTrashRequest?: import("./textTrash").TextTrashRequest;
   textTrashConfirmation?: import("./textTrash").TextTrashConfirmation;
@@ -77,6 +81,7 @@ export interface StandalonePokemonRequest {
   handler?: number;
   memory?: number;
   version?: number;
+  originBall?: number;
   useFileFormat?: boolean;
   eggTrainer?: StandaloneEggTrainer;
 }
@@ -125,6 +130,10 @@ export type StandalonePokemonOperation =
   | "entityRaw"
   | "entityDetails"
   | "entityLegality"
+  | "entityBattleTemplate"
+  | "entityBattleTemplateImportPreview"
+  | "entityBattleTemplateImportCommit"
+  | "entityBattleTemplateImportDiscard"
   | "entityInspect"
   | "entityEdit"
   | "entityExport";
@@ -143,6 +152,8 @@ export interface GbPokemonEdit {
   heldItem: number | null;
 }
 export interface StandalonePokemonResult {
+  battleTemplateImport?: import("./battleTemplateImport").BattleTemplateImportTicket;
+  battleTemplate?: import("./battleTemplate").BattleTemplateReport;
   textTrash?: import("./textTrash").TextTrashCatalog;
   textTrashDraft?: import("./textTrash").TextTrashDraft;
   textTrashPreview?: import("./textTrash").TextTrashTicket;

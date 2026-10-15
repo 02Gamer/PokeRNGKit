@@ -1,3 +1,4 @@
+import { useGenderLabel } from "./useGenderLabel";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
 import { AutoCompleteComboBox } from "../shared/AutoCompleteComboBox";
@@ -66,6 +67,7 @@ function Form({
   onPreview,
   onApply,
 }: Props & { c: Tr8bCatalog }) {
+  const genderLabel = useGenderLabel();
   const w = trainer8bWords[lang];
   const fieldName = (f: Tr8bCatalog["fields"][number]) =>
     f.key.startsWith("record")
@@ -419,7 +421,9 @@ function Form({
                       )}
                       {f.choices.map((v) => (
                         <option key={v.id} value={v.id}>
-                          {v.name[lang]}
+                          {f.key === "gender"
+                            ? genderLabel(v.id, v.name[lang])
+                            : v.name[lang]}
                         </option>
                       ))}
                     </Select>

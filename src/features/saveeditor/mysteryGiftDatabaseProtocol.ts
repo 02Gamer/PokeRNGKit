@@ -3,6 +3,7 @@ import type { LocalizedText, OriginChoice, PokemonEntry } from "./domain";
 import type { PokemonSearchFormat } from "./pokemonSearch";
 export type MysteryGiftDatabaseRequestKind =
   | "giftDatabaseOpen"
+  | "giftDatabaseScanFiles"
   | "giftDatabaseRead"
   | "giftDatabaseCatalog"
   | "giftDatabasePreview"
@@ -31,6 +32,7 @@ export interface MysteryGiftDatabaseQuery {
   instructions: string;
 }
 export interface MysteryGiftDatabaseRow {
+  artwork?: import("./PokemonSprite").SpriteData | null;
   id: number;
   cardId: number;
   title: string;

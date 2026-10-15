@@ -5,9 +5,9 @@ namespace PokeRNGKit.SaveEditor;
 
 public sealed record OriginInfo(int Version, int Ball, int MetLocation, int EggLocation, bool CanEggLocation);
 public sealed record OriginEdit(int? Version = null, int? Ball = null, int? MetLocation = null, int? EggLocation = null);
-public sealed record OriginQuery(int Box, int Slot, int? Version = null);
+public sealed record OriginQuery(int Box, int Slot, int? Version = null, int? Ball = null);
 public sealed record OriginChoice(int Id, LocalizedText Name);
-public sealed record OriginCatalog(int Version, OriginChoice[] Games, OriginChoice[] Balls, OriginChoice[] MetLocations, OriginChoice[] EggLocations);
+public sealed record OriginCatalog(int Version, OriginChoice[] Games, OriginChoice[] Balls, OriginChoice[] MetLocations, OriginChoice[] EggLocations, BallBrowserCatalog? BallBrowser = null);
 
 internal static class PokemonOrigin
 {
@@ -47,21 +47,26 @@ internal static class PokemonOrigin
     {
         var p = PokemonEditing.Read(save, query.Box, query.Slot);
         if (p.Species == 0 || !p.ChecksumValid) throw new ArgumentException("Pokemon slot must contain valid data.");
-        return Catalog(save, p, query.Version);
+        return Catalog(save, save.Context, save.Version, p, query.Version, query.Ball);
     }
     private static OriginCatalog Catalog(SaveFile save, PKM p, int? version)
         => Catalog(save, save.Context, save.Version, p, version);
 
-    public static OriginCatalog Catalog(PKM p, int? version = null)
-        => Catalog(p, p.Context, GameVersion.Invalid, p, version);
+    public static OriginCatalog Catalog(PKM p, int? version = null, int? ball = null)
+        => Catalog(p, p.Context, GameVersion.Invalid, p, version, ball);
 
-    private static OriginCatalog Catalog(IGameValueLimit limits, EntityContext context, GameVersion fallback, PKM p, int? version)
+    private static OriginCatalog Catalog(IGameValueLimit limits, EntityContext context, GameVersion fallback, PKM p, int? version, int? ball = null, bool readBrowser = true)
     {
         var games = Games(limits, context, p);
         var chosen = version ?? (int)p.Version;
         if (chosen != (int)p.Version && !games.Any(c => c.Id == chosen))
             throw new ArgumentException("Origin game is unavailable in this format.");
         p = p.Clone(); p.Version = (GameVersion)chosen;
+        if (ball is int requestedBall)
+        {
+            if (requestedBall is < 0 or > byte.MaxValue) throw new ArgumentException("Preview ball is outside the source byte range.");
+            p.Ball = (byte)requestedBall;
+        }
         var balls = Localize(s => s.BallDataSource.Where(c => c.Value <= limits.MaxBallID && CanBall(p, c.Value)));
         // The desktop falls back to the save/context for an unknown origin group.
         var locationVersion = p.Version;
@@ -74,14 +79,14 @@ internal static class PokemonOrigin
         var maxLocation = p is PK3 ? byte.MaxValue : ushort.MaxValue;
         var met = Localize(s => s.Met.GetLocationList(locationVersion, p.Context).Where(c => c.Value >= 0 && c.Value <= maxLocation));
         var egg = p.Format >= 4 ? Localize(s => s.Met.GetLocationList(locationVersion, p.Context, true)) : [];
-        return new(chosen, games, balls, met, egg);
+        return new(chosen, games, balls, met, egg, readBrowser ? PokemonBallBrowser.Read(p) : null);
     }
 
     public static void Apply(SaveFile save, PKM p, OriginEdit edit)
-        => Apply(p, edit, Catalog(save, p, edit.Version));
+        => Apply(p, edit, Catalog(save, save.Context, save.Version, p, edit.Version, readBrowser: false));
 
     public static void Apply(PKM p, OriginEdit edit)
-        => Apply(p, edit, Catalog(p, edit.Version));
+        => Apply(p, edit, Catalog(p, p.Context, GameVersion.Invalid, p, edit.Version, readBrowser: false));
 
     private static void Apply(PKM p, OriginEdit edit, OriginCatalog catalog)
     {

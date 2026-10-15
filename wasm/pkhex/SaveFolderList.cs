@@ -7,13 +7,14 @@ internal sealed record SaveFolderFile(string Id,string Name,string Folder,byte[]
 internal sealed record SaveFolderRow(string Id,string SourceHash,string Ot,int Generation,GameVersion Game,LocalizedText GameName,string Played,
     string FileTime,string Tid,string Sid,string Folder,string Name,bool Recent,bool Backup,string Format);
 internal sealed record SaveFolderLoadError(string Id,string Name,string Error);
-internal sealed record SaveFolderQuery(bool Backup=false,int Column=-1,string Text="",int Sort=-1,bool Descending=false,string Culture="en-US");
+internal sealed record SaveFolderQuery(bool Backup=false,int Column=-1,string Text="",int Sort=-1,bool Descending=false,string Culture="en-US",string? FolderRoot=null);
 internal sealed record SaveFolderCleanup(string Id,string Action,string Name);
 
 // Source SAV_FolderList/SavePreview. Only explicit files enter this model; no
 // host paths, directory scan, filesystem mutation, or automatic cleanup occurs.
 internal sealed class SaveFolderList
 {
+    private readonly SaveLibraryScope? scope=SaveProgramSettingsRuntime.Current is {} settings?new(settings):null;
     private readonly Dictionary<string,SaveFolderFile> files=new(StringComparer.Ordinal);
     private readonly Dictionary<string,SaveFile> saves=new(StringComparer.Ordinal);
     internal SaveFolderRow[] Rows {get;}
@@ -35,7 +36,7 @@ internal sealed class SaveFolderList
             rows.Add(new(owned.Id,Br4Editing.Hash(owned.Data),preview.OT,preview.G,preview.Game,GameName(save),preview.Played,
                 DateTimeOffset.FromUnixTimeMilliseconds(owned.Modified).UtcDateTime.ToString("yyyy.MM.dd:hh:mm:ss",CultureInfo.InvariantCulture),
                 preview.TID,preview.SID,preview.Folder,preview.Name,
-                owned.Recent&&(owned.Remembered||!SaveUtil.IsBackupFilePath(owned.Name)),owned.Backup,save.GetType().Name));
+                scope?.Recent(owned)??(owned.Recent&&(owned.Remembered||!SaveUtil.IsBackupFilePath(owned.Name))),scope?.Backup(owned)??owned.Backup,save.GetType().Name));
         }
         Rows=rows.OrderByDescending(row=>files[row.Id].Modified).ToArray();Errors=errors.ToArray();
     }
@@ -56,11 +57,11 @@ internal sealed class SaveFolderList
     }
     internal SaveFolderRow[] Read(SaveFolderQuery query)
     {
-        if(query is null||query.Column is <-1 or >8||query.Sort is <-1 or >8||query.Text is null||query.Text.Length>32767||query.Culture is not("zh-CN" or "en-US" or "ja-JP"))throw new ArgumentException("Invalid save folder query.");
+        if(query is null||query.Column is <-1 or >8||query.Sort is <-1 or >8||query.Text is null||query.Text.Length>32767||query.FolderRoot?.Length>32767||query.Culture is not("zh-CN" or "en-US" or "ja-JP"))throw new ArgumentException("Invalid save folder query.");
         var old=CultureInfo.CurrentCulture;
         try{
             CultureInfo.CurrentCulture=CultureInfo.GetCultureInfo(query.Culture);
-            var selected=Rows.Where(row=>query.Backup?row.Backup:row.Recent).ToList();
+            var selected=Rows.Where(row=>query.FolderRoot is {} root?SaveLibraryScope.Within(row.Folder,root):query.Backup?row.Backup:row.Recent).ToList();
             if(query.Sort>=0)selected.Sort((a,b)=>(query.Descending?-1:1)*Compare(a,b,query.Sort));
             if(query.Column>=0&&query.Text.Length!=0)selected.RemoveAll(row=>!Cell(row,query.Column).Contains(query.Text,StringComparison.CurrentCultureIgnoreCase));
             return selected.ToArray();
@@ -71,7 +72,7 @@ internal sealed class SaveFolderList
     {
         var result=new List<SaveFolderCleanup>();
         var names=files.Values.Select(file=>(file.Folder,file.Name.Replace('\\','/'))).ToHashSet();
-        foreach(var file in files.Values.Where(file=>file.Backup)){
+        foreach(var file in files.Values.Where(file=>file.Backup||scope?.BackupRoot(file.Folder)==true)){
             // Desktop CleanBackups uses Directory.GetFiles without recursion.
             if(file.Name.IndexOfAny(['/', '\\'])>=0)continue;
             if(!saves.TryGetValue(file.Id,out var save)){if(deleteUnrecognized)result.Add(new(file.Id,"remove",file.Name));continue;}

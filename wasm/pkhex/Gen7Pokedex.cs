@@ -33,7 +33,7 @@ internal static class Gen7Pokedex
         return new(save.State.Exportable&&SaveChecksums.Valid(save),Enumerable.Range(0,EntryCount(save)).Select(index=>{
             ushort species=d.GetBaseSpecies(index);int form=index<save.MaxSpeciesID?0:index-save.MaxSpeciesID-d.GetCountFormsPriorTo(species,save.Personal[species].FormCount)+1;
             return new Dex7Entry(State(save,index),species,form,Text(s=>s.specieslist[species]),Text(s=>{
-                var names=FormConverter.GetFormList(species,s.types,s.forms,save.Context);return form<names.Length?names[form]:form.ToString();
+                var names=FormConverter.GetFormList(species,s.types,s.forms,PokemonDisplay.GenderSymbols,save.Context);return form<names.Length?names[form]:form.ToString();
             }),Allowed(save,index));
         }).ToArray(), save is SAV7b gg?LetsGoCapture.Read(gg):null);
     }

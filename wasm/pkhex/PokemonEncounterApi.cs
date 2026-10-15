@@ -12,7 +12,7 @@ internal sealed record PokemonEncounterReadRequest(PokemonEncounterDatabaseQuery
 internal sealed record PokemonEncounterCriteriaRequest(string Action,PokemonEncounterCriteria? Criteria=null);
 internal sealed record PokemonEncounterDetails(string[] Zh,string[] En,string[] Ja);
 internal sealed record PokemonEncounterRow(int Id,ushort Species,byte Form,int Gender,byte Generation,int Version,
-    byte LevelMin,byte LevelMax,ushort Location,ushort EggLocation,bool Egg,bool Shiny,int Ability,string Type,string Sprite,PokemonEncounterDetails Details);
+    byte LevelMin,byte LevelMax,ushort Location,ushort EggLocation,bool Egg,bool Shiny,int Ability,string Type,string Sprite,PokemonEncounterDetails Details,PokemonArtwork? Artwork=null);
 internal sealed record PokemonEncounterView(string SourceHash,int Matches,int Offset,int GridRows,
     PokemonEncounterCriteria Criteria,PokemonEncounterRow[] Rows);
 
@@ -44,7 +44,7 @@ internal static class PokemonEncounterRuntime
     {
         Reset();var request=Decode(json,PokemonEncounterJson.Default.PokemonEncounterOpenRequest);
         if(input is null||input.Length is 0 or >32*1024*1024||entity is null||entity.Length>PokemonFiles.MaximumSize||request.Trainers is {Length:>1024})throw new ArgumentException("Invalid encounter sources.");
-        var save=SaveService.OpenDatabaseSave(input.ToArray());PKM prepared;
+        var save=SaveService.OpenDatabaseSave(input.ToArray());SaveSpriteView.Select(save);PKM prepared;
         if(entity.Length!=0) {
             if(request.Position is not null||string.IsNullOrEmpty(request.FileName))throw new ArgumentException("Choose one encounter editor source.");
             prepared=StandalonePokemon.Open(entity,request.FileName,false,true).Entity;
@@ -73,12 +73,13 @@ internal static class PokemonEncounterRuntime
         var rows=results.Skip(offset).Take(current.Database.GridRows*6).Select((value,index)=>new PokemonEncounterRow(offset+index,
             value.Species,value.Form,value is IFixedGender gender?gender.Gender:2,value.Generation,(int)value.Version,
             value.LevelMin,value.LevelMax,value.Location,value.EggLocation,value.IsEgg,value.IsShiny,(int)value.Ability,
-            value.GetType().Name,Sprite(value),new(value.GetTextLines(language:"zh-Hans").ToArray(),value.GetTextLines(language:"en").ToArray(),value.GetTextLines(language:"ja").ToArray()))).ToArray();
+            value.GetType().Name,Sprite(value),new(value.GetTextLines(language:"zh-Hans").ToArray(),value.GetTextLines(language:"en").ToArray(),value.GetTextLines(language:"ja").ToArray()),SaveProgramSettingsRuntime.Current is not null?SaveArtwork.Encounter(value):null)).ToArray();
         return JsonSerializer.Serialize(new PokemonEncounterView(current.SourceHash,results.Length,offset,current.Database.GridRows,
             PokemonEncounterCriteria.From(current.Database.Criteria),rows),PokemonEncounterJson.Default.PokemonEncounterView);
     }
     internal static string Sprite(IEncounterInfo value)
     {
+        if(SaveProgramSettingsRuntime.Current is not null)return SaveArtwork.Encounter(value).Sprite;
         byte gender=value switch{MysteryGift gift=>Math.Max((byte)0,gift.Gender),IFixedGender {IsFixedGender:true} fixedGender=>Math.Max((byte)0,fixedGender.Gender),IPogoSlot pogo=>(byte)((int)pogo.Gender&1),_=>0};
         return value.IsEgg?value.Species==490?"b_490_e":"b_egg":"b"+SpriteName.GetResourceStringSprite(value.Species,value.Form,gender,0,value.Context,value.IsShiny);
     }
@@ -107,6 +108,11 @@ internal static class PokemonEncounterRuntime
     }
     internal static void Discard(string token)=>session?.Discard(token);
     internal static void Reset(){session?.Reset();session=null;source=null;}
+    internal static IEncounterInfo HoverEntry(byte[] input,int id)
+    {
+        var current=Session();current.AssertSource(input);var results=current.Database.Results;
+        return (uint)id<results.Length?results[id]:throw new ArgumentException("Invalid encounter hover id.");
+    }
     private static PokemonEncounterSession Session()=>session??throw new ArgumentException("Load the encounter database first.");
     private static T Decode<T>(string json,System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> type)where T:class
     {

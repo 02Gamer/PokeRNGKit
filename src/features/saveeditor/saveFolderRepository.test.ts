@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   loadSaveFolder,
+  rememberSaveFolderFile,
   replaceSaveFolder,
   type SaveFolderSnapshot,
 } from "./saveFolderRepository";
@@ -70,6 +71,65 @@ function storage(value: SaveFolderSnapshot, fail = false) {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("local save library transaction", () => {
+  it("atomically stores original bytes and deduplicates backups without overwriting", async () => {
+    const read = storage(initial);
+    const options = {
+      backupName: "main [trainer].bak",
+      backupFolder: "bak",
+      recentMax: 1,
+    };
+    await rememberSaveFolderFile(
+      new File([new Uint8Array([4, 5])], "E.sav", { lastModified: 321 }),
+      new Uint8Array([4, 5]),
+      options,
+    );
+    expect(read().files.filter((f) => f.recent)).toHaveLength(1);
+    const backup = read().files.find((f) => f.backup)!;
+    expect(new Uint8Array(backup.data)).toEqual(new Uint8Array([4, 5]));
+    await rememberSaveFolderFile(
+      new File([new Uint8Array([9])], "E.sav", { lastModified: 322 }),
+      new Uint8Array([9]),
+      options,
+    );
+    expect(read().files.filter((f) => f.backup)).toHaveLength(1);
+    expect(read().files.find((f) => f.backup)).toEqual(backup);
+    expect(read().files.filter((f) => f.recent)).toHaveLength(1);
+    expect(read().files.some((f) => f.id === "file")).toBe(true);
+  });
+  it("preserves both old entries and backups on quota failure", async () => {
+    const read = storage(initial, true);
+    await expect(
+      rememberSaveFolderFile(
+        new File([new Uint8Array([4])], "E.sav"),
+        new Uint8Array([4]),
+        { backupName: "E.bak", backupFolder: "bak", recentMax: 1 },
+      ),
+    ).rejects.toThrow("quota");
+    expect(read()).toEqual(initial);
+  });
+  it("restores a selected source without creating a second recent copy", async () => {
+    const read = storage(initial);
+    await rememberSaveFolderFile(
+      new File([initial.files[0].data], "main", { lastModified: 123 }),
+      new Uint8Array(initial.files[0].data),
+      { backupName: "", backupFolder: "bak", recentMax: 10, sourceId: "file" },
+    );
+    expect(read().files).toHaveLength(1);
+    expect(read().files[0].folder).toBe("local");
+    await expect(
+      rememberSaveFolderFile(
+        new File([new Uint8Array([9])], "main"),
+        new Uint8Array([9]),
+        {
+          backupName: "",
+          backupFolder: "bak",
+          recentMax: 10,
+          sourceId: "file",
+        },
+      ),
+    ).rejects.toThrow("changed");
+    expect(read().files).toHaveLength(1);
+  });
   it("reads independent snapshots and commits copied bytes with a new revision", async () => {
     const read = storage(initial),
       before = await loadSaveFolder(),

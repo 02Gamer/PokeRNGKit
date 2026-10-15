@@ -10,10 +10,14 @@ const initial: MysteryGiftLibrary = {
   revision: "one",
   files: [{ id: "a", fileName: "gift.wc6", data: "AQID", modified: 123 }],
 };
-function storage(value: MysteryGiftLibrary, fail = false) {
+function storage(value: MysteryGiftLibrary, fail = false, upgrade = false) {
   let stored = structuredClone(value);
   const db = {} as IDBDatabase;
   Object.assign(db, {
+    objectStoreNames: { contains: () => true },
+    createObjectStore: () => {
+      throw new Error("Existing store must not be recreated.");
+    },
     close: vi.fn(),
     transaction: () => {
       let next = structuredClone(stored),
@@ -48,10 +52,15 @@ function storage(value: MysteryGiftLibrary, fail = false) {
     },
   });
   vi.stubGlobal("indexedDB", {
-    open: () => {
+    open: (_name: string, version: number) => {
+      expect(version).toBe(2);
       const request = {} as IDBOpenDBRequest;
       queueMicrotask(() => {
         Object.assign(request, { result: db });
+        if (upgrade)
+          request.onupgradeneeded?.(
+            new Event("upgradeneeded") as IDBVersionChangeEvent,
+          );
         request.onsuccess?.(new Event("success"));
       });
       return request;
@@ -60,6 +69,12 @@ function storage(value: MysteryGiftLibrary, fail = false) {
   return () => stored;
 }
 afterEach(() => vi.unstubAllGlobals());
+it("upgrades storage without clearing or rewriting legacy records", async () => {
+  const read = storage(initial, false, true);
+  expect(await loadMysteryGiftLibrary()).toEqual(initial);
+  expect(read()).toEqual(initial);
+  expect(read().files[0].directory).toBeUndefined();
+});
 it("persists an independent complete snapshot and supports reversible replacement", async () => {
   const read = storage(initial),
     before = await loadMysteryGiftLibrary();

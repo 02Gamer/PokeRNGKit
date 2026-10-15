@@ -21,7 +21,7 @@ internal static class SvPokedex
     private static bool SpeciesValid(SAV9SV s, int species) => species > 0 && species <= s.MaxSpeciesID && s.Personal.IsSpeciesInGame((ushort)species);
     private static LocalizedText Text(Func<GameStrings, string> f) => new(f(GameInfo.GetStrings("zh-Hans")), f(GameInfo.GetStrings("en")), f(GameInfo.GetStrings("ja")));
     private static string[] Forms(ushort species, bool modern, GameStrings s) => !modern && species == (ushort)Species.Alcremie
-        ? FormConverter.GetAlcremieFormList(s.forms) : FormConverter.GetFormList(species, s.Types, s.forms, GameInfo.GenderSymbolASCII, EntityContext.Gen9);
+        ? FormConverter.GetAlcremieFormList(s.forms) : FormConverter.GetFormList(species, s.Types, s.forms, PokemonDisplay.GenderSymbols, EntityContext.Gen9);
     private static int[] Regions(SAV9SV save, ushort species)
     {
         int[] result = [0, 0, 0];

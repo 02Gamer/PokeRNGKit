@@ -62,7 +62,11 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 163;
+  apiVersion: 171;
+  spriteMode?: "a" | "b" | "c";
+  spriteFilter?: { grayscale: number; alpha: number[] } | null;
+  emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
+  gameName?: LocalizedText | null;
   attributeChoices: {
     natures: LocalizedText[];
     items: LocalizedText[];
@@ -118,6 +122,8 @@ export interface SaveReport {
   checksumsValid: boolean;
   canEdit: boolean;
   trainerOnly?: boolean;
+  pokemonEditing?: import("./savePokemonEditing").SavePokemonCapability;
+  gbInfo?: import("./standalonePokemon").GbSpecialInfo | null;
   extension: string;
   nationalDex: boolean | null;
   pokemon: PokemonEntry[];
@@ -166,8 +172,12 @@ export interface OriginCatalog {
   balls: OriginChoice[];
   metLocations: OriginChoice[];
   eggLocations: OriginChoice[];
+  ballBrowser: import("./ballBrowser").BallBrowserCatalog;
 }
 export interface PokemonEntry {
+  gbRental?: boolean;
+  gbFields?: import("./standalonePokemon").GbSpecialFields | null;
+  gbLanguage?: number | null;
   relearnMoves: number[] | null;
   training: {
     contest: number[] | null;
@@ -212,6 +222,37 @@ export interface PokemonEntry {
   heldItem: number;
   movePpUps: number[];
   sprite: string;
+  eggOverlay?: string | null;
+  eggAsItem?: boolean;
+  homeTracker?: string | null;
+  markings?: { values: number[]; colored: boolean; shapes: string[] } | null;
+  potential?: string | null;
+  itemOverlay?: string | null;
+  legalityIndicator?: string | null;
+  encounterLayer?: {
+    color: string;
+    mode: number;
+    thickness: number;
+    opacity: number;
+  } | null;
+  legalityParsed?: boolean | null;
+  legalityValid?: boolean | null;
+  slotMarkers?: string[] | null;
+  experienceBeforeMarkers?: boolean;
+  teraLayer?: {
+    color: string;
+    mode: number;
+    thickness: number;
+    opacity: number;
+  } | null;
+  experienceLine?: { color: string; width: number } | null;
+  specialEffects?: {
+    totemGlow: boolean;
+    shadowGlowSource: string | null;
+    shadowEggAsItem: boolean;
+    marker: string | null;
+  } | null;
+  shinyOverlay?: string | null;
   moveIds: number[];
   limits: {
     nickname: number;
@@ -683,7 +724,9 @@ export interface PokemonRawEdit extends PokemonPosition {
     | "training"
     | "history"
     | "care"
-    | "memory";
+    | "memory"
+    | "markings";
+  markings?: number[];
   relearn?: { moves: number[] };
   memory?: MemoryEdit;
   history?: HistoryEdit;
@@ -716,6 +759,7 @@ export interface PokemonRawEdit extends PokemonPosition {
   };
   pid?: number;
   encryptionConstant?: number;
+  homeTracker?: string;
 }
 
 export function parsePokemonHex(value: string): number {
@@ -728,6 +772,10 @@ export interface PokemonLegalityReport extends PokemonPosition {
   valid: boolean;
   summary: LocalizedText;
   details: LocalizedText;
+  clipboard?: LocalizedText | null;
+  alwaysVerbose?: boolean;
+  hideReport?: boolean;
+  canCopy?: boolean;
 }
 export interface MemoryEdit {
   handler: 0 | 1;
@@ -799,6 +847,18 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  entityTemplateCatalog?: import("./entityTemplate").EntityTemplateCatalog;
+  entityTemplateCreated?: import("./entityTemplate").EntityTemplateCreated;
+  entity?: import("./standalonePokemon").StandalonePokemonReport;
+  entityFile?: Uint8Array<ArrayBuffer>;
+  battleTemplateImport?: import("./battleTemplateImport").BattleTemplateImportTicket;
+  battleTemplate?: import("./battleTemplate").BattleTemplateReport;
+  bulkLegality?: import("./bulkLegality").SaveBulkLegalityReport;
+  pokemonHover?: import("./pokemonHover").PokemonHoverReport;
+  giftDatabaseAccepted?: number[];
+  saveBackupName?: string;
+  programSettings?: import("./settingsProtocol").SaveSettingsBundle;
+  programSettingsJson?: string;
   saveDetectionCatalog?: import("./saveDetection").SaveDetectionCatalog;
   giftDatabase?: import("./mysteryGiftDatabaseProtocol").MysteryGiftDatabaseView;
   giftDatabaseCatalog?: import("./mysteryGiftDatabaseProtocol").MysteryGiftDatabaseCatalog;

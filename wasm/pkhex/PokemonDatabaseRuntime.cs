@@ -99,6 +99,11 @@ internal static class PokemonDatabaseRuntime
         Session().AssertSource(input);
     }
     internal static PokemonFile Export(int id)=>PokemonDatabaseFiles.Export(Session().Database.Row(id));
+    internal static (PKM Entity,StorageSlotType Storage) HoverEntry(byte[] input,int id)
+    {
+        var current=Session();current.AssertSource(input);var row=current.Database.Row(id);
+        return(row.Entry.Entity.Clone(),row.Entry.Source.Type);
+    }
     internal static PokemonFile ViewEntity(byte[] input,int id) {
         var current=Session();current.AssertSource(input);
         var entity=PokemonDatabaseFiles.Convert(current.Database.Row(id),SaveService.OpenDatabaseSave(input.ToArray()));

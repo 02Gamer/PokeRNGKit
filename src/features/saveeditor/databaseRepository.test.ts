@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   validateDatabaseFiles,
+  loadDatabaseFiles,
   replaceDatabaseFiles,
   type DatabaseLocalFile,
 } from "./databaseRepository";
@@ -41,10 +42,20 @@ describe("database replacement transaction", () => {
     entityFile: true,
     modified: 1,
   };
-  function storage(initial: DatabaseLocalFile[], failWrite = false) {
+  function storage(
+    initial: DatabaseLocalFile[],
+    failWrite = false,
+    upgrade = false,
+  ) {
     let files = structuredClone(initial);
     const db = {} as IDBDatabase;
     Object.assign(db, {
+      objectStoreNames: { contains: () => true },
+      createObjectStore: () => {
+        throw new Error(
+          "Existing records must not be recreated during upgrade.",
+        );
+      },
       close: vi.fn(),
       transaction: () => {
         let next = structuredClone(files),
@@ -82,10 +93,15 @@ describe("database replacement transaction", () => {
       },
     });
     vi.stubGlobal("indexedDB", {
-      open: () => {
+      open: (_name: string, version: number) => {
+        expect(version).toBe(2);
         const request = {} as IDBOpenDBRequest;
         queueMicrotask(() => {
           Object.assign(request, { result: db });
+          if (upgrade)
+            request.onupgradeneeded?.(
+              new Event("upgradeneeded") as IDBVersionChangeEvent,
+            );
           request.onsuccess?.(new Event("success"));
         });
         return request;
@@ -102,6 +118,14 @@ describe("database replacement transaction", () => {
     expect(new Uint8Array(read()[0].data)[0]).toBe(1);
     new Uint8Array(added.data)[0] = 1;
   });
+  it("upgrades to version two without clearing or rewriting legacy data", async () => {
+    const original = structuredClone(file),
+      read = storage([file], false, true);
+    const loaded = await loadDatabaseFiles();
+    expect(loaded).toEqual([original]);
+    expect(read()).toEqual([original]);
+    expect(loaded[0].directory).toBeUndefined();
+  });
   it("aborts after a failed write and retains the old database", async () => {
     const read = storage([file], true);
     await expect(
@@ -114,6 +138,7 @@ describe("database replacement transaction", () => {
       { ...file, name: "changed.pk3" },
       { ...file, modified: 2 },
       { ...file, useFileFormat: true },
+      { ...file, directory: "another" },
       { ...file, data: Uint8Array.of(3, 2, 1).buffer },
     ]) {
       const read = storage([changed]);

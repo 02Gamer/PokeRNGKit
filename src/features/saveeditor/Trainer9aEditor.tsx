@@ -1,3 +1,5 @@
+import { useGenderLabel } from "./useGenderLabel";
+import { saveCommitHasSound } from "./saveEditSound";
 import { SaveTrainerImage } from "./SaveTrainerImage";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
@@ -20,13 +22,14 @@ type Props = {
   lang: "zh" | "en" | "ja";
   onRead(): Promise<Tr9aCatalog | undefined>;
   onPreview(edit: Tr9aRequest): Promise<Tr9aTicket | undefined>;
-  onApply(confirm: Tr9aConfirmation): Promise<boolean>;
+  onApply(confirm: Tr9aConfirmation, sourceSound?: true): Promise<boolean>;
   onDiscard(token: string): Promise<void>;
 };
 export function Trainer9aEditor(props: Props) {
   return <Form key={props.revision} {...props} />;
 }
 function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
+  const genderLabel = useGenderLabel();
   const w = tr9aWords[lang];
   const [catalog, setCatalog] = useState<Tr9aCatalog>(),
     [draft, setDraft] = useState<Tr9aRequest>(),
@@ -175,7 +178,15 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
     setPending(true);
     const current = life.current;
     try {
-      if ((await onApply(tr9aConfirmation(catalog, ticket))) && current.alive) {
+      if (
+        (await onApply(
+          tr9aConfirmation(catalog, ticket),
+          saveCommitHasSound("trainer9aCommit", ticket.operations)
+            ? true
+            : undefined,
+        )) &&
+        current.alive
+      ) {
         current.ticket = undefined;
         setTicket(undefined);
       }
@@ -248,7 +259,7 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
     [w.id, String(c.id)],
     [w.tid, String(c.tid)],
     [w.sid, String(c.sid)],
-    [w.gender, c.gender === 0 ? w.male : w.female],
+    [w.gender, genderLabel(c.gender, c.gender === 0 ? w.male : w.female)],
     [
       w.language,
       c.languages.find((v) => v.id === c.language)?.name[lang] ??
@@ -366,8 +377,8 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                     value={draft.gender}
                     onChange={(e) => update({ gender: Number(e.target.value) })}
                   >
-                    <option value={0}>{w.male}</option>
-                    <option value={1}>{w.female}</option>
+                    <option value={0}>{genderLabel(0, w.male)}</option>
+                    <option value={1}>{genderLabel(1, w.female)}</option>
                   </Select>
                 </label>
                 <label className="field">

@@ -12,6 +12,11 @@ internal static class SaveDetectionTests
         foreach (var type in new[] { SaveFileType.RBY, SaveFileType.GSC })
         foreach (var version in SaveDetection.Versions(type))
         foreach (var language in Enum.GetValues<LanguageID>()) {
+            if(type==SaveFileType.GSC&&version==GameVersion.C&&language==LanguageID.Korean)
+            {
+                Reject(()=>SaveDetection.Open(new SAV2(language,version).Write().ToArray(),new(type,version,language,"Default","manual.sav")));
+                continue;
+            }
             SaveFile blank = type == SaveFileType.RBY ? new SAV1(language, version) : new SAV2(language, version);
             blank.OT = language == LanguageID.Japanese ? "ア" : "A";
             byte[] input = blank.Write().ToArray(), original = input.ToArray();

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
 import { boxArchiveWords, type BoxArchiveRequest } from "./boxArchive";
+import { loadBoxExportDefaults } from "./programExportSettings";
 
 export function BoxArchiveEditor({
   box,
@@ -21,11 +22,16 @@ export function BoxArchiveEditor({
           ? "ja"
           : "en"
     ];
-  const [all, setAll] = useState(box < 0);
-  const [folderMode, setFolderMode] = useState(1);
-  const [folderNaming, setFolderNaming] = useState(2);
-  const [indexPrefix, setIndexPrefix] = useState(3);
-  const [include, setInclude] = useState(false);
+  const [defaults] = useState(loadBoxExportDefaults);
+  const [all, setAll] = useState(box < 0 || defaults.scope === 0);
+  const [folderMode, setFolderMode] = useState<number>(defaults.folderCreation);
+  const [folderNaming, setFolderNaming] = useState<number>(
+    defaults.folderPrefix,
+  );
+  const [indexPrefix, setIndexPrefix] = useState<number>(
+    defaults.fileIndexPrefix,
+  );
+  const [include, setInclude] = useState(defaults.emptySlots === 1);
   const [downloaded, setDownloaded] = useState(false);
   return (
     <details className="save-pokemon-editor save-box-archive">
@@ -136,7 +142,9 @@ export function BoxArchiveEditor({
           </button>
         </div>
       </fieldset>
-      {downloaded && <p role="status">{words.downloaded}</p>}
+      {downloaded && defaults.notify === 0 && (
+        <p role="status">{words.downloaded}</p>
+      )}
     </details>
   );
 }

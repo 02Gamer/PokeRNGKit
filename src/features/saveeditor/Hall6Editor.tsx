@@ -1,3 +1,4 @@
+import { useGenderLabel } from "./useGenderLabel";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
 import { pokemonImage } from "./art";
@@ -68,6 +69,7 @@ function Form({
   onPreview,
   onApply,
 }: Props & { c: Hall6Catalog }) {
+  const genderLabel = useGenderLabel();
   const w = hall6Words[lang],
     common = gl5Words[lang];
   const [team, setTeam] = useState(0),
@@ -158,7 +160,7 @@ function Form({
             c.species.find((v) => v.id === p.species)?.name[lang] ??
               String(p.species),
             p.nickname,
-            w.fields.Gender + ": " + ["♂", "♀", "-"][Math.min(p.gender, 2)],
+            w.fields.Gender + ": " + genderLabel(Math.min(p.gender, 2)),
             w.level + ": " + p.level,
             w.shiny + ": " + (p.shiny ? "1" : "0"),
             w.item +
@@ -173,7 +175,7 @@ function Form({
                 ": " +
                 (c.moves.find((v) => v.id === id)?.name[lang] ?? id),
             ),
-            w.fields.TrainerGender + ": " + ["♂", "♀"][p.trainerGender],
+            w.fields.TrainerGender + ": " + genderLabel(p.trainerGender),
             w.trainerName +
               ": " +
               p.trainerName +
@@ -303,7 +305,7 @@ function Form({
               )
             }
           >
-            {["♂", "♀", "-"][Math.min(Number(v), 2)]}
+            {genderLabel(Math.min(Number(v), 2))}
           </button>
         ) : (
           <input

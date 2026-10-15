@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
-import { pokemonImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
 import { battlePass4Labels } from "./battlePass4Labels";
 import {
   battlePass4Words,
@@ -491,7 +491,7 @@ function PassForm({
                   aria-pressed={selection.slot === m.slot}
                   onClick={() => onSelect({ ...selection, slot: m.slot })}
                 >
-                  {m.pokemon && <img src={pokemonImage(m.pokemon)} alt="" />}
+                  {m.pokemon && <PokemonSprite pokemon={m.pokemon} alt="" />}
                   <span>
                     {m.slot + 1} · {m.pokemon?.speciesName[lang] ?? w.empty}
                   </span>
@@ -658,7 +658,7 @@ function PassForm({
               <input
                 type="file"
                 disabled={locked}
-                accept=".bk4,.pk1,.pk2,.pk3,.pk4,.pk5,.pk6,.pk7,.pk8,.pk9,.ck3,.xk3,.pb7,.pb8,.pa8,.pa9"
+                accept=".sk2,.rk4,.bk4,.pk1,.pk2,.pk3,.pk4,.pk5,.pk6,.pk7,.pk8,.pk9,.ck3,.xk3,.pb7,.pb8,.pa8,.pa9"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   e.target.value = "";
@@ -755,7 +755,7 @@ function PassForm({
             {preview.pokemon && (
               <>
                 <div className="save-bp4-import-pokemon">
-                  <img src={pokemonImage(preview.pokemon.pokemon)} alt="" />
+                  <PokemonSprite pokemon={preview.pokemon.pokemon} alt="" />
                   <span>
                     {preview.pokemon.pokemon.speciesName[lang]} ·{" "}
                     {preview.pokemon.pokemon.nickname} · Lv.

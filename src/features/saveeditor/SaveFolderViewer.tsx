@@ -19,6 +19,13 @@ import {
   type SaveFolderRow,
 } from "./saveFolderProtocol";
 import { saveFolderWords } from "./saveFolderWords";
+import {
+  saveLibraryLocations,
+  saveLibraryShortcuts,
+  libraryFolderName,
+  saveLocationWords,
+} from "./saveLibraryLocations";
+import { useSaveSettingsJson } from "./useSaveSettingsJson";
 import "./SaveFolderViewer.css";
 export function SaveFolderViewer({
   lang,
@@ -28,7 +35,7 @@ export function SaveFolderViewer({
 }: {
   lang: "zh" | "en" | "ja";
   busy: boolean;
-  onOpen(file: File): Promise<boolean>;
+  onOpen(file: File, sourceId?: string): Promise<boolean>;
   onClose(): void;
 }) {
   const w = saveFolderWords[lang],
@@ -36,6 +43,7 @@ export function SaveFolderViewer({
     active = useRef(true),
     running = useRef(false),
     latestWords = useRef(w);
+  const settingsJson = useSaveSettingsJson();
   const [snapshot, setSnapshot] = useState<SaveFolderSnapshot>(),
     [view, setView] = useState<SaveFolderView>(),
     [pending, setPending] = useState(true),
@@ -70,6 +78,11 @@ export function SaveFolderViewer({
       await Promise.resolve();
       if (!live) return;
       running.current = true;
+      setPending(true);
+      setView(undefined);
+      setTicket(undefined);
+      setCommitted(undefined);
+      setSelected(undefined);
       try {
         const value = await loadSaveFolder();
         if (!live) return;
@@ -98,7 +111,7 @@ export function SaveFolderViewer({
       running.current = false;
       workerClient.dispose();
     };
-  }, []);
+  }, [settingsJson]);
   const locked = busy || pending,
     blocked = locked || Boolean(ticket);
   async function run(task: () => Promise<void>) {
@@ -265,6 +278,7 @@ export function SaveFolderViewer({
       new File([decodeDatabaseBytes(value.data)], value.name, {
         lastModified: source.modified,
       }),
+      source.id,
     );
     if (!opened) throw Error();
     if (active.current) onClose();
@@ -290,7 +304,21 @@ export function SaveFolderViewer({
     row.folder,
     row.name,
   ];
-  const groups = [...new Set(snapshot?.files.map((f) => f.folder) ?? [])];
+  let shortcuts: ReturnType<typeof saveLibraryShortcuts> = [];
+  try {
+    shortcuts = saveLibraryShortcuts(
+      snapshot?.files ?? [],
+      saveLibraryLocations(settingsJson),
+    );
+  } catch {
+    /* The client reports invalid complete settings. */
+  }
+  const groups = [
+    ...new Set(snapshot?.files.map((f) => libraryFolderName(f.folder)) ?? []),
+  ];
+  const locations = [
+    ...new Set([...shortcuts.map((item) => item.path), ...groups]),
+  ];
   return (
     <section
       className="save-folder-viewer"
@@ -375,13 +403,19 @@ export function SaveFolderViewer({
             aria-pressed={
               tab === "folders"
                 ? folders
-                : !folders && applied.backup === (tab === "backup")
+                : !folders &&
+                  !applied.folderRoot &&
+                  applied.backup === (tab === "backup")
             }
             onClick={() =>
               void run(async () => {
                 setFolders(tab === "folders");
                 if (tab !== "folders")
-                  await read({ ...query, backup: tab === "backup" });
+                  await read({
+                    ...query,
+                    folderRoot: null,
+                    backup: tab === "backup",
+                  });
               })
             }
           >
@@ -390,27 +424,69 @@ export function SaveFolderViewer({
         ))}
       </div>
       {folders ? (
-        <ul>
-          {groups.map((folder) => (
-            <li key={folder}>
-              <button
-                type="button"
-                disabled={blocked}
-                onClick={() =>
-                  void run(async () => {
-                    setFolders(false);
-                    await read({ ...query, column: 7, text: folder });
-                  })
-                }
-              >
-                {folder || w.path}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="save-editor-note">{saveLocationWords[lang].note}</p>
+          <ul
+            className="save-folder-shortcuts"
+            aria-label={saveLocationWords[lang].title}
+          >
+            {shortcuts.map((item) => (
+              <li key={item.path}>
+                <button
+                  type="button"
+                  disabled={blocked || !item.available}
+                  title={item.path}
+                  onClick={() =>
+                    void run(async () => {
+                      setFolders(false);
+                      await read({ ...query, folderRoot: item.path });
+                    })
+                  }
+                >
+                  {item.backup ? `${w.backup} · ${item.path}` : item.path}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <ul className="save-folder-shortcuts">
+            {groups.map((folder) => (
+              <li key={folder}>
+                <button
+                  type="button"
+                  disabled={blocked}
+                  onClick={() =>
+                    void run(async () => {
+                      setFolders(false);
+                      await read({ ...query, folderRoot: folder });
+                    })
+                  }
+                >
+                  {folder || w.path}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
       ) : (
         <>
           <div className="save-folder-fields">
+            <label className="field">
+              <span>{saveLocationWords[lang].scope}</span>
+              <Select
+                disabled={blocked}
+                value={query.folderRoot ?? ""}
+                onChange={(event) =>
+                  setQuery({ ...query, folderRoot: event.target.value || null })
+                }
+              >
+                <option value="">{saveLocationWords[lang].all}</option>
+                {locations.map((path) => (
+                  <option key={path} value={path}>
+                    {path}
+                  </option>
+                ))}
+              </Select>
+            </label>
             <label className="field">
               <span>{w.filter}</span>
               <Select

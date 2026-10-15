@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { publishMysteryGiftChange } from "./mysteryGiftChanges";
 export interface MysteryGiftLocalFile {
   id: string;
   fileName: string;
   data: string;
   modified: number;
+  directory?: string;
 }
 export interface MysteryGiftLibrary {
   revision: string;
@@ -38,7 +40,11 @@ export function validateMysteryGiftLibrary(value: MysteryGiftLibrary) {
       !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(
         file.data,
       ) ||
-      !Number.isFinite(file.modified)
+      !Number.isFinite(file.modified) ||
+      (file.directory !== undefined &&
+        (typeof file.directory !== "string" ||
+          !file.directory ||
+          file.directory.length > 32767))
     )
       throw Error("Invalid mystery gift file.");
     total += atob(file.data).length;
@@ -55,9 +61,12 @@ function copy(value: MysteryGiftLibrary): MysteryGiftLibrary {
 }
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(database, 1);
+    const request = indexedDB.open(database, 2);
     let blocked = false;
-    request.onupgradeneeded = () => request.result.createObjectStore(store);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(store))
+        request.result.createObjectStore(store);
+    };
     request.onblocked = () => {
       blocked = true;
       reject(Error("Mystery gift library is busy."));
@@ -101,6 +110,7 @@ export async function loadMysteryGiftLibrary(): Promise<MysteryGiftLibrary> {
 export async function replaceMysteryGiftLibrary(
   expected: MysteryGiftLibrary,
   files: readonly MysteryGiftLocalFile[],
+  origin?: object,
 ): Promise<MysteryGiftLibrary> {
   validateMysteryGiftLibrary(expected);
   const next = {
@@ -130,7 +140,10 @@ export async function replaceMysteryGiftLibrary(
           tx.abort();
         }
       };
-      tx.oncomplete = () => resolve(copy(next));
+      tx.oncomplete = () => {
+        publishMysteryGiftChange(next.revision, origin);
+        resolve(copy(next));
+      };
       tx.onerror = tx.onabort = () =>
         reject(
           failure ?? tx.error ?? Error("Saving mystery gift library failed."),
@@ -156,7 +169,7 @@ export async function readMysteryGiftFiles(
       binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
     result.push({
       id: crypto.randomUUID(),
-      fileName: file.name,
+      fileName: file.webkitRelativePath || file.name,
       data: btoa(binary),
       modified: file.lastModified,
     });

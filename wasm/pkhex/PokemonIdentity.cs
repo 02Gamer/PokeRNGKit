@@ -12,17 +12,17 @@ internal static class PokemonIdentity
     private static LocalizedText Text(Func<GameStrings, string> read) => new(
         read(GameInfo.GetStrings("zh-Hans")), read(GameInfo.GetStrings("en")), read(GameInfo.GetStrings("ja")));
 
-    public static string[] Forms(SaveFile save, ushort species, GameStrings strings)
+    public static string[] Forms(SaveFile save, ushort species, GameStrings strings,bool semantic=false)
     {
         if (!FormInfo.HasFormSelection(save.Personal[species], species, save.BlankPKM.Format))
             return [string.Empty];
-        var names = FormConverter.GetFormList(species, strings.Types, strings.forms, save.Context);
+        var names = FormConverter.GetFormList(species, strings.Types, strings.forms, semantic?GameInfo.GenderSymbolUnicode:PokemonDisplay.GenderSymbols,save.Context);
         return names.Length == 0 ? [string.Empty] : names;
     }
 
     public static byte[] Genders(SaveFile save, ushort species, byte form)
     {
-        var names = Forms(save, species, GameInfo.GetStrings("en"));
+        var names = Forms(save, species, GameInfo.GetStrings("en"),true);
         if (names.Length == 2 && names[0] == "♂" && names[1] == "♀") return [form];
         return save.Personal.GetFormEntry(species, form).Gender switch
         {
@@ -61,16 +61,16 @@ internal static class PokemonIdentity
         var copy = p.Clone(); copy.Species = species; copy.Form = form;
         return copy;
     }
-    public static string[] Forms(PKM p, ushort species, GameStrings strings)
+    public static string[] Forms(PKM p, ushort species, GameStrings strings,bool semantic=false)
     {
         var copy = SpeciesCopy(p, species, 0);
         if (!FormInfo.HasFormSelection(copy.PersonalInfo, species, p.Format)) return [string.Empty];
-        var names = FormConverter.GetFormList(species, strings.Types, strings.forms, p.Context);
+        var names = FormConverter.GetFormList(species, strings.Types, strings.forms, semantic?GameInfo.GenderSymbolUnicode:PokemonDisplay.GenderSymbols,p.Context);
         return names.Length == 0 ? [string.Empty] : names;
     }
     public static byte[] Genders(PKM p, ushort species, byte form)
     {
-        var names = Forms(p, species, GameInfo.GetStrings("en"));
+        var names = Forms(p, species, GameInfo.GetStrings("en"),true);
         if (names.Length == 2 && names[0] == "♂" && names[1] == "♀") return [form];
         return SpeciesCopy(p, species, form).PersonalInfo.Gender switch
         {

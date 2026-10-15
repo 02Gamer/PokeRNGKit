@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Wallpaper selection follows PKHeX.Drawing.Misc/Util/WallpaperUtil.cs.
 import manifest from "./art-manifest.json";
+import overlayDimensions from "./sprite-overlay-dimensions.json";
 import type { PokemonEntry, SaveReport } from "./domain";
 
 const assets: Readonly<Record<string, string>> = manifest;
+const dimensions: Readonly<Record<string, { width: number; height: number }>> =
+  overlayDimensions;
 const url = (key: string) =>
   `${import.meta.env.BASE_URL}save-art/26.08.26/${assets[key]}`;
 export const databaseWallpaperImage = () => url("box_wp_clean");
@@ -42,6 +45,64 @@ export function itemImage(sprite: string) {
     sprite.startsWith("bitem_") && assets[sprite] ? sprite : "bitem_unk",
   );
 }
+export function pokemonOverlay(
+  sprite: string,
+  kind: "item" | "shiny" | "marker" | "ball" | "legality" | "slot",
+) {
+  const valid =
+    kind === "item"
+      ? /^[ab]item_[\w]+$/.test(sprite)
+      : kind === "shiny"
+        ? /^rare_icon_alt(?:_2)?$/.test(sprite)
+        : kind === "marker"
+          ? /^(dyna|alpha_alt)$/.test(sprite)
+          : kind === "ball"
+            ? /^_ball\d+$/.test(sprite)
+            : kind === "legality"
+              ? /^(warn|hint)$/.test(sprite)
+              : /^(team|locked|party[1-6]|starter)$/.test(sprite);
+  const key =
+    valid && assets[sprite] && dimensions[sprite]
+      ? sprite
+      : kind === "item"
+        ? "bitem_unk"
+        : kind === "ball"
+          ? "_ball4"
+          : undefined;
+  if (!key) return;
+  const size = dimensions[key];
+  return {
+    key,
+    url: url(key),
+    width: size.width,
+    height: size.height,
+    x:
+      kind === "item"
+        ? 68 - size.width - Math.trunc((32 - size.width) / 4) - 2
+        : kind === "marker"
+          ? key === "dyna"
+            ? Math.trunc((68 - size.width) / 2)
+            : 49
+          : kind === "slot"
+            ? key === "team"
+              ? 49
+              : key === "locked"
+                ? 54
+                : key.startsWith("party")
+                  ? 52
+                  : 0
+            : 0,
+    y:
+      kind === "item"
+        ? 56 - size.height - 2
+        : kind === "ball"
+          ? 56 - size.height
+          : kind === "legality"
+            ? 40
+            : 0,
+    opacity: kind === "shiny" ? 0.7 : 1,
+  };
+}
 
 // PKHeX.Drawing.Misc PlayerSpriteUtil uses tr_00 when the stored resource is absent.
 export function trainerImage(sprite: string) {
@@ -79,15 +140,30 @@ export function speciesImage(species: number) {
   return url(assets[`b_${species}`] ? `b_${species}` : "b_unknown");
 }
 
+export function pokemonArtwork(
+  pokemon: Pick<PokemonEntry, "species" | "sprite">,
+) {
+  const prefix = /^[abc]_/.test(pokemon.sprite) ? pokemon.sprite[0] : "b";
+  const secondary = prefix === "b" ? "c" : "b";
+  const base = pokemon.sprite.replace(/^[abc]/, "");
+  const nonShiny = pokemon.sprite.endsWith("s") ? base.slice(0, -1) : base;
+  const choices = [
+    pokemon.sprite,
+    `${secondary}${base}`,
+    `${prefix}${nonShiny}`,
+    `${secondary}${nonShiny}`,
+  ];
+  const key = choices.find((value) => assets[value]);
+  if (key) return { image: url(key) };
+  const baseSpecies = `${prefix}_${pokemon.species}`;
+  return assets[baseSpecies]
+    ? { image: url(baseSpecies), unknownOverlay: url("b_unknown") }
+    : { image: url("b_unknown") };
+}
 export function pokemonImage(
   pokemon: Pick<PokemonEntry, "species" | "sprite">,
 ) {
-  const key = assets[pokemon.sprite]
-    ? pokemon.sprite
-    : assets[`b_${pokemon.species}`]
-      ? `b_${pokemon.species}`
-      : "b_unknown";
-  return url(key);
+  return pokemonArtwork(pokemon).image;
 }
 
 export function boxWallpaper(report: SaveReport, box: number) {

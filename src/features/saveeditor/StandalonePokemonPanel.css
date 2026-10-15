@@ -28,3 +28,6 @@
 .save-tools-pane > .save-editor-panel {
   flex: 1;
 }
+.save-settings-workspace {
+  align-content: start;
+}

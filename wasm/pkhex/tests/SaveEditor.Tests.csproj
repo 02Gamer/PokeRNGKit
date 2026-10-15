@@ -9,6 +9,20 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../SaveDetection.cs" Link="SaveDetection.cs" />
+    <Compile Include="../PokemonMarkings.cs" Link="PokemonMarkings.cs" />
+    <Compile Include="../PokemonBallBrowser.cs" Link="PokemonBallBrowser.cs" />
+    <Compile Include="../SavePokemonEditing.cs" Link="SavePokemonEditing.cs" />
+    <Compile Include="../PokemonSlotWriter.cs" Link="PokemonSlotWriter.cs" />
+    <Compile Include="../PokemonDisplay.cs" Link="PokemonDisplay.cs" />
+    <Compile Include="../SaveCoreSettings.cs" Link="SaveCoreSettings.cs" />
+    <Compile Include="../SaveProgramSettings.cs" Link="SaveProgramSettings.cs" />
+    <Compile Include="../SaveProgramSettingsCodec.cs" Link="SaveProgramSettingsCodec.cs" />
+    <Compile Include="../SaveSettingsCatalog.cs" Link="SaveSettingsCatalog.cs" />
+    <Compile Include="../SaveSpriteView.cs" Link="SaveSpriteView.cs" />
+    <Compile Include="../SaveArtwork.cs" Link="SaveArtwork.cs" />
+    <Compile Include="../SaveSlotArtwork.cs" Link="SaveSlotArtwork.cs" />
+    <Compile Include="../SaveProgramSettingsApi.cs" Link="SaveProgramSettingsApi.cs" />
+    <Compile Include="../SaveLibraryScope.cs" Link="SaveLibraryScope.cs" />
     <Compile Include="../SaveDetectionApi.cs" Link="SaveDetectionApi.cs" />
     <Compile Include="../SaveDetectionContext.cs" Link="SaveDetectionContext.cs" />
     <Compile Include="../SimpleTrainerEditing.cs" Link="SimpleTrainerEditing.cs" />
@@ -16,6 +30,7 @@
     <Compile Include="../SimpleTrainerApi.cs" Link="SimpleTrainerApi.cs" />
     <Compile Include="../MysteryGiftDatabase.cs" Link="MysteryGiftDatabase.cs" />
     <Compile Include="../MysteryGiftDatabaseApi.cs" Link="MysteryGiftDatabaseApi.cs" />
+    <Compile Include="../ExternalMysteryGifts.cs" Link="ExternalMysteryGifts.cs" />
     <Compile Include="../MysteryGiftDatabaseCatalog.cs" Link="MysteryGiftDatabaseCatalog.cs" />
     <Compile Include="../MysteryGiftDatabaseSession.cs" Link="MysteryGiftDatabaseSession.cs" />
     <Compile Include="../SaveFolderApi.cs" Link="SaveFolderApi.cs" />
@@ -198,6 +213,11 @@
     <Compile Include="../InventoryEditing.cs" Link="InventoryEditing.cs" />
     <Compile Include="../InventoryBatch.cs" Link="InventoryBatch.cs" />
     <Compile Include="../PokemonLegality.cs" Link="PokemonLegality.cs" />
+    <Compile Include="../SaveBulkLegality.cs" Link="SaveBulkLegality.cs" />
+    <Compile Include="../PokemonBattleTemplate.cs" Link="PokemonBattleTemplate.cs" />
+    <Compile Include="../BattleTemplateImport.cs" Link="BattleTemplateImport.cs" />
+    <Compile Include="../EntityTemplate.cs" Link="EntityTemplate.cs" />
+    <Compile Include="../PokemonHover.cs" Link="PokemonHover.cs" />
     <Compile Include="../BoxEditing.cs" Link="BoxEditing.cs" />
     <Compile Include="../BoxBatch.cs" Link="BoxBatch.cs" />
     <Compile Include="../StorageEditing.cs" Link="StorageEditing.cs" />

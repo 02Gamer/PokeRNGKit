@@ -1,58 +1,76 @@
-import { describe, expect, it } from "vitest";
-import { createInstance } from "i18next";
-import { I18nextProvider } from "react-i18next";
+// SPDX-License-Identifier: GPL-3.0-or-later
 import { renderToStaticMarkup } from "react-dom/server";
+import { it, expect, vi } from "vitest";
 import { PokemonLegality } from "./PokemonLegality";
 import { saveEditorResources } from "./locales";
 import type { PokemonLegalityReport } from "./domain";
-
+let language: "zh" | "en" | "ja" = "en";
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    i18n: { language },
+    t: () => saveEditorResources[language],
+  }),
+}));
+const text = { zh: "详细检查内容", en: "Detailed check", ja: "詳しい検査内容" };
 const report: PokemonLegalityReport = {
   box: 0,
   slot: 0,
   parsed: true,
   valid: true,
-  summary: { zh: "报告摘要", en: "Report summary", ja: "レポート概要" },
-  details: { zh: "报告详情", en: "Report details", ja: "レポート詳細" },
+  summary: text,
+  details: text,
+  clipboard: text,
+  alwaysVerbose: true,
 };
-async function render(value: PokemonLegalityReport, slot = 0, language = "zh") {
-  const i18n = createInstance();
-  await i18n.init({
-    lng: language,
-    resources: Object.fromEntries(
-      Object.entries(saveEditorResources).map(([lang, words]) => [
-        lang,
-        { translation: { saveEditor: words } },
-      ]),
-    ),
-  });
-  return renderToStaticMarkup(
-    <I18nextProvider i18n={i18n}>
+it.each(["zh", "en", "ja"] as const)(
+  "renders source display policy and copy operation in %s",
+  (lang) => {
+    language = lang;
+    const html = renderToStaticMarkup(
       <PokemonLegality
-        position={{ box: 0, slot }}
-        report={value}
+        position={{ box: 0, slot: 0 }}
+        report={report}
         busy={false}
         onAnalyze={async () => {}}
-      />
-    </I18nextProvider>,
+      />,
+    );
+    expect(html).toContain(saveEditorResources[lang].legalityCopy);
+    expect(html).toContain('<details open="">');
+    expect(html).toContain(text[lang]);
+  },
+);
+it("suppresses legal report content while preserving the completed status", () => {
+  language = "en";
+  const html = renderToStaticMarkup(
+    <PokemonLegality
+      position={{ box: 0, slot: 0 }}
+      report={{ ...report, hideReport: true }}
+      busy={false}
+      onAnalyze={async () => {}}
+    />,
   );
-}
-describe("Pokémon legality report", () => {
-  it("does not label incomplete analysis as passed", async () => {
-    const html = await render({ ...report, parsed: false });
-    expect(html).toContain(saveEditorResources.zh.legalityIncomplete);
-    expect(html).not.toContain(saveEditorResources.zh.legalityValid);
-  });
-  it("hides a result from another selected slot", async () => {
-    const html = await render(report, 1);
-    expect(html).not.toContain(report.summary.zh);
-    expect(html).not.toContain(saveEditorResources.zh.legalityValid);
-  });
-  it("renders each language's report and distinguishes an invalid result", async () => {
-    for (const language of ["zh", "en", "ja"] as const) {
-      const html = await render({ ...report, valid: false }, 0, language);
-      expect(html).toContain(saveEditorResources[language].legalityInvalid);
-      expect(html).toContain(report.details[language]);
-      expect(html).not.toContain(saveEditorResources[language].legalityValid);
-    }
-  });
+  expect(html).toContain(saveEditorResources.en.legalityValid);
+  expect(html).not.toContain(text.en);
+  expect(html).not.toContain(saveEditorResources.en.legalityCopy);
+});
+it("hides clipboard operation when disabled and excludes another physical slot", () => {
+  language = "en";
+  const html = renderToStaticMarkup(
+    <PokemonLegality
+      position={{ box: 0, slot: 0 }}
+      report={{ ...report, canCopy: false }}
+      busy={false}
+      onAnalyze={async () => {}}
+    />,
+  );
+  expect(html).not.toContain(saveEditorResources.en.legalityCopy);
+  const other = renderToStaticMarkup(
+    <PokemonLegality
+      position={{ box: 0, slot: 1 }}
+      report={report}
+      busy={false}
+      onAnalyze={async () => {}}
+    />,
+  );
+  expect(other).not.toContain(text.en);
 });

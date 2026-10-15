@@ -22,12 +22,12 @@ internal static class ZaPokedex
     private static LocalizedText Text(Func<GameStrings, string> f) => new(f(GameInfo.GetStrings("zh-Hans")), f(GameInfo.GetStrings("en")), f(GameInfo.GetStrings("ja")));
     private static string[] Mega(ushort species, int revision, GameStrings s)
     {
-        var m = FormConverter.GetMegaFormNames(s.forms, GameInfo.GenderSymbolASCII, s.Types);
+        var m = FormConverter.GetMegaFormNames(s.forms, PokemonDisplay.GenderSymbols, s.Types);
         if (Zukan9a.IsMegaFormXY(species, revision)) return [m.X, m.Y];
         if (Zukan9a.IsMegaFormZA(species, revision)) return [m.Regular, m.Z];
         return species switch { (ushort)Species.Meowstic => [m.MeowsticM, m.MeowsticF], (ushort)Species.Magearna => [m.Magearna0, m.Magearna1], (ushort)Species.Tatsugiri => [m.Tatsu0, m.Tatsu1, m.Tatsu2], _ => [m.Regular] };
     }
-    private static string[] FormNames(ushort species, GameStrings s) => FormConverter.GetFormList(species, s.Types, s.forms, GameInfo.GenderSymbolASCII, EntityContext.Gen9a);
+    private static string[] FormNames(ushort species, GameStrings s) => FormConverter.GetFormList(species, s.Types, s.forms, PokemonDisplay.GenderSymbols, EntityContext.Gen9a);
     public static Dex9aState State(SAV9ZA save, ushort species)
     {
         Require(save);

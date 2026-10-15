@@ -5,7 +5,9 @@ import {
 } from "./databaseRepository";
 import type { PokemonEntry, PokemonPosition } from "./domain";
 import type { SaveEditorResult } from "./domain";
+import { databaseSourceName } from "./databaseDirectory";
 export interface DatabaseActions {
+  hover?: import("./pokemonHover").ReadPokemonHoverTarget;
   request(
     kind: DatabaseRequestKind,
     json: string,
@@ -173,13 +175,15 @@ export function databasePacket(files: readonly DatabaseLocalFile[]) {
   const descriptors: DatabaseDescriptor[] = files.map((file) => {
     const descriptor = {
       id: file.id,
-      name: file.name,
+      name: databaseSourceName(file),
       offset,
       length: file.data.byteLength,
       entityFile: file.entityFile,
       modified: file.modified,
       useFileFormat: Boolean(file.useFileFormat),
     };
+    if (descriptor.name.length > 4096)
+      throw Error("Database source name exceeds the local size limit.");
     bytes.set(new Uint8Array(file.data), offset);
     offset += file.data.byteLength;
     return descriptor;

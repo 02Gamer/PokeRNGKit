@@ -16,6 +16,7 @@ import { pokemonSearchWords, searchSourceLabel } from "./pokemonSearchWords";
 import type { PokemonPosition } from "./domain";
 import type { pokemonSearchSourceLabels } from "./pokemonSearchSourceLabels";
 import "./PokemonSearchEditor.css";
+import { playSaveSound } from "./saveSound";
 
 export function SearchCandidate({
   title,
@@ -252,6 +253,7 @@ export function PokemonSearchEditor({
       setLast(undefined);
       onMatches(result.matches);
       if (!result.matches.length) setMessage("noMatch");
+      playSaveSound("other");
     } catch {
       if (lifecycle.current.alive && ticket === lifecycle.current.epoch)
         setMessage("failed");
@@ -276,10 +278,13 @@ export function PokemonSearchEditor({
       if (!lifecycle.current.alive || ticket !== lifecycle.current.epoch)
         return;
       if (result === undefined) setMessage("failed");
-      else if (result === null) setMessage("noMatch");
-      else {
+      else if (result === null) {
+        setMessage("noMatch");
+        playSaveSound("other", "exclamation");
+      } else {
         setLast(result);
         onLocate(result);
+        playSaveSound("other");
       }
     } catch {
       if (lifecycle.current.alive && ticket === lifecycle.current.epoch)
@@ -296,6 +301,7 @@ export function PokemonSearchEditor({
     setLast(undefined);
     setMessage("");
     onMatches(undefined);
+    playSaveSound("other");
   }
   function choice(
     key:

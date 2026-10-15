@@ -89,7 +89,7 @@
   gap: 8px;
   min-width: 0;
 }
-.save-dlc5-member img {
+.save-dlc5-member :is(img, .save-pokemon-art) {
   object-fit: contain;
   image-rendering: pixelated;
   flex: none;

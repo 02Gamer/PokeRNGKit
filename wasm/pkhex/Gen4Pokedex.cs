@@ -20,7 +20,7 @@ internal static class Gen4Pokedex
     }
     private static string[] Forms(ushort species, GameStrings strings)
     {
-        var forms = FormConverter.GetFormList(species, strings.types, strings.forms, EntityContext.Gen4);
+        var forms = FormConverter.GetFormList(species, strings.types, strings.forms, PokemonDisplay.GenderSymbols, EntityContext.Gen4);
         return species == 172 ? ["♂", "♀", forms[1]] : forms;
     }
     public static Dex4State State(SAV4 save, ushort species)

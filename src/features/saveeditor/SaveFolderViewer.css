@@ -1,6 +1,20 @@
 .save-folder-viewer {
   min-width: 0;
 }
+.save-folder-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.save-folder-shortcuts button {
+  max-width: min(100%, 32rem);
+  min-height: 44px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-align: start;
+}
 .save-folder-fields {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));

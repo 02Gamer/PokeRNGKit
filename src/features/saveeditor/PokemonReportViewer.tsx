@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AutoCompleteComboBox } from "../shared/AutoCompleteComboBox";
 import { Select } from "../shared/Select";
-import { pokemonImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
 import {
   reportLabel,
   reportTable,
@@ -12,19 +12,27 @@ import {
   type PokemonReportQuery,
 } from "./pokemonReport";
 import "./PokemonReportViewer.css";
+import {
+  loadReportSettings,
+  reportHiddenIndices,
+} from "./programExportSettings";
+import { settingsWords } from "./settingsLabels";
 
 export function PokemonReportViewer({
   revision,
   lang,
   busy,
   actions,
+  onOpenSettings,
 }: {
   revision: number;
   lang: "zh" | "en" | "ja";
   busy: boolean;
   actions: PokemonReportActions;
+  onOpenSettings?(): void;
 }) {
   const w = reportWords[lang];
+  const [defaults] = useState(loadReportSettings);
   const [catalog, setCatalog] = useState<PokemonReportCatalog>();
   const [result, setResult] = useState<{
     revision: number;
@@ -32,7 +40,7 @@ export function PokemonReportViewer({
     data: PokemonReportData;
     query: PokemonReportQuery;
   }>();
-  const [extra, setExtra] = useState<string[]>([]),
+  const [extra, setExtra] = useState<string[]>(defaults.extra),
     [candidate, setCandidate] = useState("");
   const [hidden, setHidden] = useState<number[]>([]),
     [column, setColumn] = useState(0);
@@ -63,7 +71,10 @@ export function PokemonReportViewer({
     const query: PokemonReportQuery = {
       language: lang === "zh" ? "zh-Hans" : lang,
       extra: sortIndex !== null && current ? current.query.extra : [...extra],
-      hidden: [],
+      hidden:
+        sortIndex !== null && current
+          ? current.query.hidden
+          : [...defaults.hidden],
       sortIndex,
       descending,
     };
@@ -79,7 +90,8 @@ export function PokemonReportViewer({
       }
       setCatalog(nextCatalog);
       setResult({ revision, lang, data, query });
-      setHidden([]);
+      if (sortIndex === null || !current)
+        setHidden(reportHiddenIndices(data.columns));
       setColumn(0);
       setSelection(undefined);
     } catch {
@@ -146,6 +158,11 @@ export function PokemonReportViewer({
   return (
     <section className="save-pokemon-report" aria-label={w.title}>
       <div className="save-editor-toolbar">
+        {onOpenSettings && (
+          <button type="button" disabled={locked} onClick={onOpenSettings}>
+            {settingsWords[lang].title}
+          </button>
+        )}
         <button type="button" disabled={locked} onClick={() => void load()}>
           {pending ? w.pending : w.read}
         </button>
@@ -369,9 +386,13 @@ export function PokemonReportViewer({
                       }}
                     >
                       {i === 0 ? (
-                        <img
+                        <PokemonSprite
                           loading="lazy"
-                          src={pokemonImage({ sprite: r.sprite, species: 0 })}
+                          pokemon={
+                            r.artwork ?? { sprite: r.sprite, species: 0 }
+                          }
+                          width={40}
+                          height={32}
                           alt={
                             r.cells[
                               current.data.columns.findIndex(

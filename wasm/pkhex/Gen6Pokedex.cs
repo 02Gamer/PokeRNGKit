@@ -31,7 +31,7 @@ internal static class Gen6Pokedex
         return new(save.State.Exportable&&SaveChecksums.Valid(save),new(d.IsNationalDexUnlocked,d.IsNationalDexMode,d.InitialSpecies,d.Spinda.ToString("X8")),
             Enumerable.Range(1,721).Select(i=>{
                 ushort species=(ushort)i;int count=FormCount(save,species);
-                return new Dex6Entry(State(save,species),Text(s=>s.specieslist[i]),Allowed(save,species),Enumerable.Range(0,count).Select(f=>Text(s=>FormConverter.GetFormList(species,s.types,s.forms,save.Context)[f])).ToArray());
+                return new Dex6Entry(State(save,species),Text(s=>s.specieslist[i]),Allowed(save,species),Enumerable.Range(0,count).Select(f=>Text(s=>FormConverter.GetFormList(species,s.types,s.forms,PokemonDisplay.GenderSymbols,save.Context)[f])).ToArray());
             }).ToArray());
     }
     public static string Snapshot(SAV6 save) => Convert.ToHexString(Dex(save).Data[..(save is SAV6XY?0x6A0:0x11CC)]);

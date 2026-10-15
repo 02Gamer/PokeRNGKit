@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef, useState } from "react";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import { pokemonSuperTrainingWords } from "./pokemonSuperTrainingWords";
 import { superTrainingSourceLabels } from "./superTrainingSourceLabels";
 import {

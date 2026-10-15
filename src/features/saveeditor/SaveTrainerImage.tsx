@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { playSaveSound } from "./saveSound";
 import { tr9Pixels, tr9Bmp, type Tr9Image } from "./trainer9";
 
 export function SaveTrainerImage({
@@ -68,6 +69,7 @@ export function SaveTrainerImage({
       link.href = url;
       link.download = `${fileName}.${format}`;
       link.click();
+      playSaveSound("other");
       urls.current.set(
         url,
         setTimeout(() => {

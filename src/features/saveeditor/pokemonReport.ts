@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import type { SpriteData } from "./PokemonSprite";
 export interface PokemonReportColumn {
   name: string;
   type: string;
@@ -7,6 +8,7 @@ export interface PokemonReportColumn {
 }
 export interface PokemonReportRow {
   sprite: string;
+  artwork?: SpriteData | null;
   source: "box" | "party" | "extra";
   box: number;
   slot: number;

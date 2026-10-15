@@ -1,7 +1,7 @@
 import { PokemonCareEditor } from "./PokemonCareEditor";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type {
   MemoryCatalog,
   MemoryEdit,
@@ -90,7 +90,9 @@ export function PokemonMemoryEditor({
           }
         >
           {!choices.some((c) => c.id === draft[key]) && (
-            <option value={draft[key]}>#{draft[key]}</option>
+            <option value={draft[key]} disabled data-source-invalid>
+              #{draft[key]}
+            </option>
           )}
           {choices.map((c) => (
             <option key={c.id} value={c.id}>
@@ -146,7 +148,9 @@ export function PokemonMemoryEditor({
                 }
               >
                 {!catalog.memories.some((c) => c.id === draft.memory) && (
-                  <option value={draft.memory}>#{draft.memory}</option>
+                  <option value={draft.memory} disabled data-source-invalid>
+                    #{draft.memory}
+                  </option>
                 )}
                 {catalog.memories.map((c) => (
                   <option key={c.id} value={c.id}>

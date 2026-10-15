@@ -1,10 +1,40 @@
 import type { SaveEditorRequestKind } from "./requestKinds";
 import { MAX_SAVE_BYTES, type SaveEditorResult } from "./domain";
+import { readSaveSettings, subscribeSaveSettings } from "./settingsRepository";
+import { beginSaveRequest } from "./clientActivity";
+import { loadExternalMysteryGifts } from "./externalMysteryGifts";
+import { subscribeMysteryGiftChanges } from "./mysteryGiftChanges";
 
 export class SaveEditorClient {
   private worker?: Worker;
   private nextId = 0;
   private brProfile = -1;
+  getBRProfile() {
+    return this.brProfile;
+  }
+  setBRProfile(profile = -1) {
+    if (!Number.isInteger(profile) || profile < -1 || profile > 3)
+      throw new Error("Invalid Battle Revolution profile.");
+    if (profile !== this.brProfile)
+      this.dispose("Battle Revolution player changed.");
+    this.brProfile = profile;
+  }
+  private spriteMode: "a" | "b" | "c" = "b";
+  private programSettingsJson?: string;
+  private programSettingsOverride = false;
+  private externalMysteryGiftsJson?: string;
+  private preparing = new Set<(message: string) => void>();
+  setProgramSettings(json?: string) {
+    this.syncProgramSettings(json);
+    this.programSettingsOverride = true;
+  }
+  private syncProgramSettings(json?: string) {
+    if (json === this.programSettingsJson) return;
+    if (json && json.length > 2 * 1024 * 1024)
+      throw new Error("Settings request is too large.");
+    this.dispose("Settings changed. Read a new preview before confirming.");
+    this.programSettingsJson = json;
+  }
   private recognition?: import("./saveDetection").SaveDetectionChoice;
   getRecognition() {
     return this.recognition ? { ...this.recognition } : undefined;
@@ -18,6 +48,7 @@ export class SaveEditorClient {
       resolve(value: SaveEditorResult): void;
       reject(error: Error): void;
       timer: ReturnType<typeof setTimeout>;
+      finish(): void;
     }
   >();
 
@@ -90,10 +121,100 @@ export class SaveEditorClient {
     kind: SaveEditorRequestKind,
     databaseFiles?: Uint8Array,
   ): Promise<SaveEditorResult> {
+    // Catalog/settings inspection has no encounter dependency. Environments
+    // without IndexedDB cannot contain an imported local gift library.
+    if (
+      typeof indexedDB === "undefined" ||
+      kind.startsWith("programSettings") ||
+      kind === "saveDetectionCatalog"
+    )
+      return this.dispatchRequest(bytes, edit, kind, databaseFiles, "[]");
+    const source = new Uint8Array(bytes);
+    const files = databaseFiles ? new Uint8Array(databaseFiles) : undefined;
+    return new Promise((resolve, reject) => {
+      const finishActivity = beginSaveRequest();
+      const finish = () => {
+        clearTimeout(timer);
+        unsubscribeGifts();
+        unsubscribeSettings();
+        this.preparing.delete(cancel);
+        finishActivity();
+      };
+      const cancel = (message: string) => {
+        if (!this.preparing.has(cancel)) return;
+        finish();
+        reject(new Error(message));
+      };
+      const unsubscribeGifts = subscribeMysteryGiftChanges(() =>
+        this.dispose(
+          "Mystery gift data changed. Read a new preview before confirming.",
+        ),
+      );
+      const unsubscribeSettings = subscribeSaveSettings(() => {
+        if (!this.programSettingsOverride)
+          this.dispose(
+            "Settings changed. Read a new preview before confirming.",
+          );
+      });
+      const timer = setTimeout(
+        () => cancel("Reading the local mystery gift library timed out."),
+        120_000,
+      );
+      this.preparing.add(cancel);
+      let settings: string;
+      try {
+        settings =
+          (this.programSettingsOverride
+            ? this.programSettingsJson
+            : readSaveSettings()?.json) ?? "";
+      } catch (error) {
+        cancel(error instanceof Error ? error.message : String(error));
+        return;
+      }
+      void loadExternalMysteryGifts(settings).then(
+        (json) => {
+          if (!this.preparing.has(cancel)) return;
+          finish();
+          try {
+            resolve(this.dispatchRequest(source, edit, kind, files, json));
+          } catch (error) {
+            reject(error instanceof Error ? error : new Error(String(error)));
+          }
+        },
+        (error) =>
+          cancel(error instanceof Error ? error.message : String(error)),
+      );
+    });
+  }
+  private dispatchRequest(
+    bytes: Uint8Array,
+    edit: string | undefined,
+    kind: SaveEditorRequestKind,
+    databaseFiles?: Uint8Array,
+    externalMysteryGiftsJson = "[]",
+  ): Promise<SaveEditorResult> {
+    if (this.externalMysteryGiftsJson !== externalMysteryGiftsJson) {
+      this.dispose(
+        "Mystery gift data changed. Read a new preview before confirming.",
+      );
+      this.externalMysteryGiftsJson = externalMysteryGiftsJson;
+    }
+    if (!this.programSettingsOverride) {
+      try {
+        this.syncProgramSettings(readSaveSettings()?.json);
+      } catch (cause) {
+        return Promise.reject(
+          cause instanceof Error ? cause : new Error(String(cause)),
+        );
+      }
+    }
     if (kind === "trainer" && edit === undefined) this.brProfile = -1;
     if (
       (!bytes.length &&
         !kind.startsWith("saveFolder") &&
+        !kind.startsWith("programSettings") &&
+        kind !== "entityTemplateCatalog" &&
+        kind !== "entityTemplateCreate" &&
         kind !== "saveDetectionCatalog") ||
       bytes.length > MAX_SAVE_BYTES
     )
@@ -110,10 +231,13 @@ export class SaveEditorClient {
         if (!request) return;
         clearTimeout(request.timer);
         this.pending.delete(data.id);
+        request.finish();
         if (data.error) request.reject(new Error(data.error));
         else {
           if (data.report?.brProfiles)
             this.brProfile = data.report.brProfiles.active;
+          const mode = data.entity?.spriteMode ?? data.report?.spriteMode;
+          if (["a", "b", "c"].includes(mode)) this.spriteMode = mode;
           request.resolve(data);
         }
       };
@@ -135,28 +259,64 @@ export class SaveEditorClient {
           ),
         120_000,
       );
-      this.pending.set(id, { resolve, reject, timer });
-      this.worker!.postMessage(
-        {
-          id,
-          bytes: copy,
-          base,
-          edit,
-          kind,
-          brProfile: this.brProfile,
-          recognition: this.getRecognition(),
-          databaseFiles: fileCopy,
-        },
-        fileCopy ? [copy.buffer, fileCopy.buffer] : [copy.buffer],
+      const finishActivity = beginSaveRequest();
+      const unsubscribe = subscribeSaveSettings(() => {
+        if (this.programSettingsOverride) return;
+        try {
+          if (readSaveSettings()?.json !== this.programSettingsJson)
+            this.dispose(
+              "Settings changed. Read a new preview before confirming.",
+            );
+        } catch {
+          this.dispose(
+            "Stored save settings are invalid. Your working file is unchanged.",
+          );
+        }
+      });
+      const finish = () => {
+        unsubscribe();
+        unsubscribeGifts();
+        finishActivity();
+      };
+      const unsubscribeGifts = subscribeMysteryGiftChanges(() =>
+        this.dispose(
+          "Mystery gift data changed. Read a new preview before confirming.",
+        ),
       );
+      this.pending.set(id, { resolve, reject, timer, finish });
+      try {
+        this.worker!.postMessage(
+          {
+            id,
+            bytes: copy,
+            base,
+            edit,
+            kind,
+            brProfile: this.brProfile,
+            spriteMode: this.spriteMode,
+            programSettingsJson: this.programSettingsJson,
+            externalMysteryGiftsJson,
+            recognition: this.getRecognition(),
+            databaseFiles: fileCopy,
+          },
+          fileCopy ? [copy.buffer, fileCopy.buffer] : [copy.buffer],
+        );
+      } catch (cause) {
+        clearTimeout(timer);
+        this.pending.delete(id);
+        finish();
+        reject(cause instanceof Error ? cause : new Error(String(cause)));
+      }
     });
   }
 
   dispose(message = "Cancelled") {
+    for (const cancel of [...this.preparing]) cancel(message);
     this.worker?.terminate();
     this.worker = undefined;
     for (const request of this.pending.values()) {
       clearTimeout(request.timer);
+      request.finish();
       request.reject(new Error(message));
     }
     this.pending.clear();

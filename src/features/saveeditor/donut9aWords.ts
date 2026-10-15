@@ -50,6 +50,9 @@ export const donut9aWords = {
     import: "预览导入 .donut",
     export: "导出 .donut",
     exportHex: "导出十六进制文本",
+    copyHex: "复制十六进制文本",
+    copied: "已复制十六进制文本。",
+    copyFailed: "无法写入剪贴板，请检查浏览器权限后重试。",
     hex: "原始十六进制字节",
     importHex: "预览文本导入",
     hexHint:
@@ -120,6 +123,10 @@ export const donut9aWords = {
     import: "Preview .donut import",
     export: "Export .donut",
     exportHex: "Export hexadecimal text",
+    copyHex: "Copy hexadecimal text",
+    copied: "Hexadecimal text copied.",
+    copyFailed:
+      "Could not write to the clipboard. Check browser permissions and retry.",
     hex: "Raw hexadecimal bytes",
     importHex: "Preview text import",
     hexHint:
@@ -190,6 +197,10 @@ export const donut9aWords = {
     import: ".donut インポートをプレビュー",
     export: ".donut をエクスポート",
     exportHex: "16進テキストをエクスポート",
+    copyHex: "16進テキストをコピー",
+    copied: "16進テキストをコピーしました。",
+    copyFailed:
+      "クリップボードに書き込めません。ブラウザーの権限を確認して再試行してください。",
     hex: "元の16進バイト",
     importHex: "テキストインポートをプレビュー",
     hexHint:

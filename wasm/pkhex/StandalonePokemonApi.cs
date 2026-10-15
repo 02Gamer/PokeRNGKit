@@ -7,7 +7,7 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonRequest(string FileName, bool InputEncrypted = false, bool Party = false, bool Encrypted = false, PokemonEdit? Edit = null,
-    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null, int? Version = null, bool UseFileFormat = false, StandaloneEggTrainer? EggTrainer = null, GbPokemonEdit? Gb = null, GbSpecialEdit? GbSpecial = null);
+    PokemonRawEdit? Raw = null, string? ReadKind = null, int Handler = 0, int? Memory = null, int? Version = null, bool UseFileFormat = false, StandaloneEggTrainer? EggTrainer = null, GbPokemonEdit? Gb = null, GbSpecialEdit? GbSpecial = null, int? OriginBall = null);
 
 internal sealed record StandaloneAdvancedData(RibbonCatalog? Ribbons = null, HistoryCatalog? History = null, MemoryCatalog? Memory = null, ushort[]? Relearn = null, OriginCatalog? Origin = null, StandaloneEggCatalog? EggContext = null);
 
@@ -41,7 +41,7 @@ public static partial class Program
         var result = request.ReadKind switch
         {
             "eggContext" => new StandaloneAdvancedData(EggContext: StandaloneEgg.Read(p)),
-            "origin" => new StandaloneAdvancedData(Origin: PokemonOrigin.Catalog(p, request.Version)),
+            "origin" => new StandaloneAdvancedData(Origin: PokemonOrigin.Catalog(p, request.Version, request.OriginBall)),
             "ribbons" => new StandaloneAdvancedData(Ribbons: PokemonRibbons.Read(p, true)),
             "history" => new StandaloneAdvancedData(History: PokemonHistory.Read(p)),
             "memory" => new StandaloneAdvancedData(Memory: PokemonMemories.Read(p, request.Handler, request.Memory)),

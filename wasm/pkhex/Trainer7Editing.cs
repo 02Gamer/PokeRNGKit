@@ -15,7 +15,7 @@ internal static class Trainer7Editing
     private static string Text(long value)=>value.ToString(CultureInfo.InvariantCulture);
     private static LocalizedText Label(string key,string fallback)=>Trainer7Names.Get("SAV_Trainer7."+key,fallback);
     private static OriginChoice[] Styles(SAV7 s)=>Enum.GetValues<PlayerBattleStyle7>().Where(v=>s is SAV7USUM||v!=PlayerBattleStyle7.Nihilist).Select(v=>new OriginChoice((int)v,Trainer7Names.Get("PlayerBattleStyle7."+v,v.ToString()))).ToArray();
-    private static OriginChoice[] Vivillon(SAV7 s){var langs=new[]{"zh-Hans","en","ja"}.Select(l=>{var g=GameInfo.GetStrings(l);return FormConverter.GetFormList((ushort)Species.Vivillon,g.types,g.forms,["♂","♀","-"],s.Context);}).ToArray();return Enumerable.Range(0,langs[0].Length).Select(i=>new OriginChoice(i,new(langs[0][i],langs[1][i],langs[2][i]))).ToArray();}
+    private static OriginChoice[] Vivillon(SAV7 s){var langs=new[]{"zh-Hans","en","ja"}.Select(l=>{var g=GameInfo.GetStrings(l);return FormConverter.GetFormList((ushort)Species.Vivillon,g.types,g.forms,PokemonDisplay.GenderSymbols,s.Context);}).ToArray();return Enumerable.Range(0,langs[0].Length).Select(i=>new OriginChoice(i,new(langs[0][i],langs[1][i],langs[2][i]))).ToArray();}
     private static LocalizedText Place(int id)=>new(GameInfo.GetStrings("zh-Hans").GetLocationName(false,(ushort)id,7,7,GameVersion.US),GameInfo.GetStrings("en").GetLocationName(false,(ushort)id,7,7,GameVersion.US),GameInfo.GetStrings("ja").GetLocationName(false,(ushort)id,7,7,GameVersion.US));
     internal static Tr7Field[] Fields(SAV7 s)
     {

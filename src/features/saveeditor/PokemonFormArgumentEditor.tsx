@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Select } from "../shared/Select";
+import { PokemonSelect as Select } from "./PokemonSelect";
 import type { PokemonEntry, PokemonPosition, PokemonRawEdit } from "./domain";
 import type { saveEditorResources } from "./locales";
 
@@ -80,7 +80,9 @@ export function PokemonFormArgumentEditor({
               onChange={(e) => setValues({ ...values, value: e.target.value })}
             >
               {!argument.choices[Number(values.value)] && (
-                <option value={values.value}>#{values.value}</option>
+                <option value={values.value} disabled data-source-invalid>
+                  #{values.value}
+                </option>
               )}
               {argument.choices.map((name, id) => (
                 <option key={id} value={id}>

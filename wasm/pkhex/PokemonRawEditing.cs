@@ -3,7 +3,7 @@ using PKHeX.Core;
 
 namespace PokeRNGKit.SaveEditor;
 
-public sealed record PokemonRawEdit(int Box, int Slot, string Action, uint? Pid = null, uint? EncryptionConstant = null, FormArgumentEdit? FormArgument = null, EncounterEdit? Encounter = null, OriginEdit? Origin = null, EggEdit? Egg = null, ShinyEdit? Shiny = null, RelearnEdit? Relearn = null, RibbonEdit? Ribbons = null, MemoryEdit? Memory = null, CareEdit? Care = null, HistoryEdit? History = null, TrainingEdit? Training = null);
+public sealed record PokemonRawEdit(int Box, int Slot, string Action, uint? Pid = null, uint? EncryptionConstant = null, FormArgumentEdit? FormArgument = null, EncounterEdit? Encounter = null, OriginEdit? Origin = null, EggEdit? Egg = null, ShinyEdit? Shiny = null, RelearnEdit? Relearn = null, RibbonEdit? Ribbons = null, MemoryEdit? Memory = null, CareEdit? Care = null, HistoryEdit? History = null, TrainingEdit? Training = null, string? HomeTracker=null,int[]? Markings=null);
 
 internal static class PokemonRawEditing
 {
@@ -31,10 +31,16 @@ internal static class PokemonRawEditing
 
     public static void Apply(PKM p, PokemonRawEdit edit, bool party, Action? applyContext = null)
     {
+        var original=p is PB7?p.Clone():null;
         if (p.Species == 0 || !p.ChecksumValid || p.Format < 3)
             throw new ArgumentException("Pokemon slot must contain valid data.");
+        if(edit.HomeTracker is not null&&(edit.Action!="values"||p is not IHomeTrack||edit.HomeTracker.Length>16))
+            throw new ArgumentException("HOME tracker is unavailable or invalid.");
         switch (edit.Action)
         {
+            case "markings":
+                PokemonMarkings.Apply(p,edit.Markings??throw new ArgumentException("Pokemon markings are missing."));
+                break;
             case "training":
                 PokemonTraining.Apply(p, edit.Training ?? throw new ArgumentException("Pokemon training edit is missing."));
                 break;
@@ -68,12 +74,13 @@ internal static class PokemonRawEditing
                 PokemonFormArgument.Apply(p, edit.Box, edit.FormArgument ?? throw new ArgumentException("Pokemon form argument is missing."));
                 break;
             case "values":
-                if (edit.Pid is null && edit.EncryptionConstant is null)
+                if (edit.Pid is null && edit.EncryptionConstant is null && edit.HomeTracker is null)
                     throw new ArgumentException("Pokemon raw edit requires at least one value.");
                 if (edit.EncryptionConstant is not null && p.Format < 6)
                     throw new ArgumentException("Pokemon encryption constant is unavailable in this format.");
                 if (edit.Pid is uint pid) p.PID = pid;
                 if (edit.EncryptionConstant is uint ec) p.EncryptionConstant = ec;
+                if(edit.HomeTracker is not null&&p is IHomeTrack home)home.Tracker=Util.GetHexValue64(edit.HomeTracker);
                 break;
             case "rerollPid":
                 var gender = p.GetSaneGender();
@@ -89,7 +96,7 @@ internal static class PokemonRawEditing
         if (edit.Action == "values" && ((edit.Pid is uint requestedPid && p.PID != requestedPid) ||
             (edit.EncryptionConstant is uint requestedEc && p.EncryptionConstant != requestedEc)))
             throw new ArgumentException("Pokemon raw value cannot be represented by this format.");
-        if (party && (edit.Action != "training" || edit.Training?.Hyper is not null) && !(edit.Action == "shiny" && edit.Shiny?.Method == "sid") && edit.Action is not ("formArgument" or "encounter" or "origin" or "egg" or "relearn" or "ribbons" or "memory" or "care" or "history"))
+        if (party && (edit.Action != "values" || edit.Pid is not null || edit.EncryptionConstant is not null) && (edit.Action != "training" || edit.Training?.Hyper is not null) && !(edit.Action == "shiny" && edit.Shiny?.Method == "sid") && edit.Action is not ("formArgument" or "encounter" or "origin" or "egg" or "relearn" or "ribbons" or "memory" or "care" or "history" or "markings"))
         {
             var hp = p.Stat_HPCurrent;
             var status = p.Status_Condition;
@@ -97,6 +104,7 @@ internal static class PokemonRawEditing
             p.Stat_HPCurrent = Math.Min(hp, p.Stat_HPMax);
             p.Status_Condition = status;
         }
+        if(original is not null)PokemonEditing.RefreshDerived(p,original,true);
         p.RefreshChecksum();
     }
 }

@@ -6,6 +6,7 @@ export interface DatabaseLocalFile {
   entityFile: boolean;
   modified: number;
   useFileFormat?: boolean;
+  directory?: string;
 }
 export const DATABASE_LIMITS = {
   files: 1024,
@@ -31,7 +32,12 @@ export function validateDatabaseFiles(files: readonly DatabaseLocalFile[]) {
       !Number.isFinite(file.modified) ||
       (file.useFileFormat !== undefined &&
         typeof file.useFileFormat !== "boolean") ||
-      (file.useFileFormat === true && !file.entityFile)
+      (file.useFileFormat === true && !file.entityFile) ||
+      (file.directory !== undefined &&
+        (typeof file.directory !== "string" ||
+          !file.directory ||
+          file.directory.length > 32767 ||
+          !file.entityFile))
     )
       throw Error("Invalid local database file.");
     ids.add(file.id);
@@ -42,9 +48,11 @@ const DATABASE = "pokerngkit-pokemon-database",
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     let blocked = false;
-    const request = indexedDB.open(DATABASE, 1);
-    request.onupgradeneeded = () =>
-      request.result.createObjectStore(STORE, { keyPath: "id" });
+    const request = indexedDB.open(DATABASE, 2);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(STORE))
+        request.result.createObjectStore(STORE, { keyPath: "id" });
+    };
     request.onsuccess = () => {
       if (blocked) {
         request.result.close();
@@ -140,6 +148,7 @@ export async function replaceDatabaseFiles(
                 !old ||
                 old.name !== file.name ||
                 old.entityFile !== file.entityFile ||
+                old.directory !== file.directory ||
                 Boolean(old.useFileFormat) !== Boolean(file.useFileFormat) ||
                 old.modified !== file.modified ||
                 old.data.byteLength !== file.data.byteLength

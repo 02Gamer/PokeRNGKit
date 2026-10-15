@@ -29,11 +29,21 @@ internal static class StandaloneGb
 
     public static byte[] Edit(byte[] input, StandalonePokemonRequest request)
     {
-        if (StandalonePokemon.Open(input, request.FileName, request.InputEncrypted, request.UseFileFormat).Entity is not GBPKML p)
+        if (StandalonePokemon.Open(input, request.FileName, request.InputEncrypted, request.UseFileFormat).Entity is not GBPKM p)
             throw new ArgumentException("GB editing requires a first- or second-generation file.");
         if ((request.Gb is null) == (request.GbSpecial is null)) throw new ArgumentException("GB edit requires exactly one operation.");
-        if (request.GbSpecial is { } special) { StandaloneGbSpecial.Apply(p, special); return Write(p); }
+        if (request.GbSpecial is { } special) { StandaloneGbSpecial.Apply(p, special); return WriteEdited(p); }
         var edit = request.Gb!;
+        Apply(p, edit);
+        return WriteEdited(p);
+    }
+
+    private static byte[] WriteEdited(GBPKM p)=>p is GBPKML list?Write(list):StandalonePokemon.Serialize(p,false,false);
+
+    internal static void Apply(GBPKM p, GbPokemonEdit edit)
+    {
+        if(edit.Nickname is null||edit.Ot is null)throw new ArgumentException("GB name is invalid.");
+        if(p is SK2 {IsRental:true}&&edit.Ot!=p.OriginalTrainerName)throw new ArgumentException("Rental Pokemon do not store an original trainer name.");
         var original = p.Clone();
         if (edit.Species < 1 || edit.Species > p.MaxSpeciesID || edit.Tid is < 0 or > 65535 || edit.Level is < 1 or > 100)
             throw new ArgumentException("GB identity value is outside the format limits.");
@@ -48,7 +58,8 @@ internal static class StandaloneGb
             if (edit.MovePp[i] > p.GetMovePP(edit.Moves[i], edit.MovePpUps[i]) ||
                 (edit.Moves[i] == 0 && (edit.MovePp[i] != 0 || edit.MovePpUps[i] != 0)))
                 throw new ArgumentException("GB PP is outside the move limits.");
-        Name(edit.Nickname, p.MaxStringLengthNickname); Name(edit.Ot, p.MaxStringLengthTrainer);
+        if(edit.Nickname.Length!=0||edit.Nickname!=p.Nickname)Name(edit.Nickname, p.MaxStringLengthNickname);
+        if(edit.Ot.Length!=0||edit.Ot!=p.OriginalTrainerName)Name(edit.Ot, p.MaxStringLengthTrainer);
         p.Species = (ushort)edit.Species;
         if (p.Nickname != edit.Nickname) p.Nickname = edit.Nickname;
         if (p.OriginalTrainerName != edit.Ot) p.OriginalTrainerName = edit.Ot;
@@ -70,7 +81,6 @@ internal static class StandaloneGb
         {
             p.ResetPartyStats(); p.Stat_HPCurrent = Math.Min(original.Stat_HPCurrent, p.Stat_HPMax); p.Status_Condition = original.Status_Condition;
         }
-        return Write(p);
     }
 
     public static byte[] Write(GBPKML p)

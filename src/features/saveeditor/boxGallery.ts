@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { pokemonAccess } from "./savePokemonEditing";
 import type {
   BoxEdit,
   PokemonPosition,
@@ -21,7 +22,8 @@ type GalleryReport = Pick<
   | "canEdit"
   | "checksumsValid"
   | "boxOptions"
->;
+> &
+  Partial<Pick<SaveReport, "pokemonEditing">>;
 const inBox = (r: GalleryReport, p: PokemonPosition) =>
   Number.isInteger(p.box) &&
   p.box >= 0 &&
@@ -97,7 +99,7 @@ export function boxDropEdit(
   keys: GalleryModifiers,
 ): StorageEdit | undefined {
   if (
-    !report.canEdit ||
+    !pokemonAccess(report).canStorage ||
     !report.checksumsValid ||
     !inBox(report, source) ||
     !inBox(report, target) ||

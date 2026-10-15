@@ -12,10 +12,27 @@ export interface SaveDetectionCatalog {
     id: number;
     name: string;
     versions: { id: number; name: { zh: string; en: string; ja: string } }[];
+    unsupported?: { subVersion: number; language: number }[];
   }[];
   languages: { id: number; name: { zh: string; en: string; ja: string } }[];
   handlers: string[];
 }
+export function unsupportedSaveChoice(
+  type: SaveDetectionCatalog["types"][number] | undefined,
+  subVersion: number,
+  language: number,
+) {
+  return (
+    type?.unsupported?.some(
+      (value) => value.subVersion === subVersion && value.language === language,
+    ) ?? false
+  );
+}
+export const saveDetectionPairError = {
+  zh: "此版本与存档语言组合不受支持，请重新选择。",
+  en: "This game version and save language combination is unsupported. Choose another combination.",
+  ja: "このバージョンと言語の組み合わせには対応していません。選び直してください。",
+};
 const formatNames: Record<string, [string, string, string]> = {
   RBY: [
     "红／绿／蓝／黄",

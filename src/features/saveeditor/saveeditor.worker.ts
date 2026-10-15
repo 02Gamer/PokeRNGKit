@@ -1,6 +1,21 @@
 import type { SaveEditorRequestKind } from "./requestKinds";
+import { checkPokemonAccess } from "./savePokemonEditing";
+import { parseOriginCatalog } from "./ballBrowser";
+import {
+  parseEntityTemplateCatalog,
+  parseEntityTemplateCreated,
+} from "./entityTemplate";
 import type { SaveReport, PokemonLegalityReport } from "./domain";
 import { browserCryptography } from "./browserCryptography";
+import { bulkLegalitySourceHash, parseBulkLegality } from "./bulkLegality";
+import {
+  parseBattleTemplateImport,
+  type BattleTemplateImportRequest,
+} from "./battleTemplateImport";
+import {
+  parseBattleTemplate,
+  type BattleTemplateQuery,
+} from "./battleTemplate";
 import {
   decodeDatabaseDelta,
   type DatabaseWireDelta,
@@ -14,6 +29,24 @@ interface SaveExports {
   PokeRNGKit: {
     SaveEditor: {
       Program: {
+        EditGbPokemon(data: Uint8Array, json: string): Uint8Array;
+        ReadEntityTemplateCatalog(data: Uint8Array, json: string): string;
+        CreateEntityTemplate(data: Uint8Array, json: string): string;
+        PreviewBattleTemplateImport(data: Uint8Array, json: string): string;
+        CommitBattleTemplateImport(data: Uint8Array, json: string): Uint8Array;
+        DiscardBattleTemplateImport(token: string): void;
+        ReadBattleTemplate(data: Uint8Array, json: string): string;
+        ReadStandaloneBattleTemplate(data: Uint8Array, json: string): string;
+        AnalyzeStoredPokemon(data: Uint8Array): string;
+        ReadProgramSettings(): string;
+        ReadPokemonHover(data: Uint8Array, json: string): string;
+        ReadContextHover(data: Uint8Array, json: string): string;
+        ValidateProgramSettings(json: string): string;
+        ConfigureProgramSettings(json: string): void;
+        ConfigureExternalMysteryGifts(json: string): void;
+        ClearProgramSettings(): void;
+        ConfigureSpriteMode(mode: string): void;
+        ReadSaveBackupName(data: Uint8Array, name: string): string;
         ReadSaveDetectionCatalog(): string;
         ConfigureSaveDetection(data: Uint8Array, json: string): void;
         ClearSaveDetection(): void;
@@ -22,6 +55,7 @@ interface SaveExports {
         CommitSimpleTrainer(data: Uint8Array, json: string): Uint8Array;
         DiscardSimpleTrainer(token: string): void;
         OpenMysteryGiftDatabase(data: Uint8Array, json: string): string;
+        ScanMysteryGiftFiles(json: string): string;
         ReadMysteryGiftDatabase(data: Uint8Array, json: string): string;
         ReadMysteryGiftDatabaseCatalog(
           data: Uint8Array,
@@ -416,6 +450,9 @@ self.addEventListener(
       kind?: SaveEditorRequestKind;
       databaseFiles?: Uint8Array;
       recognition?: import("./saveDetection").SaveDetectionChoice;
+      programSettingsJson?: string;
+      externalMysteryGiftsJson?: string;
+      spriteMode?: "a" | "b" | "c";
     }>,
   ) => {
     const { id, base, bytes, kind } = event.data;
@@ -429,6 +466,30 @@ self.addEventListener(
       });
       const api = (await runtime).PokeRNGKit.SaveEditor.Program;
       taskApi = api;
+      api.ClearProgramSettings();
+      if (
+        kind === "programSettingsRead" ||
+        kind === "programSettingsValidate"
+      ) {
+        const bundle = JSON.parse(api.ReadProgramSettings());
+        if (bundle.apiVersion !== 171)
+          throw new Error("Save editor API version mismatch.");
+        self.postMessage({
+          id,
+          programSettings: kind === "programSettingsRead" ? bundle : undefined,
+          programSettingsJson:
+            kind === "programSettingsValidate"
+              ? api.ValidateProgramSettings(payload)
+              : undefined,
+        });
+        return;
+      }
+      api.ConfigureProgramSettings(event.data.programSettingsJson ?? "");
+      if (kind !== "saveDetectionCatalog")
+        api.ConfigureExternalMysteryGifts(
+          event.data.externalMysteryGiftsJson ?? "[]",
+        );
+      api.ConfigureSpriteMode(event.data.spriteMode ?? "b");
       api.ClearSaveDetection();
       if (kind === "saveDetectionCatalog") {
         self.postMessage({
@@ -444,6 +505,58 @@ self.addEventListener(
         api.ConfigureSaveDetection(data, recognitionJson);
         return api.Inspect(data);
       };
+      if (kind === "entityTemplateCatalog" || kind === "entityTemplateCreate") {
+        api.ConfigureBRProfile(event.data.brProfile ?? -1);
+        if (bytes.length) api.ConfigureSaveDetection(bytes, recognitionJson);
+        const sourceHash = bulkLegalitySourceHash(bytes);
+        if (kind === "entityTemplateCatalog") {
+          const entityTemplateCatalog = parseEntityTemplateCatalog(
+            JSON.parse(api.ReadEntityTemplateCatalog(bytes, payload)),
+            sourceHash,
+          );
+          if (bulkLegalitySourceHash(bytes) !== sourceHash)
+            throw new Error("Template catalog changed source input.");
+          self.postMessage({ id, entityTemplateCatalog });
+          return;
+        }
+        const wire = JSON.parse(api.CreateEntityTemplate(bytes, payload));
+        const entityTemplateCreated = parseEntityTemplateCreated(
+          wire,
+          sourceHash,
+        );
+        if (
+          typeof wire.data !== "string" ||
+          wire.data.length > 1398104 ||
+          !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(
+            wire.data,
+          )
+        )
+          throw new Error("Invalid template entity bytes.");
+        const entityFile = Uint8Array.from(atob(wire.data), (c) =>
+          c.charCodeAt(0),
+        );
+        const entity = JSON.parse(
+          api.InspectStandalonePokemon(
+            entityFile,
+            JSON.stringify({ fileName: wire.fileName, useFileFormat: true }),
+          ),
+        );
+        if (
+          entity.apiVersion !== 171 ||
+          bulkLegalitySourceHash(bytes) !== sourceHash
+        )
+          throw new Error("Template API or source mismatch.");
+        const { data: _data, ...metadata } =
+          entityTemplateCreated as typeof entityTemplateCreated & {
+            data?: string;
+          };
+        void _data;
+        self.postMessage(
+          { id, entityTemplateCreated: metadata, entity, entityFile },
+          [entityFile.buffer],
+        );
+        return;
+      }
       if (!kind?.startsWith("saveFolder"))
         api.ConfigureSaveDetection(bytes, recognitionJson);
       if (kind?.startsWith("saveFolder")) {
@@ -458,7 +571,7 @@ self.addEventListener(
             : kind === "saveFolderRead"
               ? JSON.parse(api.ReadSaveFolder(payload))
               : undefined;
-        if (saveFolder && saveFolder.apiVersion !== 163)
+        if (saveFolder && saveFolder.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         self.postMessage({
           id,
@@ -481,9 +594,27 @@ self.addEventListener(
       if (typeof api.ConfigureBRProfile !== "function")
         throw new Error("Save editor API version mismatch.");
       api.ConfigureBRProfile(event.data.brProfile ?? -1);
+      if (kind === "pokemonHover" || kind === "contextHover") {
+        self.postMessage({
+          id,
+          pokemonHover: JSON.parse(
+            kind === "pokemonHover"
+              ? api.ReadPokemonHover(bytes, payload)
+              : api.ReadContextHover(bytes, payload),
+          ),
+        });
+        return;
+      }
+      if (kind === "saveBackupName") {
+        self.postMessage({
+          id,
+          saveBackupName: api.ReadSaveBackupName(bytes, payload),
+        });
+        return;
+      }
       if (kind?.startsWith("simpleTrainer")) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         if (kind === "simpleTrainerDiscard") api.DiscardSimpleTrainer(payload);
         const output =
@@ -493,7 +624,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -514,9 +645,17 @@ self.addEventListener(
         return;
       }
       if (kind?.startsWith("giftDatabase")) {
+        if (kind === "giftDatabaseScanFiles") {
+          self.postMessage({
+            id,
+            giftDatabaseAccepted: JSON.parse(api.ScanMysteryGiftFiles(payload)),
+          });
+          return;
+        }
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         if (kind === "giftDatabaseArchive") {
           const output = new Uint8Array(
             api.ExportMysteryGiftDatabaseArchive(bytes),
@@ -567,8 +706,9 @@ self.addEventListener(
       }
       if (kind?.startsWith("encounter")) {
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         if (kind === "encounterDiscard") api.DiscardPokemonEncounter(payload);
         else if (kind === "encounterReset") api.ResetPokemonEncounters();
         const encounters =
@@ -606,8 +746,9 @@ self.addEventListener(
       }
       if (kind?.startsWith("database")) {
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         const files = event.data.databaseFiles ?? new Uint8Array();
         if (files.byteLength > 128 * 1024 * 1024)
           throw new Error("Database files exceed the local size limit.");
@@ -626,7 +767,7 @@ self.addEventListener(
             ) as DatabaseWireDelta,
           );
           const next: SaveReport = JSON.parse(inspectSave(result.output));
-          if (next.apiVersion !== 163)
+          if (next.apiVersion !== 171)
             throw new Error("Save editor API version mismatch.");
           self.postMessage({ id, report: next, ...result }, [
             result.output.buffer,
@@ -689,7 +830,7 @@ self.addEventListener(
         ].includes(kind)
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "moveShopDiscard") api.DiscardMoveShop(payload);
         const output =
@@ -707,8 +848,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, moveShop, moveShopPreview, output },
           output ? [output.buffer] : [],
@@ -728,7 +870,7 @@ self.addEventListener(
         const before: StandalonePokemonReport = JSON.parse(
           api.InspectStandalonePokemon(bytes, payload),
         );
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         const target = request.moveShopTarget ?? {
           kind: "file",
@@ -772,7 +914,7 @@ self.addEventListener(
               ),
             )
           : before;
-        if (entity.apiVersion !== 163)
+        if (entity.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         self.postMessage(
           { id, entity, moveShop, moveShopPreview, output },
@@ -791,7 +933,7 @@ self.addEventListener(
         ].includes(kind)
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "textTrashDiscard") api.DiscardTextTrash(payload);
         const output =
@@ -813,8 +955,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, textTrash, textTrashDraft, textTrashPreview, output },
           output ? [output.buffer] : [],
@@ -835,7 +978,7 @@ self.addEventListener(
         const before: StandalonePokemonReport = JSON.parse(
           api.InspectStandalonePokemon(bytes, payload),
         );
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         const target =
           kind === "entityTextTrash"
@@ -895,7 +1038,7 @@ self.addEventListener(
               ),
             )
           : before;
-        if (entity.apiVersion !== 163)
+        if (entity.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         self.postMessage(
           { id, entity, textTrash, textTrashDraft, textTrashPreview, output },
@@ -913,7 +1056,7 @@ self.addEventListener(
         ].includes(kind)
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "pokemonSuperTrainingDiscard")
           api.DiscardPokemonSuperTraining(payload);
@@ -932,8 +1075,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           {
             id,
@@ -959,7 +1103,7 @@ self.addEventListener(
         const before: StandalonePokemonReport = JSON.parse(
           api.InspectStandalonePokemon(bytes, payload),
         );
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         const target = request.superTrainingTarget ?? {
           kind: "file",
@@ -1005,7 +1149,7 @@ self.addEventListener(
               ),
             )
           : before;
-        if (entity.apiVersion !== 163)
+        if (entity.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -1029,7 +1173,7 @@ self.addEventListener(
         ].includes(kind)
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "plusRecordDiscard") api.DiscardPlusRecords(payload);
         const output =
@@ -1047,8 +1191,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, plusRecord, plusRecordPreview, output },
           output ? [output.buffer] : [],
@@ -1068,7 +1213,7 @@ self.addEventListener(
         const before: StandalonePokemonReport = JSON.parse(
           api.InspectStandalonePokemon(bytes, payload),
         );
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         const target = request.plusRecordTarget ?? {
           kind: "file",
@@ -1112,7 +1257,7 @@ self.addEventListener(
               ),
             )
           : before;
-        if (entity.apiVersion !== 163)
+        if (entity.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         self.postMessage(
           { id, entity, plusRecord, plusRecordPreview, output },
@@ -1130,7 +1275,7 @@ self.addEventListener(
         ].includes(kind)
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "techRecordDiscard") api.DiscardTechRecords(payload);
         const output =
@@ -1148,8 +1293,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, techRecord, techRecordPreview, output },
           output ? [output.buffer] : [],
@@ -1169,7 +1315,7 @@ self.addEventListener(
         const before: StandalonePokemonReport = JSON.parse(
           api.InspectStandalonePokemon(bytes, payload),
         );
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         const target = request.techRecordTarget ?? {
           kind: "file",
@@ -1213,7 +1359,7 @@ self.addEventListener(
               ),
             )
           : before;
-        if (entity.apiVersion !== 163)
+        if (entity.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         self.postMessage(
           { id, entity, techRecord, techRecordPreview, output },
@@ -1227,8 +1373,9 @@ self.addEventListener(
         kind === "pokemonSearchSeek"
       ) {
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage({
           id,
           report,
@@ -1247,10 +1394,140 @@ self.addEventListener(
         });
         return;
       }
+      if (
+        kind &&
+        [
+          "battleTemplateImportPreview",
+          "battleTemplateImportCommit",
+          "battleTemplateImportDiscard",
+          "entityBattleTemplateImportPreview",
+          "entityBattleTemplateImportCommit",
+          "entityBattleTemplateImportDiscard",
+        ].includes(kind)
+      ) {
+        const entityKind = kind.startsWith("entity");
+        const request: StandalonePokemonRequest = entityKind
+          ? JSON.parse(payload)
+          : ({} as StandalonePokemonRequest);
+        const inspectionPayload = JSON.stringify({
+          fileName: request.fileName,
+          inputEncrypted: request.inputEncrypted ?? false,
+          useFileFormat: request.useFileFormat ?? false,
+        });
+        const sourceHash = bulkLegalitySourceHash(bytes);
+        const before: SaveReport | StandalonePokemonReport = JSON.parse(
+          entityKind
+            ? api.InspectStandalonePokemon(bytes, inspectionPayload)
+            : inspectSave(bytes),
+        );
+        if (before.apiVersion !== 171)
+          throw new Error("Save editor API version mismatch.");
+        const preview = kind.endsWith("Preview"),
+          commit = kind.endsWith("Commit");
+        if (kind.endsWith("Discard"))
+          api.DiscardBattleTemplateImport(
+            entityKind ? (request.battleTemplateImportToken ?? "") : payload,
+          );
+        let battleTemplateImport;
+        if (preview) {
+          const query: BattleTemplateImportRequest = entityKind
+            ? request.battleTemplateImport!
+            : JSON.parse(payload);
+          if (
+            !query?.target ||
+            query.target.kind !== (entityKind ? "file" : "save") ||
+            (entityKind &&
+              (query.target.fileName !== request.fileName ||
+                query.target.inputEncrypted !==
+                  (request.inputEncrypted ?? false) ||
+                query.target.useFileFormat !==
+                  (request.useFileFormat ?? false)))
+          )
+            throw new Error(
+              "Battle template import target does not match the open file.",
+            );
+          battleTemplateImport = parseBattleTemplateImport(
+            JSON.parse(
+              api.PreviewBattleTemplateImport(bytes, JSON.stringify(query)),
+            ),
+            sourceHash,
+            query.target,
+          );
+        }
+        const output = commit
+          ? new Uint8Array(
+              api.CommitBattleTemplateImport(
+                bytes,
+                entityKind
+                  ? JSON.stringify(request.battleTemplateImportConfirmation)
+                  : payload,
+              ),
+            )
+          : undefined;
+        if (bulkLegalitySourceHash(bytes) !== sourceHash)
+          throw new Error("Battle template import changed source input.");
+        const report = !entityKind
+          ? output
+            ? JSON.parse(inspectSave(output))
+            : before
+          : undefined;
+        const entity = entityKind
+          ? output
+            ? JSON.parse(
+                api.InspectStandalonePokemon(
+                  output,
+                  JSON.stringify({
+                    fileName: `.${(before as StandalonePokemonReport).extension}`,
+                    inputEncrypted: false,
+                    useFileFormat: true,
+                  }),
+                ),
+              )
+            : before
+          : undefined;
+        self.postMessage(
+          { id, report, entity, battleTemplateImport, output },
+          output ? [output.buffer] : [],
+        );
+        return;
+      }
+      if (kind === "battleTemplate") {
+        const sourceHash = bulkLegalitySourceHash(bytes);
+        const report: SaveReport = JSON.parse(inspectSave(bytes));
+        if (report.apiVersion !== 171)
+          throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
+        const query: BattleTemplateQuery = JSON.parse(payload);
+        const battleTemplate = parseBattleTemplate(
+          JSON.parse(api.ReadBattleTemplate(bytes, payload)),
+          sourceHash,
+          query,
+        );
+        if (bulkLegalitySourceHash(bytes) !== sourceHash)
+          throw new Error("Battle template read changed input.");
+        self.postMessage({ id, report, battleTemplate });
+        return;
+      }
+      if (kind === "saveBulkLegality") {
+        const sourceHash = bulkLegalitySourceHash(bytes);
+        const report: SaveReport = JSON.parse(inspectSave(bytes));
+        if (report.apiVersion !== 171)
+          throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
+        const bulkLegality = parseBulkLegality(
+          JSON.parse(api.AnalyzeStoredPokemon(bytes)),
+          sourceHash,
+        );
+        if (bulkLegalitySourceHash(bytes) !== sourceHash)
+          throw new Error("Stored Pokémon analysis changed its input.");
+        self.postMessage({ id, report, bulkLegality });
+        return;
+      }
       if (kind === "personalChart") {
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage({
           id,
           report,
@@ -1264,8 +1541,9 @@ self.addEventListener(
         kind === "pokemonReportExport"
       ) {
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage({
           id,
           report,
@@ -1286,8 +1564,9 @@ self.addEventListener(
       }
       if (kind === "registeredGroups" || kind === "registeredGroupAnalyze") {
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         const registeredGroups =
           kind === "registeredGroups"
             ? JSON.parse(api.ReadRegisteredGroups(bytes))
@@ -1311,7 +1590,7 @@ self.addEventListener(
         kind === "chatterDiscard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "chatterDiscard") api.DiscardChatter(payload);
         const output =
@@ -1327,8 +1606,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, chatter, chatterPreview, output },
           output ? [output.buffer] : [],
@@ -1342,7 +1622,7 @@ self.addEventListener(
         kind === "mailboxDiscard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "mailboxDiscard") api.DiscardMailbox(payload);
         const output =
@@ -1358,8 +1638,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, mailbox, mailboxPreview, output },
           output ? [output.buffer] : [],
@@ -1373,7 +1654,7 @@ self.addEventListener(
         kind === "festivalPlazaDiscard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "festivalPlazaDiscard") api.DiscardFestivalPlaza(payload);
         const output =
@@ -1391,8 +1672,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, festivalPlaza, festivalPlazaPreview, output },
           output ? [output.buffer] : [],
@@ -1411,7 +1693,7 @@ self.addEventListener(
         ].includes(kind)
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "scblockDiscard") api.DiscardSCBlocks(payload);
         const output =
@@ -1437,8 +1719,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           {
             id,
@@ -1462,7 +1745,7 @@ self.addEventListener(
         kind === "wondercardDiscard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "wondercardDiscard") api.DiscardWondercard(payload);
         const output =
@@ -1488,8 +1771,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           {
             id,
@@ -1511,7 +1795,7 @@ self.addEventListener(
         kind === "blockAccessorDiscard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "blockAccessorDiscard") api.DiscardBlockAccessor(payload);
         const output =
@@ -1529,8 +1813,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, blockAccessor, blockAccessorPreview, output },
           output ? [output.buffer] : [],
@@ -1544,7 +1829,7 @@ self.addEventListener(
         kind === "trainer9aDiscard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "trainer9aDiscard") api.DiscardTrainer9a(payload);
         const output =
@@ -1562,8 +1847,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, trainer9a, trainer9aPreview, output },
           output ? [output.buffer] : [],
@@ -1577,7 +1863,7 @@ self.addEventListener(
         kind === "trainer9Discard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "trainer9Discard") api.DiscardTrainer9(payload);
         const output =
@@ -1593,8 +1879,9 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage(
           { id, report, trainer9, trainer9Preview, output },
           output ? [output.buffer] : [],
@@ -1608,18 +1895,23 @@ self.addEventListener(
         const report: SaveReport = JSON.parse(
           api.SelectBRProfile(bytes, profile),
         );
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         self.postMessage({ id, report });
         return;
       }
       if (kind?.startsWith("entity")) {
+        const templateSourceHash =
+          kind === "entityBattleTemplate"
+            ? bulkLegalitySourceHash(bytes)
+            : undefined;
         if (typeof api.InspectStandalonePokemon !== "function")
           throw new Error("Save editor API version mismatch.");
         const before: StandalonePokemonReport = JSON.parse(
           api.InspectStandalonePokemon(bytes, payload),
         );
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         const output =
           kind === "entityGb"
@@ -1638,10 +1930,25 @@ self.addEventListener(
           kind === "entityDetails"
             ? JSON.parse(api.ReadStandalonePokemonAdvanced(bytes, payload))
             : undefined;
+        if (details?.origin)
+          details.origin = parseOriginCatalog(details.origin);
         const legality =
           kind === "entityLegality"
             ? JSON.parse(api.AnalyzeStandalonePokemon(bytes, payload))
             : undefined;
+        const battleTemplate =
+          kind === "entityBattleTemplate"
+            ? parseBattleTemplate(
+                JSON.parse(api.ReadStandaloneBattleTemplate(bytes, payload)),
+                templateSourceHash!,
+                { scope: "single" },
+              )
+            : undefined;
+        if (
+          templateSourceHash &&
+          bulkLegalitySourceHash(bytes) !== templateSourceHash
+        )
+          throw new Error("Battle template read changed input.");
         const entity = output
           ? JSON.parse(
               api.InspectStandalonePokemon(
@@ -1656,14 +1963,14 @@ self.addEventListener(
             )
           : before;
         self.postMessage(
-          { id, entity, output, entityFile, legality, details },
+          { id, entity, output, entityFile, legality, details, battleTemplate },
           output ? [output.buffer] : entityFile ? [entityFile.buffer] : [],
         );
         return;
       }
       if (kind?.startsWith("boxBinary")) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "boxBinaryDiscard") api.DiscardBoxBinary(payload);
         const output =
@@ -1691,7 +1998,7 @@ self.addEventListener(
       }
       if (kind?.startsWith("boxImport")) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
         if (kind === "boxImportDiscard") api.DiscardBoxImport(payload);
         const output =
@@ -1714,8 +2021,9 @@ self.addEventListener(
       }
       if (kind?.startsWith("file") || kind === "boxArchive") {
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw new Error("Save editor API version mismatch.");
+        checkPokemonAccess(report.pokemonEditing);
         if (kind === "fileDiscard") api.DiscardFileBatch(payload);
         const archive =
           kind === "boxArchive"
@@ -1748,7 +2056,7 @@ self.addEventListener(
         kind === "misc5Export"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -1768,7 +2076,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         const misc5File =
           kind === "misc5Export"
@@ -1800,7 +2108,7 @@ self.addEventListener(
         kind === "medals5Export"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -1820,7 +2128,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         const medals5File =
           kind === "medals5Export"
@@ -1848,7 +2156,7 @@ self.addEventListener(
       if (kind === "berryField6xy") {
         if (payload) throw Error("BerryField6XY: this tool is read-only.");
         const report: SaveReport = JSON.parse(inspectSave(bytes));
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         let berryField6xy: import("./berryField6xy").Berry6XYCatalog;
         try {
@@ -1870,7 +2178,7 @@ self.addEventListener(
         kind === "avenue5Export"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -1890,7 +2198,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -1923,7 +2231,7 @@ self.addEventListener(
         kind === "link6Export"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -1943,7 +2251,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -1974,7 +2282,7 @@ self.addEventListener(
         kind === "secretBase6Export"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -1994,7 +2302,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2024,7 +2332,7 @@ self.addEventListener(
       }
       if (kind === "hall6" || kind === "hall6Preview" || kind === "hall6Edit") {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2044,7 +2352,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2066,7 +2374,7 @@ self.addEventListener(
       }
       if (kind === "hall7" || kind === "hall7Preview" || kind === "hall7Edit") {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2086,7 +2394,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2112,7 +2420,7 @@ self.addEventListener(
         kind === "zygarde7Edit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2132,7 +2440,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2160,7 +2468,7 @@ self.addEventListener(
         kind === "trainerGGArchive"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2180,7 +2488,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         const goParkFiles =
           kind === "trainerGGExport"
@@ -2217,7 +2525,7 @@ self.addEventListener(
         kind === "sevenstar9Discard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function sevenCall<T>(action: () => T): T {
           try {
@@ -2241,7 +2549,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2272,7 +2580,7 @@ self.addEventListener(
         kind === "raid9Discard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function raidCall<T>(action: () => T): T {
           try {
@@ -2293,7 +2601,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2320,7 +2628,7 @@ self.addEventListener(
         kind === "fashion9Discard"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function fashionCall<T>(action: () => T): T {
           try {
@@ -2344,7 +2652,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2379,7 +2687,7 @@ self.addEventListener(
         ].includes(kind)
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function eventCall<T>(action: () => T): T {
           try {
@@ -2403,7 +2711,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2439,7 +2747,7 @@ self.addEventListener(
         kind === "donut9aExport"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function donutCall<T>(action: () => T): T {
           try {
@@ -2463,7 +2771,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         const donut9aFile =
           kind === "donut9aExport"
@@ -2498,7 +2806,7 @@ self.addEventListener(
         kind === "trainer8Edit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2518,7 +2826,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2544,7 +2852,7 @@ self.addEventListener(
         kind === "trainer8aEdit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2564,7 +2872,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2590,7 +2898,7 @@ self.addEventListener(
         kind === "trainer8bEdit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2610,7 +2918,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2632,7 +2940,7 @@ self.addEventListener(
       }
       if (kind === "raid8" || kind === "raid8Preview" || kind === "raid8Edit") {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2652,7 +2960,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2678,7 +2986,7 @@ self.addEventListener(
         kind === "underground8bEdit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2700,7 +3008,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2728,7 +3036,7 @@ self.addEventListener(
         kind === "seal8bEdit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2748,7 +3056,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2774,7 +3082,7 @@ self.addEventListener(
         kind === "misc8bEdit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2794,7 +3102,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2820,7 +3128,7 @@ self.addEventListener(
         kind === "trainer7Edit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2840,7 +3148,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2866,7 +3174,7 @@ self.addEventListener(
         kind === "trainer6Edit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2886,7 +3194,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2912,7 +3220,7 @@ self.addEventListener(
         kind === "superTrain6Edit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2932,7 +3240,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -2960,7 +3268,7 @@ self.addEventListener(
         kind === "unityTower5Edit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -2980,7 +3288,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -3008,7 +3316,7 @@ self.addEventListener(
         kind === "globalLink5Edit"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function glCall<T>(action: () => T): T {
           try {
@@ -3028,7 +3336,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -3057,7 +3365,7 @@ self.addEventListener(
         kind === "dlc5Export"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function dlcCall<T>(action: () => T): T {
           try {
@@ -3077,7 +3385,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -3108,7 +3416,7 @@ self.addEventListener(
         kind === "cgear5Export"
       ) {
         const before: SaveReport = JSON.parse(inspectSave(bytes));
-        if (before.apiVersion !== 163)
+        if (before.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         function cgearCall<T>(action: () => T): T {
           try {
@@ -3132,7 +3440,7 @@ self.addEventListener(
         const report: SaveReport = output
           ? JSON.parse(inspectSave(output))
           : before;
-        if (report.apiVersion !== 163)
+        if (report.apiVersion !== 171)
           throw Error("Save editor API version mismatch.");
         self.postMessage(
           {
@@ -3216,234 +3524,240 @@ self.addEventListener(
         kind === "ribbons" ||
         kind === "relearnSuggestion"
           ? undefined
-          : new Uint8Array(
-              kind === "ferry3Edit"
-                ? api.EditFerry3(bytes, payload)
-                : kind === "misc3Edit"
-                  ? api.EditMisc3(bytes, payload)
-                  : kind === "secretBase3Edit"
-                    ? api.EditSecretBase3(bytes, payload)
-                    : kind === "pokegear4Edit"
-                      ? api.EditPokeGear4(bytes, payload)
-                      : kind === "pokeathlon4Edit"
-                        ? api.EditPokeathlon4(bytes, payload)
-                        : kind === "battlePass4Edit"
-                          ? api.EditBattlePass4(bytes, payload)
-                          : kind === "brTrainer4Edit"
-                            ? api.EditBrTrainer4(bytes, payload)
-                            : kind === "video4Import"
-                              ? api.ImportBattleVideo4(bytes, payload)
-                              : kind === "geonet4Edit"
-                                ? api.EditGeonet4(bytes, payload)
-                                : kind === "misc4Edit"
-                                  ? api.EditMisc4(bytes, payload)
-                                  : kind === "underground4Edit"
-                                    ? api.EditUnderground4(bytes, payload)
-                                    : kind === "honeyTree4Edit"
-                                      ? api.EditHoneyTree4(bytes, payload)
-                                      : kind === "br4GearEdit"
-                                        ? api.EditBr4Gear(bytes, payload)
-                                        : kind === "joyful3Edit"
-                                          ? api.EditJoyful3(bytes, payload)
-                                          : kind === "frontier3Edit"
-                                            ? api.EditFrontier3(bytes, payload)
-                                            : kind === "gameRecords3Edit"
-                                              ? api.EditGameRecords3(
+          : kind === "pokemonGb"
+            ? new Uint8Array(api.EditGbPokemon(bytes, payload))
+            : new Uint8Array(
+                kind === "ferry3Edit"
+                  ? api.EditFerry3(bytes, payload)
+                  : kind === "misc3Edit"
+                    ? api.EditMisc3(bytes, payload)
+                    : kind === "secretBase3Edit"
+                      ? api.EditSecretBase3(bytes, payload)
+                      : kind === "pokegear4Edit"
+                        ? api.EditPokeGear4(bytes, payload)
+                        : kind === "pokeathlon4Edit"
+                          ? api.EditPokeathlon4(bytes, payload)
+                          : kind === "battlePass4Edit"
+                            ? api.EditBattlePass4(bytes, payload)
+                            : kind === "brTrainer4Edit"
+                              ? api.EditBrTrainer4(bytes, payload)
+                              : kind === "video4Import"
+                                ? api.ImportBattleVideo4(bytes, payload)
+                                : kind === "geonet4Edit"
+                                  ? api.EditGeonet4(bytes, payload)
+                                  : kind === "misc4Edit"
+                                    ? api.EditMisc4(bytes, payload)
+                                    : kind === "underground4Edit"
+                                      ? api.EditUnderground4(bytes, payload)
+                                      : kind === "honeyTree4Edit"
+                                        ? api.EditHoneyTree4(bytes, payload)
+                                        : kind === "br4GearEdit"
+                                          ? api.EditBr4Gear(bytes, payload)
+                                          : kind === "joyful3Edit"
+                                            ? api.EditJoyful3(bytes, payload)
+                                            : kind === "frontier3Edit"
+                                              ? api.EditFrontier3(
                                                   bytes,
                                                   payload,
                                                 )
-                                              : kind === "paintings3Edit"
-                                                ? api.EditPaintings3(
+                                              : kind === "gameRecords3Edit"
+                                                ? api.EditGameRecords3(
                                                     bytes,
                                                     payload,
                                                   )
-                                                : kind === "decorations3Edit"
-                                                  ? api.EditDecorations3(
+                                                : kind === "paintings3Edit"
+                                                  ? api.EditPaintings3(
                                                       bytes,
                                                       payload,
                                                     )
-                                                  : kind === "roamer3Edit"
-                                                    ? api.EditRoamer3(
+                                                  : kind === "decorations3Edit"
+                                                    ? api.EditDecorations3(
                                                         bytes,
                                                         payload,
                                                       )
-                                                    : kind === "hall3Edit"
-                                                      ? api.EditHall3(
+                                                    : kind === "roamer3Edit"
+                                                      ? api.EditRoamer3(
                                                           bytes,
                                                           payload,
                                                         )
-                                                      : kind === "gsBall2Edit"
-                                                        ? api.EnableGsBall2(
+                                                      : kind === "hall3Edit"
+                                                        ? api.EditHall3(
                                                             bytes,
+                                                            payload,
                                                           )
-                                                        : kind === "hall1Edit"
-                                                          ? api.EditHall1(
+                                                        : kind === "gsBall2Edit"
+                                                          ? api.EnableGsBall2(
                                                               bytes,
-                                                              payload,
                                                             )
-                                                          : kind ===
-                                                              "eventResetEdit"
-                                                            ? api.EditEventReset(
+                                                          : kind === "hall1Edit"
+                                                            ? api.EditHall1(
                                                                 bytes,
                                                                 payload,
                                                               )
                                                             : kind ===
-                                                                "eventsEdit"
-                                                              ? api.EditEvents(
+                                                                "eventResetEdit"
+                                                              ? api.EditEventReset(
                                                                   bytes,
                                                                   payload,
                                                                 )
                                                               : kind ===
-                                                                  "propertyCommit"
-                                                                ? api.CommitPropertyBatch(
+                                                                  "eventsEdit"
+                                                                ? api.EditEvents(
                                                                     bytes,
                                                                     payload,
                                                                   )
                                                                 : kind ===
-                                                                    "exportWorkingCopy"
-                                                                  ? api.ExportWorkingCopy(
+                                                                    "propertyCommit"
+                                                                  ? api.CommitPropertyBatch(
                                                                       bytes,
+                                                                      payload,
                                                                     )
                                                                   : kind ===
-                                                                      "pokedex9aEdit"
-                                                                    ? api.EditPokedex9a(
+                                                                      "exportWorkingCopy"
+                                                                    ? api.ExportWorkingCopy(
                                                                         bytes,
-                                                                        payload,
                                                                       )
                                                                     : kind ===
-                                                                        "pokedex9Edit"
-                                                                      ? api.EditPokedex9(
+                                                                        "pokedex9aEdit"
+                                                                      ? api.EditPokedex9a(
                                                                           bytes,
                                                                           payload,
                                                                         )
                                                                       : kind ===
-                                                                          "pokedex8aEdit"
-                                                                        ? api.EditPokedex8a(
+                                                                          "pokedex9Edit"
+                                                                        ? api.EditPokedex9(
                                                                             bytes,
                                                                             payload,
                                                                           )
                                                                         : kind ===
-                                                                            "pokedex8Edit"
-                                                                          ? api.EditPokedex8(
+                                                                            "pokedex8aEdit"
+                                                                          ? api.EditPokedex8a(
                                                                               bytes,
                                                                               payload,
                                                                             )
                                                                           : kind ===
-                                                                              "pokedex8bEdit"
-                                                                            ? api.EditPokedex8b(
+                                                                              "pokedex8Edit"
+                                                                            ? api.EditPokedex8(
                                                                                 bytes,
                                                                                 payload,
                                                                               )
                                                                             : kind ===
-                                                                                "pokedex7Edit"
-                                                                              ? api.EditPokedex7(
+                                                                                "pokedex8bEdit"
+                                                                              ? api.EditPokedex8b(
                                                                                   bytes,
                                                                                   payload,
                                                                                 )
                                                                               : kind ===
-                                                                                  "pokedex6Edit"
-                                                                                ? api.EditPokedex6(
+                                                                                  "pokedex7Edit"
+                                                                                ? api.EditPokedex7(
                                                                                     bytes,
                                                                                     payload,
                                                                                   )
                                                                                 : kind ===
-                                                                                    "pokedex5Edit"
-                                                                                  ? api.EditPokedex5(
+                                                                                    "pokedex6Edit"
+                                                                                  ? api.EditPokedex6(
                                                                                       bytes,
                                                                                       payload,
                                                                                     )
                                                                                   : kind ===
-                                                                                      "pokedex4Edit"
-                                                                                    ? api.EditPokedex4(
+                                                                                      "pokedex5Edit"
+                                                                                    ? api.EditPokedex5(
                                                                                         bytes,
                                                                                         payload,
                                                                                       )
                                                                                     : kind ===
-                                                                                        "pokedexEdit"
-                                                                                      ? api.EditPokedex(
+                                                                                        "pokedex4Edit"
+                                                                                      ? api.EditPokedex4(
                                                                                           bytes,
                                                                                           payload,
                                                                                         )
                                                                                       : kind ===
-                                                                                          "roamerEdit"
-                                                                                        ? api.EditRoamer(
+                                                                                          "pokedexEdit"
+                                                                                        ? api.EditPokedex(
                                                                                             bytes,
                                                                                             payload,
                                                                                           )
                                                                                         : kind ===
-                                                                                            "rtcEdit"
-                                                                                          ? api.EditRtc(
+                                                                                            "roamerEdit"
+                                                                                          ? api.EditRoamer(
                                                                                               bytes,
                                                                                               payload,
                                                                                             )
                                                                                           : kind ===
-                                                                                              "opowersEdit"
-                                                                                            ? api.EditOPowers(
+                                                                                              "rtcEdit"
+                                                                                            ? api.EditRtc(
                                                                                                 bytes,
                                                                                                 payload,
                                                                                               )
                                                                                             : kind ===
-                                                                                                "foodEdit"
-                                                                                              ? api.EditFood(
+                                                                                                "opowersEdit"
+                                                                                              ? api.EditOPowers(
                                                                                                   bytes,
                                                                                                   payload,
                                                                                                 )
                                                                                               : kind ===
-                                                                                                  "recordEdit"
-                                                                                                ? api.EditRecord(
+                                                                                                  "foodEdit"
+                                                                                                ? api.EditFood(
                                                                                                     bytes,
                                                                                                     payload,
                                                                                                   )
                                                                                                 : kind ===
-                                                                                                    "inventoryBatch"
-                                                                                                  ? api.EditInventoryBatch(
+                                                                                                    "recordEdit"
+                                                                                                  ? api.EditRecord(
                                                                                                       bytes,
                                                                                                       payload,
                                                                                                     )
                                                                                                   : kind ===
-                                                                                                      "inventoryEdit"
-                                                                                                    ? api.EditInventory(
+                                                                                                      "inventoryBatch"
+                                                                                                    ? api.EditInventoryBatch(
                                                                                                         bytes,
                                                                                                         payload,
                                                                                                       )
                                                                                                     : kind ===
-                                                                                                        "pokemonRaw"
-                                                                                                      ? api.EditPokemonRaw(
+                                                                                                        "inventoryEdit"
+                                                                                                      ? api.EditInventory(
                                                                                                           bytes,
                                                                                                           payload,
                                                                                                         )
                                                                                                       : kind ===
-                                                                                                          "pokemon"
-                                                                                                        ? api.EditPokemon(
+                                                                                                          "pokemonRaw"
+                                                                                                        ? api.EditPokemonRaw(
                                                                                                             bytes,
                                                                                                             payload,
                                                                                                           )
                                                                                                         : kind ===
-                                                                                                            "box"
-                                                                                                          ? api.EditBox(
+                                                                                                            "pokemon"
+                                                                                                          ? api.EditPokemon(
                                                                                                               bytes,
                                                                                                               payload,
                                                                                                             )
                                                                                                           : kind ===
-                                                                                                              "storage"
-                                                                                                            ? api.EditStorage(
+                                                                                                              "box"
+                                                                                                            ? api.EditBox(
                                                                                                                 bytes,
                                                                                                                 payload,
                                                                                                               )
                                                                                                             : kind ===
-                                                                                                                "pokemonImport"
-                                                                                                              ? api.ImportPokemon(
+                                                                                                                "storage"
+                                                                                                              ? api.EditStorage(
                                                                                                                   bytes,
                                                                                                                   payload,
                                                                                                                 )
-                                                                                                              : api.Export(
-                                                                                                                  bytes,
-                                                                                                                  payload,
-                                                                                                                ),
-            );
+                                                                                                              : kind ===
+                                                                                                                  "pokemonImport"
+                                                                                                                ? api.ImportPokemon(
+                                                                                                                    bytes,
+                                                                                                                    payload,
+                                                                                                                  )
+                                                                                                                : api.Export(
+                                                                                                                    bytes,
+                                                                                                                    payload,
+                                                                                                                  ),
+              );
       const report: SaveReport = JSON.parse(inspectSave(output ?? bytes));
-      if (report.apiVersion !== 163)
+      if (report.apiVersion !== 171)
         throw new Error("Save editor API version mismatch.");
+      checkPokemonAccess(report.pokemonEditing);
       const legality: PokemonLegalityReport | undefined =
         kind === "legality" && edit !== undefined
           ? JSON.parse(api.AnalyzePokemon(bytes, payload))
@@ -3454,7 +3768,7 @@ self.addEventListener(
           : undefined;
       const originCatalog =
         kind === "originCatalog" && edit !== undefined
-          ? JSON.parse(api.ReadOrigin(bytes, payload))
+          ? parseOriginCatalog(JSON.parse(api.ReadOrigin(bytes, payload)))
           : undefined;
       const relearnSuggestion =
         kind === "relearnSuggestion" && edit !== undefined
@@ -3683,6 +3997,7 @@ self.addEventListener(
       });
     } finally {
       taskApi?.ClearSaveDetection();
+      taskApi?.ClearProgramSettings();
     }
   },
 );

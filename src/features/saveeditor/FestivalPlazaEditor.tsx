@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Select } from "../shared/Select";
-import { pokemonImage } from "./art";
+import { PokemonSprite } from "./PokemonSprite";
 import { festivalPhrases } from "./festivalPhrases";
 import { festivalTypes, festivalNpc, festivalRewards } from "./festivalOptions";
 import {
@@ -22,7 +22,10 @@ type Props = {
   lang: "zh" | "en" | "ja";
   onRead(): Promise<FestaCatalog | undefined>;
   onPreview(request: FestaRequest): Promise<FestaTicket | undefined>;
-  onApply(confirm: FestaConfirmation): Promise<boolean>;
+  onApply(
+    confirm: FestaConfirmation,
+    sourceSound?: "glasses",
+  ): Promise<boolean>;
   onDiscard(token: string): Promise<void>;
 };
 export function FestivalPlazaEditor(props: Props) {
@@ -177,7 +180,12 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
     const current = life.current;
     try {
       if (
-        (await onApply(festaConfirmation(catalog, ticket))) &&
+        (await onApply(
+          festaConfirmation(catalog, ticket),
+          actions.some((action) => action.kind === "glasses")
+            ? "glasses"
+            : undefined,
+        )) &&
         current.alive
       ) {
         current.ticket = undefined;
@@ -761,7 +769,7 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
               <div className="save-festa-agency">
                 {frame.agency.pokemon.map((p, i) => (
                   <div key={i}>
-                    <img src={pokemonImage(p)} alt={p.speciesName[lang]} />
+                    <PokemonSprite pokemon={p} alt={p.speciesName[lang]} />
                     <span>{p.nickname || p.speciesName[lang]}</span>
                     <div className="save-editor-toolbar">
                       <button

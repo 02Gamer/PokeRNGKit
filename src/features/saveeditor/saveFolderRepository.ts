@@ -3,6 +3,7 @@ import {
   saveFolderPacket,
   type SaveFolderLocalFile,
 } from "./saveFolderProtocol";
+import { limitRecentSaves } from "./saveLibrarySettings";
 export interface SaveFolderSnapshot {
   revision: string;
   files: SaveFolderLocalFile[];
@@ -151,6 +152,12 @@ export async function replaceSaveFolder(
 export async function rememberSaveFolderFile(
   file: File,
   bytes: Uint8Array,
+  options?: {
+    backupName: string;
+    backupFolder: string;
+    recentMax: number;
+    sourceId?: string;
+  },
 ): Promise<void> {
   const before = await loadSaveFolder(),
     folder =
@@ -158,17 +165,25 @@ export async function rememberSaveFolderFile(
         ? file.webkitRelativePath.split("/").slice(0, -1).join("/")
         : "") || "recent";
   const name = file.name;
-  const old = before.files.find(
-    (f) =>
-      f.folder === folder &&
-      f.name === name &&
-      f.modified === file.lastModified &&
-      f.data.byteLength === bytes.byteLength &&
-      new Uint8Array(f.data).every((byte, index) => byte === bytes[index]),
+  const old = before.files.find((f) =>
+    options?.sourceId
+      ? f.id === options.sourceId
+      : f.folder === folder &&
+        f.name === name &&
+        f.modified === file.lastModified &&
+        f.data.byteLength === bytes.byteLength &&
+        new Uint8Array(f.data).every((byte, index) => byte === bytes[index]),
   );
+  if (
+    options?.sourceId &&
+    (!old ||
+      old.data.byteLength !== bytes.byteLength ||
+      !new Uint8Array(old.data).every((byte, index) => byte === bytes[index]))
+  )
+    throw new Error("The source save changed in another tab.");
   const next: SaveFolderLocalFile = {
     id: old?.id ?? crypto.randomUUID(),
-    folder,
+    folder: old?.folder ?? folder,
     name,
     data: new Uint8Array(bytes).buffer,
     modified: file.lastModified,
@@ -176,10 +191,37 @@ export async function rememberSaveFolderFile(
     backup: old?.backup ?? false,
     remembered: true,
   };
-  await replaceSaveFolder(before, [
+  const files = [
     next,
-    ...before.files.filter((f) => f.id !== next.id),
-  ]);
+    ...before.files
+      .filter((f) => f.id !== next.id)
+      .map((f) =>
+        f.folder === next.folder && f.name === next.name
+          ? { ...f, recent: false }
+          : f,
+      ),
+  ];
+  if (
+    options?.backupName &&
+    !files.some(
+      (f) => f.folder === options.backupFolder && f.name === options.backupName,
+    )
+  ) {
+    files.push({
+      id: crypto.randomUUID(),
+      name: options.backupName,
+      folder: options.backupFolder,
+      data: new Uint8Array(bytes).buffer,
+      modified: file.lastModified,
+      recent: false,
+      backup: true,
+      remembered: false,
+    });
+  }
+  await replaceSaveFolder(
+    before,
+    limitRecentSaves(files, options?.recentMax ?? 10),
+  );
 }
 export async function readSaveFolderFiles(
   selected: readonly File[],
