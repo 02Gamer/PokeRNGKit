@@ -1,5 +1,21 @@
 # PKHeX 存档读取与编辑
 
+## 共用经验值、状态与觉醒力量（API172）
+
+新增 PokemonVitals 元数据与处理，由存档和独立实体共用。GB 通过 GbSpecialEdit.vitals，其他格式通过 PokemonRawEdit.vitals，继续沿原工作副本／撤销／写入回读。PokemonReader 逐只返回实际成长曲线边界、状态存储能力及觉醒力量目录，Worker／协议统一为 API172。EntityEditor.HiddenPowerOnChangeMaxPower、ShowExperienceBar、ShowStatusCondition 和 ShowGenderGen1 均已接消费；第一世代性别同时影响详情与悬浮预览，设置变更仍沿既有报告重读及悬浮失效路径。
+
+输入依据为 PKMEditor.Designer.cs 的 TB_EXP 七位十进制掩码、TB_Level 三位掩码及 PKMEditor.UpdateEXPLevel。经验输入 0–9999999，普通模式按 Core 的实体成长曲线限制到等级 100 基础经验值；等级 1–100。经验条端点、Alt／Shift／Ctrl 优先级、滚轮跨级与至少一经验的步长沿 ExperienceBar.cs，浏览器不另写成长曲线。Width 1–16384 是浏览器协议的几何资源限制，不宣称为原 WinForms 控件范围。共享滑条提供方向键、Home／End 和 PageUp／PageDown 的可访问操作，另提供对应动作按钮；隐藏经验条不隐藏原经验值输入。
+
+异常状态沿 StatusConditionView／StatusBrowser，仅改低八位，第四世代及以前使用 StatusCondition，之后映射 StatusType。睡眠 1–7 回合，剧毒只在第三／第四世代目录出现；保留当前 HP 与状态高位。是否保存状态由克隆的实际存储／队伍序列化差异判断；PK2 独立文件为完整列表，但存档箱位只有 32 字节，不把其独立列表长度当成箱位宽度。SK2／RK4 不保存状态，明确关闭写入并说明。PartyStatsPresent 为 false 时不显示状态图像；濒死来自 HP 为零，选择无异常状态不恢复 HP。状态图示与浏览器选择沿上游各自的优先级，不强行统一异常组合。
+
+觉醒力量使用 StatEditor.UpdateHPType 原路径：可用范围为格式不高于第七世代或 PB8；16 类型下标 0–15，来自属性目录 1–16；威力仅第五世代及以前显示。按当前设置决定是否填满 MaxIV，再调用 HiddenPower.SetIVs(type, ivs, Entity.Context)，使用原 Core 顺序及 GB DV 派生。等级／IV 更新保留原 HP 上限夹取及状态，LGPE 派生数值继续使用原共用刷新。七张 sick 状态原图与来源哈希已加入本地资源；无运行时外链。
+
+九文件 198 项前端及定向 Lint 已通过；原生专项和完整类型／格式仍在运行，浏览器核心及网页尚未重建。首轮失败及重跑记录见进度文档，不以代码接线或专项代替全量工程检查和真实页面验收。
+
+后续专项 .tmp/pkhex-vitals-native-storage.log 已退出 0：18 格式／两种文件布局、全部可用觉醒力量类型与设置、等级／经验／状态的公开接口完整输出、经验条动作、GB 箱位与队伍、真实 E.sav 工作副本均通过。CK3／XK3 状态为非序列化自动属性，RK4 setter 不写入，SK2 状态也不在记录中；G8／G9、PA8／PA9 的状态偏移位于箱装记录内，按实际序列化开放，不根据世代概括。空经验及掩码空格按 0，空等级与超界三位输入归到 1–100，非法非掩码字符拒绝；Native 请求等级仍限制 1–100。前端复核九文件 199 项／Lint 与浏览器核心构建通过，首轮类型检查通过。最后增加连续滑条操作的草稿同步、折叠保持与有条件焦点恢复；完整工程检查和真实页面仍待完成。
+
+最后代码的默认完整原生 .tmp/pkhex-api172-native-full.log 与 npm run verify 的 .tmp/pkhex-api172-verify.log 均退出 0：341 文件／1945 项前端、完整类型、网页／PWA 与格式通过，Lint 无错误，仅保留第三世代定点模块既有的一条依赖提醒。浏览器核心已重建，真实 E.sav 原件 SHA-256 保持。Chrome 4 本地页面读取仍失败，连续键鼠操作、实际布局、下载与所有者验收尚未核验；此记录只证明工程检查完成。
+
 ## 竞技场二代与牧场实体适配（API171）
 
 新增 SK2／RK4 独立文件读取、基础编辑与导出，并接通竞技场二代／牧场存档内的共用编辑入口。SK2 沿 GBPKM 与 ICaughtData2 处理 DV、能力经验、招式、相遇、病毒及蛋字段，不经 PK2 中转；日文／国际版存档使用实际存档编码，独立文件沿 Core 构造器推断编码。租借标记及保留位保持，租借宝可梦不存训练家姓名，三语界面说明并禁用该输入，服务端拒绝改写。RK4 沿 G4PKM 编辑，保留标准记录以外的 28 字节牧场资料，原 Core 负责前 136 字节的加密与校验。

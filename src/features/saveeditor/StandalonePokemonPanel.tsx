@@ -35,6 +35,7 @@ import { PokemonRawEditor } from "./PokemonRawEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonMarkingsEditor } from "./PokemonMarkingsEditor";
 import { useGenderLabel } from "./useGenderLabel";
+import { PokemonVitalsEditor } from "./PokemonVitalsEditor";
 import { playSaveSound } from "./saveSound";
 import { PokemonTrainingEditor } from "./PokemonTrainingEditor";
 import { TextTrashEditor, type TextTrashActions } from "./TextTrashEditor";
@@ -1002,7 +1003,7 @@ export function StandalonePokemonPanel({
                     [common.nature, report.pokemon.nature[lang]],
                     [common.ability, report.pokemon.ability[lang]],
                   ]),
-              ...(report.generation >= 2
+              ...(report.generation >= 2 || report.pokemon.vitals?.showGender
                 ? [
                     [
                       common.gender,
@@ -1013,10 +1014,14 @@ export function StandalonePokemonPanel({
                         ],
                       ),
                     ],
-                    [
-                      common.shiny,
-                      report.pokemon.shiny ? common.yes : common.no,
-                    ],
+                    ...(report.generation >= 2
+                      ? [
+                          [
+                            common.shiny,
+                            report.pokemon.shiny ? common.yes : common.no,
+                          ],
+                        ]
+                      : []),
                   ]
                 : []),
             ].map(([label, value]) => (
@@ -1158,6 +1163,27 @@ export function StandalonePokemonPanel({
                 </button>
               </div>
               <p className="save-editor-note">{words.history}</p>
+              {report.pokemon.vitals && (
+                <PokemonVitalsEditor
+                  key="vitals"
+                  info={report.pokemon.vitals}
+                  generation={report.generation}
+                  disabled={busy}
+                  onApply={(vitals) =>
+                    report.generation < 3
+                      ? applyRequest(
+                          { gbSpecial: { action: "vitals", vitals } },
+                          "entityGb",
+                        )
+                      : applyRaw({
+                          box: report.pokemon.box,
+                          slot: report.pokemon.slot,
+                          action: "vitals",
+                          vitals,
+                        })
+                  }
+                />
+              )}
               {report.generation < 3 ? (
                 <>
                   <StandaloneGbEditor

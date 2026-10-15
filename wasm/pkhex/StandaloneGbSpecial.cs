@@ -6,7 +6,7 @@ namespace PokeRNGKit.SaveEditor;
 public sealed record GbSpecialFields(int? CatchRate = null, int? Type1 = null, int? Type2 = null,
     int? MetLevel = null, int? MetLocation = null, int? MetTimeOfDay = null, int? TrainerGender = null,
     int? PokerusStrain = null, int? PokerusDays = null);
-internal sealed record GbSpecialEdit(string Action, GbSpecialFields? Fields = null, EggEdit? Egg = null, int? Language = null);
+internal sealed record GbSpecialEdit(string Action, GbSpecialFields? Fields = null, EggEdit? Egg = null, int? Language = null, PokemonVitalsEdit? Vitals=null);
 public sealed record GbSpecialInfo(GbSpecialFields Fields, OriginChoice[] Types, OriginChoice[] Locations,
     OriginChoice[] Languages, int Language, int[] PokerusDurations);
 
@@ -29,8 +29,13 @@ internal static class StandaloneGbSpecial
         p is ICaughtData2 ? Locations() : [], Languages(p).Select(i => new OriginChoice(i, Text(s => s.languageNames[i]))).ToArray(),
         p.GuessedLanguage(), p is ICaughtData2 ? Enumerable.Range(0, 16).Select(Pokerus.GetMaxDuration).ToArray() : []);
 
-    public static void Apply(GBPKM p, GbSpecialEdit edit)
+    public static void Apply(GBPKM p, GbSpecialEdit edit,bool party=true)
     {
+        if(edit.Vitals is not null)
+        {
+            if(edit.Action!="vitals"||edit.Fields is not null||edit.Egg is not null||edit.Language is not null)throw new ArgumentException("Invalid GB vital operation.");
+            PokemonVitals.Apply(p,edit.Vitals,party);return;
+        }
         switch (edit.Action)
         {
             case "fields" when edit.Fields is not null && edit.Egg is null && edit.Language is null:

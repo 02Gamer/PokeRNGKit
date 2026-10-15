@@ -13,7 +13,7 @@ internal sealed record PokemonHoverQuery([property:JsonRequired]int Box,[propert
 internal sealed record PokemonHoverTarget([property:JsonRequired]string Kind,int? Box=null,int? Slot=null,int? Id=null,int? Group=null);
 internal sealed record PokemonHoverLanguage(string Title,string Before,string After,string Hint,string Tooltip,PokemonHoverMove[] Moves);
 internal sealed record PokemonHoverLanguages(PokemonHoverLanguage Zh,PokemonHoverLanguage En,PokemonHoverLanguage Ja);
-internal sealed record PokemonHoverReport(int? Box,int? Slot,string SourceHash,PokemonHoverLanguages Text,PokemonHoverTarget? Target=null,PokemonArtwork? Artwork=null,string Mode="pokemon",int Generation=0,int? Ball=null,string[]? CryNames=null,PokemonArtwork? GlowArtwork=null);
+internal sealed record PokemonHoverReport(int? Box,int? Slot,string SourceHash,PokemonHoverLanguages Text,PokemonHoverTarget? Target=null,PokemonArtwork? Artwork=null,string Mode="pokemon",int Generation=0,int? Ball=null,string[]? CryNames=null,PokemonArtwork? GlowArtwork=null,int? Gender=null);
 public static partial class Program
 {
     [JSExport]public static string ReadPokemonHover(byte[] data,string json)=>SaveService.ReadPokemonHover(data,json);
@@ -66,7 +66,7 @@ internal static class PokemonHover
         var hover=SaveProgramSettingsRuntime.Current?.Hover??new();
         var templates=SaveProgramSettingsRuntime.Current?.BattleTemplate??new();
         PokemonHoverLanguage Text(string language,LanguageID id)=>Read(pk,analysis,hover,templates.Hover.GetSettings(id,pk.Context),language);
-        return new(target.Kind=="slot"?target.Box:null,target.Kind=="slot"?target.Slot:null,Br4Editing.Hash(source),new(Text("zh-Hans",LanguageID.ChineseS),Text("en",LanguageID.English),Text("ja",LanguageID.Japanese)),target,SaveArtwork.Entity(pk),Generation:pk.Format,Ball:pk.Format>2?pk.Ball:null,CryNames:CryFileNames(pk,pk.Context),GlowArtwork:GlowArtwork(pk));
+        return new(target.Kind=="slot"?target.Box:null,target.Kind=="slot"?target.Slot:null,Br4Editing.Hash(source),new(Text("zh-Hans",LanguageID.ChineseS),Text("en",LanguageID.English),Text("ja",LanguageID.Japanese)),target,SaveArtwork.Entity(pk),Generation:pk.Format,Ball:pk.Format>2?pk.Ball:null,CryNames:CryFileNames(pk,pk.Context),GlowArtwork:GlowArtwork(pk),Gender:PokemonVitals.ShowGender(pk)?pk.Gender:null);
     }
     // GetSpriteGlow(PKM) uses the base builder with heldItem=0. Shadow,
     // giant/alpha, legality and storage markers are not part of its mask.

@@ -7229,6 +7229,13 @@
     "PKHeX.Drawing.PokeSprite/Resources/img/Pokemon Sprite Overlays/party5.png": "8d3f6315c5c66466db7baca0bf5a43f37ef313b2ea024098da7374612fa14149",
     "PKHeX.Drawing.PokeSprite/Resources/img/Pokemon Sprite Overlays/party6.png": "95eddb69117fcde778230ae0bcec3c586585945f90a63453d7e93f1355cdf7e0",
     "PKHeX.Drawing.PokeSprite/Resources/img/Pokemon Sprite Overlays/starter.png": "b76200c2a8e179aef1b9d35e6e57b5cac49911501a2daa558531336309840b93",
-    "PKHeX.Drawing.PokeSprite/Resources/img/Pokemon Sprite Overlays/team.png": "88b068820c6cbf4c6c25e6c84fc010e2973ce68b3a7f7c7096ce9689beece5f2"
+    "PKHeX.Drawing.PokeSprite/Resources/img/Pokemon Sprite Overlays/team.png": "88b068820c6cbf4c6c25e6c84fc010e2973ce68b3a7f7c7096ce9689beece5f2",
+    "PKHeX.Drawing.PokeSprite/Resources/img/Status/sickburn.png": "291c34584cbd13c296e4284ac39f1f65c60e5a50a5dd42f99ef5b0cf526a9a65",
+    "PKHeX.Drawing.PokeSprite/Resources/img/Status/sickfaint.png": "35a9530d35e103315bc9e0805643113651f3d7b6d450587c762d975154a2fffd",
+    "PKHeX.Drawing.PokeSprite/Resources/img/Status/sickfrostbite.png": "33f46a1ac3065ce845b7af88a3a9913c98a94af4cadd4975d8d30614cfe71538",
+    "PKHeX.Drawing.PokeSprite/Resources/img/Status/sickparalyze.png": "91ee8dd2aa2b6321e5a1bffd25ee44a47f1dc3c44697c96c3dc293bafac9a056",
+    "PKHeX.Drawing.PokeSprite/Resources/img/Status/sickpoison.png": "38e7ddf43da62f0f29e3ed524168186c630051d9a1b55d568d2ee6f52eb2e018",
+    "PKHeX.Drawing.PokeSprite/Resources/img/Status/sicksleep.png": "9d75e044eb99b62d11322424ded9d8b740f438f8b8075902db647f01afe09ac3",
+    "PKHeX.Drawing.PokeSprite/Resources/img/Status/sicktoxic.png": "5179be8a602a63b41bd635f928f8dfa280ca2aad2275d20365fe2b203d2e899f"
   }
 }

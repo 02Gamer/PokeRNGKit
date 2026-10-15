@@ -23,6 +23,7 @@ import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
 import { PokemonShinyEditor } from "./PokemonShinyEditor";
 import { PokemonMarkingsEditor } from "./PokemonMarkingsEditor";
 import { useGenderLabel } from "./useGenderLabel";
+import { PokemonVitalsEditor } from "./PokemonVitalsEditor";
 import { PokemonEggEditor } from "./PokemonEggEditor";
 import { PokemonOriginEditor } from "./PokemonOriginEditor";
 import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
@@ -587,15 +588,19 @@ export function SavePokemonBrowser({
                   [words.nickname, selected.nickname || "—"],
                   [words.level, selected.level],
                   [words.form, selected.form],
-                  [
-                    words.gender,
-                    genderLabel(
-                      selected.gender,
-                      [words.male, words.female, words.genderless][
-                        selected.gender
-                      ],
-                    ),
-                  ],
+                  ...((selected.vitals?.showGender ?? report.generation !== 1)
+                    ? [
+                        [
+                          words.gender,
+                          genderLabel(
+                            selected.gender,
+                            [words.male, words.female, words.genderless][
+                              selected.gender
+                            ],
+                          ),
+                        ],
+                      ]
+                    : []),
                   [words.shiny, selected.shiny ? words.yes : words.no],
                   [words.egg, selected.egg ? words.yes : words.no],
                   [words.nature, name(selected.nature)],
@@ -642,6 +647,28 @@ export function SavePokemonBrowser({
                 busy={busy}
                 onAnalyze={onAnalyze}
               />
+              {selected.vitals && access.editor !== "none" && (
+                <PokemonVitalsEditor
+                  key={`vitals-${selected.box}-${selected.slot}`}
+                  info={selected.vitals}
+                  generation={report.generation}
+                  disabled={busy || !access.canEdit || !selected.valid}
+                  onApply={(vitals) =>
+                    access.editor === "gb"
+                      ? onApplyGb({
+                          box: selected.box,
+                          slot: selected.slot,
+                          special: { action: "vitals", vitals },
+                        })
+                      : onApplyRaw({
+                          box: selected.box,
+                          slot: selected.slot,
+                          action: "vitals",
+                          vitals,
+                        })
+                  }
+                />
+              )}
               {access.editor === "gb" ? (
                 <>
                   <StandaloneGbEditor

@@ -11,6 +11,20 @@ const url = (key: string) =>
   `${import.meta.env.BASE_URL}save-art/26.08.26/${assets[key]}`;
 export const databaseWallpaperImage = () => url("box_wp_clean");
 export const researchBonusImage = () => url("research_bonus_points");
+export function pokemonStatusImage(choice: number) {
+  const key = (
+    {
+      [-1]: "sickfaint",
+      1: "sicksleep",
+      8: "sickpoison",
+      16: "sickburn",
+      32: "sickfrostbite",
+      64: "sickparalyze",
+      128: "sicktoxic",
+    } as Record<number, string>
+  )[choice];
+  return key && assets[key] ? url(key) : undefined;
+}
 export function typeIconImage(type: number) {
   const key = `type_icon_s_${String(type).padStart(2, "0")}`;
   return assets[key] ? url(key) : undefined;

@@ -30,6 +30,8 @@ import "./PokemonHoverSurface.css";
 import { cryPlayback, serverCryPlaybackState } from "./cryPlayback";
 import { cryDirectory } from "./cryLibrary";
 import { PokemonSlotGlow } from "./PokemonSlotGlow";
+import { useGenderLabel } from "./useGenderLabel";
+import { saveEditorResources } from "./locales";
 
 export function PokemonHoverSurface({
   children,
@@ -49,6 +51,7 @@ export function PokemonHoverSurface({
   readTarget?: ReadPokemonHoverTarget;
 }) {
   const settingsJson = useSaveSettingsJson();
+  const genderLabel = useGenderLabel();
   const playback = useSyncExternalStore(
     cryPlayback.subscribe,
     cryPlayback.snapshot,
@@ -325,6 +328,18 @@ export function PokemonHoverSurface({
                       />
                     ) : null}
                     <strong>{text.title}</strong>
+                    {current.gender != null && (
+                      <span>
+                        {genderLabel(
+                          current.gender,
+                          [
+                            saveEditorResources[lang].male,
+                            saveEditorResources[lang].female,
+                            saveEditorResources[lang].genderless,
+                          ][current.gender],
+                        )}
+                      </span>
+                    )}
                     {ball ? (
                       <img src={ball.url} width={24} height={24} alt="" />
                     ) : null}

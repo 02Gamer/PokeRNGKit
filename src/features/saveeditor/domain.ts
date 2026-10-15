@@ -62,7 +62,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 171;
+  apiVersion: 172;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -176,6 +176,7 @@ export interface OriginCatalog {
 }
 export interface PokemonEntry {
   gbRental?: boolean;
+  vitals?: import("./pokemonVitals").PokemonVitalsInfo;
   gbFields?: import("./standalonePokemon").GbSpecialFields | null;
   gbLanguage?: number | null;
   relearnMoves: number[] | null;
@@ -725,7 +726,9 @@ export interface PokemonRawEdit extends PokemonPosition {
     | "history"
     | "care"
     | "memory"
-    | "markings";
+    | "markings"
+    | "vitals";
+  vitals?: import("./pokemonVitals").PokemonVitalsEdit;
   markings?: number[];
   relearn?: { moves: number[] };
   memory?: MemoryEdit;

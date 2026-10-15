@@ -39,7 +39,7 @@ public static partial class SaveService
         {
             if(request.Special!.Egg?.Action=="makeEgg" && request.Box==-1 && !Enumerable.Range(0,save.PartyCount).Any(i=>i!=request.Slot&&save.GetPartySlotAtIndex(i) is {Species:not 0,IsEgg:false}))
                 throw new ArgumentException("Storage party must contain a non-egg Pokemon when adding an egg.");
-            StandaloneGbSpecial.Apply(p,request.Special);
+            StandaloneGbSpecial.Apply(p,request.Special,request.Box==-1);
         }
         if(request.Box==-1)save.SetPartySlotAtIndex(p,request.Slot,EntityImportSettings.None);
         else PokemonSlotWriter.Box(save,p,request.Box,request.Slot);

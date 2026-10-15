@@ -7227,5 +7227,12 @@
   "party5": "party5.png",
   "party6": "party6.png",
   "starter": "starter.png",
-  "team": "team.png"
+  "team": "team.png",
+  "sickburn": "sickburn.png",
+  "sickfaint": "sickfaint.png",
+  "sickfrostbite": "sickfrostbite.png",
+  "sickparalyze": "sickparalyze.png",
+  "sickpoison": "sickpoison.png",
+  "sicksleep": "sicksleep.png",
+  "sicktoxic": "sicktoxic.png"
 }

@@ -80,6 +80,7 @@ export interface PokemonHoverReport {
   glowArtwork?: SpriteData | null;
   mode?: "pokemon" | "encounter";
   generation?: number;
+  gender?: number | null;
   ball?: number | null;
   cryNames?: string[] | null;
   sourceHash: string;

@@ -7,7 +7,7 @@ export interface EntityTemplateSource {
   brProfile?: number;
 }
 export interface EntityTemplateCatalog {
-  apiVersion: 171;
+  apiVersion: 172;
   sourceHash: string;
   version: number;
   versions: OriginChoice[];
@@ -16,7 +16,7 @@ export interface EntityTemplateCatalog {
   format: string;
 }
 export interface EntityTemplateCreated {
-  apiVersion: 171;
+  apiVersion: 172;
   sourceHash: string;
   version: number;
   directory: string;
@@ -38,7 +38,7 @@ export function parseEntityTemplateCatalog(
     throw new Error("Missing template catalog.");
   const v = value as EntityTemplateCatalog;
   if (
-    v.apiVersion !== 171 ||
+    v.apiVersion !== 172 ||
     v.sourceHash !== sourceHash ||
     !/^[A-F0-9]{64}$/.test(sourceHash) ||
     !Number.isInteger(v.version) ||
@@ -72,7 +72,7 @@ export function parseEntityTemplateCreated(
     throw new Error("Missing created template.");
   const v = value as EntityTemplateCreated;
   if (
-    v.apiVersion !== 171 ||
+    v.apiVersion !== 172 ||
     v.sourceHash !== sourceHash ||
     !/^[A-F0-9]{64}$/.test(sourceHash) ||
     !Number.isInteger(v.version) ||

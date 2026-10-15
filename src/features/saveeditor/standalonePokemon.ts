@@ -15,7 +15,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 171;
+  apiVersion: 172;
   spriteMode?: "a" | "b" | "c";
   format: string;
   extension: string;
@@ -192,7 +192,8 @@ export interface GbSpecialInfo {
   pokerusDurations: number[];
 }
 export interface GbSpecialEdit {
-  action: "fields" | "speciesName" | "egg";
+  action: "fields" | "speciesName" | "egg" | "vitals";
+  vitals?: import("./pokemonVitals").PokemonVitalsEdit;
   fields?: GbSpecialFields;
   egg?: { action: "makeEgg" | "hatch" | "cycles"; cycles?: number };
   language?: number;

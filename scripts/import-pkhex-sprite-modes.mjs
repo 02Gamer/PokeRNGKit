@@ -21,11 +21,11 @@ const output = path.join(root, "public/save-art/26.08.26");
 await mkdir(output, { recursive: true });
 let count = 0;
 for (const match of resx.matchAll(
-  /<data name="((?:[abc]_|[ab]item_|rare_icon_alt|dyna|alpha_alt|_ball|warn|hint|team|locked|party[1-6]|starter)[^"]*)"[^>]*>[\s\S]*?<value>([^<]+\.png);System\.Drawing\.Bitmap[\s\S]*?<\/data>/g,
+  /<data name="((?:[abc]_|[ab]item_|rare_icon_alt|dyna|alpha_alt|_ball|warn|hint|team|locked|party[1-6]|starter|sick)[^"]*)"[^>]*>[\s\S]*?<value>([^<]+\.png);System\.Drawing\.Bitmap[\s\S]*?<\/data>/g,
 )) {
   const [, key, encoded] = match;
   if (
-    !/^(?:[abc]_|[ab]item_|rare_icon_alt|dyna|alpha_alt|_ball|warn|hint|team|locked|party[1-6]|starter)[a-zA-Z0-9_.-]*$/.test(
+    !/^(?:[abc]_|[ab]item_|rare_icon_alt|dyna|alpha_alt|_ball|warn|hint|team|locked|party[1-6]|starter|sick)[a-zA-Z0-9_.-]*$/.test(
       key,
     )
   )
@@ -54,7 +54,7 @@ await writeFile(hashFile, JSON.stringify(hashes, null, 2) + "\n");
 const dimensions = {};
 for (const [key, filename] of Object.entries(mapping)) {
   if (
-    !/^[ab]item_|^rare_icon_alt|^(dyna|alpha_alt|warn|hint|team|locked|party[1-6]|starter)$|^_ball/.test(
+    !/^[ab]item_|^rare_icon_alt|^(dyna|alpha_alt|warn|hint|team|locked|party[1-6]|starter|sick)$|^_ball/.test(
       key,
     )
   )
