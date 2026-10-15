@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
 import type {
@@ -91,6 +92,25 @@ export function PokemonOriginEditor({
   };
   const changed = (Object.keys(draft) as (keyof typeof draft)[]).some(
     (key) => draft[key] !== origin[key],
+  );
+  usePokemonDraftValidator(
+    "origin",
+    () => {
+      if (!catalog || pending) throw Error("Origin catalog is not ready");
+      const fields = [
+        [draft.version, catalog.games],
+        [draft.ball, catalog.balls],
+        [draft.metLocation, catalog.metLocations],
+        ...(origin.canEggLocation
+          ? [[draft.eggLocation, catalog.eggLocations] as const]
+          : []),
+      ] as const;
+      if (
+        fields.some(([value, choices]) => !choices.some((c) => c.id === value))
+      )
+        throw Error("Invalid origin selection");
+    },
+    !disabled && (loaded !== undefined || pending),
   );
   const apply = async () => {
     const edit: NonNullable<PokemonRawEdit["origin"]> = {};

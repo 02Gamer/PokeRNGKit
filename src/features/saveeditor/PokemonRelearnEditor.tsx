@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
+import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import type { PokemonPosition, PokemonRawEdit, SaveReport } from "./domain";
 import type { saveEditorResources } from "./locales";
 
@@ -29,6 +30,17 @@ export function PokemonRelearnEditor({
       ? "ja"
       : "en";
   const [draft, setDraft] = useState(moves ?? [0, 0, 0, 0]);
+  usePokemonDraftValidator(
+    "relearn",
+    () => {
+      if (
+        draft.length !== 4 ||
+        draft.some((move) => !Number.isInteger(move) || !choices[move])
+      )
+        throw Error("Invalid relearn move");
+    },
+    !disabled && moves !== null,
+  );
   const request = useRef(0);
   useEffect(() => {
     const lifecycle = request;

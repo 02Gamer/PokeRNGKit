@@ -4,6 +4,7 @@ import { playSaveSound } from "./saveSound";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
 import { pokemonStatusImage } from "./art";
+import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import {
   statusChoice,
   statusIconChoice,
@@ -48,6 +49,21 @@ export function PokemonVitalsEditor({
     restoreBarFocus = useRef(false),
     bar = useRef<HTMLInputElement>(null),
     modifiers = useRef({ alt: false, shift: false, control: false });
+  usePokemonDraftValidator(
+    "vitals",
+    () => {
+      experienceInput(experience);
+      levelInput(level);
+      if (
+        info.status.show &&
+        info.status.canEdit &&
+        generation <= 4 &&
+        Number(status) === 1
+      )
+        vitalInteger(sleep, 7, 1);
+    },
+    !locked,
+  );
   useEffect(() => {
     let active = true;
     queueMicrotask(() => {

@@ -1,3 +1,4 @@
+import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useGenderLabel } from "./useGenderLabel";
 import { playSaveSound } from "./saveSound";
 import { useState } from "react";
@@ -126,67 +127,83 @@ export function PokemonEditor({
       throw Error(words.pokemonValueError);
     return Number(value);
   };
+  const buildEdit = (): PokemonEdit => {
+    const evs = values.evs.map((value) => integer(value, pokemon.limits.ev));
+    if (evs.reduce((a, b) => a + b, 0) > 510)
+      throw Error(words.pokemonValueError);
+    return {
+      box: pokemon.box,
+      slot: pokemon.slot,
+      nickname: values.nickname,
+      identity: identityChanged
+        ? {
+            species: integer(
+              values.species,
+              attributeChoices.species.at(-1)?.id ?? 0,
+              1,
+            ),
+            form: integer(values.form, (speciesChoice?.forms.length ?? 1) - 1),
+            gender: integer(values.gender, 2),
+            useSpeciesName: values.useSpeciesName,
+          }
+        : null,
+      nature:
+        Number(values.nature) === pokemon.natureId
+          ? null
+          : integer(values.nature, 24),
+      statAlignment:
+        !pokemon.canStatAlignment ||
+        Number(values.statAlignment) === pokemon.statAlignment
+          ? null
+          : integer(values.statAlignment, 24),
+      abilityIndex:
+        !identityChanged && Number(values.abilityIndex) === pokemon.abilityIndex
+          ? null
+          : integer(values.abilityIndex, abilityChoices.length - 1),
+      heldItem:
+        Number(values.heldItem) === pokemon.heldItem
+          ? null
+          : integer(values.heldItem, attributeChoices.items.length - 1),
+      ot: values.ot,
+      level: integer(values.level, 100, 1),
+      friendship: integer(values.friendship, 255),
+      tid: integer(values.tid, 65535),
+      sid: integer(values.sid, 65535),
+      ivs: values.ivs.map((value) => integer(value, pokemon.limits.iv)),
+      evs,
+      moves: values.moves.map((value) => integer(value, pokemon.limits.move)),
+      movePpUps: values.movePpUps.map((value) => integer(value, 3)),
+      movePp: values.movePp.map((value, index) =>
+        integer(
+          value,
+          moveChoices[Number(values.moves[index])]?.maxPp[
+            Number(values.movePpUps[index])
+          ] ?? 0,
+        ),
+      ),
+    };
+  };
+  usePokemonDraftValidator(
+    "basic",
+    () => {
+      buildEdit();
+      if (
+        !speciesChoice ||
+        Number(values.species) === 0 ||
+        !formChoice ||
+        !abilityChoices[Number(values.abilityIndex)] ||
+        !attributeChoices.items[Number(values.heldItem)]
+      )
+        throw Error(words.pokemonValueError);
+      integer(values.nature, 24);
+      if (pokemon.canStatAlignment) integer(values.statAlignment, 24);
+    },
+    !disabled,
+  );
   const submit = async () => {
     setError("");
     try {
-      const evs = values.evs.map((value) => integer(value, pokemon.limits.ev));
-      if (evs.reduce((a, b) => a + b, 0) > 510)
-        throw Error(words.pokemonValueError);
-      await onApply({
-        box: pokemon.box,
-        slot: pokemon.slot,
-        nickname: values.nickname,
-        identity: identityChanged
-          ? {
-              species: integer(
-                values.species,
-                attributeChoices.species.at(-1)?.id ?? 0,
-                1,
-              ),
-              form: integer(
-                values.form,
-                (speciesChoice?.forms.length ?? 1) - 1,
-              ),
-              gender: integer(values.gender, 2),
-              useSpeciesName: values.useSpeciesName,
-            }
-          : null,
-        nature:
-          Number(values.nature) === pokemon.natureId
-            ? null
-            : integer(values.nature, 24),
-        statAlignment:
-          !pokemon.canStatAlignment ||
-          Number(values.statAlignment) === pokemon.statAlignment
-            ? null
-            : integer(values.statAlignment, 24),
-        abilityIndex:
-          !identityChanged &&
-          Number(values.abilityIndex) === pokemon.abilityIndex
-            ? null
-            : integer(values.abilityIndex, abilityChoices.length - 1),
-        heldItem:
-          Number(values.heldItem) === pokemon.heldItem
-            ? null
-            : integer(values.heldItem, attributeChoices.items.length - 1),
-        ot: values.ot,
-        level: integer(values.level, 100, 1),
-        friendship: integer(values.friendship, 255),
-        tid: integer(values.tid, 65535),
-        sid: integer(values.sid, 65535),
-        ivs: values.ivs.map((value) => integer(value, pokemon.limits.iv)),
-        evs,
-        moves: values.moves.map((value) => integer(value, pokemon.limits.move)),
-        movePpUps: values.movePpUps.map((value) => integer(value, 3)),
-        movePp: values.movePp.map((value, index) =>
-          integer(
-            value,
-            moveChoices[Number(values.moves[index])]?.maxPp[
-              Number(values.movePpUps[index])
-            ] ?? 0,
-          ),
-        ),
-      });
+      await onApply(buildEdit());
     } catch (cause) {
       playSaveSound("other", "exclamation");
       setError(

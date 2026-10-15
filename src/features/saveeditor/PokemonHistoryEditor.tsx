@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
 import type {
@@ -69,6 +70,27 @@ export function PokemonHistoryEditor({
   const holderChanged =
     catalog !== undefined && handler !== catalog.holder.current;
   const hasChanges = holderChanged || changed.length > 0;
+  usePokemonDraftValidator(
+    "history",
+    () => {
+      if (!catalog) return;
+      for (const location of locations) {
+        if (!catalog.geo?.entries[location.index]?.canEdit) continue;
+        if (!catalog.geo.countries.some((c) => c.id === location.country))
+          throw Error("Invalid history country");
+        // Country zero disables the region selector and represents an empty entry.
+        if (location.country === 0) {
+          if (location.region !== 0) throw Error("Invalid empty history");
+        } else if (
+          !catalog.geo.regions
+            .find((r) => r.country === location.country)
+            ?.choices.some((c) => c.id === location.region)
+        )
+          throw Error("Invalid history region");
+      }
+    },
+    !disabled && catalog !== undefined,
+  );
   const update = (index: number, country: number, region: number) =>
     setLocations((previous) =>
       previous.map((v) => (v.index === index ? { index, country, region } : v)),

@@ -1,3 +1,4 @@
+import { saveFailureFeedback } from "./saveFailureFeedback";
 import { useGenderLabel } from "./useGenderLabel";
 import { playSaveSound, playSilentBoxExportSound } from "./saveSound";
 import { cgear5PreviewHasSound, saveEditHasSound } from "./saveEditSound";
@@ -487,6 +488,7 @@ export function SaveEditorPanel(
     try {
       await action(id);
     } catch (cause) {
+      saveFailureFeedback(cause, id === operation.current);
       if (id === operation.current)
         setError(cause instanceof Error ? cause.message : String(cause));
     } finally {

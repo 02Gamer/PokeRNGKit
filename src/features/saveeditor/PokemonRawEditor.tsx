@@ -9,6 +9,7 @@ import {
 import type { saveEditorResources } from "./locales";
 import { useSavePrivacy } from "./useSavePrivacy";
 import { normalizeHomeTracker } from "./homeTracker";
+import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 
 const hex = (value: number) =>
   value.toString(16).toUpperCase().padStart(8, "0");
@@ -31,6 +32,15 @@ export function PokemonRawEditor({
   const [tracker, setTracker] = useState(pokemon.homeTracker ?? "");
   const [error, setError] = useState("");
   const privacy = useSavePrivacy();
+  usePokemonDraftValidator(
+    "raw",
+    () => {
+      parsePokemonHex(pid);
+      if (pokemon.canEditEncryptionConstant) parsePokemonHex(ec);
+      if (pokemon.homeTracker != null) normalizeHomeTracker(tracker);
+    },
+    !disabled && !privacy.hideSecretDetails,
+  );
   const apply = async (action: PokemonRawEdit["action"]) => {
     setError("");
     try {

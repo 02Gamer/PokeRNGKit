@@ -1,3 +1,4 @@
+import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useState } from "react";
 import { playSaveSound } from "./saveSound";
 import { useTranslation } from "react-i18next";
@@ -57,55 +58,59 @@ export function StandaloneGbEditor({
     common.speed,
     words.special,
   ];
+  const buildEdit = (): GbPokemonEdit => {
+    for (const [name, max, previous] of [
+      [draft.nickname, p.limits.nickname, p.nickname],
+      [draft.ot, p.limits.trainerName, p.ot],
+    ] as const)
+      if (
+        (!name.length && name !== previous) ||
+        name.length > max ||
+        /\p{Cc}/u.test(name)
+      )
+        throw Error("name");
+    const moves = draft.moves.map((v) => integer(v, p.limits.move));
+    const movePpUps = draft.movePpUps.map((v) => integer(v, 3));
+    const movePp = draft.movePp.map((v, i) =>
+      integer(
+        v,
+        Math.min(63, report.moveChoices[moves[i]]?.maxPp[movePpUps[i]] ?? 0),
+      ),
+    );
+    if (
+      moves.some(
+        (move, i) => move === 0 && (movePp[i] !== 0 || movePpUps[i] !== 0),
+      )
+    )
+      throw Error("move");
+    return {
+      species: integer(
+        draft.species,
+        report.attributeChoices.species.at(-1)?.id ?? 0,
+        1,
+      ),
+      nickname: draft.nickname,
+      ot: draft.ot,
+      tid: integer(draft.tid, 65535),
+      level: integer(draft.level, 100, 1),
+      dvs: draft.dvs.map((v) => integer(v, 15)),
+      statExperience: draft.statExperience.map((v) => integer(v, 65535)),
+      moves,
+      movePp,
+      movePpUps,
+      friendship:
+        report.generation === 2 ? integer(draft.friendship, 255) : null,
+      heldItem:
+        report.generation === 2
+          ? integer(draft.heldItem, report.attributeChoices.items.length - 1)
+          : null,
+    };
+  };
+  usePokemonDraftValidator("basic", buildEdit, !disabled);
   const submit = async () => {
     setError(false);
     try {
-      for (const [name, max, previous] of [
-        [draft.nickname, p.limits.nickname, p.nickname],
-        [draft.ot, p.limits.trainerName, p.ot],
-      ] as const)
-        if (
-          (!name.length && name !== previous) ||
-          name.length > max ||
-          /\p{Cc}/u.test(name)
-        )
-          throw Error("name");
-      const moves = draft.moves.map((v) => integer(v, p.limits.move));
-      const movePpUps = draft.movePpUps.map((v) => integer(v, 3));
-      const movePp = draft.movePp.map((v, i) =>
-        integer(
-          v,
-          Math.min(63, report.moveChoices[moves[i]]?.maxPp[movePpUps[i]] ?? 0),
-        ),
-      );
-      if (
-        moves.some(
-          (move, i) => move === 0 && (movePp[i] !== 0 || movePpUps[i] !== 0),
-        )
-      )
-        throw Error("move");
-      await onApply({
-        species: integer(
-          draft.species,
-          report.attributeChoices.species.at(-1)?.id ?? 0,
-          1,
-        ),
-        nickname: draft.nickname,
-        ot: draft.ot,
-        tid: integer(draft.tid, 65535),
-        level: integer(draft.level, 100, 1),
-        dvs: draft.dvs.map((v) => integer(v, 15)),
-        statExperience: draft.statExperience.map((v) => integer(v, 65535)),
-        moves,
-        movePp,
-        movePpUps,
-        friendship:
-          report.generation === 2 ? integer(draft.friendship, 255) : null,
-        heldItem:
-          report.generation === 2
-            ? integer(draft.heldItem, report.attributeChoices.items.length - 1)
-            : null,
-      });
+      await onApply(buildEdit());
     } catch {
       playSaveSound("other", "exclamation");
       setError(true);

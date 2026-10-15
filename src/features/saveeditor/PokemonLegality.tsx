@@ -1,5 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import {
+  PokemonDraftContext,
+  pokemonDraftWords,
+} from "./pokemonDraftValidation";
 import { copyLegalityReport } from "./legalityClipboard";
 import { playSaveSound } from "./saveSound";
 import { legalityDisplay } from "./legalityDisplay";
@@ -26,8 +30,22 @@ export function PokemonLegality({
     : i18n.language.startsWith("ja")
       ? "ja"
       : "en";
+  const registry = useContext(PokemonDraftContext);
+  const [blockedDraft, setBlockedDraft] = useState<{
+    registry: NonNullable<typeof registry>;
+    sections: string[];
+  }>();
+  const blocked = registry != null && blockedDraft?.registry === registry;
+  const sectionLabels: Record<string, string> = {
+    basic: words.basicPokemonEdit,
+    raw: words.rawPokemonValues,
+    vitals: words.level,
+    origin: words.originDetails,
+    relearn: words.relearnMoves,
+    history: words.historyTitle,
+  };
   const current =
-    report?.box === position.box && report.slot === position.slot
+    !blocked && report?.box === position.box && report.slot === position.slot
       ? report
       : undefined;
   const [request, setRequest] = useState({ controlOnly: false, id: 0 });
@@ -74,6 +92,15 @@ export function PokemonLegality({
           type="button"
           disabled={busy || copyPending}
           onClick={(event) => {
+            if (busy || copyPending) return;
+            const invalid = registry?.check(event) ?? [];
+            if (registry && invalid.length) {
+              setBlockedDraft({ registry, sections: invalid });
+              setCopyResult(undefined);
+              playSaveSound("other", "hand");
+              return;
+            }
+            setBlockedDraft(undefined);
             setRequest((previous) => ({
               controlOnly:
                 event.ctrlKey &&
@@ -90,6 +117,14 @@ export function PokemonLegality({
         </button>
       </div>
       <p className="save-editor-note">{words.legalityNote}</p>
+      {blocked && (
+        <p role="alert" className="save-editor-error">
+          {pokemonDraftWords[lang]}{" "}
+          {blockedDraft?.sections
+            .map((section) => sectionLabels[section] ?? section)
+            .join(" / ")}
+        </p>
+      )}
       {current && (
         <>
           <p

@@ -5,7 +5,7 @@
 | 来源文件与行号                                                       | 类型        | 浏览器状态                                                                                                                               |
 | -------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `MainWindow/Main.cs:513`                                             | Asterisk    | 已绑定：SaveEditorPanel.openFile 在工作流忙碌时拒绝再次打开并发 Other；对应浏览器工作流门禁，不模拟 OS CanFocus，待页面核验              |
-| `MainWindow/Main.cs:1120`                                            | Hand        | 流程适配未收口：仅分析已应用工作副本；基础／DV／进阶／经验控件验证失败发 Exclamation，集中草稿 EditsComplete 的 Hand 反馈仍待补          |
+| `MainWindow/Main.cs:1120`                                            | Hand        | 部分绑定：共享分析按钮检查当前挂载表单，无效草稿发 Hand 并隐藏旧报告；仍分析已应用副本，专用字段待补，待页面核验                         |
 | `MainWindow/Main.cs:1125`                                            | Hand        | 已绑定：存档／独立实体分析前，空种类或坏实体校验和门禁发 Hand；待页面核验                                                                |
 | `MainWindow/Main.cs:1177`                                            | Asterisk    | 已绑定：共享单只合法性报告复制成功且视图／报告／语言仍有效后 Other 提示；拒绝和迟到不提示，待页面核验                                    |
 | `Subforms/BoxExporter.cs:49`                                         | Asterisk    | 已绑定：SaveEditorPanel.downloadArchive，Notify=Silent(1) 且已发起下载；待页面核验                                                       |
@@ -36,7 +36,7 @@
 | `Subforms/Save Editors/SAV_MailBox.cs:435`                           | Question    | 已绑定：删除前按当前 frame.party 的 heldMailId／itemIsMail 引用发 Question；联动复选框与冻结预览承担确认选择，不自动改持有物，待页面核验 |
 | `Subforms/Save Editors/SAV_MailBox.cs:583`                           | Asterisk    | 界面拦截：MailboxEditor 在各自 held／box 首尾、无队伍时禁用对应移动按钮，Core 仍拒绝越界                                                 |
 | `Subforms/Save Editors/SAV_Inventory.cs:451`                         | Asterisk    | 已绑定：inventoryBatch.giveAll 成功写入工作副本后 Other；排序／数量／清空不误触发，待页面核验                                            |
-| `Controls/PKM Editor/PKMEditor.cs:246`                               | Exclamation | 已绑定部分对应：基础、GB DV、进阶 PID／EC 及共用经验／状态控件验证失败 Exclamation；集中 EditsComplete 路径见 Main.cs:1120，仍待补齐     |
+| `Controls/PKM Editor/PKMEditor.cs:246`                               | Exclamation | 部分绑定：表单提交验证失败 Exclamation；集中检查已接基础／GB／原始值／经验／来源／回忆／已加载历史，精确修饰键可跳过界面门禁             |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9a.cs:241`                    | Asterisk    | 已绑定：trainer9aCommit，冻结预览 operations.key=resetAndCollectScrews；普通收集不触发此直接调用；待页面核验                             |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9.cs:219`                     | Asterisk    | 已绑定：trainer9Commit，冻结预览 operations.fly；待页面核验                                                                              |
 | `Subforms/Save Editors/Gen9/SAV_Trainer9.cs:344`                     | Asterisk    | 已绑定：trainer9Commit，冻结预览 operations.stakes；待页面核验                                                                           |
@@ -172,3 +172,5 @@
 参考源码只读。行号绑定当前来源版本，窗口不可用操作在浏览器中可能由禁用控件预防，需记录实际对应方式，不能用全局成功提示替代全部调用点。
 
 本批补齐四类浏览器短提示（Asterisk／Exclamation／Hand／Question），均为本机合成音，非 Windows 音频复制；时长仍为 170 ms，仅在本页显式启用后播放，三个来源设置开关独立。Other 开关现在可配置，作用范围以本表实际连接点为准。禁用态和浏览器流程适配与已接声音分别记录，不能据此将全项目标记完成。集中草稿校验，以及 WinFormsUtil 的间接 Alert／Error／Prompt／Exception 路径继续待核对；所有实际播放、拖放和弹层交互仍待外部 Chrome 核验。
+
+后续集中草稿门禁已按上表部分接入；SaveEditorPanel／独立实体请求包装器增加普通失败 Hand 与超时／协议版本错误 Exclamation，取消／过期请求无音。专用字段、其他间接 Alert／Error／Prompt 调用及外部 Chrome 行为仍待核对，不将本批列为完整迁移。
