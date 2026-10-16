@@ -86,7 +86,7 @@ describe("independent entity worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect(transfer).toEqual([message.bytes.buffer]);
       worker.onmessage?.({
-        data: { id: message.id, entity: { apiVersion: 178 }, ...fields },
+        data: { id: message.id, entity: { apiVersion: 179 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(original);
@@ -311,5 +311,34 @@ describe("independent entity worker lifecycle", () => {
       client.run(new Uint8Array(MAX_ENTITY_BYTES + 1), request),
     ).rejects.toThrow("size");
     expect(FakeWorker.instances).toHaveLength(0);
+  });
+
+  it("clones the readonly save context and cancels frozen entity work when the source save changes", async () => {
+    const client = new StandalonePokemonClient(),
+      save = new Uint8Array([1, 2, 3]),
+      source = { box: 0, slot: 2 };
+    client.setSaveContext({ bytes: save, source });
+    save[0] = 9;
+    source.slot = 5;
+    const pending = client.run(new Uint8Array([4]), request),
+      worker = FakeWorker.instances[0];
+    const [message, transfer] = worker.postMessage.mock.calls[0];
+    expect([...message.editorSave]).toEqual([1, 2, 3]);
+    expect(message.editorSource).toEqual({ box: 0, slot: 2 });
+    expect(transfer).toContain(message.editorSave.buffer);
+    expect(message.editorSave.buffer).not.toBe(save.buffer);
+    worker.onmessage?.({
+      data: { id: message.id, entity: { apiVersion: 179 } },
+    });
+    await pending;
+    const next = client.run(new Uint8Array([4]), request),
+      rejected = expect(next).rejects.toThrow("context changed");
+    client.setSaveContext({
+      bytes: new Uint8Array([1, 2, 3]),
+      source: { box: 0, slot: 2 },
+    });
+    await rejected;
+    expect(worker.terminate).toHaveBeenCalledOnce();
+    client.dispose();
   });
 });

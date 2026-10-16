@@ -1,11 +1,43 @@
 import type { SaveEditorRequestKind } from "./requestKinds";
-import { MAX_SAVE_BYTES, type SaveEditorResult } from "./domain";
+import {
+  MAX_SAVE_BYTES,
+  SAVE_EDITOR_API_VERSION,
+  type SaveEditorResult,
+} from "./domain";
 import { readSaveSettings, subscribeSaveSettings } from "./settingsRepository";
 import { beginSaveRequest } from "./clientActivity";
 import { loadExternalMysteryGifts } from "./externalMysteryGifts";
 import { subscribeMysteryGiftChanges } from "./mysteryGiftChanges";
 
 export class SaveEditorClient {
+  private editorContext?: {
+    bytes: Uint8Array;
+    source: import("./domain").PokemonPosition;
+  };
+  private editorContextInput?: Uint8Array;
+  setEditorContext(context?: {
+    bytes: Uint8Array;
+    source: import("./domain").PokemonPosition;
+  }) {
+    if (
+      this.editorContextInput === context?.bytes &&
+      this.editorContext?.source.box === context?.source.box &&
+      this.editorContext?.source.slot === context?.source.slot
+    )
+      return;
+    if (
+      context &&
+      (!context.bytes.length || context.bytes.length > MAX_SAVE_BYTES)
+    )
+      throw Error("Invalid editor save context.");
+    this.dispose(
+      "Editor save context changed. Read a new preview before confirming.",
+    );
+    this.editorContextInput = context?.bytes;
+    this.editorContext = context
+      ? { bytes: new Uint8Array(context.bytes), source: { ...context.source } }
+      : undefined;
+  }
   private worker?: Worker;
   private nextId = 0;
   private brProfile = -1;
@@ -229,6 +261,17 @@ export class SaveEditorClient {
       this.worker.onmessage = ({ data }) => {
         const request = this.pending.get(data.id);
         if (!request) return;
+        if (
+          [data.report?.apiVersion, data.entity?.apiVersion].some(
+            (version) =>
+              version !== undefined && version !== SAVE_EDITOR_API_VERSION,
+          )
+        ) {
+          this.dispose(
+            "Save editor API version mismatch. Reload the local runtime before continuing.",
+          );
+          return;
+        }
         clearTimeout(request.timer);
         this.pending.delete(data.id);
         request.finish();
@@ -249,6 +292,10 @@ export class SaveEditorClient {
     }
     const id = ++this.nextId;
     const copy = new Uint8Array(bytes);
+    const editorSave =
+      kind.startsWith("entity") && this.editorContext
+        ? new Uint8Array(this.editorContext.bytes)
+        : undefined;
     const fileCopy = databaseFiles ? new Uint8Array(databaseFiles) : undefined;
     const base = new URL(import.meta.env.BASE_URL, window.location.href).href;
     return new Promise((resolve, reject) => {
@@ -298,8 +345,14 @@ export class SaveEditorClient {
             externalMysteryGiftsJson,
             recognition: this.getRecognition(),
             databaseFiles: fileCopy,
+            editorSave,
+            editorSource: editorSave ? this.editorContext?.source : undefined,
           },
-          fileCopy ? [copy.buffer, fileCopy.buffer] : [copy.buffer],
+          [
+            copy.buffer,
+            ...(fileCopy ? [fileCopy.buffer] : []),
+            ...(editorSave ? [editorSave.buffer] : []),
+          ],
         );
       } catch (cause) {
         clearTimeout(timer);
@@ -334,6 +387,10 @@ export class SaveEditorClient {
   discardBoxImport(bytes: Uint8Array, token: string) {
     if (this.worker)
       void this.run(bytes, token, "boxImportDiscard").catch(() => {});
+  }
+  discardPokemonSet(bytes: Uint8Array, token: string) {
+    if (this.worker)
+      void this.run(bytes, token, "pokemonSetDiscard").catch(() => {});
   }
 
   discardBoxBinary(bytes: Uint8Array, token: string) {

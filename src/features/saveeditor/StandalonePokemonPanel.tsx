@@ -17,6 +17,7 @@ import {
   useEffectEvent,
   useRef,
   useState,
+  useLayoutEffect,
 } from "react";
 import { useSaveSettingsJson } from "./useSaveSettingsJson";
 import { useMysteryGiftChanges } from "./useMysteryGiftChanges";
@@ -71,6 +72,14 @@ import { PokemonOriginEditor } from "./PokemonOriginEditor";
 import { StandaloneEggEditor } from "./StandaloneEggEditor";
 import { StandaloneGbEditor } from "./StandaloneGbEditor";
 import { StandaloneGbSpecialEditor } from "./StandaloneGbSpecialEditor";
+import { PokemonEggEditor } from "./PokemonEggEditor";
+import {
+  editorSnapshot,
+  pokemonSetWords,
+  type PokemonEditorSaveContext,
+  type PokemonEditorHandle,
+  type PokemonEditorFile,
+} from "./pokemonSet";
 
 function download(bytes: Uint8Array<ArrayBuffer>, name: string) {
   const url = URL.createObjectURL(
@@ -87,9 +96,13 @@ export function StandalonePokemonPanel({
   seed,
   disabled = false,
   preparedActions = [],
+  saveContext,
+  onEditorReady,
 }: {
   seed?: StandalonePokemonSnapshot;
   disabled?: boolean;
+  saveContext?: PokemonEditorSaveContext;
+  onEditorReady?(handle: PokemonEditorHandle | undefined): void;
   preparedActions?: {
     label: string;
     onPrepare(snapshot: StandalonePokemonSnapshot): Promise<void>;
@@ -105,6 +118,11 @@ export function StandalonePokemonPanel({
   const words = standaloneWords[lang],
     common = saveEditorResources[lang];
   const client = useRef(new StandalonePokemonClient());
+  useLayoutEffect(
+    () => client.current.setSaveContext(saveContext),
+    [saveContext],
+  );
+  const [acceptedFile, setAcceptedFile] = useState<PokemonEditorFile>();
   const settingsJson = useSaveSettingsJson();
   const previousSettings = useRef(settingsJson);
   const giftRevision = useMysteryGiftChanges();
@@ -865,10 +883,51 @@ export function StandalonePokemonPanel({
     () => new PokemonDraftRegistry(`${working?.fileName ?? ""}:${revision}`),
     [revision, working?.fileName],
   );
+  useLayoutEffect(() => {
+    if (!onEditorReady) return;
+    if (!working || !report || busy || disabled || acceptedFile) {
+      onEditorReady(undefined);
+      return;
+    }
+    onEditorReady({
+      capture: () => ({
+        snapshot: { ...working, bytes: working.bytes.slice() },
+        capture: draftRegistry.capture(draftRegistry.scope),
+      }),
+      accept: setAcceptedFile,
+    });
+    return () => onEditorReady(undefined);
+  }, [
+    onEditorReady,
+    working,
+    report,
+    busy,
+    disabled,
+    acceptedFile,
+    draftRegistry,
+  ]);
+  useEffect(() => {
+    if (!acceptedFile || busy || disabled) return;
+    void perform(async (id) => {
+      setAcceptedFile(undefined);
+      const snapshot = editorSnapshot(acceptedFile);
+      const result = await client.current.run(snapshot.bytes, {
+        fileName: snapshot.fileName,
+        inputEncrypted: false,
+        useFileFormat: true,
+      });
+      if (id !== operation.current) return;
+      setWorking(snapshot);
+      setReport(result.entity);
+      setLegality(undefined);
+      setChanged(false);
+      setRevision((v) => v + 1);
+    });
+  }, [acceptedFile, busy, disabled, perform]);
   return (
     <PokemonDraftContext value={draftRegistry}>
       <div className="save-editor-panel" aria-busy={busy}>
-        <p>{words.intro}</p>
+        <p>{saveContext ? pokemonSetWords[lang].note : words.intro}</p>
         {!seed && (
           <div className="save-editor-fields">
             <label className="field">
@@ -1385,16 +1444,26 @@ export function StandalonePokemonPanel({
                       }
                       onApply={applyRaw}
                     />
-                    <StandaloneEggEditor
-                      key={`egg-${revision}`}
-                      pokemon={report.pokemon}
-                      disabled={busy}
-                      initialTrainer={working?.eggTrainer}
-                      onRead={() => readDetails("eggContext")}
-                      onApply={(raw, eggTrainer) =>
-                        applyRequest({ raw, eggTrainer }, "entityRaw")
-                      }
-                    />
+                    {saveContext ? (
+                      <PokemonEggEditor
+                        key={`egg-${revision}`}
+                        egg={report.pokemon.eggInfo}
+                        position={report.pokemon}
+                        disabled={busy}
+                        onApply={applyRaw}
+                      />
+                    ) : (
+                      <StandaloneEggEditor
+                        key={`egg-${revision}`}
+                        pokemon={report.pokemon}
+                        disabled={busy}
+                        initialTrainer={working?.eggTrainer}
+                        onRead={() => readDetails("eggContext")}
+                        onApply={(raw, eggTrainer) =>
+                          applyRequest({ raw, eggTrainer }, "entityRaw")
+                        }
+                      />
+                    )}
                     {report.canMemories && (
                       <PokemonMemoryEditor
                         key={`memory-${revision}`}

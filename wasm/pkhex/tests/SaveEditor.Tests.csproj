@@ -16,6 +16,8 @@
     <Compile Include="../PokemonTrainerDetails.cs" Link="PokemonTrainerDetails.cs" />
     <Compile Include="../PokemonDraftPreparing.cs" Link="PokemonDraftPreparing.cs" />
     <Compile Include="../PokemonSetSession.cs" Link="PokemonSetSession.cs" />
+    <Compile Include="../PokemonSetApi.cs" Link="PokemonSetApi.cs" />
+    <Compile Include="../PokemonEditorContext.cs" Link="PokemonEditorContext.cs" />
     <Compile Include="../PokemonIdentityTools.cs" Link="PokemonIdentityTools.cs" />
     <Compile Include="../PokemonDimensions.cs" Link="PokemonDimensions.cs" />
     <Compile Include="../PokemonLegacyDetails.cs" Link="PokemonLegacyDetails.cs" />

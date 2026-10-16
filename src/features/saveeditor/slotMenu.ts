@@ -2,7 +2,7 @@
 import type { PokemonPosition, SaveReport } from "./domain";
 import { pokemonAccess } from "./savePokemonEditing";
 import type { GalleryModifiers } from "./boxGallery";
-export type SlotAction = "view" | "delete" | "legality";
+export type SlotAction = "view" | "set" | "delete" | "legality";
 export interface SlotMenuInvocation {
   position: PokemonPosition;
   trigger: HTMLElement;
@@ -33,6 +33,7 @@ export function slotMenuActions(
   always: boolean,
   busy: boolean,
   canAnalyze = true,
+  canSet = false,
 ): SlotAction[] {
   if (busy) return [];
   const inside =
@@ -40,7 +41,7 @@ export function slotMenuActions(
     position.slot >= 0 &&
     Number.isInteger(position.box) &&
     (position.box === -1
-      ? position.slot < report.partyCount
+      ? position.slot < (canSet ? 6 : report.partyCount)
       : position.box >= 0 &&
         position.box < report.boxCount &&
         position.slot < report.boxSlotCount);
@@ -49,10 +50,13 @@ export function slotMenuActions(
     report.pokemon.find(
       (p) => p.box === position.box && p.slot === position.slot,
     );
-  if (!p || p.species === 0) return [];
-  const result: SlotAction[] = ["view"];
-  if (pokemonAccess(report).canStorage) result.push("delete");
+  if (!inside) return [];
+  const occupied = !!p && p.species > 0;
+  const result: SlotAction[] = occupied ? ["view"] : [];
+  if (canSet && pokemonAccess(report).canStorage) result.push("set");
+  if (occupied && pokemonAccess(report).canStorage) result.push("delete");
   if (
+    occupied &&
     canAnalyze &&
     (always ||
       (keys.ctrlKey && !keys.shiftKey && !keys.altKey && !keys.metaKey))
@@ -82,6 +86,7 @@ export const slotMenuWords = {
   zh: {
     menu: "格位菜单",
     view: "查看宝可梦",
+    set: "放入当前编辑的宝可梦",
     delete: "删除这只宝可梦",
     legality: "检查合法性",
     error: "格位操作未完成，请检查当前存档和受保护格位。",
@@ -89,6 +94,7 @@ export const slotMenuWords = {
   en: {
     menu: "Slot menu",
     view: "View Pokémon",
+    set: "Set the edited Pokémon",
     delete: "Delete this Pokémon",
     legality: "Check legality",
     error:
@@ -97,6 +103,7 @@ export const slotMenuWords = {
   ja: {
     menu: "スロットメニュー",
     view: "ポケモンを表示",
+    set: "編集中のポケモンを配置",
     delete: "このポケモンを削除",
     legality: "合法性を確認",
     error:

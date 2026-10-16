@@ -40,11 +40,11 @@ public static partial class Program
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         var result = request.ReadKind switch
         {
-            "eggContext" => new StandaloneAdvancedData(EggContext: StandaloneEgg.Read(p)),
-            "origin" => new StandaloneAdvancedData(Origin: PokemonOrigin.Catalog(p, request.Version, request.OriginBall)),
+            "eggContext" => new StandaloneAdvancedData(EggContext: PokemonEditorContext.Egg(p)),
+            "origin" => new StandaloneAdvancedData(Origin: PokemonEditorContext.Origin(p, request.Version, request.OriginBall)),
             "ribbons" => new StandaloneAdvancedData(Ribbons: PokemonRibbons.Read(p, true)),
-            "expert" => new StandaloneAdvancedData(Expert: PokemonIdentityTools.Read(p)),
-            "trainerDetails" => new StandaloneAdvancedData(TrainerDetails: PokemonTrainerDetails.Read(p)),
+            "expert" => new StandaloneAdvancedData(Expert: PokemonIdentityTools.Read(p,PokemonEditorContext.Save?.MaxAbilityID)),
+            "trainerDetails" => new StandaloneAdvancedData(TrainerDetails: PokemonTrainerDetails.Read(p,PokemonEditorContext.Save)),
             "history" => new StandaloneAdvancedData(History: PokemonHistory.Read(p)),
             "memory" => new StandaloneAdvancedData(Memory: PokemonMemories.Read(p, request.Handler, request.Memory)),
             "relearn" => new StandaloneAdvancedData(Relearn: ReadRelearn(p)),

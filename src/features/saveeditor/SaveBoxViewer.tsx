@@ -22,6 +22,7 @@ export function SaveBoxViewer({
   onSwapViews,
   onDrop,
   onSlotMenu,
+  onSet,
 }: {
   searchMatches?: ReadonlySet<string>;
   report: SaveReport;
@@ -36,6 +37,7 @@ export function SaveBoxViewer({
   onSecondary(box: number): void;
   onSelect(position: PokemonPosition): void;
   onSlotMenu?(invocation: SlotMenuInvocation): boolean;
+  onSet?(position: PokemonPosition): void;
   onSwapViews(): void;
   onDrop(
     target: PokemonPosition,
@@ -148,6 +150,7 @@ export function SaveBoxViewer({
               revision={revision}
               scope={scope}
               onSlotMenu={onSlotMenu}
+              onSet={onSet}
               onSelect={onSelect}
               onDrop={onDrop}
             />

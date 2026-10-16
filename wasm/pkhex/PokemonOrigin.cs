@@ -55,6 +55,9 @@ internal static class PokemonOrigin
     public static OriginCatalog Catalog(PKM p, int? version = null, int? ball = null)
         => Catalog(p, p.Context, GameVersion.Invalid, p, version, ball);
 
+    internal static OriginCatalog Catalog(SaveFile save,PKM p,int? version,int? ball)
+        => Catalog(save,save.Context,save.Version,p,version,ball);
+
     private static OriginCatalog Catalog(IGameValueLimit limits, EntityContext context, GameVersion fallback, PKM p, int? version, int? ball = null, bool readBrowser = true)
     {
         var games = Games(limits, context, p);

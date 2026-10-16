@@ -45,6 +45,7 @@ internal static class StandalonePokemon
             throw new ArgumentException("Entity file container requires a dedicated reader.");
         if (pokemon is GBPKML) pokemon = StandaloneGb.Read(input, "." + pokemon.Extension);
         // Colosseum/XD and Let's Go keep party stats in their only storage representation.
+        pokemon=PokemonEditorContext.Validate(pokemon);
         return new(pokemon, input.Length == pokemon.SIZE_PARTY);
     }
 
@@ -82,7 +83,7 @@ internal static class StandalonePokemon
         if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         return new(p.GetType().Name, p.Extension, file.Party, CanEdit(p), PokemonReader.Read(p, file.Party ? -1 : 0, 0),
-            PokemonReader.Attributes(p), PokemonReader.MoveChoices(p), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : [], p is GBPKM gb ? StandaloneGbSpecial.Read(gb) : null, SaveSpriteView.Mode);
+            PokemonEditorContext.Save is{} save?PokemonReader.Attributes(save):PokemonReader.Attributes(p), PokemonReader.MoveChoices(p,PokemonEditorContext.Save?.MaxMoveID), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : [], p is GBPKM gb ? StandaloneGbSpecial.Read(gb) : null, SaveSpriteView.Mode);
     }
 
     public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
@@ -90,7 +91,7 @@ internal static class StandalonePokemon
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (p.Format < 3 || !CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
             throw new ArgumentException("Entity file editing is unavailable for this data.");
-        var applied = PokemonEditing.Apply(p, edit, file.Party, identity => PokemonIdentity.Apply(p, identity, file.Party ? -1 : 0));
+        var applied = PokemonEditing.Apply(p, edit, file.Party, identity => PokemonEditorContext.Identity(p,identity,file.Party));
         var output = Serialize(p, file.Party, false);
         var reopened = Open(output, "." + p.Extension, useFileFormat: true).Entity;
         PokemonEditing.Verify(reopened, applied);
@@ -113,11 +114,12 @@ internal static class StandalonePokemon
             throw new ArgumentException("Entity file editing is unavailable for this data.");
         PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party, () =>
         {
-            if (edit.Action == "trainerDetails") PokemonTrainerDetails.Apply(p, edit.TrainerDetails ?? throw new ArgumentException("Trainer detail edit is missing."));
-            else if (edit.Action == "origin") PokemonOrigin.Apply(p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
+            if (edit.Action == "trainerDetails") PokemonTrainerDetails.Apply(p, edit.TrainerDetails ?? throw new ArgumentException("Trainer detail edit is missing."),PokemonEditorContext.Save);
+            else if (edit.Action == "origin") {var origin=edit.Origin??throw new ArgumentException("Origin edit is missing.");if(PokemonEditorContext.Save is{} save)PokemonOrigin.Apply(save,p,origin);else PokemonOrigin.Apply(p,origin);}
+            else if(PokemonEditorContext.Save is{} save)PokemonEgg.Apply(save,p,edit.Egg??throw new ArgumentException("Entity egg edit is missing."));
             else StandaloneEgg.Apply(p, edit.Egg ?? throw new ArgumentException("Entity egg edit is missing."),
                 eggTrainer ?? throw new ArgumentException("Entity egg operations require a trainer context."));
-        });
+        },PokemonEditorContext.Save?.MaxAbilityID);
         return Serialize(p, file.Party, false);
     }
 

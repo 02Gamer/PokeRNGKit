@@ -1,4 +1,9 @@
 import { saveFailureFeedback } from "./saveFailureFeedback";
+import {
+  parsePokemonSet,
+  pokemonSetWords,
+  type PokemonSetActions,
+} from "./pokemonSet";
 import { useGenderLabel } from "./useGenderLabel";
 import { playSaveSound, playSilentBoxExportSound } from "./saveSound";
 import { cgear5PreviewHasSound, saveEditHasSound } from "./saveEditSound";
@@ -3786,6 +3791,86 @@ export function SaveEditorPanel(
     });
     return catalog;
   };
+  const pokemonSetActions: PokemonSetActions = {
+    context: async (source) =>
+      working.current
+        ? {
+            bytes: working.current,
+            source: { ...source },
+            recognition: client.current.getRecognition(),
+            brProfile: client.current.getBRProfile(),
+          }
+        : undefined,
+    open: async (source) => {
+      let value: Awaited<ReturnType<PokemonSetActions["open"]>>;
+      await perform(async (id) => {
+        const input = working.current;
+        if (!input) return;
+        const result = await client.current.run(
+          input,
+          JSON.stringify(source),
+          "pokemonEditorOpen",
+        );
+        if (id !== operation.current || working.current !== input) return;
+        if (!result.pokemonEditorFile)
+          throw Error(pokemonSetWords[batchLang].failed);
+        value = {
+          file: result.pokemonEditorFile,
+          context: {
+            bytes: input,
+            source: { ...source },
+            recognition: client.current.getRecognition(),
+            brProfile: client.current.getBRProfile(),
+          },
+        };
+      });
+      return value;
+    },
+    preview: async (request) => {
+      let value: import("./pokemonSet").PokemonSetTicket | undefined;
+      await perform(async (id) => {
+        const input = working.current;
+        if (!input) return;
+        const sourceHash = bulkLegalitySourceHash(input);
+        const result = await client.current
+          .run(
+            input,
+            JSON.stringify({
+              ...request,
+              scope: request.capture.scope,
+              sourceHash,
+            }),
+            "pokemonSetPreview",
+          )
+          .catch(() => {
+            throw Error(pokemonSetWords[batchLang].failed);
+          });
+        if (id !== operation.current || working.current !== input) {
+          if (result.pokemonSet)
+            client.current.discardPokemonSet(input, result.pokemonSet.token);
+          return;
+        }
+        value = parsePokemonSet(
+          result.pokemonSet,
+          sourceHash,
+          request.source,
+          request.target,
+        );
+      });
+      return value;
+    },
+    apply: async (confirmation) => {
+      let applied = false;
+      await applyWorkingEdit(confirmation, "pokemonSetCommit", () => {
+        applied = true;
+      });
+      return applied;
+    },
+    discard: (token) => {
+      if (working.current)
+        client.current.discardPokemonSet(working.current, token);
+    },
+  };
   const battleImportActions: BattleTemplateImportActions = {
     preview: async (target, text) => {
       let value:
@@ -4129,6 +4214,7 @@ export function SaveEditorPanel(
       | import("./plusRecord").PlusRecordConfirmation
       | import("./techRecord").TechRecordConfirmation
       | import("./battleTemplateImport").BattleTemplateImportConfirmation
+      | import("./pokemonSet").PokemonSetConfirmation
       | AccessorConfirmation
       | WondercardConfirmation
       | SCBlockConfirmation
@@ -4226,6 +4312,7 @@ export function SaveEditorPanel(
       | "scblockCommit"
       | "boxBinaryCommit"
       | "boxImportCommit"
+      | "pokemonSetCommit"
       | "battleTemplateImportCommit"
       | "propertyCommit"
       | "pokemon"
@@ -6195,6 +6282,7 @@ export function SaveEditorPanel(
                   }}
                 >
                   <SavePokemonBrowser
+                    pokemonSet={pokemonSetActions}
                     searchActions={pokemonSearchActions}
                     moveShop={moveShopActions}
                     pokemonSuperTraining={pokemonSuperTrainingActions}

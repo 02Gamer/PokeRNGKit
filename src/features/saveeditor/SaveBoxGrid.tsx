@@ -27,6 +27,7 @@ export function SaveBoxGrid({
   onSelect,
   onDrop,
   onSlotMenu,
+  onSet,
 }: {
   searchMatches?: ReadonlySet<string>;
   report: SaveReport;
@@ -39,6 +40,7 @@ export function SaveBoxGrid({
   entries?: PokemonEntry[];
   onSelect(position: PokemonPosition): void;
   onSlotMenu?(invocation: SlotMenuInvocation): boolean;
+  onSet?(position: PokemonPosition): void;
   onDrop(
     target: PokemonPosition,
     transfer: DataTransfer,
@@ -126,7 +128,7 @@ export function SaveBoxGrid({
               slot === (selected.box === box ? selected.slot : 0) ? 0 : -1
             }
             draggable={writable && !!p?.valid && p.species > 0}
-            aria-haspopup={p && onSlotMenu ? "menu" : undefined}
+            aria-haspopup={onSlotMenu ? "menu" : undefined}
             onContextMenu={(event) => {
               if (!onSlotMenu) return;
               const rect = event.currentTarget.getBoundingClientRect();
@@ -143,7 +145,18 @@ export function SaveBoxGrid({
                 event.stopPropagation();
               }
             }}
-            onClick={() => onSelect(position)}
+            onClick={(event) => {
+              if (
+                onSet &&
+                event.shiftKey &&
+                !event.ctrlKey &&
+                !event.altKey &&
+                !event.metaKey
+              ) {
+                event.preventDefault();
+                onSet(position);
+              } else onSelect(position);
+            }}
             onKeyDown={(e) => {
               if (onSlotMenu && slotMenuKey(e.key, e.shiftKey)) {
                 const rect = e.currentTarget.getBoundingClientRect();

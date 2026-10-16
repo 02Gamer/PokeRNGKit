@@ -1,5 +1,21 @@
 # PKHeX 完整接入清单
 
+## 2026-10-16 存档上下文与独立宝可梦缓冲（API179）
+
+基线 afaf78a707dd224aa8fe74889ab25786489cd83c。本批开放读取编辑文件及放入预览／确认／取消 RPC，并接单箱、全览、双箱、队伍、工具栏和 Shift 单键入口。右侧复用独立宝可梦编辑器，编辑、随机／建议命令与局部撤销只改变实体缓冲；查看其他宝可梦才切换缓冲，空格位和箱页变化保留已查看内容。实际存档仅在确认放入时改变，沿既有保存历史和导出链路。
+
+独立 Worker 附带当前存档只读上下文，以真实存档限制来源、种类、招式、训练家、特性和蛋操作；GB／SK2 保持已识别编码，不写来源格位。存档、识别选择或玩家档位变化废弃旧 Worker 票据。预览展示 Core 实际导入结果，覆盖和兼容性各自确认；成功后用预导入实体刷新编辑缓冲，保存来源与目标分离。菜单中的存储格位合法性分析仍直接检查实际格位，与编辑缓冲分析分别展示。
+
+协议边界：准备请求不超过1,048,576个UTF-16码元，scope为1–256字符，区号1–64字符且不重复，最多64区／每区32步／整份64步；字段掩码1–32项且只能使用声明字段，训练家编号的两种表示不能同时提交。确认与位置请求上限4096字符，位置必须完整且无重复／额外字段，队伍逻辑位置0–5，箱位按实际箱数和容量。上述是网页协议限制；各值范围继续复用已核对的 Core 编辑器。来源为 ContextMenuSAV.ClickSet、PKMEditor.PreparePKM／NotifyWasExported、SlotInfoBox／Party 和 SaveFile.UpdatePKM。沿共享控件与44px基线，增加原生对话框确认和焦点恢复；没有新增控件皮肤。
+
+`.tmp/pkhex-set-api179-native.log` 与 `.tmp/pkhex-editor-context-api179-native.log` 专项退出0，覆盖七种常规存档、23组类型／修订／档位布局的只读上下文与公开放入路径，真实 E.sav 工作副本的编辑、冻结导出与原件保护通过。`.tmp/pkhex-set-ui-tests.log` 四文件170项前端专项通过；随后补齐旧API结果拒绝、StrictMode加载复用与失败不自动循环用例。`.tmp/pkhex-api179-core.log` 浏览器核心退出0；`.tmp/pkhex-api179-verify.log` 完整 npm run verify 退出0：356文件／2152项前端、完整类型、Lint、全仓格式与网页／PWA构建通过，仅保留Gen3StaticPanel.tsx:404既有Hook提醒及既有包体／插件耗时提示。`.tmp/pkhex-api179-native-full.log` 默认完整原生退出0，新增上下文／公开放入、真实 E.sav 与其余既有用例全部通过。浏览器核心、完整原生与完整网页门禁均通过；原件与工作副本 SHA-256 保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 页面读取仍失败，真实交互和下载未验收，完整接入目标保留。
+
+### 本轮源码复核后的剩余项
+
+- `StatEditor.LoadPartyStats／SavePartyStats` 的当前生命和手动队伍六项数值尚未接正式控件；现有逻辑只在重算时保留／夹取原生命值，并用状态元数据表示濒死，不能写作这一组已经完整接入。来源为 WinForms `Controls/PKM Editor/StatEditor.cs:548–570`，HaX 开关与实际储存布局仍需逐项核对。
+- 普通查看与独立缓冲已经接线；全局 HaX 空白编辑／空格位模式、格位菜单按精确写保护隐藏项目、其他主窗口和设置消费点仍待核对。Core 对实际写保护的拒绝保持有效。
+- 页面布局、三语、焦点、连续操作、实际存档导入和下载仍需外部 Chrome／Edge 的可用连接；当前读取失败不视为授权不足，也不以工程检查替代所有者验收。
+
 ## 2026-10-16 当前编辑草稿的准备层（API178 前端，Set 未完成）
 
 本批基线 d94905bf5f8607243fb576a83ac613eb5bf62707。为来源 ContextMenuSAV.ClickSet 的 EditsComplete／PreparePKM 建立按实体位置和工作修订隔离的草稿快照；基础字段记录修改掩码，其他字段输出类型化的值补丁，保留待由 Core 判定的经验／等级关联。基础、原始编号、来源、回忆招式、特殊状态、尺寸、训练家、开发字段、早期格式及其他已加载数值窗口接入。无改变不产生操作，随机／建议／孵化等命令配置不因准备而执行；这些按钮仍只在明确点击时修改工作副本。
@@ -34,7 +50,7 @@ API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、
 | 语言、原训练家性别、经手训练家／归属／语言、原始地区 | PokemonTrainerDetails                             | API175 已接两入口；按实际格式与目录显示                                                                |
 | PID、加密常量、HOME、异色动作                        | PokemonRawEditor／PokemonRawEditing／PokemonShiny | 已接；与保存的原值及派生数据分别处理                                                                   |
 | 性格、能力性格、普通特性槽位、持有道具               | PokemonEditor／PokemonEditing                     | API178 另接手动特性、一位特性编号和按编号查找；存档游戏／实体格式目录分别校验                          |
-| 经验值、等级、经验条、当前生命与异常状态、觉醒力量   | PokemonVitals                                     | API172 已接；无实际状态存储的格式明确限制                                                              |
+| 经验值、等级、经验条、异常状态、觉醒力量             | PokemonVitals                                     | API172 已接；无实际状态存储的格式明确限制                                                              |
 | 六项 IV／EV、极限特训、华丽与光泽                    | PokemonEditor／PokemonTraining                    | 已接；LGPE 隐藏普通 EV 时保留原数据                                                                    |
 | AV／GV、极巨／超极巨、头目／王、太晶原始／覆盖       | PokemonAdvancedStats                              | API174 已接实际接口；PA9 不虚构 ITeraType                                                              |
 | 当前招式、PP、提升次数、回忆招式、学习／精通记录     | 基础招式／Relearn／TechRecord／AlphaMove          | 已接多个正式路径；不能把初始头目精通招式当成商店学习标记                                               |

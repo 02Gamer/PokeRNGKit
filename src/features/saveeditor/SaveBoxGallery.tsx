@@ -23,6 +23,7 @@ export function SaveBoxGallery({
   onSwap,
   onDrop,
   onSlotMenu,
+  onSet,
 }: {
   searchMatches?: ReadonlySet<string>;
   report: SaveReport;
@@ -33,6 +34,7 @@ export function SaveBoxGallery({
   lang: "zh" | "en" | "ja";
   onSelect(position: PokemonPosition): void;
   onSlotMenu?(invocation: SlotMenuInvocation): boolean;
+  onSet?(position: PokemonPosition): void;
   onSwap(edit: BoxEdit): Promise<void>;
   onDrop(
     target: PokemonPosition,
@@ -98,6 +100,7 @@ export function SaveBoxGallery({
               revision={revision}
               scope={scope}
               onSlotMenu={onSlotMenu}
+              onSet={onSet}
               onSelect={onSelect}
               onDrop={onDrop}
             />

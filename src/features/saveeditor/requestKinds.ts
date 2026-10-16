@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "pokemonEditorOpen"
+  | "pokemonSetPreview"
+  | "pokemonSetCommit"
+  | "pokemonSetDiscard"
   | "entityTemplateCatalog"
   | "entityTemplateCreate"
   | "pokemonHover"

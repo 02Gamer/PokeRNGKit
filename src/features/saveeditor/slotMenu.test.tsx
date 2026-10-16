@@ -171,3 +171,70 @@ it("shares menu triggers across single, all, dual and party grids", () => {
   ])
     expect(renderToStaticMarkup(component)).toContain('aria-haspopup="menu"');
 });
+it("offers prepared Set on empty boxes and party append positions without inventing view/delete actions", () => {
+  expect(
+    slotMenuActions(
+      report,
+      { box: 0, slot: 2 },
+      keys,
+      false,
+      false,
+      true,
+      true,
+    ),
+  ).toEqual(["set"]);
+  expect(
+    slotMenuActions(
+      report,
+      { box: -1, slot: 5 },
+      keys,
+      false,
+      false,
+      true,
+      true,
+    ),
+  ).toEqual(["set"]);
+  expect(
+    slotMenuActions(
+      report,
+      { box: -1, slot: 6 },
+      keys,
+      false,
+      false,
+      true,
+      true,
+    ),
+  ).toEqual([]);
+  expect(
+    slotMenuActions(
+      report,
+      { box: 0, slot: 2 },
+      keys,
+      false,
+      false,
+      true,
+      false,
+    ),
+  ).toEqual([]);
+  expect(
+    slotMenuActions(
+      {
+        ...report,
+        pokemonEditing: {
+          canEdit: false,
+          editor: "standard",
+          canRaw: false,
+          canImport: false,
+          canStorage: false,
+        },
+      },
+      p,
+      keys,
+      false,
+      false,
+      true,
+      true,
+    ),
+  ).toEqual(["view"]);
+  expect(slotMenuActions(report, p, keys, true, true, true, true)).toEqual([]);
+});

@@ -45,6 +45,7 @@ export interface TrainerDateField {
   max: string;
 }
 
+export const SAVE_EDITOR_API_VERSION = 179;
 export interface SaveReport {
   registeredTeams?: boolean;
   brProfiles?: import("./br4").Br4Profiles | null;
@@ -62,7 +63,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 178;
+  apiVersion: 179;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -871,6 +872,8 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  pokemonSet?: import("./pokemonSet").PokemonSetTicket;
+  pokemonEditorFile?: { fileName: string; data: string };
   entityTemplateCatalog?: import("./entityTemplate").EntityTemplateCatalog;
   entityTemplateCreated?: import("./entityTemplate").EntityTemplateCreated;
   entity?: import("./standalonePokemon").StandalonePokemonReport;

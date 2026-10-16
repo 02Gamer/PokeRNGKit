@@ -43,6 +43,7 @@ internal static class PokemonDraftPreparing
                 case "basic":
                 {
                     if(p is GBPKM)throw new ArgumentException("Standard editor is unavailable for GB entities.");var edit=Read(step.Edit,PokemonSetJson.Default.PokemonEdit);var fields=Mask(step,BasicFields);
+                    if(fields.Contains("trainerIds")&&(fields.Contains("tid")||fields.Contains("sid")))throw new ArgumentException("Conflicting trainer ID representations.");
                     if(fields.Contains("level")){if(edit.Level is <1 or >100)throw new ArgumentException("Invalid editor level.");levels.Add(edit.Level);}
                     foreach(var field in fields.Where(f=>f!="level"))Claim(field=="friendship"?Friendship():field=="abilityIndex"?"ability":field,index,step.Edit.GetProperty(field).GetRawText());
                     if(fields.Contains("identity")){Claim("ability",index,"identity");if(p.Format<=5)Claim("pid",index,"identity");}
