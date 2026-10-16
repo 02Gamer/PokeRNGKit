@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { PokemonPosition, SaveReport } from "./domain";
 import { pokemonAccess } from "./savePokemonEditing";
+import { slotCanWrite } from "./slotAccess";
 import type { GalleryModifiers } from "./boxGallery";
 export type SlotAction = "view" | "set" | "delete" | "legality";
 export interface SlotMenuInvocation {
@@ -53,8 +54,10 @@ export function slotMenuActions(
   if (!inside) return [];
   const occupied = !!p && p.species > 0;
   const result: SlotAction[] = occupied ? ["view"] : [];
-  if (canSet && pokemonAccess(report).canStorage) result.push("set");
-  if (occupied && pokemonAccess(report).canStorage) result.push("delete");
+  const writable =
+    pokemonAccess(report).canStorage && slotCanWrite(report, position);
+  if (canSet && writable) result.push("set");
+  if (occupied && writable) result.push("delete");
   if (
     occupied &&
     canAnalyze &&

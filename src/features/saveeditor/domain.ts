@@ -45,8 +45,9 @@ export interface TrainerDateField {
   max: string;
 }
 
-export const SAVE_EDITOR_API_VERSION = 180;
+export const SAVE_EDITOR_API_VERSION = 181;
 export interface SaveReport {
+  slotAccess?: import("./slotAccess").SaveSlotAccessInfo;
   registeredTeams?: boolean;
   brProfiles?: import("./br4").Br4Profiles | null;
   pokedex: {
@@ -63,7 +64,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 180;
+  apiVersion: 181;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;

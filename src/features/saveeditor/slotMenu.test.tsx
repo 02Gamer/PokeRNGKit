@@ -26,6 +26,7 @@ const p = {
   sprite: "b_25",
 } as PokemonEntry;
 const report = {
+  slotAccess: { hasBox: true, hasParty: true, blocked: [] },
   boxCount: 2,
   boxSlotCount: 30,
   partyCount: 1,

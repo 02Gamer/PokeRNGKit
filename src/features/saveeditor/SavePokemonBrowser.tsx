@@ -2,6 +2,7 @@ import { SaveSlotMenu } from "./SaveSlotMenu";
 import { SourcePokemonEditor } from "./SourcePokemonEditor";
 import { PokemonReadOnlySummary } from "./PokemonReadOnlySummary";
 import { PokemonSetDialog } from "./PokemonSetDialog";
+import { slotCanWrite } from "./slotAccess";
 import { PokemonLegality } from "./PokemonLegality";
 import {
   editorFile,
@@ -400,6 +401,11 @@ export function SavePokemonBrowser({
   async function startSet(position: PokemonPosition) {
     const handle = editorHandle.current;
     if (locked || flight.current || !canSet || !handle || !editorSource) return;
+    if (!slotCanWrite(report, position)) {
+      setSlotError(true);
+      playSaveSound("other", "hand");
+      return;
+    }
     let draft: ReturnType<PokemonEditorHandle["capture"]>;
     try {
       draft = handle.capture();
@@ -584,7 +590,9 @@ export function SavePokemonBrowser({
         <h3>{words.pokemon}</h3>{" "}
         <button
           type="button"
-          disabled={locked || !canSet}
+          disabled={
+            locked || !canSet || !slotCanWrite(report, selectedPosition)
+          }
           onClick={() => void startSet(selectedPosition)}
         >
           {pokemonSetWords[lang].set}
@@ -679,9 +687,12 @@ export function SavePokemonBrowser({
           disabled={locked}
           onChange={(e) => chooseMain(Number(e.target.value))}
         >
-          <option value={-1}>
-            {words.party} ({report.pokemon.filter((p) => p.box === -1).length})
-          </option>
+          {report.slotAccess?.hasParty && (
+            <option value={-1}>
+              {words.party} ({report.pokemon.filter((p) => p.box === -1).length}
+              )
+            </option>
+          )}
           {Array.from({ length: report.boxCount }, (_, i) => (
             <option key={i} value={i}>
               {report.boxes[i]?.name || `${words.box} ${i + 1}`} (

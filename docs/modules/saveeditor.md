@@ -1,5 +1,15 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-17 格位写入权限（API181）
+
+基线 a2eabb816afb0bf5cbc1e39fbd35bf8c915085da。Core返回实际箱子／独立队伍结构及受保护箱位，沿SlotInfoBox／SlotInfoParty.CanWriteTo，与图标、合法性、标记显示设置分别处理。菜单保留查看和合法性分析，隐藏不可写格位的放入／删除；工具栏放入、Shift放入和存储工具复用同一状态。受保护来源仍可复制到可写目标，其余来源写入禁用；不能独立写队伍的布局不显示伪队伍选项。游戏兼容性与最后非蛋等实体相关约束仍在Core实际写入时判断。
+
+来源为WinForms Controls/SAV Editor/ContextMenuSAV.cs.MenuOpening、Core Editing/Saves/Slots/SlotViewInfo.cs、Info/SlotInfoBox.cs、SlotInfoParty.cs和StorageEditing.Target。箱号0至BoxCount-1，箱位0至BoxSlotCount-1，队伍逻辑位0至5并在写入时向PartyCount对齐。权限读取不写存档，受保护表只记录实际箱位；Worker拒绝缺失、重复和越界元数据，旧API结果继续被拒绝，前端缺少权限状态时不开放写入。布局、字段和按钮沿既有共享样式，无新增皮肤。
+
+.tmp/pkhex-api181-slot-access-ui.log 四文件149项前端专项、.tmp/pkhex-api181-slot-access-native.log 原生专项均退出0。已覆盖七种公开存档的元数据、23组类型／修订／档位布局的每个物理位置、剑盾空／已占用锁定队伍与解锁刷新、LGPE链接队伍、原输入保护及既有冻结放入／真实E.sav回读。 .tmp/pkhex-api181-core.log 浏览器核心退出0， .tmp/pkhex-api181-verify.log 完整 npm run verify 退出0，357文件／2160项前端、完整类型、Lint、全仓格式和网页／PWA构建通过；保留既有Hook及包体／插件耗时提醒。 .tmp/pkhex-api181-native-full.log 默认完整原生退出0，覆盖最终代码与真实E.sav工作副本。原件及副本最终SHA-256均保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。外部Chrome仍返回nodeRepl.fetch request failed，页面未验收。上一轮a2eabb81的GitHub Actions 38930479155已完成部署（success），不作所有者验收。
+
+全局HaX设置已存在且仅部分消费，完整模式并未完成。本批补齐其格位权限基础，空白记录、目录过滤、原始字段及其他界面行为需作为完整组继续接入；范围见 docs/pkhex-hax.md，不能把打开设置选项当作完成。
+
 ## 2026-10-17 手动队伍能力值（API180）
 
 基线 1828aed3a6a25566c2cd485b0a77a0b045d93295。共用经验／状态面板增加手动队伍能力值，沿共享控件和三语。第一世代显示五项并合并特殊，后续显示六项且速度置后；Core 保持HP／攻击／防御／速度／特攻／特防顺序。默认显示计算值，未操作本区时保留原有生命与数值；点击应用更新编辑缓冲，切换手动模式后在放入准备末尾写数值或按最终字段重算。实际存档继续经预览、确认、撤销和导出链路更新。
@@ -10,7 +20,7 @@
 
 .tmp/pkhex-api180-personal-final-native.log 专项、.tmp/pkhex-api180-final-core.log 最终浏览器核心、.tmp/pkhex-api180-verify.log 完整网页检查及核心修正后的 .tmp/pkhex-api180-final-web.log 网页／PWA重新打包均退出0。356文件／2156项前端、类型、Lint和格式通过；18种实体／两种长度、UInt16边界、第一世代共用字段、草稿顺序及真实E.sav公开读取箱中缓冲／冻结放入队伍／回读／来源保护通过。最终默认完整原生 .tmp/pkhex-api180-final-native-full.log 退出0，已覆盖修正后的代码及真实存档工作副本；保留既有Hook、裁剪、包体及插件耗时提醒。
 
-最终复核E.sav原件和工作副本SHA-256保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。外部Chrome重建控制会话后仍返回nodeRepl.fetch request failed，页面、焦点、三语连续操作和下载未验收。全局HaX空白实体／空格位、精确菜单写保护和其余主窗口／设置消费点继续保留，完整接入目标未完成。
+最终复核E.sav原件和工作副本SHA-256保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。外部Chrome重建控制会话后仍返回nodeRepl.fetch request failed，页面、焦点、三语连续操作和下载未验收。全局HaX空白实体／空格位和其余主窗口／设置消费点继续保留；精确菜单写保护已于API181接线，完整接入目标未完成。
 
 ## 2026-10-16 存档上下文与独立宝可梦缓冲（API179）
 

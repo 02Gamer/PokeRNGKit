@@ -8,7 +8,7 @@ internal static class PokemonEditorContextTests
     private static void Reject(Action action){try{action();}catch(ArgumentException){return;}catch(JsonException){return;}throw new Exception("Invalid editor context accepted");}
     internal static void Typed(SaveFile save,PKM p,byte[] input)
     {
-        byte[] before=input.ToArray();PokemonEditorContext.Bind(save,new(0,0));
+        byte[] before=input.ToArray();SaveSlotAccessTests.Layout(save);PokemonEditorContext.Bind(save,new(0,0));
         try{
             var bytes=StandalonePokemon.Serialize(p.Clone(),true,false);var file="buffer."+p.Extension;
             Check(StandalonePokemon.Open(bytes,file,useFileFormat:true).Entity.GetType()==save.PKMType,"Context binds exact supported entity type");

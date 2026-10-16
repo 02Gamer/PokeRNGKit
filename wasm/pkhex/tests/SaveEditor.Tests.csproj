@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../SaveDetection.cs" Link="SaveDetection.cs" />
+    <Compile Include="../SaveSlotAccess.cs" Link="SaveSlotAccess.cs" />
     <Compile Include="../PokemonMarkings.cs" Link="PokemonMarkings.cs" />
     <Compile Include="../PokemonBallBrowser.cs" Link="PokemonBallBrowser.cs" />
     <Compile Include="../PokemonVitals.cs" Link="PokemonVitals.cs" />

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { slotCanWrite } from "./slotAccess";
+import { storageActionAllowed } from "./storageAccess";
 import { useTranslation } from "react-i18next";
 import { Select } from "../shared/Select";
 import type { PokemonEntry, SaveReport, StorageEdit } from "./domain";
@@ -27,14 +29,16 @@ export function StorageEditor({
       : "en";
   const [box, setBox] = useState(source.box);
   const [slot, setSlot] = useState(source.slot);
-  const same = box === source.box && slot === source.slot;
-  const occupied = report.pokemon.some((p) => p.box === box && p.slot === slot);
+  const allowed = (action: StorageEdit["action"]) =>
+    !busy && storageActionAllowed(report, source, { box, slot }, action);
   const perform = (action: StorageEdit["action"]) =>
-    onApply({
-      action,
-      source: { box: source.box, slot: source.slot },
-      target: action === "delete" ? null : { box, slot },
-    });
+    allowed(action)
+      ? onApply({
+          action,
+          source: { box: source.box, slot: source.slot },
+          target: action === "delete" ? null : { box, slot },
+        })
+      : Promise.resolve();
   return (
     <details className="save-pokemon-editor">
       <summary>{words.storageSettings}</summary>
@@ -49,7 +53,9 @@ export function StorageEditor({
               setSlot(0);
             }}
           >
-            <option value={-1}>{words.party}</option>
+            {report.slotAccess?.hasParty && (
+              <option value={-1}>{words.party}</option>
+            )}
             {report.boxes.map((entry) => (
               <option key={entry.index} value={entry.index}>
                 {entry.name || `${words.box} ${entry.index + 1}`}
@@ -76,7 +82,11 @@ export function StorageEditor({
                   (p) => p.box === box && p.slot === index,
                 );
                 return (
-                  <option key={index} value={index}>
+                  <option
+                    key={index}
+                    value={index}
+                    disabled={!slotCanWrite(report, { box, slot: index })}
+                  >
                     {index + 1} ·{" "}
                     {pokemon ? pokemon.speciesName[lang] : words.empty}
                   </option>
@@ -90,35 +100,35 @@ export function StorageEditor({
       <div className="save-editor-toolbar">
         <button
           type="button"
-          disabled={busy || !source.valid || same || occupied}
+          disabled={!allowed("move")}
           onClick={() => void perform("move")}
         >
           {words.movePokemon}
         </button>
         <button
           type="button"
-          disabled={busy || !source.valid || same}
+          disabled={!allowed("swap")}
           onClick={() => void perform("swap")}
         >
           {words.swapPokemon}
         </button>
         <button
           type="button"
-          disabled={busy || !source.valid || same}
+          disabled={!allowed("copy")}
           onClick={() => void perform("copy")}
         >
           {words.copyPokemon}
         </button>
         <button
           type="button"
-          disabled={busy}
+          disabled={!allowed("delete")}
           onClick={() => void perform("delete")}
         >
           {words.deletePokemon}
         </button>
         <button
           type="button"
-          disabled={busy || !source.valid || same}
+          disabled={!allowed("overwrite")}
           onClick={() => void perform("overwrite")}
         >
           {boxGalleryWords[lang].overwrite}

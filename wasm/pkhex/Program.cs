@@ -619,7 +619,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 180;
+    public const int ApiVersion = 181;
     public static string ReadPersonalChart(byte[] data) => JsonSerializer.Serialize(PersonalChart.Read(Open(data)), SaveJsonContext.Default.PersonalChartCatalog);
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
@@ -916,7 +916,7 @@ public static partial class SaveService
             save.Extension, save is SAV4 gen4 ? gen4.NationalDex : null,
             PokemonReader.Read(save), save.BoxSlotCount, PokemonReader.Boxes(save), PokemonReader.MoveChoices(save), BoxEditing.Options(save), PokemonReader.Attributes(save), TrainerEditing.Options(save), ZaPokedex.Supports(save) ? new PokedexCapability("za", valid && save.State.Exportable) : save is SAV9SV ? new PokedexCapability("sv", valid && save.State.Exportable) : save is SAV8LA ? new PokedexCapability("legends", valid && save.State.Exportable) : save is SAV8SWSH ? new PokedexCapability("swsh", valid && save.State.Exportable) : save is SAV8BS ? new PokedexCapability("bdsp", valid && save.State.Exportable) : save is SAV7 or SAV7b ? new PokedexCapability("gen7", valid && save.State.Exportable) : save is SAV6XY or SAV6AO ? new PokedexCapability("gen6", valid && save.State.Exportable) : save is SAV5 ? new PokedexCapability("gen5", valid && save.State.Exportable) : save is SAV4 ? new PokedexCapability("gen4", valid && save.State.Exportable) : SimplePokedex.Capability(save));
         report = report with { BrProfiles = Br4Editing.Profiles(save), TrainerOnly = valid && save.State.Exportable && save is SAV1 or SAV2 or SAV6AODemo, RegisteredTeams = RegisteredGroups.Supports(save), SpriteMode=SaveSpriteView.Mode,
-            GameName=PokemonReader.Text(strings=>(uint)save.Version<strings.gamelist.Length?strings.gamelist[(int)save.Version]:save.Version.ToString()),SpriteFilter=SaveSlotArtwork.Filter(),EmptySlotMarkers=SaveSlotArtwork.EmptyMarkers(save),PokemonEditing=SavePokemonEditing.Read(save,valid),GbInfo=save.BlankPKM is GBPKM gb?StandaloneGbSpecial.Read(gb):null };
+            GameName=PokemonReader.Text(strings=>(uint)save.Version<strings.gamelist.Length?strings.gamelist[(int)save.Version]:save.Version.ToString()),SpriteFilter=SaveSlotArtwork.Filter(),EmptySlotMarkers=SaveSlotArtwork.EmptyMarkers(save),PokemonEditing=SavePokemonEditing.Read(save,valid),SlotAccess=SaveSlotAccess.Read(save),GbInfo=save.BlankPKM is GBPKM gb?StandaloneGbSpecial.Read(gb):null };
         return JsonSerializer.Serialize(report, SaveJsonContext.Default.SaveReport);
     }
 
@@ -1034,7 +1034,7 @@ public sealed record SaveReport(
     ushort Tid, ushort Sid, uint DisplayTid, uint DisplaySid, int Language,
     byte Gender, uint Money, int MaxMoney, int MaxNameLength, int BoxCount,
     int PartyCount, string PlayTime, bool ChecksumsValid, bool CanEdit,
-    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer, PokedexCapability? Pokedex, Br4Profiles? BrProfiles=null,bool TrainerOnly=false, bool RegisteredTeams=false,string SpriteMode="b",LocalizedText? GameName=null,SpriteFilterProfile? SpriteFilter=null,SpriteStorageMarker[]? EmptySlotMarkers=null,SavePokemonCapability? PokemonEditing=null,GbSpecialInfo? GbInfo=null);
+    string Extension, bool? NationalDex, PokemonEntry[] Pokemon, int BoxSlotCount, BoxEntry[] Boxes, MoveChoice[] MoveChoices, BoxOptions BoxOptions, AttributeChoices AttributeChoices, TrainerOptions Trainer, PokedexCapability? Pokedex, Br4Profiles? BrProfiles=null,bool TrainerOnly=false, bool RegisteredTeams=false,string SpriteMode="b",LocalizedText? GameName=null,SpriteFilterProfile? SpriteFilter=null,SpriteStorageMarker[]? EmptySlotMarkers=null,SavePokemonCapability? PokemonEditing=null,GbSpecialInfo? GbInfo=null,SaveSlotAccessInfo? SlotAccess=null);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(SaveReport))]
