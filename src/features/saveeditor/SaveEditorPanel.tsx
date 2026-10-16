@@ -3968,6 +3968,22 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readExpert = async (query: import("./domain").PokemonPosition) => {
+    let catalog: import("./pokemonIdentityTools").ExpertCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(query),
+        "expertCatalog",
+      );
+      if (id !== operation.current) return;
+      if (!result.expert) throw new Error("No expert catalog returned.");
+      catalog = result.expert;
+    });
+    return catalog;
+  };
+
   const readTrainerDetails = async (
     query: import("./domain").PokemonPosition,
   ) => {
@@ -6215,6 +6231,7 @@ export function SaveEditorPanel(
                     onReadRibbons={readRibbons}
                     onReadHistory={readHistory}
                     onReadTrainerDetails={readTrainerDetails}
+                    onReadExpert={readExpert}
                     onReadMemory={readMemory}
                     onAnalyze={analyzePokemon}
                   />

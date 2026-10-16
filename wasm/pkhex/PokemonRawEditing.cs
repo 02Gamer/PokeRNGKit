@@ -3,7 +3,7 @@ using PKHeX.Core;
 
 namespace PokeRNGKit.SaveEditor;
 
-public sealed record PokemonRawEdit(int Box, int Slot, string Action, uint? Pid = null, uint? EncryptionConstant = null, FormArgumentEdit? FormArgument = null, EncounterEdit? Encounter = null, OriginEdit? Origin = null, EggEdit? Egg = null, ShinyEdit? Shiny = null, RelearnEdit? Relearn = null, RibbonEdit? Ribbons = null, MemoryEdit? Memory = null, CareEdit? Care = null, HistoryEdit? History = null, TrainingEdit? Training = null, string? HomeTracker=null,int[]? Markings=null,PokemonVitalsEdit? Vitals=null,int? AlphaMove=null,PokemonAdvancedStatsEdit? AdvancedStats=null,PokemonTrainerDetailsEdit? TrainerDetails=null,PokemonSpecialStatusEdit? SpecialStatus=null,PokemonDimensionsEdit? Dimensions=null,PokemonLegacyEdit? LegacyDetails=null);
+public sealed record PokemonRawEdit(int Box, int Slot, string Action, uint? Pid = null, uint? EncryptionConstant = null, FormArgumentEdit? FormArgument = null, EncounterEdit? Encounter = null, OriginEdit? Origin = null, EggEdit? Egg = null, ShinyEdit? Shiny = null, RelearnEdit? Relearn = null, RibbonEdit? Ribbons = null, MemoryEdit? Memory = null, CareEdit? Care = null, HistoryEdit? History = null, TrainingEdit? Training = null, string? HomeTracker=null,int[]? Markings=null,PokemonVitalsEdit? Vitals=null,int? AlphaMove=null,PokemonAdvancedStatsEdit? AdvancedStats=null,PokemonTrainerDetailsEdit? TrainerDetails=null,PokemonSpecialStatusEdit? SpecialStatus=null,PokemonDimensionsEdit? Dimensions=null,PokemonLegacyEdit? LegacyDetails=null,PokemonExpertEdit? Expert=null);
 
 internal static class PokemonRawEditing
 {
@@ -25,12 +25,12 @@ internal static class PokemonRawEditing
                     throw new ArgumentException("Storage party must contain a non-egg Pokemon when adding an egg.");
                 PokemonEgg.Apply(save, p, edit.Egg ?? throw new ArgumentException("Pokemon egg edit is missing."));
             }
-        });
+        }, save.MaxAbilityID);
         if (edit.Box == -1) save.SetPartySlotAtIndex(p, edit.Slot, EntityImportSettings.None);
         else save.SetBoxSlotAtIndex(p, edit.Box, edit.Slot, EntityImportSettings.None);
     }
 
-    public static void Apply(PKM p, PokemonRawEdit edit, bool party, Action? applyContext = null)
+    public static void Apply(PKM p, PokemonRawEdit edit, bool party, Action? applyContext = null, int? saveMaxAbility = null)
     {
         if(edit.Vitals is not null&&edit.Action!="vitals")throw new ArgumentException("Unexpected Pokemon vital edit.");
         if(edit.AlphaMove is not null&&edit.Action!="alphaMove")throw new ArgumentException("Unexpected alpha mastery edit.");
@@ -39,6 +39,7 @@ internal static class PokemonRawEditing
         if(edit.SpecialStatus is not null&&edit.Action!="specialStatus")throw new ArgumentException("Unexpected special status edit.");
         if(edit.Dimensions is not null&&edit.Action!="dimensions")throw new ArgumentException("Unexpected size edit.");
         if(edit.LegacyDetails is not null&&edit.Action!="legacyDetails")throw new ArgumentException("Unexpected legacy detail edit.");
+        if(edit.Expert is not null&&edit.Action!="expert")throw new ArgumentException("Unexpected expert edit.");
         var original=p is PB7?p.Clone():null;
         if (p.Species == 0 || !p.ChecksumValid || p.Format < 3)
             throw new ArgumentException("Pokemon slot must contain valid data.");
@@ -46,6 +47,9 @@ internal static class PokemonRawEditing
             throw new ArgumentException("HOME tracker is unavailable or invalid.");
         switch (edit.Action)
         {
+            case "expert":
+                PokemonIdentityTools.Apply(p,edit.Expert??throw new ArgumentException("Expert edit is missing."), saveMaxAbility);
+                break;
             case "dimensions":
                 PokemonDimensions.Apply(p,edit.Dimensions??throw new ArgumentException("Size edit is missing."));
                 break;
@@ -126,7 +130,7 @@ internal static class PokemonRawEditing
         if (edit.Action == "values" && ((edit.Pid is uint requestedPid && p.PID != requestedPid) ||
             (edit.EncryptionConstant is uint requestedEc && p.EncryptionConstant != requestedEc)))
             throw new ArgumentException("Pokemon raw value cannot be represented by this format.");
-        if (party && (edit.Action != "values" || edit.Pid is not null || edit.EncryptionConstant is not null) && (edit.Action != "training" || edit.Training?.Hyper is not null) && !(edit.Action == "shiny" && edit.Shiny?.Method == "sid") && edit.Action is not ("formArgument" or "encounter" or "origin" or "egg" or "relearn" or "ribbons" or "memory" or "care" or "history" or "markings" or "vitals" or "alphaMove" or "advancedStats" or "trainerDetails" or "specialStatus" or "dimensions" or "legacyDetails"))
+        if (party && (edit.Action != "values" || edit.Pid is not null || edit.EncryptionConstant is not null) && (edit.Action != "training" || edit.Training?.Hyper is not null) && !(edit.Action == "shiny" && edit.Shiny?.Method == "sid") && edit.Action is not ("formArgument" or "encounter" or "origin" or "egg" or "relearn" or "ribbons" or "memory" or "care" or "history" or "markings" or "vitals" or "alphaMove" or "advancedStats" or "trainerDetails" or "specialStatus" or "dimensions" or "legacyDetails" or "expert"))
         {
             var hp = p.Stat_HPCurrent;
             var status = p.Status_Condition;

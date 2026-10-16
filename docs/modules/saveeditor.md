@@ -1,5 +1,15 @@
 # PKHeX 存档读取与编辑
 
+API178 最终工程门禁：.tmp/pkhex-identity-core.log 浏览器 Core、.tmp/pkhex-api178-native-full.log 默认完整原生与 .tmp/pkhex-api178-verify.log 完整 npm run verify 均退出 0。352 文件／2096 项前端、完整类型、Lint、全仓格式及网页／PWA 构建通过；仅保留 Gen3StaticPanel.tsx:404 原有 Hook 提醒和既有编译／裁剪／包体提示。15 种实体专项覆盖来源编号掩码、先 SID 后 TID 与 UInt32 回绕、转移来源显示、游戏／格式特性目录、实际编号位宽、全部 ExtraBytes 偏移、四布局和完整公开输出。另执行 .tmp/pkhex-api178-real-save.log 的 real-save 专项退出0，确认 E.sav 为 SAV3E／绿宝石，131072 字节、14×30 箱位、20 只箱中／5 只队伍宝可梦；公开读取、编辑、导出重开、其他格位与原件保持通过。原件及工作副本 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实页面／焦点／下载未验收；设置消费点和其他主窗口行为继续核对，完整目标保留。
+
+## 2026-10-16 训练家编号与开发字段（API178）
+
+基线 013c30aae3e369ab9a2bd4836829f2bd56acc2b1。基础编辑器按实体来源显示五位／六位训练家编号及秘密编号，未修改时保留原始 ID32；新增共用的按需手动特性、特性编号与额外字节面板。存档与独立实体复用三语、共享控件、工作修订和草稿门禁；切换额外字节前须应用或还原当前输入。16 项前端专项、完整类型、定向 Lint 与全仓格式已通过。原生专项的类型比较、跨语言目录排序、Invalid／零版本、上游 internal 常量访问等测试问题已修正；15 种实体、四布局、完整公开输出和新版编号规则已通过，随后补加存档游戏特性上限并重跑。补加游戏上限后的 .tmp/pkhex-identity-native-public-limits.log 专项及 .tmp/pkhex-identity-core.log 浏览器核心均退出0。默认完整原生、完整 npm run verify 和真实存档专项均已通过，实际页面仍未验收。
+
+输入来源：PKHeX.WinForms/Controls/PKM Editor/TrainerID.cs、TrainerTID.cs、TrainerSID.cs、LoadSave.cs、PKMEditor.cs／Designer，以及 Core TrainerIDManager、ITrainerID、ITrainerID32、各实体 ExtraBytes。ID 格式按 TrainerIDDisplayFormat，含转移实体来源世代；十六位控件掩码五位、空值或无法解析为零、上限65535。现代 TID 六位／SID 四位，SID 先写并按旧 TID 校正到4294或4293，TID 随后写入，保留 Core UInt32 回绕与来源 Save6 分支。工具提示含原始ID32、TID16、SID16、按当前格式计算的TSV。
+
+手动特性从第四世代起按源特性目录及 MaxAbilityID；存档入口同时应用当前游戏上限，独立实体按格式上限；第三世代仅原有特性位。PK5 手动修改同步隐藏特性标记。第六世代起特性编号是一位十进制掩码，空值零、0–9 写入具体格式，回读可能受实际存储位宽影响；按编号查找限1／2／4，PA9 使用相遇来源的 ZA personal。额外字节仅列出实体 ExtraBytes，值为三位十进制、空值或无法解析为零、超过255按源限制到255；禁止任意地址。写入先克隆验证，未改异常值保持，不触发通用队伍数值重算。
+
 API177 最终工程门禁：.tmp/pkhex-dimensions-core.log 浏览器 Core、.tmp/pkhex-api177-native-full.log 默认完整原生与 .tmp/pkhex-api177-final-verify.log 修正后完整 npm run verify 均退出 0。351 文件／2080 项前端、完整类型、Lint、全仓格式、网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒和既有编译／裁剪／包体提示。专项包含六类尺寸实体、五类地形／第四世代实体、全部 256 分类与叶子组合、四布局／完整公开实体、浮点载荷／负零、CP／自动／随机动作、RK4 日期及十组存档／修订版的队伍／箱位或 LGPE 队伍引用对照。默认完整套件带已授权 E.sav 工作副本，原文件 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实交互／焦点／下载未验收；完整接入目标继续保留。
 
 API177 完整网页首轮 .tmp/pkhex-api177-verify.log 退出 1：格式通过，但 react-hooks/refs 将尺寸渲染辅助函数中的随机事件识别为可能在渲染期读取引用。已改为 JSX 内直接生成标量字段与事件，.tmp/pkhex-dimensions-lint.log 的五文件定向 Lint 退出 0；不禁用规则。修正后重跑 .tmp/pkhex-api177-final-verify.log；默认完整原生 .tmp/pkhex-api177-native-full.log 沿同一进程继续，C# 输入未改。

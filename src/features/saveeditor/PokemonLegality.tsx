@@ -1,3 +1,4 @@
+import { identityToolsWords } from "./pokemonIdentityTools";
 import { dimensionsWords } from "./pokemonDimensions";
 import { legacyWords } from "./pokemonLegacyDetails";
 import { specialStatusWords } from "./specialStatus";
@@ -54,6 +55,7 @@ export function PokemonLegality({
     trainerDetails: trainerDetailsWords[lang].title,
     specialStatus: specialStatusWords[lang].title,
     dimensions: dimensionsWords[lang].title,
+    expert: identityToolsWords[lang].title,
     legacyDetails: legacyWords[lang].title,
   };
   const current =

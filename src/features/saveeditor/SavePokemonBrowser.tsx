@@ -2,6 +2,7 @@ import {
   PokemonAdvancedStatsEditor,
   PokemonBoostRows,
 } from "./PokemonAdvancedStatsEditor";
+import { PokemonExpertEditor } from "./PokemonExpertEditor";
 import { PokemonDimensionsEditor } from "./PokemonDimensionsEditor";
 import { PokemonLegacyDetailsEditor } from "./PokemonLegacyDetailsEditor";
 import { PokemonSpecialStatusEditor } from "./PokemonSpecialStatusEditor";
@@ -102,6 +103,7 @@ export function SavePokemonBrowser({
   onReadRibbons,
   onReadHistory,
   onReadTrainerDetails,
+  onReadExpert,
   onReadMemory,
   onAnalyze,
   onApplyBox,
@@ -147,6 +149,9 @@ export function SavePokemonBrowser({
   onExportBoxBinary: BoxBinaryActions["onExportBoxBinary"];
   legality?: PokemonLegalityReport;
   onSuggestRelearn(position: PokemonPosition): Promise<number[] | undefined>;
+  onReadExpert(
+    position: PokemonPosition,
+  ): Promise<import("./pokemonIdentityTools").ExpertCatalog | undefined>;
   onReadTrainerDetails(
     position: PokemonPosition,
   ): Promise<import("./trainerDetails").TrainerDetailsCatalog | undefined>;
@@ -933,6 +938,15 @@ export function SavePokemonBrowser({
                       onApply={onApplyRaw}
                       onRead={onReadRibbons}
                       generation={report.generation}
+                    />
+                    <PokemonExpertEditor
+                      key={`expert-${selected.box}-${selected.slot}`}
+                      revision={revision}
+                      position={selected}
+                      disabled={busy || !access.canRaw || !selected.valid}
+                      readDisabled={busy || !selected.valid}
+                      onRead={onReadExpert}
+                      onApply={onApplyRaw}
                     />
                     {selected.dimensions && (
                       <PokemonDimensionsEditor

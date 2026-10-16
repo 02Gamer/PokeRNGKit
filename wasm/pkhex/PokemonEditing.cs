@@ -7,7 +7,7 @@ public sealed record PokemonEdit(
     int Box, int Slot, string Nickname, byte Level, byte Friendship,
     string Ot, ushort Tid, ushort Sid, int[] Ivs, int[] Evs, ushort[] Moves, int[] MovePp,
     int[]? MovePpUps = null, int? Nature = null, int? StatAlignment = null,
-    int? AbilityIndex = null, int? HeldItem = null, PokemonIdentityEdit? Identity = null);
+    int? AbilityIndex = null, int? HeldItem = null, PokemonIdentityEdit? Identity = null, PokemonTrainerIdInput? TrainerIds = null);
 
 internal static class PokemonEditing
 {
@@ -111,6 +111,7 @@ internal static class PokemonEditing
         else if (edit.Identity is not null) p.IsNicknamed = true;
         p.TID16 = edit.Tid;
         p.SID16 = edit.Sid;
+        if (edit.TrainerIds is not null) { PokemonTrainerIds.Apply(p, edit.TrainerIds); edit = edit with { Tid=p.TID16, Sid=p.SID16 }; }
         // Preserve within-level EXP unless the requested level or growth curve changes.
         if (edit.Level != original.CurrentLevel || p.PersonalInfo.EXPGrowth != original.PersonalInfo.EXPGrowth)
             p.CurrentLevel = edit.Level;

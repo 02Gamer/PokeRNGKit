@@ -2,6 +2,7 @@ import {
   PokemonAdvancedStatsEditor,
   PokemonBoostRows,
 } from "./PokemonAdvancedStatsEditor";
+import { PokemonExpertEditor } from "./PokemonExpertEditor";
 import { PokemonDimensionsEditor } from "./PokemonDimensionsEditor";
 import { PokemonLegacyDetailsEditor } from "./PokemonLegacyDetailsEditor";
 import { PokemonSpecialStatusEditor } from "./PokemonSpecialStatusEditor";
@@ -1442,6 +1443,15 @@ export function StandalonePokemonPanel({
                       disabled={busy}
                       readDisabled={busy}
                       onRead={() => readDetails("ribbons")}
+                      onApply={applyRaw}
+                    />
+                    <PokemonExpertEditor
+                      key={`expert-${working.fileName}`}
+                      revision={revision}
+                      position={report.pokemon}
+                      disabled={busy}
+                      readDisabled={busy}
+                      onRead={() => readDetails("expert")}
                       onApply={applyRaw}
                     />
                     {report.pokemon.dimensions && (

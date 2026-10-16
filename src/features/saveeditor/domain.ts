@@ -62,7 +62,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 177;
+  apiVersion: 178;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -176,6 +176,7 @@ export interface OriginCatalog {
   ballBrowser: import("./ballBrowser").BallBrowserCatalog;
 }
 export interface PokemonEntry {
+  trainerIds?: import("./pokemonIdentityTools").TrainerIdInfo | null;
   dimensions?: import("./pokemonDimensions").DimensionsInfo | null;
   legacyDetails?: import("./pokemonLegacyDetails").LegacyInfo | null;
   specialStatus?: import("./specialStatus").SpecialStatusInfo | null;
@@ -739,11 +740,13 @@ export interface PokemonRawEdit extends PokemonPosition {
     | "trainerDetails"
     | "specialStatus"
     | "dimensions"
-    | "legacyDetails";
+    | "legacyDetails"
+    | "expert";
   advancedStats?: import("./advancedStats").AdvancedStatsEdit;
   trainerDetails?: import("./trainerDetails").TrainerDetailsEdit;
   specialStatus?: import("./specialStatus").SpecialStatusEdit;
   dimensions?: import("./pokemonDimensions").DimensionsEdit;
+  expert?: import("./pokemonIdentityTools").ExpertEdit;
   legacyDetails?: import("./pokemonLegacyDetails").LegacyEdit;
   alphaMove?: number;
   vitals?: import("./pokemonVitals").PokemonVitalsEdit;
@@ -1060,6 +1063,7 @@ export interface SaveEditorResult {
   memoryCatalog?: MemoryCatalog;
   historyCatalog?: HistoryCatalog;
   trainerDetails?: import("./trainerDetails").TrainerDetailsCatalog;
+  expert?: import("./pokemonIdentityTools").ExpertCatalog;
   ribbons?: RibbonCatalog;
   relearnSuggestion?: number[];
   originCatalog?: OriginCatalog;

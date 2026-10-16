@@ -1,3 +1,4 @@
+import { trainerIdInput } from "./pokemonIdentityTools";
 import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useGenderLabel } from "./useGenderLabel";
 import { playSaveSound } from "./saveSound";
@@ -14,6 +15,7 @@ export interface PokemonEdit {
   level: number;
   friendship: number;
   ot: string;
+  trainerIds?: { tid: string; sid: string };
   tid: number;
   sid: number;
   ivs: number[];
@@ -69,8 +71,8 @@ export function PokemonEditor({
     ot: pokemon.ot,
     level: String(pokemon.level),
     friendship: String(pokemon.friendship),
-    tid: String(pokemon.tid),
-    sid: String(pokemon.sid),
+    tid: pokemon.trainerIds?.tid ?? String(pokemon.tid),
+    sid: pokemon.trainerIds?.sid ?? String(pokemon.sid),
     ivs: pokemon.ivs.map(String),
     evs: pokemon.evs.map(String),
     moves: pokemon.moveIds.map(String),
@@ -170,8 +172,9 @@ export function PokemonEditor({
       ot: values.ot,
       level: integer(values.level, 100, 1),
       friendship: integer(values.friendship, 255),
-      tid: integer(values.tid, 65535),
-      sid: integer(values.sid, 65535),
+      tid: pokemon.trainerIds ? pokemon.tid : integer(values.tid, 65535),
+      sid: pokemon.trainerIds ? pokemon.sid : integer(values.sid, 65535),
+      trainerIds: trainerIdInput(pokemon.trainerIds, values.tid, values.sid),
       ivs: values.ivs.map((value) => integer(value, pokemon.limits.iv)),
       evs,
       moves: values.moves.map((value) => integer(value, pokemon.limits.move)),
@@ -323,13 +326,32 @@ export function PokemonEditor({
           <label className="field" key={key}>
             <span>{label}</span>
             <input
+              title={
+                (key === "tid" || key === "sid") && pokemon.trainerIds
+                  ? `ID32: ${pokemon.trainerIds.id32} | TID16: ${pokemon.trainerIds.tid16} | SID16: ${pokemon.trainerIds.sid16} | TSV: ${pokemon.trainerIds.tsv}`
+                  : undefined
+              }
               inputMode="numeric"
-              type="number"
+              type={
+                (key === "tid" || key === "sid") && pokemon.trainerIds
+                  ? "text"
+                  : "number"
+              }
               min={key === "level" ? 1 : 0}
-              max={max}
+              max={
+                (key === "tid" || key === "sid") && pokemon.trainerIds
+                  ? undefined
+                  : max
+              }
               step={1}
               value={values[key]}
-              maxLength={String(max).length}
+              maxLength={
+                key === "tid" && pokemon.trainerIds
+                  ? pokemon.trainerIds.tidWidth
+                  : key === "sid" && pokemon.trainerIds
+                    ? pokemon.trainerIds.sidWidth
+                    : String(max).length
+              }
               onChange={(e) => setValues({ ...values, [key]: e.target.value })}
             />
           </label>

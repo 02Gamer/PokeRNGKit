@@ -595,6 +595,8 @@ public static partial class Program
     public static byte[] ExportBoxes(byte[] data, string json) => SaveService.ExportBoxes(data, json);
 
     [JSExport]
+    public static string ReadPokemonExpert(byte[] data, string json) => SaveService.ReadPokemonExpert(data, json);
+    [JSExport]
     public static string ReadTrainerDetails(byte[] data, string json) => SaveService.ReadTrainerDetails(data, json);
     [JSExport]
     public static string ReadHistory(byte[] data, string json) => SaveService.ReadHistory(data, json);
@@ -617,7 +619,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 177;
+    public const int ApiVersion = 178;
     public static string ReadPersonalChart(byte[] data) => JsonSerializer.Serialize(PersonalChart.Read(Open(data)), SaveJsonContext.Default.PersonalChartCatalog);
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);
@@ -809,6 +811,15 @@ public static partial class SaveService
         SAV4DP or SAV4Pt or SAV4HGSS or SAV5BW or SAV5B2W2 or
         SAV6XY or SAV6AO or SAV7SM or SAV7USUM or SAV8SWSH or SAV8BS;
     internal static bool CanEditTrainer(SaveFile save) => CanEdit(save) || save is SAV1 or SAV2 or SAV6AODemo;
+
+    public static string ReadPokemonExpert(byte[] data, string json)
+    {
+        var save=Open(data);
+        var query=JsonSerializer.Deserialize(json,SaveJsonContext.Default.PokemonPosition)??throw new ArgumentException("Expert query is missing.");
+        var p=PokemonEditing.Read(save,query.Box,query.Slot);
+        if(p.Species==0||!p.ChecksumValid)throw new ArgumentException("Pokemon slot must contain valid data.");
+        return JsonSerializer.Serialize(PokemonIdentityTools.Read(p, save.MaxAbilityID),SaveJsonContext.Default.PokemonExpertCatalog);
+    }
 
     public static string ReadTrainerDetails(byte[] data, string json)
     {
@@ -1315,6 +1326,7 @@ public sealed record SaveReport(
 [JsonSerializable(typeof(MemoryCatalog))]
 [JsonSerializable(typeof(HistoryCatalog))]
 [JsonSerializable(typeof(PokemonTrainerDetailsCatalog))]
+[JsonSerializable(typeof(PokemonExpertCatalog))]
 [JsonSerializable(typeof(ushort[]))]
 [JsonSerializable(typeof(OriginQuery))]
 [JsonSerializable(typeof(OriginCatalog))]

@@ -15,7 +15,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 177;
+  apiVersion: 178;
   spriteMode?: "a" | "b" | "c";
   format: string;
   extension: string;
@@ -102,6 +102,7 @@ export interface StandaloneAdvancedData {
   ribbons?: RibbonCatalog | null;
   history?: HistoryCatalog | null;
   trainerDetails?: import("./trainerDetails").TrainerDetailsCatalog | null;
+  expert?: import("./pokemonIdentityTools").ExpertCatalog | null;
   memory?: MemoryCatalog | null;
   relearn?: number[] | null;
 }
