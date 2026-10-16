@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import type { PokemonDraftStep } from "./pokemonDraftPlan";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -81,6 +83,52 @@ export function StandaloneGbSpecialEditor({
       );
     return undefined;
   };
+  usePokemonDraftPreparation(
+    "gbSpecial",
+    () => {
+      const steps: PokemonDraftStep[] = [];
+      if (changed) {
+        const fields: GbSpecialFields = {};
+        for (const key of keys) {
+          const value = Number(draft[key]),
+            list = choices(key);
+          if (
+            !/^\d+$/.test(draft[key]) ||
+            value > maximum[key] ||
+            (list &&
+              value !== info.fields[key] &&
+              !list.some((c) => c.id === value))
+          )
+            throw Error("Invalid GB field draft");
+          if (value !== info.fields[key]) fields[key] = value;
+        }
+        const strain = fields.pokerusStrain ?? info.fields.pokerusStrain ?? 0,
+          days = fields.pokerusDays ?? info.fields.pokerusDays ?? 0;
+        if (
+          gen2 &&
+          (fields.pokerusStrain !== undefined ||
+            fields.pokerusDays !== undefined) &&
+          days > (info.pokerusDurations[strain] ?? 0)
+        )
+          throw Error("Invalid GB virus draft");
+        if (Object.keys(fields).length)
+          steps.push({ kind: "gbSpecial", edit: { action: "fields", fields } });
+      }
+      if (pokemon.egg && cycles !== String(pokemon.friendship)) {
+        if (!/^\d+$/.test(cycles) || Number(cycles) > 255)
+          throw Error("Invalid GB egg draft");
+        steps.push({
+          kind: "gbSpecial",
+          edit: {
+            action: "egg",
+            egg: { action: "cycles", cycles: Number(cycles) },
+          },
+        });
+      }
+      return steps;
+    },
+    !disabled,
+  );
   const apply = async () => {
     setError(undefined);
     const fields: GbSpecialFields = {};

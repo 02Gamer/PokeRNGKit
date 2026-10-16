@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useTranslation } from "react-i18next";
@@ -89,6 +91,22 @@ export function PokemonHistoryEditor({
           throw Error("Invalid history region");
       }
     },
+    !disabled && catalog !== undefined,
+  );
+  usePokemonDraftPreparation(
+    "history",
+    () =>
+      rawDraftSteps(
+        hasChanges
+          ? {
+              action: "history",
+              history: {
+                handler: holderChanged ? handler : undefined,
+                locations: changed.length ? changed : undefined,
+              },
+            }
+          : undefined,
+      ),
     !disabled && catalog !== undefined,
   );
   const update = (index: number, country: number, region: number) =>

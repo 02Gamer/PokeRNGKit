@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -44,6 +46,22 @@ export function PokemonFormArgumentEditor({
       throw Error(words.pokemonValueError);
     return Number(value);
   };
+  usePokemonDraftPreparation(
+    "formArgument",
+    () => {
+      const selected = single
+        ? (["value"] as const)
+        : counters.map(([key]) => key);
+      if (!selected.some((key) => values[key] !== String(argument[key])))
+        return [];
+      const fields: NonNullable<PokemonRawEdit["formArgument"]> = {};
+      if (single) fields.value = integer(values.value, argument.max);
+      else
+        for (const [key] of counters) fields[key] = integer(values[key], 255);
+      return rawDraftSteps({ action: "formArgument", formArgument: fields });
+    },
+    !disabled,
+  );
   const apply = async () => {
     setError("");
     try {

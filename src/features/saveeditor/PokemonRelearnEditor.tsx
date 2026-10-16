@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -39,6 +41,16 @@ export function PokemonRelearnEditor({
       )
         throw Error("Invalid relearn move");
     },
+    !disabled && moves !== null,
+  );
+  usePokemonDraftPreparation(
+    "relearn",
+    () =>
+      rawDraftSteps(
+        moves && draft.some((v, i) => v !== moves[i])
+          ? { action: "relearn", relearn: { moves: draft } }
+          : undefined,
+      ),
     !disabled && moves !== null,
   );
   const request = useRef(0);

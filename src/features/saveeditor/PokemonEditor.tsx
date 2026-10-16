@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { basicDraftSteps, changedDraftKeys } from "./pokemonDraftPlan";
 import { trainerIdInput } from "./pokemonIdentityTools";
 import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useGenderLabel } from "./useGenderLabel";
@@ -79,6 +81,7 @@ export function PokemonEditor({
     movePp: pokemon.movePp.map(String),
     movePpUps: pokemon.movePpUps.map(String),
   });
+  const [initialValues] = useState(() => structuredClone(values));
   const [error, setError] = useState("");
   const showEvs = !pokemon.advancedStats?.awakening;
   const speciesChoice = attributeChoices.species.find(
@@ -204,6 +207,11 @@ export function PokemonEditor({
       integer(values.nature, 24);
       if (pokemon.canStatAlignment) integer(values.statAlignment, 24);
     },
+    !disabled,
+  );
+  usePokemonDraftPreparation(
+    "basic",
+    () => basicDraftSteps(buildEdit(), changedDraftKeys(values, initialValues)),
     !disabled,
   );
   const submit = async () => {

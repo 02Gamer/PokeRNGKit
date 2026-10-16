@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -66,6 +68,16 @@ export function PokemonSpecialStatusEditor({
   usePokemonDraftValidator(
     "specialStatus",
     () => specialStatusValues(info, draft),
+    !locked,
+  );
+  usePokemonDraftPreparation(
+    "specialStatus",
+    () => {
+      const value = specialStatusValues(info, draft);
+      return rawDraftSteps(
+        value ? { action: "specialStatus", specialStatus: value } : undefined,
+      );
+    },
     !locked,
   );
   async function apply(action?: SpecialStatusEdit) {

@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { PokemonEntry, PokemonPosition, PokemonRawEdit } from "./domain";
@@ -22,6 +24,19 @@ export function PokemonEggEditor({
   }) as typeof saveEditorResources.en;
   const [cycles, setCycles] = useState(String(egg?.cycles ?? 0));
   const [error, setError] = useState("");
+  usePokemonDraftPreparation(
+    "eggCycles",
+    () => {
+      if (!egg || cycles === String(egg.cycles)) return [];
+      if (!/^\d+$/.test(cycles) || Number(cycles) > 255)
+        throw Error("Invalid egg cycles");
+      return rawDraftSteps({
+        action: "egg",
+        egg: { action: "cycles", cycles: Number(cycles) },
+      });
+    },
+    !disabled && !!egg,
+  );
   const apply = async () => {
     setError("");
     if (!/^\d+$/.test(cycles) || Number(cycles) > 255) {

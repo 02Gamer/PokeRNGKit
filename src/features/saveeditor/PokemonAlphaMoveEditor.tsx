@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -35,6 +37,11 @@ export function PokemonAlphaMoveEditor({
   const [error, setError] = useState(false);
   const buildEdit = () => alphaMoveEdit(position, draft, choices);
   usePokemonDraftValidator("alphaMove", buildEdit, !disabled);
+  usePokemonDraftPreparation(
+    "alphaMove",
+    () => rawDraftSteps(draft === move ? undefined : buildEdit()),
+    !disabled,
+  );
   async function apply() {
     if (disabled || draft === move) return;
     setError(false);

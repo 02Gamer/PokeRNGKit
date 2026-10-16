@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -74,6 +76,17 @@ export function PokemonTrainerDetailsEditor({
       (previous) =>
         previous && { ...previous, draft: { ...previous.draft, [key]: value } },
     );
+  usePokemonDraftPreparation(
+    "trainerDetails",
+    () => {
+      const value =
+        catalog && draft ? trainerDetailsValues(catalog, draft) : undefined;
+      return rawDraftSteps(
+        value ? { action: "trainerDetails", trainerDetails: value } : undefined,
+      );
+    },
+    !locked,
+  );
   async function load() {
     if (readDisabled || flight.current) return;
     const id = ++request.current,

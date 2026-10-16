@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -63,6 +65,16 @@ export function PokemonLegacyDetailsEditor({
   usePokemonDraftValidator(
     "legacyDetails",
     () => legacyValues(info, draft),
+    !locked,
+  );
+  usePokemonDraftPreparation(
+    "legacyDetails",
+    () => {
+      const value = legacyValues(info, draft);
+      return rawDraftSteps(
+        value ? { action: "legacyDetails", legacyDetails: value } : undefined,
+      );
+    },
     !locked,
   );
   async function apply() {

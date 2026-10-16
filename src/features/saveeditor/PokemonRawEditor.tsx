@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useState } from "react";
 import { playSaveSound } from "./saveSound";
 import { useTranslation } from "react-i18next";
@@ -41,6 +43,33 @@ export function PokemonRawEditor({
     },
     !disabled && !privacy.hideSecretDetails,
   );
+  const buildValues = () => {
+    const edit: Omit<PokemonRawEdit, "box" | "slot"> = { action: "values" };
+    const parsedPid = parsePokemonHex(pid);
+    if (parsedPid !== pokemon.pid) edit.pid = parsedPid;
+    if (pokemon.canEditEncryptionConstant) {
+      const parsedEc = parsePokemonHex(ec);
+      if (parsedEc !== pokemon.encryptionConstant)
+        edit.encryptionConstant = parsedEc;
+    }
+    if (pokemon.homeTracker != null) {
+      const value = normalizeHomeTracker(tracker);
+      if (value !== pokemon.homeTracker) edit.homeTracker = value;
+    }
+    if (
+      edit.pid === undefined &&
+      edit.encryptionConstant === undefined &&
+      edit.homeTracker === undefined
+    )
+      return undefined;
+
+    return edit;
+  };
+  usePokemonDraftPreparation(
+    "raw",
+    () => rawDraftSteps(buildValues()),
+    !disabled && !privacy.hideSecretDetails,
+  );
   const apply = async (action: PokemonRawEdit["action"]) => {
     setError("");
     try {
@@ -50,23 +79,9 @@ export function PokemonRawEditor({
         action,
       };
       if (action === "values") {
-        const parsedPid = parsePokemonHex(pid);
-        if (parsedPid !== pokemon.pid) edit.pid = parsedPid;
-        if (pokemon.canEditEncryptionConstant) {
-          const parsedEc = parsePokemonHex(ec);
-          if (parsedEc !== pokemon.encryptionConstant)
-            edit.encryptionConstant = parsedEc;
-        }
-        if (pokemon.homeTracker != null) {
-          const value = normalizeHomeTracker(tracker);
-          if (value !== pokemon.homeTracker) edit.homeTracker = value;
-        }
-        if (
-          edit.pid === undefined &&
-          edit.encryptionConstant === undefined &&
-          edit.homeTracker === undefined
-        )
-          return;
+        const values = buildValues();
+        if (!values) return;
+        Object.assign(edit, values);
       }
       await onApply(edit);
     } catch {

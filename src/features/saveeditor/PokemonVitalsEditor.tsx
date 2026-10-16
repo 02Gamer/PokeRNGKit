@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
 import { useEffect, useRef, useState } from "react";
 import { playSaveSound } from "./saveSound";
 import { useTranslation } from "react-i18next";
@@ -61,6 +62,45 @@ export function PokemonVitalsEditor({
         Number(status) === 1
       )
         vitalInteger(sleep, 7, 1);
+    },
+    !locked,
+  );
+  usePokemonDraftPreparation(
+    "vitals",
+    () => {
+      const edits: PokemonVitalsEdit[] = [];
+      const exp = experienceInput(experience),
+        lev = levelInput(level);
+      if (exp !== info.experience.value)
+        edits.push({ action: "experience", experience: exp });
+      if (lev !== info.experience.level)
+        edits.push({ action: "level", level: lev });
+      if (info.hiddenPower && Number(type) !== info.hiddenPower.type) {
+        if (!info.hiddenPower.types.some((c) => c.id === Number(type)))
+          throw Error("Invalid hidden power draft");
+        edits.push({ action: "hiddenPower", type: Number(type) });
+      }
+      const oldStatus = statusChoice(info.status.value, generation),
+        newStatus = Number(status);
+      if (
+        info.status.show &&
+        info.status.canEdit &&
+        (newStatus !== oldStatus ||
+          (generation <= 4 &&
+            newStatus === 1 &&
+            Number(sleep) !== info.status.sleepTurns))
+      ) {
+        if (!info.status.choices.some((c) => c.id === newStatus))
+          throw Error("Invalid status draft");
+        edits.push({
+          action: "status",
+          status: newStatus,
+          ...(generation <= 4 && newStatus === 1
+            ? { sleepTurns: vitalInteger(sleep, 7, 1) }
+            : {}),
+        });
+      }
+      return edits.length ? [{ kind: "vitals", edits }] : [];
     },
     !locked,
   );

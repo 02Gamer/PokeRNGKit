@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ribbonImage } from "./art";
@@ -55,6 +57,28 @@ export function PokemonRibbonEditor({
     (r, i) =>
       r.value === original?.entries[i].value ||
       (Number.isInteger(r.value) && r.value >= 0 && r.value <= r.max),
+  );
+  usePokemonDraftPreparation(
+    "ribbons",
+    () => {
+      if (!draft || !original) return [];
+      if (!changed.length && !affixedChanged) return [];
+      if (
+        !valid ||
+        (affixedChanged &&
+          draft.affixed !== -1 &&
+          !draft.affixedChoices.some((c) => c.id === draft.affixed))
+      )
+        throw Error("Invalid ribbon draft");
+      return rawDraftSteps({
+        action: "ribbons",
+        ribbons: {
+          values: changed.map((r) => ({ key: r.key, value: r.value })),
+          affixed: affixedChanged ? (draft.affixed ?? undefined) : undefined,
+        },
+      });
+    },
+    !disabled && draft !== undefined,
   );
   const update = (key: string, value: number) =>
     setDraft(

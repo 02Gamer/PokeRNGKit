@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { CareField, PokemonPosition, PokemonRawEdit } from "./domain";
@@ -5,12 +7,14 @@ import type { saveEditorResources } from "./locales";
 
 export function PokemonCareEditor({
   fields,
+  draftSection = "care",
   isEgg,
   position,
   disabled,
   onApply,
 }: {
   fields: CareField[];
+  draftSection?: string;
   isEgg: boolean;
   position: PokemonPosition;
   disabled: boolean;
@@ -29,6 +33,26 @@ export function PokemonCareEditor({
   );
   const valid = changed.every(
     (f) => /^\d+$/.test(draft[f.key]) && Number(draft[f.key]) <= f.max,
+  );
+  usePokemonDraftPreparation(
+    draftSection,
+    () => {
+      if (!valid) throw Error("Invalid care draft");
+      return rawDraftSteps(
+        changed.length
+          ? {
+              action: "care",
+              care: {
+                values: changed.map((f) => ({
+                  key: f.key,
+                  value: Number(draft[f.key]),
+                })),
+              },
+            }
+          : undefined,
+      );
+    },
+    !disabled,
   );
   return (
     <details className="save-pokemon-editor">

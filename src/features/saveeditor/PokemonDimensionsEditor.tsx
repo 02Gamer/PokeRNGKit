@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePokemonDraftValidator } from "./pokemonDraftValidation";
@@ -65,6 +67,16 @@ export function PokemonDimensionsEditor({
   usePokemonDraftValidator(
     "dimensions",
     () => dimensionsValues(info, draft, auto),
+    !locked,
+  );
+  usePokemonDraftPreparation(
+    "dimensions",
+    () => {
+      const value = dimensionsValues(info, draft, auto);
+      return rawDraftSteps(
+        value ? { action: "dimensions", dimensions: value } : undefined,
+      );
+    },
     !locked,
   );
   async function apply(action?: DimensionsEdit, enableAuto = false) {

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -78,6 +80,16 @@ export function PokemonAdvancedStatsEditor({
   usePokemonDraftValidator(
     "advancedStats",
     () => validateAdvancedStatsDraft(info, draft),
+    !locked,
+  );
+  usePokemonDraftPreparation(
+    "advancedStats",
+    () => {
+      const value = advancedStatsValues(info, draft);
+      return rawDraftSteps(
+        value ? { action: "advancedStats", advancedStats: value } : undefined,
+      );
+    },
     !locked,
   );
   async function apply(edit?: AdvancedStatsEdit) {

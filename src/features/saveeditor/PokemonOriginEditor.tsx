@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useTranslation } from "react-i18next";
@@ -109,6 +111,20 @@ export function PokemonOriginEditor({
         fields.some(([value, choices]) => !choices.some((c) => c.id === value))
       )
         throw Error("Invalid origin selection");
+    },
+    !disabled && (loaded !== undefined || pending),
+  );
+  usePokemonDraftPreparation(
+    "origin",
+    () => {
+      const edit: NonNullable<PokemonRawEdit["origin"]> = {};
+      for (const key of Object.keys(draft) as (keyof typeof draft)[])
+        if (draft[key] !== origin[key]) edit[key] = draft[key];
+      return rawDraftSteps(
+        Object.keys(edit).length
+          ? { action: "origin", origin: edit }
+          : undefined,
+      );
     },
     !disabled && (loaded !== undefined || pending),
   );

@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PokemonEntry, PokemonPosition, PokemonRawEdit } from "./domain";
@@ -29,6 +31,24 @@ export function PokemonTrainingEditor({
   const valid =
     !contestChanged ||
     contest.every((v) => /^\d+$/.test(v) && Number(v) <= 255);
+  usePokemonDraftPreparation(
+    "training",
+    () => {
+      if (!valid) throw Error("Invalid training draft");
+      return rawDraftSteps(
+        contestChanged || hyperChanged
+          ? {
+              action: "training",
+              training: {
+                contest: contestChanged ? contest.map(Number) : undefined,
+                hyper: hyperChanged ? hyper : undefined,
+              },
+            }
+          : undefined,
+      );
+    },
+    !disabled,
+  );
   const statNames = [
     words.hp,
     words.attack,

@@ -9,6 +9,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import {
   PokemonDraftContext,
   pokemonDraftWords,
+  preparedDraftSectionWords,
 } from "./pokemonDraftValidation";
 import { copyLegalityReport } from "./legalityClipboard";
 import { playSaveSound } from "./saveSound";
@@ -44,6 +45,7 @@ export function PokemonLegality({
   }>();
   const blocked = registry != null && blockedDraft?.registry === registry;
   const sectionLabels: Record<string, string> = {
+    ...preparedDraftSectionWords[lang],
     basic: words.basicPokemonEdit,
     raw: words.rawPokemonValues,
     vitals: words.level,

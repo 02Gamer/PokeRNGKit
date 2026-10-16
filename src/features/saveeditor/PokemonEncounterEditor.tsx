@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PokemonEntry, PokemonPosition, PokemonRawEdit } from "./domain";
@@ -30,30 +32,40 @@ export function PokemonEncounterEditor({
     fateful !== encounter.fateful ||
     dates.metDate !== encounter.metDate ||
     dates.eggDate !== encounter.eggDate;
+  const buildEdit = () => {
+    if (!/^\d+$/.test(level) || Number(level) > encounter.maxMetLevel)
+      throw Error();
+    const edit: NonNullable<PokemonRawEdit["encounter"]> = {};
+    if (Number(level) !== encounter.metLevel) edit.metLevel = Number(level);
+    if (fateful !== encounter.fateful) edit.fateful = fateful;
+    if (encounter.canDates)
+      for (const key of ["metDate", "eggDate"] as const) {
+        const value = dates[key];
+        if (
+          value !== "" &&
+          (!/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+            value < "2000-01-01" ||
+            value > "2099-12-31" ||
+            !Number.isFinite(Date.parse(value)) ||
+            new Date(value).toISOString().slice(0, 10) !== value)
+        )
+          throw Error();
+        if (value !== encounter[key]) edit[key] = value;
+      }
+    return Object.keys(edit).length
+      ? { action: "encounter" as const, encounter: edit }
+      : undefined;
+  };
+  usePokemonDraftPreparation(
+    "encounter",
+    () => rawDraftSteps(changed ? buildEdit() : undefined),
+    !disabled,
+  );
   const apply = async () => {
     setError("");
     try {
-      if (!/^\d+$/.test(level) || Number(level) > encounter.maxMetLevel)
-        throw Error();
-      const edit: NonNullable<PokemonRawEdit["encounter"]> = {};
-      if (Number(level) !== encounter.metLevel) edit.metLevel = Number(level);
-      if (fateful !== encounter.fateful) edit.fateful = fateful;
-      if (encounter.canDates)
-        for (const key of ["metDate", "eggDate"] as const) {
-          const value = dates[key];
-          if (
-            value !== "" &&
-            (!/^\d{4}-\d{2}-\d{2}$/.test(value) ||
-              value < "2000-01-01" ||
-              value > "2099-12-31" ||
-              !Number.isFinite(Date.parse(value)) ||
-              new Date(value).toISOString().slice(0, 10) !== value)
-          )
-            throw Error();
-          if (value !== encounter[key]) edit[key] = value;
-        }
-      if (Object.keys(edit).length === 0) return;
-      await onApply({ ...position, action: "encounter", encounter: edit });
+      const edit = buildEdit();
+      if (edit) await onApply({ ...position, ...edit });
     } catch {
       setError(words.pokemonValueError);
     }

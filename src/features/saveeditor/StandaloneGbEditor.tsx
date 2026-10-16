@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { changedDraftKeys } from "./pokemonDraftPlan";
 import { usePokemonDraftValidator } from "./pokemonDraftValidation";
 import { useState } from "react";
 import { playSaveSound } from "./saveSound";
@@ -45,6 +47,7 @@ export function StandaloneGbEditor({
     movePp: p.movePp.map(String),
     movePpUps: p.movePpUps.map(String),
   });
+  const [initialDraft] = useState(() => structuredClone(draft));
   const [error, setError] = useState(false);
   const integer = (value: string, max: number, min = 0) => {
     if (!/^\d+$/.test(value) || Number(value) < min || Number(value) > max)
@@ -107,6 +110,14 @@ export function StandaloneGbEditor({
     };
   };
   usePokemonDraftValidator("basic", buildEdit, !disabled);
+  usePokemonDraftPreparation(
+    "basic",
+    () => {
+      const fields = changedDraftKeys(draft, initialDraft);
+      return fields.length ? [{ kind: "gb", fields, edit: buildEdit() }] : [];
+    },
+    !disabled,
+  );
   const submit = async () => {
     setError(false);
     try {

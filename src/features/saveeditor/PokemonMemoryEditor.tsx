@@ -1,3 +1,5 @@
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { PokemonCareEditor } from "./PokemonCareEditor";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -61,6 +63,15 @@ export function PokemonMemoryEditor({
       }));
   };
   const changed = JSON.stringify(draft) !== JSON.stringify(original);
+  usePokemonDraftPreparation(
+    "memory",
+    () => {
+      if (!changed || !draft || !catalog) return [];
+      if (!catalog.canEdit) throw Error("Memory draft is read only");
+      return rawDraftSteps({ action: "memory", memory: draft });
+    },
+    !disabled && draft !== undefined,
+  );
   const name = (choices: OriginChoice[], id: number) =>
     choices.find((c) => c.id === id)?.name[lang] ?? `#${id}`;
   const renderMemory = (template: string) => {
@@ -119,6 +130,7 @@ export function PokemonMemoryEditor({
       ) : (
         <>
           <PokemonCareEditor
+            draftSection="memoryCare"
             fields={catalog.care}
             isEgg={catalog.isEgg}
             position={position}

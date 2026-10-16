@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
@@ -82,6 +84,16 @@ export function PokemonExpertEditor({
   usePokemonDraftValidator(
     "expert",
     () => catalog && draft && expertValues(catalog, draft),
+    !locked,
+  );
+  usePokemonDraftPreparation(
+    "expert",
+    () => {
+      const value = catalog && draft ? expertValues(catalog, draft) : undefined;
+      return rawDraftSteps(
+        value ? { action: "expert", expert: value } : undefined,
+      );
+    },
     !locked,
   );
   async function load() {

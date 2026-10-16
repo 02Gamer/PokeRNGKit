@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { usePokemonDraftPreparation } from "./pokemonDraftValidation";
+import { rawDraftSteps } from "./pokemonDraftPlan";
 import { useState } from "react";
 import type { PokemonEntry, PokemonRawEdit } from "./domain";
 import { useSaveSettingsJson } from "./useSaveSettingsJson";
@@ -88,6 +90,24 @@ export function PokemonMarkingsEditor({
   } catch {
     /* Core also rejects invalid settings. */
   }
+  usePokemonDraftPreparation(
+    "markings",
+    () => {
+      if (!info || !values.some((v, i) => v !== info.values[i])) return [];
+      if (
+        !colors ||
+        values.length !== info.values.length ||
+        values.some(
+          (v, i) =>
+            v !== info.values[i] &&
+            (!Number.isInteger(v) || v < 0 || v > (info.colored ? 2 : 1)),
+        )
+      )
+        throw Error("Invalid marking draft");
+      return rawDraftSteps({ action: "markings", markings: values });
+    },
+    !disabled && !!info,
+  );
   if (!info) return null;
   const w = words[lang];
   const changed = values.some((value, index) => value !== info.values[index]);
