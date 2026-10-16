@@ -40,11 +40,12 @@ internal static class StandaloneGb
 
     private static byte[] WriteEdited(GBPKM p)=>p is GBPKML list?Write(list):StandalonePokemon.Serialize(p,false,false);
 
-    internal static void Apply(GBPKM p, GbPokemonEdit edit)
+    internal static void Apply(GBPKM p, GbPokemonEdit edit,SaveFile? saveContext=null)
     {
         if(edit.Nickname is null||edit.Ot is null)throw new ArgumentException("GB name is invalid.");
         if(p is SK2 {IsRental:true}&&edit.Ot!=p.OriginalTrainerName)throw new ArgumentException("Rental Pokemon do not store an original trainer name.");
         var original = p.Clone();
+        PokemonChoiceCatalog.ValidateChanges(p,edit.Species,edit.HeldItem,edit.Moves,saveContext);
         if (edit.Species < (PokemonEditorMode.HaX ? 0 : 1) || edit.Species > p.MaxSpeciesID || edit.Tid is < 0 or > 65535 || edit.Level is < 1 or > 100)
             throw new ArgumentException("GB identity value is outside the format limits.");
         Values(edit.Dvs, 4, 15); Values(edit.StatExperience, 5, 65535);

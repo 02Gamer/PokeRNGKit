@@ -13,7 +13,8 @@ internal static class PokemonEditorContextTests
             var bytes=StandalonePokemon.Serialize(p.Clone(),true,false);var file="buffer."+p.Extension;
             Check(StandalonePokemon.Open(bytes,file,useFileFormat:true).Entity.GetType()==save.PKMType,"Context binds exact supported entity type");
             var view=StandalonePokemon.Inspect(bytes,file,useFileFormat:true);
-            Check(view.MoveChoices.Length==save.MaxMoveID+1&&view.AttributeChoices.Items.Length==save.BlankPKM.MaxItemID+1,"Save-bound directories keep source input limits");
+            var directory=new FilteredGameDataSource(save,new GameDataSource(GameInfo.GetStrings("en")),PokemonEditorMode.HaX);
+            Check(view.MoveChoices.Length==Math.Max(save.MaxMoveID,p.MaxMoveID)+1&&view.AttributeChoices.Items.Length==Math.Max(save.BlankPKM.MaxItemID,directory.Items.Select(i=>i.Value).DefaultIfEmpty(0).Max())+1,"Dense save-bound lookups retain format values; selection flags use the save directory");
             if(p is GBPKM gb)Check(view.Pokemon.GbLanguage==gb.GuessedLanguage(),"GB region and name interpretation preserved");
             var wrong=save.PKMType==typeof(PK3)?(PKM)new PK4{Species=25}:new PK3{Species=25};wrong.RefreshChecksum();
             Reject(()=>StandalonePokemon.Open(StandalonePokemon.Serialize(wrong,true,false),"wrong."+wrong.Extension,useFileFormat:true));

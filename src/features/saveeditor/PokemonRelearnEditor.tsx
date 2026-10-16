@@ -37,7 +37,13 @@ export function PokemonRelearnEditor({
     () => {
       if (
         draft.length !== 4 ||
-        draft.some((move) => !Number.isInteger(move) || !choices[move])
+        draft.some(
+          (move, index) =>
+            !Number.isInteger(move) ||
+            !choices[move] ||
+            (move !== moves?.[index] &&
+              choices[move].relearnSelectable === false),
+        )
       )
         throw Error("Invalid relearn move");
     },
@@ -93,11 +99,20 @@ export function PokemonRelearnEditor({
                   #{move}
                 </option>
               )}
-              {choices.map((choice, id) => (
-                <option key={id} value={id}>
-                  {choice.name[language]}
-                </option>
-              ))}
+              {choices.map((choice, id) =>
+                choice.relearnSelectable === false && id !== move ? null : (
+                  <option
+                    key={id}
+                    value={id}
+                    disabled={choice.relearnSelectable === false}
+                    data-source-invalid={
+                      choice.relearnSelectable === false || undefined
+                    }
+                  >
+                    {choice.name[language]}
+                  </option>
+                ),
+              )}
             </Select>
           </label>
         ))}

@@ -45,7 +45,7 @@ export interface TrainerDateField {
   max: string;
 }
 
-export const SAVE_EDITOR_API_VERSION = 182;
+export const SAVE_EDITOR_API_VERSION = 183;
 export interface SaveReport {
   slotAccess?: import("./slotAccess").SaveSlotAccessInfo;
   registeredTeams?: boolean;
@@ -64,7 +64,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 182;
+  apiVersion: 183;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -73,6 +73,7 @@ export interface SaveReport {
     natures: LocalizedText[];
     items: LocalizedText[];
     species: SpeciesChoice[];
+    itemSelectable?: boolean[] | null;
   };
   format: string;
   generation: number;
@@ -155,10 +156,13 @@ export interface MoveChoice {
   name: LocalizedText;
   maxPp: number[];
   alphaSelectable?: boolean | null;
+  selectable?: boolean | null;
+  relearnSelectable?: boolean | null;
 }
 export interface SpeciesChoice {
   id: number;
   name: LocalizedText;
+  selectable?: boolean | null;
   forms: {
     name: LocalizedText;
     genders: number[];

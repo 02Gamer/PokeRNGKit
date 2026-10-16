@@ -5,8 +5,8 @@ using PKHeX.Drawing.PokeSprite;
 namespace PokeRNGKit.SaveEditor;
 
 public sealed record LocalizedText(string Zh, string En, string Ja);
-public sealed record MoveChoice(LocalizedText Name, int[] MaxPp, bool? AlphaSelectable = null);
-public sealed record AttributeChoices(LocalizedText[] Natures, LocalizedText[] Items, SpeciesChoice[] Species);
+public sealed record MoveChoice(LocalizedText Name, int[] MaxPp, bool? AlphaSelectable = null, bool? Selectable = null, bool? RelearnSelectable = null);
+public sealed record AttributeChoices(LocalizedText[] Natures, LocalizedText[] Items, SpeciesChoice[] Species, bool[]? ItemSelectable = null);
 public sealed record PokemonLimits(int Nickname, int TrainerName, int Iv, int Ev, int Move);
 public sealed record BoxEntry(int Index, string Name, int Wallpaper);
 public sealed record PokemonEntry(
@@ -22,21 +22,31 @@ internal static class PokemonReader
     internal static LocalizedText Text(Func<GameStrings, string> read) =>
         new(read(GameInfo.GetStrings("zh-Hans")), read(GameInfo.GetStrings("en")), read(GameInfo.GetStrings("ja")));
     private static string Name(string[] names, int id) => (uint)id < names.Length ? names[id] : $"#{id}";
-    public static AttributeChoices Attributes(SaveFile save) => new(
+    public static AttributeChoices Attributes(SaveFile save)
+    {
+        var directory=PokemonChoiceCatalog.Read(save);
+        int max=Math.Max(save.BlankPKM.MaxItemID,directory.Items.DefaultIfEmpty(0).Max());
+        return new(
         Enumerable.Range(0, 25).Select(i => Text(s => Name(s.natures, i))).ToArray(),
-        Enumerable.Range(0, save.BlankPKM.MaxItemID + 1).Select(i => Text(s => Name(s.GetItemStrings(save.Context, save.Version), i))).ToArray(), PokemonIdentity.Choices(save));
+        Enumerable.Range(0, max + 1).Select(i => Text(s => Name(s.GetItemStrings(save.Context, save.Version), i))).ToArray(), PokemonIdentity.Choices(save),ItemFlags(max,directory));
+    }
 
     public static MoveChoice[] MoveChoices(SaveFile save)
     {
         var p = save.BlankPKM;
-        return MoveChoices(p, save.MaxMoveID);
+        return MoveChoices(p, save.MaxMoveID,save);
     }
-    public static MoveChoice[] MoveChoices(PKM p, int? maximum = null) =>
-        Enumerable.Range(0, (maximum ?? p.MaxMoveID) + 1).Select(i => new MoveChoice(Text(s => Name(s.movelist, i)),
-            Enumerable.Range(0, 4).Select(up => p.GetMovePP((ushort)i, up)).ToArray(),p is PA8 ? PokemonAlphaMove.IsSelectable(p,i) : null)).ToArray();
+    public static MoveChoice[] MoveChoices(PKM p, int? maximum = null,SaveFile? save=null)
+    {
+        var directory=PokemonChoiceCatalog.Read(p,save);
+        int max=Math.Max(Math.Max(maximum??p.MaxMoveID,p.MaxMoveID),directory.Relearn.DefaultIfEmpty(0).Max());
+        return Enumerable.Range(0,max+1).Select(i=>new MoveChoice(Text(s=>Name(s.movelist,i)),
+            Enumerable.Range(0,4).Select(up=>p.GetMovePP((ushort)i,up)).ToArray(),p is PA8?PokemonAlphaMove.IsSelectable(p,i):null,directory.Moves.Contains(i),directory.Relearn.Contains(i))).ToArray();
+    }
     public static AttributeChoices Attributes(PKM p) => new(
         Enumerable.Range(0, 25).Select(i => Text(s => Name(s.natures, i))).ToArray(),
-        Enumerable.Range(0, p.MaxItemID + 1).Select(i => Text(s => Name(s.GetItemStrings(p.Context, p.Version), i))).ToArray(), PokemonIdentity.Choices(p));
+        Enumerable.Range(0, p.MaxItemID + 1).Select(i => Text(s => Name(s.GetItemStrings(p.Context, p.Version), i))).ToArray(), PokemonIdentity.Choices(p),ItemFlags(p.MaxItemID,PokemonChoiceCatalog.Read(p)));
+    private static bool[] ItemFlags(int max,PokemonChoiceCatalog directory)=>Enumerable.Range(0,max+1).Select(directory.Items.Contains).ToArray();
 
     public static BoxEntry[] Boxes(SaveFile save) => Enumerable.Range(0, save.HasBox ? save.BoxCount : 0).Select(i =>
         new BoxEntry(i, save is IBoxDetailNameRead names ? names.GetBoxName(i) : string.Empty,

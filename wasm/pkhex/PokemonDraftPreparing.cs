@@ -50,7 +50,7 @@ internal static class PokemonDraftPreparing
                     if(fields.Contains("nature")&&p.Format<=4)Claim("pid",index,"nature");
                     actions.Add((30,index,()=>{
                         if(fields.Contains("trainerIds")&&original.TrainerIDDisplayFormat!=p.TrainerIDDisplayFormat)throw new ArgumentException("Apply the origin version before editing its trainer ID format.");
-                        var merged=Rebase(p,edit,fields,source);PokemonEditing.Apply(p,merged,source.Box==-1,identity=>PokemonIdentity.Apply(save,p,identity,source.Box));
+                        var merged=Rebase(p,edit,fields,source);PokemonEditing.Apply(p,merged,source.Box==-1,identity=>PokemonIdentity.Apply(save,p,identity,source.Box),save);
                     }));break;
                 }
                 case "gb":
@@ -58,7 +58,7 @@ internal static class PokemonDraftPreparing
                     if(p is not GBPKM gb)throw new ArgumentException("GB editor requires a GB entity.");var edit=Read(step.Edit,PokemonSetJson.Default.GbPokemonEdit);var fields=Mask(step,GbFields);
                     if(fields.Contains("level")){if(edit.Level is <1 or >100)throw new ArgumentException("Invalid GB editor level.");levels.Add(edit.Level);}
                     foreach(var field in fields.Where(f=>f!="level"))Claim(field=="friendship"?Friendship():field=="dvs"?"ivs":field,index,step.Edit.GetProperty(field).GetRawText());
-                    actions.Add((30,index,()=>StandaloneGb.Apply(gb,Rebase(gb,edit,fields))));break;
+                    actions.Add((30,index,()=>StandaloneGb.Apply(gb,Rebase(gb,edit,fields),save)));break;
                 }
                 case "vitals":
                 {
@@ -104,7 +104,7 @@ internal static class PokemonDraftPreparing
                         else if(edit.Action=="trainerDetails")PokemonTrainerDetails.Apply(p,edit.TrainerDetails??throw new ArgumentException("Trainer draft missing."),save);
                         else if(edit.Action=="egg")PokemonEgg.Apply(save,p,edit.Egg??throw new ArgumentException("Egg draft missing."));
                         else throw new ArgumentException("Unexpected contextual editor action.");
-                    },save.MaxAbilityID)));break;
+                    },save.MaxAbilityID,save)));break;
                 }
                 default:throw new ArgumentException("Unknown editor operation.");
             }

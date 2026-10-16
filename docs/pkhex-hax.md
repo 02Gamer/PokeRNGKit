@@ -10,6 +10,20 @@
 背包另有局部高级编辑入口。API180 的手动队伍能力值和 API181 的物理写入权限属于已接基础，
 不能据此判定全局 HaX 已接齐。设置的存在、选项可修改或构建通过都不能替代功能证据。
 
+## API183目录过滤
+
+种类、持有道具、招式与回忆招式已分别接入可选状态，名称／PP的数字索引保留。
+普通模式保留目录外的当前值并禁用该选项，其余不可选项隐藏；新选值在Core校验。
+存档沿FilteredGameDataSource，独立实体沿自身存储上下文，原籍游戏不冒充目标游戏。
+SM的普通招式与USUM回忆上限分开；绑定LGPE存档的HaX道具沿1057，
+未绑定PB7文件仍沿其959上限，UInt16字段实际写入与回读专项通过。
+Core内部LGPE招式名单固定取自26.08.26，并与SAV7b目录对照；道具使用公开存储接口。
+18个游戏目录的普通／HaX对照、编号索引、读取不改来源与两文件12项三语专项通过。
+既有标准／GB／回忆编辑、存档上下文、冻结放入与HaX空白流程专项，以及浏览器核心构建通过；
+真实E.sav只检查工作副本。完整前端检查通过（358文件／2168项、类型、Lint、格式与网页／PWA构建）；
+首轮前端版本常量遗漏已修正并完整重跑通过。默认完整原生检查退出0，含真实E.sav工作副本，
+原件与副本哈希不变；外部Chrome连接超时，页面未核验。
+
 ## API182阶段
 
 空白记录、空格位查看、GB名单容器、基础创建、冻结清空／队伍删除、显式空记录分析的路径已接线。
@@ -25,24 +39,29 @@
 以下为 WinForms `.cs` 中 `HaX` 调用点的功能分组；每组仍须核对赋值顺序、控件掩码、空值、
 格式存储和交互，不一律放宽到数值类型上限。
 
-| 范围                                   | 上游依据                                                                                                                      | 当前状态与后续要求                                                                                       |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| 模式初始化与切换                       | `Program.cs`、`MainWindow/Main.cs`、`Settings/StartupSettings.cs`                                                             | API182 随编辑元数据传递模式，沿设置指纹重建 Worker 并废弃旧票据；页面切换仍待核验                        |
-| 空格位查看、删除与合法性菜单           | `Controls/SAV Editor/ContextMenuSAV.cs.MenuOpening`                                                                           | API182 已接空位查看、显式分析、冻结清空及队伍前移；物理锁保留，页面待核验                                |
-| 空白实体的完整编辑与准备               | `Controls/PKM Editor/PKMEditor.cs.EditsComplete`、`PreparePKM`、`LoadSave.cs`                                                 | API182 已接空记录读取、基础创建与准备，保留类型／字节／编码；其他高级编辑器的可见性仍待逐项核对          |
-| 目录与过滤                             | `MainWindow/Main.cs` 的 `FilteredGameDataSource` 与 `LocalizeUtil.InitializeStrings`、`PKMEditor.PopulateFilteredDataSources` | 须覆盖种类、道具、招式等实际目录，区分普通模式和 HaX；保留三语与格式位宽，不用静态总表无条件取代游戏目录 |
-| 载入等级、经验与保存数值               | `LoadSave.cs.LoadSpeciesLevelEXP`／`SaveSpeciesLevelEXP`、`PKMEditor.cs` 等级经验处理、`StatEditor.SavePartyStats`            | 六项能力值、HaX 七位超等级经验及 EV 超总量已接；其他载入／保存分支继续核对                               |
-| 手动特性和编号                         | `LoadSave.cs.SaveMisc*`、`PKMEditor.ToggleInterface`／`FinalizeInterface`                                                     | 手动字段已有；HaX 目录、能力编号及 PA9 普通模式例外仍需统一核对                                          |
-| 手动形态与无形态时保留                 | `PKMEditor.SetForms`／`ToggleInterface`                                                                                       | API182 已接格式4以上0–255输入，拒绝物理截断并保留原始 PID／手动特性；页面待核验                          |
-| 第四／第五世代特殊载入与保存           | `EditPK4.cs`、`EditPK5.cs`                                                                                                    | 须逐项核对 HaX 分支；不只开放前端控件而继续走普通模式覆盖逻辑                                            |
-| 相遇建议、自动合法性与招式提示         | `PKMEditor.UpdateLegality`、`ClickMetLocation`、招式提示处理，`Main.PKME_Tabs_LegalityChanged`                                | 格位自动标记已有模式消费；主编辑器自动状态、建议和提示仍待核对，显式菜单分析分别处理                     |
-| LGPE／PLA 原本隐藏字段、努力值与觉醒值 | `PKMEditor.FinalizeInterface`、`StatEditor.ToggleInterface`                                                                   | 相关字段与 AV/GV 功能已有；普通与 HaX 的可见性、可写性组合待核对                                         |
-| 额外存储格位                           | `Controls/SAV Editor/SAVEditor.cs.InitializeExtraSlots` 的 `GetExtraSlots(HaX)`                                               | 额外格位工具已存在；须核对模式是否决定完整列表以及各项读写能力，不能把物理锁误作图标                     |
-| 背包                                   | `Subforms/Save Editors/SAV_Inventory.cs`                                                                                      | 局部 HaX 编辑已有；全局模式对目录、整理、数量和禁用状态的关联仍需核对                                    |
+| 范围                                   | 上游依据                                                                                                                      | 当前状态与后续要求                                                                                   |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 模式初始化与切换                       | `Program.cs`、`MainWindow/Main.cs`、`Settings/StartupSettings.cs`                                                             | API182 随编辑元数据传递模式，沿设置指纹重建 Worker 并废弃旧票据；页面切换仍待核验                    |
+| 空格位查看、删除与合法性菜单           | `Controls/SAV Editor/ContextMenuSAV.cs.MenuOpening`                                                                           | API182 已接空位查看、显式分析、冻结清空及队伍前移；物理锁保留，页面待核验                            |
+| 空白实体的完整编辑与准备               | `Controls/PKM Editor/PKMEditor.cs.EditsComplete`、`PreparePKM`、`LoadSave.cs`                                                 | API182 已接空记录读取、基础创建与准备，保留类型／字节／编码；其他高级编辑器的可见性仍待逐项核对      |
+| 目录与过滤                             | `MainWindow/Main.cs` 的 `FilteredGameDataSource` 与 `LocalizeUtil.InitializeStrings`、`PKMEditor.PopulateFilteredDataSources` | API183种类／持有道具／招式／回忆目录已接，保留三语和编号；相关专项、完整原生与前端通过，页面待核验   |
+| 载入等级、经验与保存数值               | `LoadSave.cs.LoadSpeciesLevelEXP`／`SaveSpeciesLevelEXP`、`PKMEditor.cs` 等级经验处理、`StatEditor.SavePartyStats`            | 六项能力值、HaX 七位超等级经验及 EV 超总量已接；其他载入／保存分支继续核对                           |
+| 手动特性和编号                         | `LoadSave.cs.SaveMisc*`、`PKMEditor.ToggleInterface`／`FinalizeInterface`                                                     | 手动字段已有；HaX 目录、能力编号及 PA9 普通模式例外仍需统一核对                                      |
+| 手动形态与无形态时保留                 | `PKMEditor.SetForms`／`ToggleInterface`                                                                                       | API182 已接格式4以上0–255输入，拒绝物理截断并保留原始 PID／手动特性；页面待核验                      |
+| 第四／第五世代特殊载入与保存           | `EditPK4.cs`、`EditPK5.cs`                                                                                                    | 须逐项核对 HaX 分支；不只开放前端控件而继续走普通模式覆盖逻辑                                        |
+| 相遇建议、自动合法性与招式提示         | `PKMEditor.UpdateLegality`、`ClickMetLocation`、招式提示处理，`Main.PKME_Tabs_LegalityChanged`                                | 格位自动标记已有模式消费；主编辑器自动状态、建议和提示仍待核对，显式菜单分析分别处理                 |
+| LGPE／PLA 原本隐藏字段、努力值与觉醒值 | `PKMEditor.FinalizeInterface`、`StatEditor.ToggleInterface`                                                                   | 相关字段与 AV/GV 功能已有；普通与 HaX 的可见性、可写性组合待核对                                     |
+| 额外存储格位                           | `Controls/SAV Editor/SAVEditor.cs.InitializeExtraSlots` 的 `GetExtraSlots(HaX)`                                               | 目前仅报告／数据库通过SlotInfoLoader枚举；独立查看、可变格位写入及模式过滤尚未接，不能按普通箱位处理 |
+| 背包                                   | `Subforms/Save Editors/SAV_Inventory.cs`                                                                                      | 局部 HaX 编辑已有；全局模式对目录、整理、数量和禁用状态的关联仍需核对                                |
 
 ## 实施与检查
 
-目录下一步沿 Core 的 `FilteredGameDataSource` 核对，不把现有招式／道具数组直接改成稀疏列表。
+额外格位的后续实现须沿 `Editing/Saves/Slots/Extensions.cs` 与 `Info/SlotInfoMisc.cs`。
+报告／数据库通过 `SlotInfoLoader` 内部的 `save.GetExtraSlots(true)` 完整枚举，不等于独立编辑器已接入。
+上游普通／HaX的列表差异位于第七世代Resort记录；写入权限另由SlotInfoMisc的Mutable状态决定。
+查看来源、party格式、实际槽号及可变写入目标需独立绑定，不能伪装为普通箱位或队伍位置。
+
+目录实现沿 Core 的 `FilteredGameDataSource`，不把现有招式／道具数组直接改成稀疏列表。
 现有调用按编号索引名称和 PP；应分别传递允许选择的编号，保留原编号索引及当前异常值的只读显示。
 种类、持有道具、招式和回忆招式分别核对，特别保留 SM 回忆招式使用 USUM 上限的上游规则。
 独立实体继续采用自身上下文与真实存档编辑上下文，不能为过滤目录伪造存档。

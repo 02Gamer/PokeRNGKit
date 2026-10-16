@@ -26,11 +26,12 @@ internal static class PokemonRelearnTests
             var data = fixture.Write().ToArray();
             var original = data.ToArray();
             var before = SaveUtil.GetSaveFile(data.ToArray())!;
+            var allowed=new FilteredGameDataSource(before,new GameDataSource(GameInfo.GetStrings("en"))).Relearn.Select(m=>m.Value).Distinct().Order().ToArray();
             foreach (var box in new[] { -1, 0 })
             {
                 var source = PokemonEditing.Read(before, box, 0);
                 Require(PokemonReader.Read(before).First(p => p.Box == box && p.Slot == 0).RelearnMoves!.SequenceEqual(source.RelearnMoves), "Reader exposes relearn slots");
-                foreach (int[] moves in new int[][] { [85, 0, 85, source.MaxMoveID], [0, 0, 0, 0], [1, 2, 3, 4] })
+                foreach (int[] moves in new int[][] { [85, 0, 85, allowed.Max()], [0, 0, 0, 0], allowed.Where(m=>m>0).Take(4).ToArray() })
                 {
                     var request = new PokemonRawEdit(box, 0, "relearn", Relearn: new(moves));
                     var output = SaveService.EditPokemonRaw(data, JsonSerializer.Serialize(request, SaveJsonContext.Default.PokemonRawEdit));
@@ -66,10 +67,17 @@ internal static class PokemonRelearnTests
             Require(PokemonRelearn.Read(p) is null, "No dummy fields in unsupported formats");
             Reject(() => PokemonRelearn.Apply(p, new([0, 0, 0, 0])));
         }
-        foreach (var p in new PKM[] { new PB7(), new PK8(), new PA8(), new PK9(), new PA9() })
+        SaveProgramSettingsRuntime.Reset();
+        var hax=SaveProgramSettingsCodec.Defaults();hax.Startup.ForceHaXOnLaunch=true;
+        SaveProgramSettingsRuntime.Configure(JsonSerializer.Serialize(hax,SaveProgramSettingsJson.Default.SaveProgramSettings));
+        try
         {
-            PokemonRelearn.Apply(p, new([85, 0, 85, p.MaxMoveID]));
-            Require(p.RelearnMoves.SequenceEqual(new ushort[] { 85, 0, 85, (ushort)p.MaxMoveID }), "Other supported entities store actual fields");
+            foreach (var p in new PKM[] { new PB7(), new PK8(), new PA8(), new PK9(), new PA9() })
+            {
+                PokemonRelearn.Apply(p, new([85, 0, 85, p.MaxMoveID]));
+                Require(p.RelearnMoves.SequenceEqual(new ushort[] { 85, 0, 85, (ushort)p.MaxMoveID }), "HaX stores actual format-bound fields");
+            }
         }
+        finally{SaveProgramSettingsRuntime.Reset();}
     }
 }

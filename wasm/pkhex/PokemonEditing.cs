@@ -29,14 +29,14 @@ internal static class PokemonEditing
         var p = Read(save, edit.Box, edit.Slot);
         if (edit.Box >= 0 && save.IsBoxSlotLocked(edit.Box, edit.Slot))
             throw new ArgumentException("Storage slot is locked.");
-        var applied = Apply(p, edit, edit.Box == -1, identity => PokemonIdentity.Apply(save, p, identity, edit.Box));
+        var applied = Apply(p, edit, edit.Box == -1, identity => PokemonIdentity.Apply(save, p, identity, edit.Box),save);
         if (edit.Box == -1) save.SetPartySlotAtIndex(p, edit.Slot, EntityImportSettings.None);
         else save.SetBoxSlotAtIndex(p, edit.Box, edit.Slot, EntityImportSettings.None);
         return applied;
     }
 
     // Entity editing is independent of a save; callers supply only identity constraints and party-stat semantics.
-    public static PokemonEdit Apply(PKM p, PokemonEdit edit, bool party, Action<PokemonIdentityEdit> applyIdentity)
+    public static PokemonEdit Apply(PKM p, PokemonEdit edit, bool party, Action<PokemonIdentityEdit> applyIdentity,SaveFile? saveContext=null)
     {
         var original = p.Clone();
         var requestedForm = edit.Identity?.Form ?? p.Form;
@@ -44,6 +44,7 @@ internal static class PokemonEditing
             throw new ArgumentException("Pokemon slot must contain valid data.");
         if (edit.Level is < 1 or > 100)
             throw new ArgumentException("Pokemon level must be between 1 and 100.");
+        PokemonChoiceCatalog.ValidateChanges(p,edit.Identity?.Species??p.Species,edit.HeldItem,edit.Moves,saveContext);
         if (edit.Identity is not null)
         {
             applyIdentity(edit.Identity);
@@ -58,7 +59,7 @@ internal static class PokemonEditing
             throw new ArgumentException("Pokemon stat nature is unavailable in this format.");
         if (edit.HeldItem is int item)
         {
-            if (item < 0 || item > p.MaxItemID)
+            if (item < 0 || item > PokemonChoiceCatalog.ItemMaximum(p,saveContext))
                 throw new ArgumentException("Pokemon item is outside the format limits.");
             p.HeldItem = item;
         }

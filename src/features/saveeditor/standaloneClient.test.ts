@@ -86,7 +86,7 @@ describe("independent entity worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect(transfer).toEqual([message.bytes.buffer]);
       worker.onmessage?.({
-        data: { id: message.id, entity: { apiVersion: 182 }, ...fields },
+        data: { id: message.id, entity: { apiVersion: 183 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(original);
@@ -328,7 +328,7 @@ describe("independent entity worker lifecycle", () => {
     expect(transfer).toContain(message.editorSave.buffer);
     expect(message.editorSave.buffer).not.toBe(save.buffer);
     worker.onmessage?.({
-      data: { id: message.id, entity: { apiVersion: 182 } },
+      data: { id: message.id, entity: { apiVersion: 183 } },
     });
     await pending;
     const next = client.run(new Uint8Array([4]), request),

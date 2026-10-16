@@ -36,6 +36,8 @@ internal static class StandaloneGbTests
             var input = Bytes(p); var original = input.ToArray(); var filename = "test." + p.Extension;
             var request = new StandalonePokemonRequest(filename);
             var draft = Draft(p);
+            var directory=PokemonChoiceCatalog.Read(p);
+            int? selectedItem=p is PK2?directory.Items.Max():null;
             foreach (bool explicitFormat in new[] {false, true})
             {
                 var req = request with {UseFileFormat = explicitFormat, Gb = draft};
@@ -50,14 +52,15 @@ internal static class StandaloneGbTests
                 var expectedRename = (GBPKML)p.Clone(); expectedRename.Nickname = rename.Nickname; expectedRename.OriginalTrainerName = rename.Ot; expectedRename.TID16 = 65535;
                 Check(Bytes(renamed).SequenceEqual(Bytes(expectedRename)), "GB rename equals Core setters byte-for-byte without healing or normalizing");
                 var change = draft with {Species = p.MaxSpeciesID, Level = 100, Dvs = [15, 14, 13, 12], StatExperience = [65535, 65534, 65533, 65532, 65531],
-                    Moves = [1, 0, 0, 0], MovePp = [1, 0, 0, 0], MovePpUps = [3, 0, 0, 0], Friendship = p is PK2 ? 255 : null, HeldItem = p is PK2 ? p.MaxItemID : null};
+                    Moves = [1, 0, 0, 0], MovePp = [1, 0, 0, 0], MovePpUps = [3, 0, 0, 0], Friendship = p is PK2 ? 255 : null, HeldItem = selectedItem};
                 var result = Api.EditStandalonePokemonGb(input, Json(req with {Gb = change}));
                 var after = (GBPKML)StandalonePokemon.Open(result, filename).Entity;
                 var expected = (GBPKML)p.Clone(); expected.Species = (ushort)p.MaxSpeciesID; expected.CurrentLevel = 100;
                 expected.IV_ATK = 15; expected.IV_DEF = 14; expected.IV_SPE = 13; expected.IV_SPC = 12;
                 expected.EV_HP = 65535; expected.EV_ATK = 65534; expected.EV_DEF = 65533; expected.EV_SPE = 65532; expected.EV_SPC = 65531;
                 expected.Move1 = 1; expected.Move1_PPUps = 3; expected.Move1_PP = 1;
-                if (expected is PK2) { expected.CurrentFriendship = 255; expected.HeldItem = p.MaxItemID; }
+                if (expected is PK2) { expected.CurrentFriendship = 255; expected.HeldItem = selectedItem!.Value; }
+                if(p is PK2&&!directory.Items.Contains(p.MaxItemID))Reject(()=>Api.EditStandalonePokemonGb(input,Json(req with{Gb=draft with{HeldItem=p.MaxItemID}})));
                 expected.ResetPartyStats(); expected.Stat_HPCurrent = 1; expected.Status_Condition = 8;
                 Check(result.SequenceEqual(Bytes(expected)), "GB basic edits match complete Core serialization");
                 Check(after.IV_HP == 10 && after.IV_SPA == 12 && after.IV_SPD == 12 && after.EV_SPA == 65531 && after.EV_SPD == 65531, "GB HP derived and special values shared");

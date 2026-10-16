@@ -62,6 +62,21 @@ export function StandaloneGbEditor({
     words.special,
   ];
   const buildEdit = (): GbPokemonEdit => {
+    if (
+      (Number(draft.species) !== p.species &&
+        report.attributeChoices.species.find(
+          (s) => s.id === Number(draft.species),
+        )?.selectable === false) ||
+      (Number(draft.heldItem) !== p.heldItem &&
+        report.attributeChoices.itemSelectable?.[Number(draft.heldItem)] ===
+          false) ||
+      draft.moves.some(
+        (move, index) =>
+          Number(move) !== p.moveIds[index] &&
+          report.moveChoices[Number(move)]?.selectable === false,
+      )
+    )
+      throw Error("directory");
     for (const [name, max, previous] of [
       [draft.nickname, p.limits.nickname, p.nickname],
       [draft.ot, p.limits.trainerName, p.ot],
@@ -150,11 +165,19 @@ export function StandaloneGbEditor({
             value={draft.species}
             onChange={(e) => setDraft({ ...draft, species: e.target.value })}
           >
-            {report.attributeChoices.species.map((choice) => (
-              <option key={choice.id} value={choice.id}>
-                {choice.name[lang]}
-              </option>
-            ))}
+            {report.attributeChoices.species.map((choice) =>
+              choice.selectable === false &&
+              choice.id !== Number(draft.species) ? null : (
+                <option
+                  key={choice.id}
+                  value={choice.id}
+                  disabled={choice.selectable === false}
+                  data-source-invalid={choice.selectable === false || undefined}
+                >
+                  {choice.name[lang]}
+                </option>
+              ),
+            )}
           </Select>
         </label>
         {(
@@ -210,11 +233,24 @@ export function StandaloneGbEditor({
               value={draft.heldItem}
               onChange={(e) => setDraft({ ...draft, heldItem: e.target.value })}
             >
-              {report.attributeChoices.items.map((name, id) => (
-                <option key={id} value={id}>
-                  {name[lang]}
-                </option>
-              ))}
+              {report.attributeChoices.items.map((name, id) =>
+                report.attributeChoices.itemSelectable?.[id] === false &&
+                id !== Number(draft.heldItem) ? null : (
+                  <option
+                    key={id}
+                    value={id}
+                    disabled={
+                      report.attributeChoices.itemSelectable?.[id] === false
+                    }
+                    data-source-invalid={
+                      report.attributeChoices.itemSelectable?.[id] === false ||
+                      undefined
+                    }
+                  >
+                    {name[lang]}
+                  </option>
+                ),
+              )}
             </Select>
           </label>
         )}
@@ -266,11 +302,20 @@ export function StandaloneGbEditor({
                 })
               }
             >
-              {report.moveChoices.map((choice, id) => (
-                <option key={id} value={id}>
-                  {choice.name[lang]}
-                </option>
-              ))}
+              {report.moveChoices.map((choice, id) =>
+                choice.selectable === false && id !== Number(move) ? null : (
+                  <option
+                    key={id}
+                    value={id}
+                    disabled={choice.selectable === false}
+                    data-source-invalid={
+                      choice.selectable === false || undefined
+                    }
+                  >
+                    {choice.name[lang]}
+                  </option>
+                ),
+              )}
             </Select>
           </label>
           {(["movePp", "movePpUps"] as const).map((key) => (

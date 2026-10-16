@@ -7,7 +7,7 @@ describe("settings input metadata", () => {
   it("carries native numeric bounds to the HTML control and keeps pending values disabled", () => {
     const json = '{"legality":{"count":5,"pending":true}}';
     const bundle: SaveSettingsBundle = {
-      apiVersion: 182,
+      apiVersion: 183,
       json,
       catalog: {
         groups: [

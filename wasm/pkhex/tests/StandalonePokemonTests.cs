@@ -67,6 +67,8 @@ internal static class StandalonePokemonTests
     private static void Exercise(PKM p)
     {
         var filename = "entity." + p.Extension;
+        var directory=PokemonChoiceCatalog.Read(p);
+        ushort identitySpecies=(ushort)directory.Species.Where(id=>id!=0&&id!=p.Species).Order().First(id=>PokemonIdentity.Genders(p,(ushort)id,0).SequenceEqual(new byte[]{2}));
         foreach (bool party in new[] {false, true})
         foreach (bool encrypted in new[] {false, true})
         {
@@ -105,10 +107,10 @@ internal static class StandalonePokemonTests
             Reject(() => StandalonePokemon.Edit(input, filename, edit with {Level = 0}, encrypted));
             Reject(() => StandalonePokemon.Edit(input, filename, edit with {Ivs = [int.MaxValue, 0, 0, 0, 0, 0]}, encrypted));
             Reject(() => StandalonePokemon.Edit(input, filename, edit with {Identity = new(0, 0, 0, false)}, encrypted));
-            var gender = PokemonIdentity.Genders(actual, 81, 0)[0];
-            var identityEdit = edit with {Identity = new(81, 0, gender, true)};
+            var gender = PokemonIdentity.Genders(actual, identitySpecies, 0)[0];
+            var identityEdit = edit with {Identity = new(identitySpecies, 0, gender, true)};
             var changed = StandalonePokemon.Open(StandalonePokemon.Edit(input, filename, identityEdit, encrypted), filename).Entity;
-            Check(changed.Species == 81 && changed.Gender == 2 && !changed.IsNicknamed, "Standalone identity applies personal constraints");
+            Check(changed.Species == identitySpecies && changed.Gender == 2 && !changed.IsNicknamed, "Standalone identity applies personal constraints to an available genderless species");
             if (changed is PB7 size) Check(size.HeightAbsolute == size.CalcHeightAbsolute && size.WeightAbsolute == size.CalcWeightAbsolute, "Changed species refreshes Let's Go absolute size");
             Check(input.SequenceEqual(before), "Operations and rejected edits preserve original bytes");
         }

@@ -9,11 +9,12 @@ internal static class PokemonRelearn
 {
     public static bool Supported(PKM p) => p is PK6 or PK7 or PB7 or G8PKM or PA8 or PK9 or PA9;
     public static ushort[]? Read(PKM p) => Supported(p) ? p.RelearnMoves : null;
-    public static void Apply(PKM p, RelearnEdit edit)
+    public static void Apply(PKM p, RelearnEdit edit,SaveFile? saveContext=null)
     {
         if (!Supported(p)) throw new ArgumentException("Pokemon relearn moves are unavailable in this format.");
         if (edit.Moves is not { Length: 4 } || edit.Moves.Any(m => m < 0 || m > p.MaxMoveID))
             throw new ArgumentException("Pokemon relearn moves require four valid move IDs.");
+        PokemonChoiceCatalog.ValidateRelearn(p,edit.Moves,saveContext);
         var moves = edit.Moves.Select(m => (ushort)m).ToArray();
         p.SetRelearnMoves(moves);
         if (!p.RelearnMoves.SequenceEqual(moves))

@@ -4,7 +4,7 @@ using PKHeX.Core;
 namespace PokeRNGKit.SaveEditor;
 
 public sealed record PokemonIdentityEdit(ushort Species, byte Form, byte Gender, bool UseSpeciesName);
-public sealed record SpeciesChoice(ushort Id, LocalizedText Name, FormChoice[] Forms);
+public sealed record SpeciesChoice(ushort Id, LocalizedText Name, FormChoice[] Forms, bool? Selectable = null);
 public sealed record FormChoice(LocalizedText Name, byte[] Genders, LocalizedText[] Abilities);
 
 internal static class PokemonIdentity
@@ -33,7 +33,10 @@ internal static class PokemonIdentity
         };
     }
 
-    public static SpeciesChoice[] Choices(SaveFile save) => Enumerable.Range(PokemonEditorMode.HaX?0:1, save.BlankPKM.MaxSpeciesID+(PokemonEditorMode.HaX?1:0))
+    public static SpeciesChoice[] Choices(SaveFile save)
+    {
+        var directory=PokemonChoiceCatalog.Read(save);
+        return Enumerable.Range(PokemonEditorMode.HaX?0:1, save.BlankPKM.MaxSpeciesID+(PokemonEditorMode.HaX?1:0))
         .Select(id =>
         {
             var species = (ushort)id;
@@ -43,8 +46,9 @@ internal static class PokemonIdentity
                 var personal = save.Personal.GetFormEntry(species, (byte)f);
                 return new FormChoice(Text(s => Forms(save, species, s)[f]), Genders(save, species, (byte)f),
                     Enumerable.Range(0, personal.AbilityCount).Select(a => Text(s => s.abilitylist[personal.GetAbilityAtIndex(a)])).ToArray());
-            }).ToArray());
+            }).ToArray(),directory.Species.Contains(id));
         }).ToArray();
+    }
 
     public static void Apply(SaveFile save, PKM p, PokemonIdentityEdit edit, int box)
     {
@@ -78,7 +82,10 @@ internal static class PokemonIdentity
             PersonalInfo.RatioMagicMale => [0], _ => [0, 1],
         };
     }
-    public static SpeciesChoice[] Choices(PKM p) => Enumerable.Range(PokemonEditorMode.HaX?0:1, p.MaxSpeciesID+(PokemonEditorMode.HaX?1:0)).Select(id =>
+    public static SpeciesChoice[] Choices(PKM p)
+    {
+        var directory=PokemonChoiceCatalog.Read(p);
+        return Enumerable.Range(PokemonEditorMode.HaX?0:1, p.MaxSpeciesID+(PokemonEditorMode.HaX?1:0)).Select(id =>
     {
         var species = (ushort)id;
         var forms = Forms(p, species, GameInfo.GetStrings("en"));
@@ -87,8 +94,9 @@ internal static class PokemonIdentity
             var personal = SpeciesCopy(p, species, (byte)f).PersonalInfo;
             return new FormChoice(Text(s => Forms(p, species, s)[f]), Genders(p, species, (byte)f),
                 Enumerable.Range(0, personal.AbilityCount).Select(a => Text(s => s.abilitylist[personal.GetAbilityAtIndex(a)])).ToArray());
-        }).ToArray());
+        }).ToArray(),directory.Species.Contains(id));
     }).ToArray();
+    }
     public static void Apply(PKM p, PokemonIdentityEdit edit, int box)
     {
         if ((!PokemonEditorMode.HaX && edit.Species == 0) || edit.Species > p.MaxSpeciesID || (!(PokemonEditorMode.HaX&&p.Format>=4)&&edit.Form >= Forms(p, edit.Species, GameInfo.GetStrings("en")).Length))

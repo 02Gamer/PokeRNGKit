@@ -137,6 +137,18 @@ export function PokemonEditor({
     return Number(value);
   };
   const buildEdit = (): PokemonEdit => {
+    if (
+      (Number(values.species) !== pokemon.species &&
+        speciesChoice?.selectable === false) ||
+      (Number(values.heldItem) !== pokemon.heldItem &&
+        attributeChoices.itemSelectable?.[Number(values.heldItem)] === false) ||
+      values.moves.some(
+        (move, index) =>
+          Number(move) !== pokemon.moveIds[index] &&
+          moveChoices[Number(move)]?.selectable === false,
+      )
+    )
+      throw Error(words.pokemonValueError);
     const evs = showEvs
       ? values.evs.map((value) => integer(value, pokemon.limits.ev))
       : pokemon.evs;
@@ -250,11 +262,19 @@ export function PokemonEditor({
                 #{values.species}
               </option>
             )}
-            {attributeChoices.species.map((choice) => (
-              <option key={choice.id} value={choice.id}>
-                {choice.name[lang]}
-              </option>
-            ))}
+            {attributeChoices.species.map((choice) =>
+              choice.selectable === false &&
+              choice.id !== Number(values.species) ? null : (
+                <option
+                  key={choice.id}
+                  value={choice.id}
+                  disabled={choice.selectable === false}
+                  data-source-invalid={choice.selectable === false || undefined}
+                >
+                  {choice.name[lang]}
+                </option>
+              ),
+            )}
           </Select>
         </label>
         <label className="field">
@@ -423,12 +443,28 @@ export function PokemonEditor({
                   #{values[key]}
                 </option>
               )}
-              {choices.map((choice, id) => (
-                <option key={id} value={id}>
-                  {choice[lang]}
-                  {key === "abilityIndex" ? ` (${id + 1})` : ""}
-                </option>
-              ))}
+              {choices.map((choice, id) =>
+                key === "heldItem" &&
+                attributeChoices.itemSelectable?.[id] === false &&
+                id !== Number(values[key]) ? null : (
+                  <option
+                    key={id}
+                    value={id}
+                    disabled={
+                      key === "heldItem" &&
+                      attributeChoices.itemSelectable?.[id] === false
+                    }
+                    data-source-invalid={
+                      (key === "heldItem" &&
+                        attributeChoices.itemSelectable?.[id] === false) ||
+                      undefined
+                    }
+                  >
+                    {choice[lang]}
+                    {key === "abilityIndex" ? ` (${id + 1})` : ""}
+                  </option>
+                ),
+              )}
             </Select>
           </label>
         ))}
@@ -488,11 +524,21 @@ export function PokemonEditor({
                   })
                 }
               >
-                {moveChoices.map((move, id) => (
-                  <option key={id} value={id}>
-                    {move.name[lang]}
-                  </option>
-                ))}
+                {moveChoices.map((move, id) =>
+                  move.selectable === false &&
+                  id !== Number(values.moves[index]) ? null : (
+                    <option
+                      key={id}
+                      value={id}
+                      disabled={move.selectable === false}
+                      data-source-invalid={
+                        move.selectable === false || undefined
+                      }
+                    >
+                      {move.name[lang]}
+                    </option>
+                  ),
+                )}
               </Select>
             </label>
             <label className="field">

@@ -1,5 +1,24 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-17 编辑目录过滤（API183）
+
+基线 b5e9b851c5aa1af58bab4b83c1c24fd7b3b2992f。增加种类、持有道具、招式与回忆招式的可选状态，保留名称／PP的编号索引；存档采用Core FilteredGameDataSource，独立实体采用自身存储格式上下文，不把原籍游戏当作目标游戏。普通模式隐藏不可选项并保留当前异常值的禁用显示，修改其他字段不强制替换；新值在编辑、准备与实际写入链校验。SM的回忆招式使用USUM上限并与普通招式分开。
+
+标准、GB与回忆编辑器的三语专项（2文件／12项）通过。Core目录对照专项（18个游戏目录、普通／HaX两种模式）通过，协议已同步升级API183。 .tmp/pkhex-api183-catalogue-tail-final.log 相关原生专项退出0，覆盖GB、回忆、真实存档上下文、冻结放入、HaX空白及真实E.sav工作副本； .tmp/pkhex-api183-core.log 浏览器核心构建退出0。 .tmp/pkhex-api183-verify-final.log 完整前端检查退出0，358文件／2168项测试、类型、Lint、格式、网页及PWA构建通过；首轮因前端版本常量遗漏失败，修正后完整重跑通过。 .tmp/pkhex-api183-native-full.log 默认完整原生检查退出0，含真实E.sav工作副本。原件与副本SHA-256均保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442；本节不表示全局HaX完成。外部Chrome本次仍连接超时，页面未核验。上一轮b5e9b851的Actions 38954187425已完成（success），不作所有者验收。
+
+### 目录输入与存储约束
+
+来源为 `PKHeX.Core/Game/GameStrings/FilteredGameDataSource.cs`、`GameDataSource.cs`、
+`Legality/Legal.cs`、`Moves/MoveInfo7b.cs` 与 `PKM/PB7.cs`，以及 WinForms
+`Controls/PKM Editor/PKMEditor.cs.PopulateFilteredDataSources`。
+普通种类沿游戏个人表与种类上限，持有道具沿持有目录及存档上限；HaX仍保留对应上限。
+普通招式按可掌握目录、LGPE名单及占位招式规则过滤，回忆目录单独处理。
+SM普通招式上限719，回忆目录沿USUM上限728；名称／PP仍覆盖完整PK7编号以保留当前异常值。
+PB7对象的道具上限959，而LGPE存档目录上限1057；绑定存档的HaX输入与校验沿1057，
+由PB7的UInt16字段保存并核对回读，未绑定存档的独立文件保留959上限。
+独立LGPE招式名单取自固定26.08.26的Core内部名单，并与Core的SAV7b目录逐项对照；
+其他独立目录使用公开物品接口与实体存储上下文，不构造运行时假存档。
+
 ## 2026-10-17 HaX空白编辑与清空准备（API182）
 
 基线 b36c1480d2d42e6043b7682fc8e85adce780702f。以Startup.ForceHaXOnLaunch作为统一Core模式，模式元数据随存档与实体返回。HaX允许查看实际空格位、GB空列表和空队尾，读取时保留类型、编码、主体／姓名及损坏的校验和；原始存档不写。基础编辑可从空记录创建宝可梦，准备和冻结放入可用空记录清空箱位或删除队伍成员。确认预览明确区分清空与普通放入，队伍删除后前移，空队尾删除不改变成员。普通模式继续拒绝空记录及不合格输入，物理锁仍按API181权限处理。

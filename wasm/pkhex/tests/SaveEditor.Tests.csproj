@@ -20,6 +20,7 @@
     <Compile Include="../PokemonSetApi.cs" Link="PokemonSetApi.cs" />
     <Compile Include="../PokemonEditorContext.cs" Link="PokemonEditorContext.cs" />
     <Compile Include="../PokemonEditorMode.cs" Link="PokemonEditorMode.cs" />
+    <Compile Include="../PokemonChoiceCatalog.cs" Link="PokemonChoiceCatalog.cs" />
     <Compile Include="../PokemonIdentityTools.cs" Link="PokemonIdentityTools.cs" />
     <Compile Include="../PokemonDimensions.cs" Link="PokemonDimensions.cs" />
     <Compile Include="../PokemonLegacyDetails.cs" Link="PokemonLegacyDetails.cs" />

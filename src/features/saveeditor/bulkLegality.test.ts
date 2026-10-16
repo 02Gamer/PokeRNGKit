@@ -10,7 +10,7 @@ import { SaveBulkLegalityEditor } from "./SaveBulkLegalityEditor";
 
 const sourceHash = bulkLegalitySourceHash(new Uint8Array());
 const report = {
-  apiVersion: 182,
+  apiVersion: 183,
   sourceHash,
   clean: true,
   analyzedCount: 0,

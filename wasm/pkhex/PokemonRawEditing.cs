@@ -91,7 +91,7 @@ internal static class PokemonRawEditing
                 PokemonRibbons.Apply(p, edit.Ribbons ?? throw new ArgumentException("Pokemon ribbon edit is missing."));
                 break;
             case "relearn":
-                PokemonRelearn.Apply(p, edit.Relearn ?? throw new ArgumentException("Pokemon relearn edit is missing."));
+                PokemonRelearn.Apply(p, edit.Relearn ?? throw new ArgumentException("Pokemon relearn edit is missing."),saveContext??PokemonEditorContext.Save);
                 break;
             case "shiny":
                 PokemonShiny.Apply(p, edit.Shiny ?? throw new ArgumentException("Pokemon shiny edit is missing."));

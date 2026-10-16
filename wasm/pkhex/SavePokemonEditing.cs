@@ -34,7 +34,7 @@ public static partial class SaveService
         if(PokemonEditing.Read(save,request.Box,request.Slot) is not GBPKM p || !p.Valid || p.Species==0 || !p.ChecksumValid)
             throw new ArgumentException("GB Pokemon slot must contain valid data.");
         StorageEditing.Writable(save,new(request.Box,request.Slot));
-        if(request.Basic is { } basic)StandaloneGb.Apply(p,basic);
+        if(request.Basic is { } basic)StandaloneGb.Apply(p,basic,save);
         else
         {
             if(request.Special!.Egg?.Action=="makeEgg" && request.Box==-1 && !Enumerable.Range(0,save.PartyCount).Any(i=>i!=request.Slot&&save.GetPartySlotAtIndex(i) is {Species:not 0,IsEgg:false}))
