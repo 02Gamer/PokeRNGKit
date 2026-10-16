@@ -13,7 +13,7 @@ internal static class PokemonSetSession
     private sealed record Pending(string Token,string SourceHash,string TargetHash,string Policy,byte[] Output,bool Warnings);
     private static Pending? current;
     private static long revision;
-    private static string Policy()
+    internal static string Policy()
     {
         string json=JsonSerializer.Serialize(SaveProgramSettingsRuntime.Current??SaveProgramSettingsCodec.Defaults(),SaveProgramSettingsJson.Default.SaveProgramSettings);
         var settings=SaveFile.SetUpdateSettings;

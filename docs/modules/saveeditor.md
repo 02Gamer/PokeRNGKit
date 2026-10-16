@@ -1,5 +1,25 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-17 额外格位（API184）
+
+存档工作区增加额外格位列表、宝可梦图像、三语名称及独立编辑来源。读取沿Core `GetExtraSlots(HaX)`，权限沿 `SlotInfoMisc.Mutable`／`CanWriteTo`，与非空状态及自动合法性标记分别处理。只读记录可查看／导出；可写记录复用当前编辑缓冲准备层，确认冻结输出后更新工作副本，并进入原有撤销链。按钮复用共享样式，新增CSS仅安排布局、滚动和选中状态。
+
+位置由StorageSlotType、实际槽号和PartyFormat共同定位，不按普通箱位／队伍位置解析。导出后重新读取并校验原物理宽度、完整存档校验及输出哈希。ZA剧情记录清空后，Core枚举会在空记录处停止；验证仍定位原物理记录，不自行前移后续记录。
+
+### 输入与存储约束
+
+来源为Core `Editing/Saves/Slots/Extensions.cs`、`Info/SlotInfoMisc.cs` 与WinForms `SAVEditor.InitializeExtraSlots`。槽号协议范围0–127，类型必须是Core已定义枚举；实际存在性与模式过滤继续由 `GetExtraSlots(HaX)` 判断。实体严格匹配实际存储类型及GB地区编码。ZA剧情记录步长0x1A8、主体偏移8，宽度沿 `SIZE_PARTY`。
+
+位置／来源与确认JSON最多4096个UTF-16码元，准备请求及编辑文件Base64字符串最多1,048,576个码元，文件名最多1024个码元。这些是网页协议边界；实际实体长度与字段范围仍沿现有独立实体和草稿准备校验。未知／重复字段、失效哈希、只读目标及不匹配格式均拒绝；确认同时绑定来源／输出哈希和当前设置，失败也消耗一次性票据。
+
+### 工程检查
+
+额外格位专项覆盖12种公开夹具的普通／HaX目录、来源绑定、XY冻结写入，以及GB三种编码、FRLG、剑盾各修订和PLA的只读布局。朱紫／ZA各修订0、1、2覆盖实际可变格位写入、HaX清空、完整文件对照与来源保护；冻结会话另覆盖替换、定向丢弃、设置／来源变化及失败后失效。朱紫北上图鉴的Core注册会随机选择展示性别，因此独立完整文件对照使用游戏中存在的无性别种类，产品写入保留Core行为。
+
+`.tmp/pkhex-api184-native-full.log` 默认完整原生检查退出0，含真实E.sav工作副本；`.tmp/pkhex-api184-core.log` 浏览器核心构建退出0。`.tmp/pkhex-api184-tests-full.log` 359文件／2187项完整前端测试通过。随后共享按钮样式收口的 `.tmp/pkhex-api184-controls-lint.log`、`.tmp/pkhex-api184-controls-typecheck.log`、`.tmp/pkhex-api184-controls-web.log` 与 `.tmp/pkhex-api184-controls-format-check.log` 均退出0，全仓差异检查通过；保留既有Hook、裁剪、包体及插件耗时提示。
+
+原件与副本SHA-256均保持 `7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442`。外部Chrome连接仍超时，正式页面、连续编辑及实际下载未核验；本批工程结果不表示所有者验收或全局HaX完成。后续范围见 [HaX清单](../pkhex-hax.md)。
+
 ## 2026-10-17 编辑目录过滤（API183）
 
 基线 b5e9b851c5aa1af58bab4b83c1c24fd7b3b2992f。增加种类、持有道具、招式与回忆招式的可选状态，保留名称／PP的编号索引；存档采用Core FilteredGameDataSource，独立实体采用自身存储格式上下文，不把原籍游戏当作目标游戏。普通模式隐藏不可选项并保留当前异常值的禁用显示，修改其他字段不强制替换；新值在编辑、准备与实际写入链校验。SM的回忆招式使用USUM上限并与普通招式分开。

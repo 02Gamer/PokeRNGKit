@@ -18,6 +18,13 @@ import { beginSaveRequest } from "./clientActivity";
 import { SaveDetectionEditor } from "./SaveDetectionEditor";
 import { saveDetectionWords, type SaveDetectionChoice } from "./saveDetection";
 import { SimpleTrainerEditor } from "./SimpleTrainerEditor";
+import { ExtraSlotsEditor } from "./ExtraSlotsEditor";
+import {
+  checkExtraCatalog,
+  extraSlotWords,
+  type ExtraSlotKey,
+  type ExtraSlotWriteRequest,
+} from "./extraSlots";
 import { supportsSimpleTrainer, simpleTrainerWords } from "./simpleTrainer";
 import {
   MysteryGiftDatabaseViewer,
@@ -2369,6 +2376,88 @@ export function SaveEditorPanel(
       .run(working.current, token, "simpleTrainerDiscard")
       .catch(() => undefined);
   };
+  const performExtraSlot = (action: (id: number) => Promise<void>) =>
+    perform(async (id) => {
+      try {
+        await action(id);
+      } catch (cause) {
+        throw new Error(extraSlotWords[batchLang].invalid, { cause });
+      }
+    });
+  const readExtraSlots = async () => {
+    let catalog: import("./extraSlots").ExtraSlotCatalog | undefined;
+    await performExtraSlot(async (id) => {
+      const input = working.current;
+      if (!input) return;
+      const result = await client.current.run(input, undefined, "extraSlots");
+      if (id !== operation.current || working.current !== input) return;
+      if (!result.extraSlots) throw Error(extraSlotWords[batchLang].invalid);
+      catalog = checkExtraCatalog(
+        result.extraSlots,
+        bulkLegalitySourceHash(input),
+      );
+    });
+    return catalog;
+  };
+  const openExtraSlot = async (key: ExtraSlotKey, view: boolean) => {
+    let opened:
+      | {
+          file?: import("./pokemonSet").PokemonEditorFile;
+          context: import("./pokemonSet").PokemonEditorSaveContext;
+        }
+      | undefined;
+    await performExtraSlot(async (id) => {
+      const input = working.current;
+      if (!input) return;
+      const result = view
+        ? await client.current.run(input, JSON.stringify(key), "extraSlotOpen")
+        : undefined;
+      if (id !== operation.current || working.current !== input) return;
+      if (view && !result?.extraSlotFile)
+        throw Error(extraSlotWords[batchLang].invalid);
+      opened = {
+        file: result?.extraSlotFile,
+        context: {
+          bytes: input,
+          source: { extra: structuredClone(key) },
+          recognition: client.current.getRecognition(),
+          brProfile: client.current.getBRProfile(),
+        },
+      };
+    });
+    return opened;
+  };
+  const previewExtraSlot = async (request: ExtraSlotWriteRequest) => {
+    let preview: import("./extraSlots").ExtraSlotPreview | undefined;
+    await performExtraSlot(async (id) => {
+      const input = working.current;
+      if (!input) return;
+      const result = await client.current.run(
+        input,
+        JSON.stringify(request),
+        "extraSlotPreview",
+      );
+      if (id !== operation.current || working.current !== input) {
+        if (result.extraSlotPreview)
+          await client.current.run(
+            input,
+            result.extraSlotPreview.token,
+            "extraSlotDiscard",
+          );
+        return;
+      }
+      if (!result.extraSlotPreview)
+        throw Error(extraSlotWords[batchLang].invalid);
+      preview = result.extraSlotPreview;
+    });
+    return preview;
+  };
+  const discardExtraSlot = async (token: string) => {
+    if (working.current)
+      await client.current
+        .run(working.current, token, "extraSlotDiscard")
+        .then(() => undefined);
+  };
   const readSimpleTrainer = async () => {
     let catalog: import("./simpleTrainer").SimpleTrainerCatalog | undefined;
     await perform(async (id) => {
@@ -4313,6 +4402,7 @@ export function SaveEditorPanel(
       | "boxBinaryCommit"
       | "boxImportCommit"
       | "pokemonSetCommit"
+      | "extraSlotCommit"
       | "battleTemplateImportCommit"
       | "propertyCommit"
       | "pokemon"
@@ -4404,6 +4494,8 @@ export function SaveEditorPanel(
         .catch((cause) => {
           if (kind === "battleTemplateImportCommit")
             throw new Error(battleImportWords[batchLang].failed);
+          if (kind === "extraSlotCommit")
+            throw new Error(extraSlotWords[batchLang].invalid, { cause });
           throw cause;
         });
       if (id !== operation.current) return;
@@ -4433,7 +4525,8 @@ export function SaveEditorPanel(
   };
   const applyReviewedEdit = async (
     confirmation: { token: string; sourceHash: string; targetHash: string },
-    kind: "raid9Commit" | "fashion9Commit" | "donut9aCommit",
+    kind:
+      "raid9Commit" | "fashion9Commit" | "donut9aCommit" | "extraSlotCommit",
     sourceSound?: true,
   ) => {
     let applied = false;
@@ -4791,6 +4884,11 @@ export function SaveEditorPanel(
 
   const sectionItems: SaveSectionItem[] = report
     ? [
+        {
+          id: "extraSlots",
+          label: extraSlotWords[batchLang].title,
+          available: !report.trainerOnly,
+        },
         {
           id: "trainer9a",
           label: tr9aWords[batchLang].title,
@@ -6263,6 +6361,20 @@ export function SaveEditorPanel(
                     onAnalyze={analyzeRegisteredGroup}
                   />
                 </PokemonHoverSurface>
+              ) : section === "extraSlots" ? (
+                <ExtraSlotsEditor
+                  key={name + ":" + fileRevision}
+                  revision={workingRevision}
+                  busy={busy}
+                  lang={batchLang}
+                  onRead={readExtraSlots}
+                  onOpen={openExtraSlot}
+                  onPreview={previewExtraSlot}
+                  onDiscard={discardExtraSlot}
+                  onApply={(confirmation) =>
+                    applyReviewedEdit(confirmation, "extraSlotCommit")
+                  }
+                />
               ) : section === "pokemon" ? (
                 <PokemonHoverSurface
                   report={report}

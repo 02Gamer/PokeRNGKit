@@ -12,17 +12,17 @@ import { subscribeMysteryGiftChanges } from "./mysteryGiftChanges";
 export class SaveEditorClient {
   private editorContext?: {
     bytes: Uint8Array;
-    source: import("./domain").PokemonPosition;
+    source: import("./pokemonSet").PokemonEditorSaveContext["source"];
   };
   private editorContextInput?: Uint8Array;
   setEditorContext(context?: {
     bytes: Uint8Array;
-    source: import("./domain").PokemonPosition;
+    source: import("./pokemonSet").PokemonEditorSaveContext["source"];
   }) {
     if (
       this.editorContextInput === context?.bytes &&
-      this.editorContext?.source.box === context?.source.box &&
-      this.editorContext?.source.slot === context?.source.slot
+      JSON.stringify(this.editorContext?.source) ===
+        JSON.stringify(context?.source)
     )
       return;
     if (
@@ -35,7 +35,10 @@ export class SaveEditorClient {
     );
     this.editorContextInput = context?.bytes;
     this.editorContext = context
-      ? { bytes: new Uint8Array(context.bytes), source: { ...context.source } }
+      ? {
+          bytes: new Uint8Array(context.bytes),
+          source: structuredClone(context.source),
+        }
       : undefined;
   }
   private worker?: Worker;

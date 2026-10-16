@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 export type SaveEditorRequestKind =
+  | "extraSlots"
+  | "extraSlotOpen"
+  | "extraSlotPreview"
+  | "extraSlotCommit"
+  | "extraSlotDiscard"
   | "pokemonEditorOpen"
   | "pokemonSetPreview"
   | "pokemonSetCommit"

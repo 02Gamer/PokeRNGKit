@@ -8,7 +8,7 @@ export interface PokemonEditorFile {
 }
 export interface PokemonEditorSaveContext {
   bytes: Uint8Array;
-  source: PokemonPosition;
+  source: PokemonPosition | import("./extraSlots").ExtraSlotSource;
   recognition?: import("./saveDetection").SaveDetectionChoice;
   brProfile?: number;
 }

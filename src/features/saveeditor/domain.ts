@@ -45,7 +45,7 @@ export interface TrainerDateField {
   max: string;
 }
 
-export const SAVE_EDITOR_API_VERSION = 183;
+export const SAVE_EDITOR_API_VERSION = 184;
 export interface SaveReport {
   slotAccess?: import("./slotAccess").SaveSlotAccessInfo;
   registeredTeams?: boolean;
@@ -64,7 +64,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 183;
+  apiVersion: 184;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -1028,6 +1028,9 @@ export interface SaveEditorResult {
   trainer7Preview?: import("./trainer7").Tr7Preview;
   trainer6?: import("./trainer6").Tr6Catalog;
   simpleTrainer?: import("./simpleTrainer").SimpleTrainerCatalog;
+  extraSlots?: import("./extraSlots").ExtraSlotCatalog;
+  extraSlotFile?: import("./pokemonSet").PokemonEditorFile;
+  extraSlotPreview?: import("./extraSlots").ExtraSlotPreview;
   simpleTrainerPreview?: import("./simpleTrainer").SimpleTrainerPreview;
   zygarde7?: import("./zygarde7").Zygarde7Catalog;
   hall7?: import("./hall7").Hall7Catalog;

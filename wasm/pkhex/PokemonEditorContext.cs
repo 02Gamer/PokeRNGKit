@@ -10,10 +10,17 @@ internal static class PokemonEditorContext
 {
     internal static SaveFile? Save {get;private set;}
     internal static PokemonPosition? Source {get;private set;}
-    internal static void Clear(){Save=null;Source=null;}
+    internal static ExtraSlotKey? Extra {get;private set;}
+    internal static void Clear(){Save=null;Source=null;Extra=null;}
     internal static void Configure(byte[] input,string json)
     {
-        Clear();var position=ReadPosition(json);Bind(SaveService.OpenDatabaseSave(input),position);
+        Clear();
+        if(json is null||json.Length>4096)throw new ArgumentException("Invalid editor source.");
+        using var doc=JsonDocument.Parse(json);PokemonSetSession.Unique(doc.RootElement);
+        var save=SaveService.OpenDatabaseSave(input);
+        if(doc.RootElement.ValueKind==JsonValueKind.Object&&doc.RootElement.TryGetProperty("extra",out var extra))
+            BindExtra(save,ExtraSlots.Decode(extra.GetRawText()),json);
+        else Bind(save,ReadPosition(json));
     }
     internal static PokemonPosition ReadPosition(string json)
     {
@@ -36,6 +43,12 @@ internal static class PokemonEditorContext
         if(save is SAV3FRLG source&&copy is SAV3FRLG target)target.ResetPersonal(source.Version);
         return copy;
     }
+    internal static void BindExtra(SaveFile save,ExtraSlotKey key,string? json=null)
+    {
+        Clear();SavePokemonEditing.Require(save);
+        if(json is not null)JsonSerializer.Deserialize(json,ExtraSlotJson.Default.ExtraSlotSource);
+        ExtraSlots.Resolve(save,key);Save=CloneSave(save);Extra=key;
+    }
     internal static PKM Validate(PKM p)
     {
         if(Save is not{} save)return p;
@@ -50,7 +63,7 @@ internal static class PokemonEditorContext
     }
     internal static OriginCatalog Origin(PKM p,int? version=null,int? ball=null)=>Save is{} save?PokemonOrigin.Catalog(save,p,version,ball):PokemonOrigin.Catalog(p,version,ball);
     internal static void Identity(PKM p,PokemonIdentityEdit edit,bool party)
-    {if(Save is{} save)PokemonIdentity.Apply(save,p,edit,Source!.Box);else PokemonIdentity.Apply(p,edit,party?-1:0);}
+    {if(Save is{} save)PokemonIdentity.Apply(save,p,edit,Source?.Box??(Extra?.PartyFormat==true?-1:0));else PokemonIdentity.Apply(p,edit,party?-1:0);}
     internal static StandaloneEggCatalog Egg(PKM p)
     {
         if(Save is not{} save)return StandaloneEgg.Read(p);

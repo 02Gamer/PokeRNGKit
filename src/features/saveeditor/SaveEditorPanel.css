@@ -31,6 +31,7 @@
   align-items: center;
   gap: 8px;
 }
+.save-editor-button,
 .save-editor-toolbar button,
 .save-property-batch button,
 .save-editor-file {
@@ -40,6 +41,7 @@
   gap: 8px;
   min-height: 44px;
 }
+.save-editor-button,
 .save-editor-toolbar button,
 .save-property-batch button,
 .save-editor-profile > button {
@@ -73,6 +75,7 @@
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
+.save-editor-button:not(:disabled):hover,
 .save-editor-toolbar button:not(:disabled):hover,
 .save-property-batch button:not(:disabled):hover,
 .save-editor-profile > button:not(:disabled):hover {

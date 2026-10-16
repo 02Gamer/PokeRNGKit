@@ -27,6 +27,13 @@ internal static class PokemonDraftPreparing
         return step.Fields.ToHashSet(StringComparer.Ordinal);
     }
     internal static PKM Prepare(SaveFile save,PKM original,PokemonPosition source,PokemonDraftCapture capture,bool? editorParty=null)
+        =>PrepareCore(save,original,new(source.Box==-1,source.Box,source.Slot),capture,editorParty);
+    // Extra storage keeps its own identity. Only editing semantics enter this
+    // helper; no extra record is resolved as a box/party position.
+    internal static PKM PrepareExtra(SaveFile save,PKM original,SlotInfoMisc slot,PokemonDraftCapture capture,bool? editorParty=null)
+        =>PrepareCore(save,original,new(slot.PartyFormat,slot.PartyFormat?-1:0,slot.Slot),capture,editorParty);
+    private sealed record DraftLocation(bool Party,int FormBoxHint,int Slot);
+    private static PKM PrepareCore(SaveFile save,PKM original,DraftLocation source,PokemonDraftCapture capture,bool? editorParty)
     {
         if(capture.Scope is not{Length:>0 and <=256}||capture.Sections is null||capture.Sections.Length>64||capture.Sections.Any(s=>s is null||s.Section is not{Length:>0 and <=64}||s.Steps is not{Length:>0 and <=32})||capture.Sections.Select(s=>s.Section).Distinct(StringComparer.Ordinal).Count()!=capture.Sections.Length)throw new ArgumentException("Invalid editor snapshot scope or sections.");
         var steps=capture.Sections.SelectMany(s=>s.Steps).ToArray();if(steps.Length>64)throw new ArgumentException("Editor snapshot exceeds operation limit.");
@@ -50,7 +57,7 @@ internal static class PokemonDraftPreparing
                     if(fields.Contains("nature")&&p.Format<=4)Claim("pid",index,"nature");
                     actions.Add((30,index,()=>{
                         if(fields.Contains("trainerIds")&&original.TrainerIDDisplayFormat!=p.TrainerIDDisplayFormat)throw new ArgumentException("Apply the origin version before editing its trainer ID format.");
-                        var merged=Rebase(p,edit,fields,source);PokemonEditing.Apply(p,merged,source.Box==-1,identity=>PokemonIdentity.Apply(save,p,identity,source.Box),save);
+                        var merged=Rebase(p,edit,fields,source);PokemonEditing.Apply(p,merged,source.Party,identity=>PokemonIdentity.Apply(save,p,identity,source.FormBoxHint),save);
                     }));break;
                 }
                 case "gb":
@@ -70,7 +77,7 @@ internal static class PokemonDraftPreparing
                         if(edit.Action=="level"){if(edit.Level is not int l||l is <0 or >999)throw new ArgumentException("Invalid editor level.");levels.Add(Math.Clamp(l,1,100));}
                         else if(edit.Action=="experience"){if(edit.Experience is not uint exp)throw new ArgumentException("Missing editor experience.");experiences.Add(exp);}
                         else Claim(edit.Action=="hiddenPower"?"ivs":edit.Action is "partyStats" or "resetPartyStats"?"partyStats":"status",index,edit.Action+JsonSerializer.Serialize(edit,PokemonSetJson.Default.PokemonVitalsEdit));
-                        actions.Add((edit.Action is "partyStats" or "resetPartyStats"?90:edit.Action=="level"?60:edit.Action=="experience"?61:50,index,()=>PokemonVitals.Apply(p,edit,editorParty??source.Box==-1,save)));
+                        actions.Add((edit.Action is "partyStats" or "resetPartyStats"?90:edit.Action=="level"?60:edit.Action=="experience"?61:50,index,()=>PokemonVitals.Apply(p,edit,editorParty??source.Party,save)));
                     }break;
                 }
                 case "gbSpecial":
@@ -79,7 +86,7 @@ internal static class PokemonDraftPreparing
                     if(edit.Action=="fields"&&edit.Fields is not null){foreach(var property in step.Edit.GetProperty("fields").EnumerateObject())if(property.Value.ValueKind!=JsonValueKind.Null)Claim(property.Name=="pokerusStrain"||property.Name=="pokerusDays"?"virus."+property.Name:"gb."+property.Name,index,property.Value.GetRawText());}
                     else if(edit.Action=="egg"&&edit.Egg is{Action:"cycles",Cycles:not null})Claim("care.originalFriendship",index,edit.Egg.Cycles.Value);
                     else throw new ArgumentException("Editor preparation does not execute GB commands.");
-                    actions.Add((40,index,()=>StandaloneGbSpecial.Apply(gb,edit,source.Box==-1)));break;
+                    actions.Add((40,index,()=>StandaloneGbSpecial.Apply(gb,edit,source.Party)));break;
                 }
                 case "raw":
                 {
@@ -99,7 +106,7 @@ internal static class PokemonDraftPreparing
                     else if(edit.Action=="expert"&&(edit.Expert?.Ability is not null||edit.Expert?.AbilityNumber is not null))Claim("ability",index,step.Edit.GetRawText());
                     else Claim("raw."+edit.Action,index,step.Edit.GetRawText());
                     int order=edit.Action=="origin"?0:edit.Action=="trainerDetails"?10:edit.Action=="history"?20:edit.Action=="values"?70:40;
-                    actions.Add((order,index,()=>PokemonRawEditing.Apply(p,edit,source.Box==-1,()=>{
+                    actions.Add((order,index,()=>PokemonRawEditing.Apply(p,edit,source.Party,()=>{
                         if(edit.Action=="origin")PokemonOrigin.Apply(save,p,edit.Origin??throw new ArgumentException("Origin draft missing."));
                         else if(edit.Action=="trainerDetails")PokemonTrainerDetails.Apply(p,edit.TrainerDetails??throw new ArgumentException("Trainer draft missing."),save);
                         else if(edit.Action=="egg")PokemonEgg.Apply(save,p,edit.Egg??throw new ArgumentException("Egg draft missing."));
@@ -116,8 +123,8 @@ internal static class PokemonDraftPreparing
         if(levels.Count!=0&&p.CurrentLevel!=levels[0])throw new ArgumentException("Editor level conflicts with the prepared experience.");
         p.RefreshChecksum();return p;
     }
-    private static PokemonEdit Rebase(PKM p,PokemonEdit e,HashSet<string> f,PokemonPosition source)=>e with{
-        Box=source.Box,Slot=source.Slot,Nickname=f.Contains("nickname")?e.Nickname:p.Nickname,Ot=f.Contains("ot")?e.Ot:p.OriginalTrainerName,
+    private static PokemonEdit Rebase(PKM p,PokemonEdit e,HashSet<string> f,DraftLocation source)=>e with{
+        Box=source.FormBoxHint,Slot=source.Slot,Nickname=f.Contains("nickname")?e.Nickname:p.Nickname,Ot=f.Contains("ot")?e.Ot:p.OriginalTrainerName,
         Level=f.Contains("level")?e.Level:p.CurrentLevel,Friendship=f.Contains("friendship")?e.Friendship:p.IsEgg?p.OriginalTrainerFriendship:p.CurrentFriendship,
         Tid=f.Contains("tid")?e.Tid:p.TID16,Sid=f.Contains("sid")?e.Sid:p.SID16,TrainerIds=f.Contains("trainerIds")?e.TrainerIds:null,
         Ivs=f.Contains("ivs")?e.Ivs:[p.IV_HP,p.IV_ATK,p.IV_DEF,p.IV_SPA,p.IV_SPD,p.IV_SPE],Evs=f.Contains("evs")?e.Evs:[p.EV_HP,p.EV_ATK,p.EV_DEF,p.EV_SPA,p.EV_SPD,p.EV_SPE],
