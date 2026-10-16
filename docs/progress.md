@@ -1,5 +1,15 @@
 # PokeRNGKit 项目进度与交接
 
+API177 最终工程门禁：.tmp/pkhex-dimensions-core.log 浏览器 Core、.tmp/pkhex-api177-native-full.log 默认完整原生与 .tmp/pkhex-api177-final-verify.log 修正后完整 npm run verify 均退出 0。351 文件／2080 项前端、完整类型、Lint、全仓格式、网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒和既有编译／裁剪／包体提示。专项包含六类尺寸实体、五类地形／第四世代实体、全部 256 分类与叶子组合、四布局／完整公开实体、浮点载荷／负零、CP／自动／随机动作、RK4 日期及十组存档／修订版的队伍／箱位或 LGPE 队伍引用对照。默认完整套件带已授权 E.sav 工作副本，原文件 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实交互／焦点／下载未验收；完整接入目标继续保留。
+
+API177 完整网页首轮 .tmp/pkhex-api177-verify.log 退出 1：格式通过，但 react-hooks/refs 将尺寸渲染辅助函数中的随机事件识别为可能在渲染期读取引用。已改为 JSX 内直接生成标量字段与事件，.tmp/pkhex-dimensions-lint.log 的五文件定向 Lint 退出 0；不禁用规则。修正后重跑 .tmp/pkhex-api177-final-verify.log；默认完整原生 .tmp/pkhex-api177-native-full.log 沿同一进程继续，C# 输入未改。
+
+API177 阶段检查：.tmp/pkhex-dimensions-native-floats.log 原生专项、两文件 48 项前端、完整类型、全仓格式及 .tmp/pkhex-dimensions-core.log 浏览器 Core 重建均退出 0。覆盖六类现代尺寸实体及 PK4／BK4／RK4／PK5／PK6 地形记录、全部 256 分类、四布局／公开完整实体输出、随机／重置、手动浮点与 NaN 载荷／负零、冠冕／心情边界、RK4 日期，以及十组存档／修订版的箱位／队伍或 LGPE 队伍引用完整输出。默认完整原生和完整 npm run verify 接续运行，实际 Chrome 页面仍待核验。
+
+## 2026-10-16 尺寸／CP 与第四世代记录（API177）
+
+本批基线 c9ada3231a27f45b6f901cd0c0cf301dce03613e。接入六类现代实体的尺寸／CP、G4PKM 叶子／散步心情、Gen4 原游戏地形，并按 G4PKM 统一 RK4 日期能力。原始浮点、CP 掩码、PA8 联动、随机／重算与冠冕联动均按源事件处理；未修改的特殊原值与高位保留。两个共用编辑入口与草稿门禁已接线，原生专项、默认完整原生与修正后的完整前端工程门禁均通过。输入范围和上游路径见模块文档，本批提交前工程结果见本页最终记录。
+
 API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、.tmp/pkhex-api176-native-full.log 默认完整原生、.tmp/pkhex-api176-verify.log 完整 npm run verify 均退出 0。350 文件／2067 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有一条提醒及既有编译／裁剪、包体提示。新专项覆盖 15 种实体的四布局、全部菌株／天数组合、感染／治愈状态表、PK5 邻位／名气、GC 原始零编码、箱位／队伍与两种牧场修订版的完整文件对照；默认完整套件带已授权 E.sav 工作副本检查。最终原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 对已授权本地页的调用仍失败，真实交互、焦点与下载尚未验收；完整接入目标继续保留。
 
 API176 阶段检查：.tmp/pkhex-special-native-ranch.log 原生专项退出 0，覆盖 15 种实体／四种布局、全部菌株与天数组合、感染／治愈切换、PK5 邻位与名气边界、GC 零天数编码、完整输出／原件保持、绿宝石／黑版公开箱位与队伍、剑盾／朱紫类型化块样本及两个牧场修订版的公开手动识别。两文件 46 项前端、完整类型、全仓格式和 .tmp/pkhex-special-core.log 核心重建均通过。默认完整原生与完整 npm run verify 最终结果见本页记录；Chrome 实际操作仍未验收。

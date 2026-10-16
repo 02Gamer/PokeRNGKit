@@ -1,5 +1,25 @@
 # PKHeX 存档读取与编辑
 
+API177 最终工程门禁：.tmp/pkhex-dimensions-core.log 浏览器 Core、.tmp/pkhex-api177-native-full.log 默认完整原生与 .tmp/pkhex-api177-final-verify.log 修正后完整 npm run verify 均退出 0。351 文件／2080 项前端、完整类型、Lint、全仓格式、网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒和既有编译／裁剪／包体提示。专项包含六类尺寸实体、五类地形／第四世代实体、全部 256 分类与叶子组合、四布局／完整公开实体、浮点载荷／负零、CP／自动／随机动作、RK4 日期及十组存档／修订版的队伍／箱位或 LGPE 队伍引用对照。默认完整套件带已授权 E.sav 工作副本，原文件 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实交互／焦点／下载未验收；完整接入目标继续保留。
+
+API177 完整网页首轮 .tmp/pkhex-api177-verify.log 退出 1：格式通过，但 react-hooks/refs 将尺寸渲染辅助函数中的随机事件识别为可能在渲染期读取引用。已改为 JSX 内直接生成标量字段与事件，.tmp/pkhex-dimensions-lint.log 的五文件定向 Lint 退出 0；不禁用规则。修正后重跑 .tmp/pkhex-api177-final-verify.log；默认完整原生 .tmp/pkhex-api177-native-full.log 沿同一进程继续，C# 输入未改。
+
+API177 阶段检查：.tmp/pkhex-dimensions-native-floats.log 原生专项、两文件 48 项前端、完整类型、全仓格式及 .tmp/pkhex-dimensions-core.log 浏览器 Core 重建均退出 0。覆盖六类现代尺寸实体及 PK4／BK4／RK4／PK5／PK6 地形记录、全部 256 分类、四布局／公开完整实体输出、随机／重置、手动浮点与 NaN 载荷／负零、冠冕／心情边界、RK4 日期，以及十组存档／修订版的箱位／队伍或 LGPE 队伍引用完整输出。默认完整原生和完整 npm run verify 接续运行，实际 Chrome 页面仍待核验。
+
+## 尺寸／CP 与第四世代记录（API177）
+
+新增 PokemonDimensions 与 PokemonLegacyDetails，存档和独立实体共用两组三语表单、共享字段／按钮及集中草稿校验。尺寸按 IScaledSize、IScaledSize3、IScaledSizeValue、ICombatPower 的实际能力显示，不按世代粗略推断。身高、体重、大小标量为 0–255 的整数；普通尺寸分类调用 PokeSizeUtil，PK9 的大小分类调用 PokeSizeDetailedUtil，PA9 仍用普通分类。随机动作使用 Core 三角分布，仅精确 Ctrl 单击触发，并提供可触摸按钮。
+
+SizeCP.Designer 的三个 NumericUpDown 上限均为 255，下限 0；CP 为五位十进制掩码。SizeCP.MT_CP_TextChanged 的 int.TryParse 成功才写入，并限到 65535，空白或内部空格导致解析失败时不写零。实数框没有数值上下限，按 float.TryParse 解析（含 NaN／Infinity／溢出、负数、科学计数与分组），空白或无法解析不改原值；输出用 InvariantCulture 的 R 格式，未编辑的原始浮点位保持。三个活动 UI 语言的输入均采用该实数语法，前端不另写尺寸公式。
+
+自动计算默认关闭，沿 Designer 未设置 Checked 的状态；开启时执行 ResetHeight／ResetWeight／ResetCP。标量应用时按源事件更新相关实数值，身高更新身高及体重，体重只更新体重，普通大小独立。PA8 的身高与大小双向联动；未触及两字段时保持原有不一致组合。手动模式不重算实际值，CP 可直接编辑。原版可键入但会被自动重算覆盖的实数，在自动模式显示只读。快捷动作有草稿时禁用，先应用或还原。尺寸操作不调用通用队伍能力重算，保留生命／状态等无关数据。
+
+来源：只读 PKHeX.WinForms/Controls/PKM Editor/SizeCP.cs／Designer 的 LoadPKM、TryResetStats、ResetCalculatedStats、LoadStoredValues、标量／实际值／CP 事件、ClickScalarEntry；Core IScaledSize.cs 的接口与 PokeSize／PokeSizeDetailed 工具。枚举分类标签沿来源 XS／S／M／L／XL 等字样，控制标签三语显示。
+
+地形只对 IGroundTile 且 Gen4 原游戏显示，目录用 GameDataSource.GroundTileDataSource。G4PKM 的闪耀叶子五位与冠冕第六位分别编辑；取消任一叶子清除冠冕，新设冠冕需五片齐全，既有异常冠冕可逐步保留／清理。未使用高两位与未修改的异常字节保持。散步心情输入 -127–127，底层 sbyte 原值 -128 未修改时保留。来源为 EditPK4 的 G4PKM 加载／保存、EditPK5／6 的地形条件，ShinyLeaf 控件及 Designer；NUD_WalkingMood.Minimum=-127、Maximum=127。原始字节能力不当作正式表单的替代。
+
+日期可编辑条件改为 G4PKM 而非仅列 PK4／BK4，包含实际保存日期的 RK4；来源 EditPK4 同样接受 G4PKM。沿现有日期控件 2000–2099 与空值清空语义，保留牧场附加字节。接口及版本断言同步 API177。专项、Core 重建、默认完整原生与修正后的完整前端工程门禁均通过，正式页面仍待 Chrome 核验。
+
 API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、.tmp/pkhex-api176-native-full.log 默认完整原生、.tmp/pkhex-api176-verify.log 完整 npm run verify 均退出 0。350 文件／2067 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有一条提醒及既有编译／裁剪、包体提示。新专项覆盖 15 种实体的四布局、全部菌株／天数组合、感染／治愈状态表、PK5 邻位／名气、GC 原始零编码、箱位／队伍与两种牧场修订版的完整文件对照；默认完整套件带已授权 E.sav 工作副本检查。最终原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 对已授权本地页的调用仍失败，真实交互、焦点与下载尚未验收；完整接入目标继续保留。
 
 API176 阶段检查：.tmp/pkhex-special-native-ranch.log 原生专项退出 0，覆盖 15 种实体／四种布局、全部菌株与天数组合、感染／治愈切换、PK5 邻位与名气边界、GC 零天数编码、完整输出／原件保持、绿宝石／黑版公开箱位与队伍、剑盾／朱紫类型化块样本及两个牧场修订版的公开手动识别。两文件 46 项前端、完整类型、全仓格式和 .tmp/pkhex-special-core.log 核心重建均通过。接续默认完整原生与完整 npm run verify；Chrome 实际操作仍未验收。

@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import type { LocalizedText } from "./domain";
 
 export interface SaveBulkLegalityReport {
-  apiVersion: 176;
+  apiVersion: 177;
   sourceHash: string;
   clean: boolean;
   analyzedCount: number;
@@ -28,7 +28,7 @@ export function parseBulkLegality(
   const count = (n: unknown) =>
     typeof n === "number" && Number.isInteger(n) && n >= 0 && n <= 2147483647;
   if (
-    v.apiVersion !== 176 ||
+    v.apiVersion !== 177 ||
     typeof v.sourceHash !== "string" ||
     !/^[0-9A-F]{64}$/.test(expectedHash) ||
     v.sourceHash !== expectedHash ||

@@ -14,6 +14,8 @@
     <Compile Include="../PokemonVitals.cs" Link="PokemonVitals.cs" />
     <Compile Include="../PokemonAlphaMove.cs" Link="PokemonAlphaMove.cs" />
     <Compile Include="../PokemonTrainerDetails.cs" Link="PokemonTrainerDetails.cs" />
+    <Compile Include="../PokemonDimensions.cs" Link="PokemonDimensions.cs" />
+    <Compile Include="../PokemonLegacyDetails.cs" Link="PokemonLegacyDetails.cs" />
     <Compile Include="../PokemonSpecialStatus.cs" Link="PokemonSpecialStatus.cs" />
     <Compile Include="../PokemonAdvancedStats.cs" Link="PokemonAdvancedStats.cs" />
     <Compile Include="../SavePokemonEditing.cs" Link="SavePokemonEditing.cs" />

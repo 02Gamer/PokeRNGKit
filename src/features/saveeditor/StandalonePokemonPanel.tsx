@@ -2,6 +2,8 @@ import {
   PokemonAdvancedStatsEditor,
   PokemonBoostRows,
 } from "./PokemonAdvancedStatsEditor";
+import { PokemonDimensionsEditor } from "./PokemonDimensionsEditor";
+import { PokemonLegacyDetailsEditor } from "./PokemonLegacyDetailsEditor";
 import { PokemonSpecialStatusEditor } from "./PokemonSpecialStatusEditor";
 import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { saveFailureFeedback } from "./saveFailureFeedback";
@@ -1442,6 +1444,24 @@ export function StandalonePokemonPanel({
                       onRead={() => readDetails("ribbons")}
                       onApply={applyRaw}
                     />
+                    {report.pokemon.dimensions && (
+                      <PokemonDimensionsEditor
+                        key={`dimensions-${working.fileName}`}
+                        info={report.pokemon.dimensions}
+                        position={report.pokemon}
+                        disabled={busy}
+                        onApply={applyRaw}
+                      />
+                    )}
+                    {report.pokemon.legacyDetails && (
+                      <PokemonLegacyDetailsEditor
+                        key={`legacy-${working.fileName}`}
+                        info={report.pokemon.legacyDetails}
+                        position={report.pokemon}
+                        disabled={busy}
+                        onApply={applyRaw}
+                      />
+                    )}
                     {report.pokemon.specialStatus && (
                       <PokemonSpecialStatusEditor
                         key={`special-status-${working.fileName}`}

@@ -1,3 +1,5 @@
+import { dimensionsWords } from "./pokemonDimensions";
+import { legacyWords } from "./pokemonLegacyDetails";
 import { specialStatusWords } from "./specialStatus";
 import { trainerDetailsWords } from "./trainerDetails";
 import { advancedStatsWords } from "./advancedStats";
@@ -51,6 +53,8 @@ export function PokemonLegality({
     advancedStats: advancedStatsWords[lang].title,
     trainerDetails: trainerDetailsWords[lang].title,
     specialStatus: specialStatusWords[lang].title,
+    dimensions: dimensionsWords[lang].title,
+    legacyDetails: legacyWords[lang].title,
   };
   const current =
     !blocked && report?.box === position.box && report.slot === position.slot

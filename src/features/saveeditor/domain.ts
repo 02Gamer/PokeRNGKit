@@ -62,7 +62,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 176;
+  apiVersion: 177;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -176,6 +176,8 @@ export interface OriginCatalog {
   ballBrowser: import("./ballBrowser").BallBrowserCatalog;
 }
 export interface PokemonEntry {
+  dimensions?: import("./pokemonDimensions").DimensionsInfo | null;
+  legacyDetails?: import("./pokemonLegacyDetails").LegacyInfo | null;
   specialStatus?: import("./specialStatus").SpecialStatusInfo | null;
   advancedStats?: import("./advancedStats").AdvancedStatsInfo | null;
   alphaMove?: number | null;
@@ -735,10 +737,14 @@ export interface PokemonRawEdit extends PokemonPosition {
     | "alphaMove"
     | "advancedStats"
     | "trainerDetails"
-    | "specialStatus";
+    | "specialStatus"
+    | "dimensions"
+    | "legacyDetails";
   advancedStats?: import("./advancedStats").AdvancedStatsEdit;
   trainerDetails?: import("./trainerDetails").TrainerDetailsEdit;
   specialStatus?: import("./specialStatus").SpecialStatusEdit;
+  dimensions?: import("./pokemonDimensions").DimensionsEdit;
+  legacyDetails?: import("./pokemonLegacyDetails").LegacyEdit;
   alphaMove?: number;
   vitals?: import("./pokemonVitals").PokemonVitalsEdit;
   markings?: number[];

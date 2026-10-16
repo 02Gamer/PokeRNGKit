@@ -2,6 +2,8 @@ import {
   PokemonAdvancedStatsEditor,
   PokemonBoostRows,
 } from "./PokemonAdvancedStatsEditor";
+import { PokemonDimensionsEditor } from "./PokemonDimensionsEditor";
+import { PokemonLegacyDetailsEditor } from "./PokemonLegacyDetailsEditor";
 import { PokemonSpecialStatusEditor } from "./PokemonSpecialStatusEditor";
 import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { PokemonDraftContext } from "./pokemonDraftValidation";
@@ -932,6 +934,24 @@ export function SavePokemonBrowser({
                       onRead={onReadRibbons}
                       generation={report.generation}
                     />
+                    {selected.dimensions && (
+                      <PokemonDimensionsEditor
+                        key={`dimensions-${selected.box}-${selected.slot}`}
+                        info={selected.dimensions}
+                        position={selected}
+                        disabled={busy || !access.canRaw || !selected.valid}
+                        onApply={onApplyRaw}
+                      />
+                    )}
+                    {selected.legacyDetails && (
+                      <PokemonLegacyDetailsEditor
+                        key={`legacy-${selected.box}-${selected.slot}`}
+                        info={selected.legacyDetails}
+                        position={selected}
+                        disabled={busy || !access.canRaw || !selected.valid}
+                        onApply={onApplyRaw}
+                      />
+                    )}
                     {selected.specialStatus && (
                       <PokemonSpecialStatusEditor
                         key={`special-status-${selected.box}-${selected.slot}`}
