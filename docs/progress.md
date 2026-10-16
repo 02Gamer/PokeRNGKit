@@ -1,5 +1,11 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-16 格位菜单与合法性可见性（API178 前端）
+
+基线35a501d0631f21e528f06833a567193c780a84a7。接单箱、全览、双箱与队伍格位共用菜单，支持右键、菜单键／Shift+F10及通用菜单按钮；命令为查看、删除和合法性分析。复用共享菜单、视口定位、三语、44px 控件、方向键／Home／End、Escape 与焦点恢复。设置／工作修订变化或请求开始即关闭旧菜单，操作前再次检查目标。删除沿既有工作副本／撤销与 Core 保护规则，不直接改原件。
+
+来源 ContextMenuSAV.cs:ClickView／ClickDelete／ClickShowLegality／MenuOpening。合法性项沿精确 Control 单键或 Display.SlotLegalityAlwaysVisible，并要求非空格位和分析回调；开放对应设置消费点，右侧详情入口保持可用。菜单分析直接检查所点工作格位，不自动应用详情草稿，符合来源独立格位分析。普通模式不显示空格位菜单；全局 HaX／空格位模式、Set 的编辑草稿准备与兼容性流程、精确格位写保护的菜单隐藏仍待接，不能把复制动作当成来源 Set。实际删除仍由 Core 拒绝受保护或无效队伍组合。Core／Worker 协议未变，不改 RNG 算法。三文件41项专项与定向Lint退出0，覆盖全部16种修饰键组合、忙碌／只读／异常／空位／越界、三语和四视图入口；.tmp/pkhex-slot-menu-verify.log 的完整 npm run verify 退出0，353文件／2121项前端、完整类型、Lint、全仓格式及网页／PWA构建通过；保留 Gen3StaticPanel.tsx:404 既有Hook提醒与包体提示。本批无 Core／Worker 改动，原生与核心继续使用35a501d0的API178完整基线，不写作本批重跑。Chrome 4 对已授权 http://127.0.0.1:5173/ 的读取仍失败，菜单定位、焦点、触屏和实际页面未验收。
+
 API178 最终工程门禁：.tmp/pkhex-identity-core.log 浏览器 Core、.tmp/pkhex-api178-native-full.log 默认完整原生与 .tmp/pkhex-api178-verify.log 完整 npm run verify 均退出 0。352 文件／2096 项前端、完整类型、Lint、全仓格式及网页／PWA 构建通过；仅保留 Gen3StaticPanel.tsx:404 原有 Hook 提醒和既有编译／裁剪／包体提示。15 种实体专项覆盖来源编号掩码、先 SID 后 TID 与 UInt32 回绕、转移来源显示、游戏／格式特性目录、实际编号位宽、全部 ExtraBytes 偏移、四布局和完整公开输出。另执行 .tmp/pkhex-api178-real-save.log 的 real-save 专项退出0，确认 E.sav 为 SAV3E／绿宝石，131072 字节、14×30 箱位、20 只箱中／5 只队伍宝可梦；公开读取、编辑、导出重开、其他格位与原件保持通过。原件及工作副本 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实页面／焦点／下载未验收；设置消费点和其他主窗口行为继续核对，完整目标保留。
 
 ## 2026-10-16 训练家编号与开发字段（API178）

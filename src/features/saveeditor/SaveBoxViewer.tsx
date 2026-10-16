@@ -1,3 +1,4 @@
+import type { SlotMenuInvocation } from "./slotMenu";
 import { Select } from "../shared/Select";
 import { SaveBoxGrid } from "./SaveBoxGrid";
 import { boxViewerWords, moveBoxView } from "./boxViewer";
@@ -20,6 +21,7 @@ export function SaveBoxViewer({
   onSelect,
   onSwapViews,
   onDrop,
+  onSlotMenu,
 }: {
   searchMatches?: ReadonlySet<string>;
   report: SaveReport;
@@ -33,6 +35,7 @@ export function SaveBoxViewer({
   onMain(box: number): void;
   onSecondary(box: number): void;
   onSelect(position: PokemonPosition): void;
+  onSlotMenu?(invocation: SlotMenuInvocation): boolean;
   onSwapViews(): void;
   onDrop(
     target: PokemonPosition,
@@ -144,6 +147,7 @@ export function SaveBoxViewer({
               lang={lang}
               revision={revision}
               scope={scope}
+              onSlotMenu={onSlotMenu}
               onSelect={onSelect}
               onDrop={onDrop}
             />

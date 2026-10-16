@@ -1,3 +1,13 @@
+import { SaveSlotMenu } from "./SaveSlotMenu";
+import { useSaveSettingsJson } from "./useSaveSettingsJson";
+import {
+  slotMenuActions,
+  slotMenuModifiers,
+  slotLegalityAlwaysVisible,
+  slotMenuWords,
+  type SlotMenuInvocation,
+  type SlotAction,
+} from "./slotMenu";
 import {
   PokemonAdvancedStatsEditor,
   PokemonBoostRows,
@@ -245,6 +255,37 @@ export function SavePokemonBrowser({
       alive.current = false;
     };
   }, []);
+  const settingsJson = useSaveSettingsJson();
+  const [slotMenu, setSlotMenu] = useState<{
+    invocation: SlotMenuInvocation;
+    revision: number;
+    settings: string;
+  }>();
+  const [slotError, setSlotError] = useState(false),
+    [slotAnalysis, setSlotAnalysis] = useState(0);
+  const menuActions = slotMenu
+    ? slotMenuActions(
+        report,
+        slotMenu.invocation.position,
+        slotMenu.invocation.keys,
+        slotLegalityAlwaysVisible(settingsJson),
+        busy || pending,
+      )
+    : [];
+  const menuCurrent =
+    !!slotMenu &&
+    slotMenu.revision === revision &&
+    slotMenu.settings === settingsJson &&
+    menuActions.length > 0;
+  useEffect(() => {
+    if (slotMenu && !menuCurrent) {
+      queueMicrotask(() =>
+        setSlotMenu((previous) =>
+          previous === slotMenu ? undefined : previous,
+        ),
+      );
+    }
+  }, [slotMenu, menuCurrent]);
   const viewer = view === "dual" && report.boxCount > 0;
   const gallery = view === "all" && report.boxCount > 0,
     locked = busy || pending;
@@ -264,6 +305,65 @@ export function SavePokemonBrowser({
       playSaveSound("other");
     setSelection(position);
   };
+  function openSlotMenu(value: SlotMenuInvocation) {
+    const invocation = {
+      ...value,
+      position: { ...value.position },
+      keys: slotMenuModifiers(value.keys),
+    };
+    if (
+      !slotMenuActions(
+        report,
+        invocation.position,
+        invocation.keys,
+        slotLegalityAlwaysVisible(settingsJson),
+        locked,
+      ).length
+    )
+      return false;
+    setSlotError(false);
+    setSlotMenu({ invocation, revision, settings: settingsJson });
+    return true;
+  }
+  function closeSlotMenu(restore: boolean) {
+    setSlotMenu(undefined);
+    if (restore && slotMenu?.invocation.trigger.isConnected)
+      slotMenu.invocation.trigger.focus({ preventScroll: true });
+  }
+  async function runSlotAction(action: SlotAction) {
+    if (
+      !slotMenu ||
+      !menuCurrent ||
+      !menuActions.includes(action) ||
+      locked ||
+      flight.current
+    )
+      return;
+    const position = slotMenu.invocation.position;
+    closeSlotMenu(true);
+    if (action === "view") {
+      select(position, false);
+      return;
+    }
+    if (action === "legality") {
+      select(position, false);
+      setSlotAnalysis((value) => value + 1);
+    }
+    flight.current = true;
+    setPending(true);
+    setSlotError(false);
+    try {
+      if (action === "legality") await onAnalyze(position);
+      else
+        await onStorage({ action: "delete", source: position, target: null });
+    } catch {
+      if (alive.current) setSlotError(true);
+      playSaveSound("other", "hand");
+    } finally {
+      flight.current = false;
+      if (alive.current) setPending(false);
+    }
+  }
   const chooseMain = (next: number) => {
     if (
       locked ||
@@ -379,8 +479,42 @@ export function SavePokemonBrowser({
         className="save-pokemon-browser"
         aria-label={words.pokemon}
       >
-        <h3>{words.pokemon}</h3>
+        {menuCurrent && slotMenu && (
+          <SaveSlotMenu
+            invocation={slotMenu.invocation}
+            actions={menuActions}
+            lang={lang}
+            onClose={closeSlotMenu}
+            onAction={(action) => void runSlotAction(action)}
+          />
+        )}
+        <div className="save-editor-toolbar">
+          <h3>{words.pokemon}</h3>{" "}
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={menuCurrent}
+            disabled={locked || !selected}
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              openSlotMenu({
+                position: selectedPosition,
+                trigger: event.currentTarget,
+                x: rect.left,
+                y: rect.bottom,
+                keys: slotMenuModifiers(event),
+              });
+            }}
+          >
+            {slotMenuWords[lang].menu}
+          </button>
+        </div>
         <p className="save-editor-note">{words.readPokemon}</p>
+        {slotError && (
+          <p className="save-editor-error" role="alert">
+            {slotMenuWords[lang].error}
+          </p>
+        )}
         {report.boxCount > 0 && (
           <PokemonSearchEditor
             revision={revision}
@@ -567,6 +701,7 @@ export function SavePokemonBrowser({
                 onSecondary={chooseSecond}
                 onSelect={select}
                 onSwapViews={swapViews}
+                onSlotMenu={openSlotMenu}
                 onDrop={drop}
               />
             ) : gallery ? (
@@ -580,6 +715,7 @@ export function SavePokemonBrowser({
                 lang={lang}
                 onSelect={select}
                 onSwap={swap}
+                onSlotMenu={openSlotMenu}
                 onDrop={drop}
               />
             ) : (
@@ -594,6 +730,7 @@ export function SavePokemonBrowser({
                 revision={revision}
                 scope={scope}
                 onSelect={select}
+                onSlotMenu={openSlotMenu}
                 onDrop={drop}
               />
             )}
@@ -687,6 +824,7 @@ export function SavePokemonBrowser({
                   />
                 )}
                 <PokemonLegality
+                  key={`slot-legality-${selected.box}-${selected.slot}-${slotAnalysis}`}
                   position={selected}
                   report={legality}
                   busy={busy}

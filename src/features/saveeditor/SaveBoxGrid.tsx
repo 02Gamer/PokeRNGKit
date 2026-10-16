@@ -1,3 +1,4 @@
+import { slotMenuKey, type SlotMenuInvocation } from "./slotMenu";
 import { useMemo, type CSSProperties, type DragEvent } from "react";
 import { boxWallpaper } from "./art";
 import { pokemonAccess } from "./savePokemonEditing";
@@ -25,6 +26,7 @@ export function SaveBoxGrid({
   entries,
   onSelect,
   onDrop,
+  onSlotMenu,
 }: {
   searchMatches?: ReadonlySet<string>;
   report: SaveReport;
@@ -36,6 +38,7 @@ export function SaveBoxGrid({
   scope: string;
   entries?: PokemonEntry[];
   onSelect(position: PokemonPosition): void;
+  onSlotMenu?(invocation: SlotMenuInvocation): boolean;
   onDrop(
     target: PokemonPosition,
     transfer: DataTransfer,
@@ -123,8 +126,41 @@ export function SaveBoxGrid({
               slot === (selected.box === box ? selected.slot : 0) ? 0 : -1
             }
             draggable={writable && !!p?.valid && p.species > 0}
+            aria-haspopup={p && onSlotMenu ? "menu" : undefined}
+            onContextMenu={(event) => {
+              if (!onSlotMenu) return;
+              const rect = event.currentTarget.getBoundingClientRect();
+              if (
+                onSlotMenu({
+                  position,
+                  trigger: event.currentTarget,
+                  x: event.clientX || rect.left,
+                  y: event.clientY || rect.bottom,
+                  keys: event,
+                })
+              ) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+            }}
             onClick={() => onSelect(position)}
             onKeyDown={(e) => {
+              if (onSlotMenu && slotMenuKey(e.key, e.shiftKey)) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                if (
+                  onSlotMenu({
+                    position,
+                    trigger: e.currentTarget,
+                    x: rect.left,
+                    y: rect.bottom,
+                    keys: e,
+                  })
+                ) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                return;
+              }
               if (e.ctrlKey || e.altKey || e.metaKey) return;
               const next = boxSlotNavigation(slot, e.key, count, columns);
               if (next === undefined) return;

@@ -168,6 +168,7 @@ export function SaveSettingsWorkspace({
     "sprite.filterMismatchOpacity",
     "sprite.filterMismatchGrayscale",
     "display.flagIllegal",
+    "display.slotLegalityAlwaysVisible",
     "display.ignoreLegalPopup",
     "display.exportLegalityVerboseProperties",
     "display.exportLegalityAlwaysVerbose",
