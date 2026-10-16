@@ -32,7 +32,7 @@ internal static class Fashion9EditingTests
     }
     internal static void Run()
     {
-        Check(SaveService.ApiVersion == 172, "Fashion9 product protocol");
+        Check(SaveService.ApiVersion == 173, "Fashion9 product protocol");
         foreach (var version in new[] { GameVersion.SL, GameVersion.VL, GameVersion.ZA })
         foreach (int revision in new[] { 0, 1, 2 })
         {

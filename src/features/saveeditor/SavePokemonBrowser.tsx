@@ -1,3 +1,4 @@
+import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { PokemonDraftContext } from "./pokemonDraftValidation";
 import { PokemonDraftRegistry } from "./pokemonDraftRegistry";
 import { SaveBoxViewer } from "./SaveBoxViewer";
@@ -912,6 +913,16 @@ export function SavePokemonBrowser({
                       onRead={onReadRibbons}
                       generation={report.generation}
                     />
+                    {selected.alphaMove != null && (
+                      <PokemonAlphaMoveEditor
+                        key={`alpha-move-${revision}-${selected.box}-${selected.slot}`}
+                        move={selected.alphaMove}
+                        choices={report.moveChoices}
+                        position={selected}
+                        disabled={busy || !access.canRaw || !selected.valid}
+                        onApply={onApplyRaw}
+                      />
+                    )}
                     <PokemonRelearnEditor
                       key={`relearn-${JSON.stringify(selected)}`}
                       moves={selected.relearnMoves}

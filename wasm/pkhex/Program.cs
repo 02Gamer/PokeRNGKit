@@ -615,7 +615,7 @@ public static partial class Program
 
 public static partial class SaveService
 {
-    public const int ApiVersion = 172;
+    public const int ApiVersion = 173;
     public static string ReadPersonalChart(byte[] data) => JsonSerializer.Serialize(PersonalChart.Read(Open(data)), SaveJsonContext.Default.PersonalChartCatalog);
     public const int MaximumSize = 32 * 1024 * 1024;
     public static string ReadPokedex9a(byte[] data) => JsonSerializer.Serialize(ZaPokedex.Read(Open(data)), SaveJsonContext.Default.Dex9aCatalog);

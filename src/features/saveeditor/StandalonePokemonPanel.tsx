@@ -1,3 +1,4 @@
+import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { saveFailureFeedback } from "./saveFailureFeedback";
 import { PokemonDraftContext } from "./pokemonDraftValidation";
 import { PokemonDraftRegistry } from "./pokemonDraftRegistry";
@@ -1420,6 +1421,16 @@ export function StandalonePokemonPanel({
                       onRead={() => readDetails("ribbons")}
                       onApply={applyRaw}
                     />
+                    {report.pokemon.alphaMove != null && (
+                      <PokemonAlphaMoveEditor
+                        key={`alpha-move-${revision}`}
+                        move={report.pokemon.alphaMove}
+                        choices={report.moveChoices}
+                        position={report.pokemon}
+                        disabled={busy}
+                        onApply={applyRaw}
+                      />
+                    )}
                     <PokemonRelearnEditor
                       key={`relearn-${revision}`}
                       position={report.pokemon}

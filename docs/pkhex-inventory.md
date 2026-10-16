@@ -1,5 +1,11 @@
 # PKHeX 完整接入清单
 
+API173 最终工程检查：.tmp/pkhex-alpha-filter-core.log 的浏览器核心重建、.tmp/pkhex-api173-native-full.log 的默认完整原生，以及 .tmp/pkhex-api173-verify.log 的完整 npm run verify 均退出 0。346 文件／2005 项前端、完整类型、Lint、全仓格式与网页／PWA 通过；保留第三世代定点既有的一条 Hook 提醒、既有裁剪／编译和包体提示。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实交互／下载与所有者验收未完成；完整接入目标及统计字段余项继续保留。
+
+补查并修正下拉框筛选：来源 FilteredGameDataSource.GetFilteredMoves 与 GameDataSource.LegalMoveDataSource 排除战斗专用及 PLA 未使用招式。Core 为招式目录返回 alphaSelectable，前端只显示可选项；普通写入也按相同 Core 规则拒绝未列出编号，保留旧存档原值可读。修正后 .tmp/pkhex-alpha-filter-native.log 退出 0，逐项对照全部 0–850 编号，与上游 178 项集合完全一致，全部可选／不可选编号均检查，并重跑四布局及完整输出。首轮范围检查与核心构建已通过，但不替代本次筛选修正后的核心重建和完整门禁；后者均已通过，最终结果见本页当前记录。
+
+API173 补 PA8 头目初始精通招式：两个正式入口、三语共用控件、草稿门禁、独立字段写入与数据保持。原生专项与五文件 168 项前端通过；浏览器核心与完整工程门禁已通过，页面及完整接入目标未验收。
+
 最终完整 npm run verify 的 .tmp/pkhex-draft-verify.log 退出 0：345 文件／1991 项前端、完整类型、全仓格式、Lint 与网页／PWA 构建通过。已消除本批两条 Hook 依赖提醒，仅保留 Gen3StaticPanel.tsx:404 原有的一条提醒及既有包体／插件耗时提示。Core／Worker 未改，继续复用 API172 默认完整原生基线。Chrome 4 读取本地页仍失败，草稿实际交互、连续焦点与声音未验收；PA8 AlphaMove 确认为独立于招式商店的未接字段，继续作为下一步，不宣称完整接入。
 
 API172 前端后续增加集中草稿检查：基础／GB、原始值、经验／状态、来源、回忆招式与已加载历史按实体和工作修订隔离；无效时拦截共享合法性按钮并发 Hand，精确 Ctrl+Shift+Alt 仅跳过界面检查。通用请求包装器增加普通失败与超时／版本错误反馈。专用字段和其他间接对话框仍待核对，真实 Chrome 交互未验收。本批工程门禁已通过，结果见上段；不能据此标记完整接入。

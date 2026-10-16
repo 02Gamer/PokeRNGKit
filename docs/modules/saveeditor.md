@@ -1,5 +1,30 @@
 # PKHeX 存档读取与编辑
 
+API173 最终工程检查：.tmp/pkhex-alpha-filter-core.log 的浏览器核心重建、.tmp/pkhex-api173-native-full.log 的默认完整原生，以及 .tmp/pkhex-api173-verify.log 的完整 npm run verify 均退出 0。346 文件／2005 项前端、完整类型、Lint、全仓格式与网页／PWA 通过；保留第三世代定点既有的一条 Hook 提醒、既有裁剪／编译和包体提示。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实交互／下载与所有者验收未完成；完整接入目标及统计字段余项继续保留。
+
+补查并修正下拉框筛选：来源 FilteredGameDataSource.GetFilteredMoves 与 GameDataSource.LegalMoveDataSource 排除战斗专用及 PLA 未使用招式。Core 为招式目录返回 alphaSelectable，前端只显示可选项；普通写入也按相同 Core 规则拒绝未列出编号，保留旧存档原值可读。修正后 .tmp/pkhex-alpha-filter-native.log 退出 0，逐项对照全部 0–850 编号，与上游 178 项集合完全一致，全部可选／不可选编号均检查，并重跑四布局及完整输出。首轮范围检查与核心构建已通过，但不替代本次筛选修正后的核心重建和完整门禁；后者均已通过，最终结果见本页当前记录。
+
+## 头目初始精通招式（API173）
+
+PA8 的 AlphaMove 新增独立读取、编辑及回读，两正式入口复用 PokemonAlphaMoveEditor、共享 Select 和三语文字，加入集中草稿校验。只有 PA8 返回可编辑字段；保留未列入目录的原值并显示编号，不自动纠正。写入只接受当前 PA8 招式目录 0–850，不要求 IsAlpha 标记为真，不改变该标记。Core 只写 AlphaMove 与校验和，保持当前招式、PP／提升、HP／状态、购买／精通记录和其他数据；箱位／队伍沿原工作副本、撤销与导出路径。
+
+来源：PKMEditor.cs:50／1828–1830／2066／2356、LoadSave.cs:472／484，以及 PA8.cs:241 的 0x3E 小端 ushort 和 MaxMoveID、Legal.MaxMoveID_8a。选项来自既有同格式招式目录，空招式编号为 0；读出的 ushort 原值可到 65535，但越过目录的值不能由普通选择写入。控件名沿 lang_zh-Hans／en／ja.txt 的 Main.L_AlphaMastered。接口、Worker 门禁与夹具统一为 API173，防止旧核心混用。
+
+首轮 .tmp/pkhex-alpha-native.log 退出 0：两种头目标记、四种独立布局、公开 JSON 编辑与回读、完整文件对照，两个 LA 修订版的箱位／队伍完整存档对照、原件不变、无效参数／错误动作／其他格式拒绝，以及未列入目录的原值读取通过。存档对照使用显式类型合成样本，不声称真实 LA 存档识别验收。五文件 168 项前端专项通过；最终完整门禁已通过，详见本页当前记录；页面未验收。
+
+## 主编辑器统计字段的剩余核对
+
+本表记录本轮直接对照发现的缺口，范围是正式表单；不把底层批量属性能力或图像读取算作对应控件已接，也不声称穷尽全部主窗口控件。写入范围、派生更新与格式差异须在实施前继续核对来源。
+
+| 来源字段组             | 当前正式入口                                       | 来源与下一步                                                                                                     |
+| ---------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 觉醒值 AV、奋斗等级 GV | 基础表单仅编辑 IV／EV，未提供 AV／GV 控件          | StatEditor.LoadAVs／LoadGVs、RefreshGanbaru 与 ToggleInterface；接 Core 上限和能力值刷新，不能将 IV／EV 当成替代 |
+| 极巨等级、超极巨化     | 超极巨标记用于图像读取；无专用编辑请求             | LoadSave 的 G8PKM／PA8 保存路径、StatEditor.CHK_Gigantamax；按实际类型与保存语义接入                             |
+| 头目、王标记           | 头目标记用于图像读取；本批 AlphaMove 不修改它      | LoadSave 的 PA8／PA9 与 StatEditor.ToggleInterface；PA8 的 IsNoble 单独处理，不混同初始精通招式                  |
+| 太晶原始／覆盖属性     | 现有图层读取最终属性；无两个原始字段的正式编辑表单 | LoadSave 的 PK9／PA9、StatEditor.ChangeTeraType；核对默认／星晶值与跨游戏语义                                    |
+
+产品对照文件：wasm/pkhex/PokemonEditing.cs、PokemonRawEditing.cs、PokemonTraining.cs、PokemonVitals.cs、SaveSpriteView.cs 和 src/features/saveeditor/PokemonEditor.tsx。普通请求中的现有字段不包含上述写入；批量属性路径能覆盖哪些行为仍须逐项验证，不能据此关闭缺口。
+
 ## 集中草稿校验与请求失败反馈（API172 前端）
 
 存档与独立实体使用按宝可梦位置、工作副本修订隔离的草稿注册表；更新上下文时不重挂载经验面板。基础／GB 编辑抽出已有请求构造器用于检查与提交，原始数值沿现有 PID／EC／HOME 解析，经验／状态沿既有掩码与睡眠范围；来源、回忆招式与已加载居住历史按实际目录检查。不可编辑或隐藏的表单不注册，未读取的可选目录不触发后台加载。注册清理由独立令牌保护，旧渲染清理不删除新校验器。

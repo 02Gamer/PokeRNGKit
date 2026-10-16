@@ -12,6 +12,7 @@
     <Compile Include="../PokemonMarkings.cs" Link="PokemonMarkings.cs" />
     <Compile Include="../PokemonBallBrowser.cs" Link="PokemonBallBrowser.cs" />
     <Compile Include="../PokemonVitals.cs" Link="PokemonVitals.cs" />
+    <Compile Include="../PokemonAlphaMove.cs" Link="PokemonAlphaMove.cs" />
     <Compile Include="../SavePokemonEditing.cs" Link="SavePokemonEditing.cs" />
     <Compile Include="../PokemonSlotWriter.cs" Link="PokemonSlotWriter.cs" />
     <Compile Include="../PokemonDisplay.cs" Link="PokemonDisplay.cs" />

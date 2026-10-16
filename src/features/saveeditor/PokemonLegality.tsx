@@ -7,6 +7,7 @@ import {
 import { copyLegalityReport } from "./legalityClipboard";
 import { playSaveSound } from "./saveSound";
 import { legalityDisplay } from "./legalityDisplay";
+import { alphaMoveWords } from "./alphaMove";
 import type { PokemonLegalityReport, PokemonPosition } from "./domain";
 import type { saveEditorResources } from "./locales";
 
@@ -43,6 +44,7 @@ export function PokemonLegality({
     origin: words.originDetails,
     relearn: words.relearnMoves,
     history: words.historyTitle,
+    alphaMove: alphaMoveWords[lang].title,
   };
   const current =
     !blocked && report?.box === position.box && report.slot === position.slot

@@ -5,7 +5,7 @@ using PKHeX.Drawing.PokeSprite;
 namespace PokeRNGKit.SaveEditor;
 
 public sealed record LocalizedText(string Zh, string En, string Ja);
-public sealed record MoveChoice(LocalizedText Name, int[] MaxPp);
+public sealed record MoveChoice(LocalizedText Name, int[] MaxPp, bool? AlphaSelectable = null);
 public sealed record AttributeChoices(LocalizedText[] Natures, LocalizedText[] Items, SpeciesChoice[] Species);
 public sealed record PokemonLimits(int Nickname, int TrainerName, int Iv, int Ev, int Move);
 public sealed record BoxEntry(int Index, string Name, int Wallpaper);
@@ -15,7 +15,7 @@ public sealed record PokemonEntry(
     uint Pid, uint EncryptionConstant, uint Experience, byte Friendship,
     LocalizedText SpeciesName, LocalizedText Nature, LocalizedText Ability,
     LocalizedText Item, LocalizedText[] Moves, int[] MovePp, int[] Ivs, int[] Evs, string Sprite, ushort[] MoveIds, PokemonLimits Limits, int[] MovePpUps,
-    int NatureId, int StatAlignment, bool CanStatAlignment, int AbilityIndex, LocalizedText[] AbilityChoices, int HeldItem, bool IsNicknamed, bool CanEditEncryptionConstant, FormArgumentInfo? FormArgument, EncounterInfo Encounter, OriginInfo Origin, EggInfo? EggInfo, ushort[]? RelearnMoves, TrainingInfo Training,string? EggOverlay=null,bool EggAsItem=false,string? HomeTracker=null,string? ItemOverlay=null,string? ShinyOverlay=null,SpriteColorLayer? TeraLayer=null,SpriteExperienceLine? ExperienceLine=null,SpriteSpecialEffects? SpecialEffects=null,string? LegalityIndicator=null,SpriteColorLayer? EncounterLayer=null,bool? LegalityParsed=null,bool? LegalityValid=null,string[]? SlotMarkers=null,bool ExperienceBeforeMarkers=false,PokemonMarkingsInfo? Markings=null,string? Potential=null,GbSpecialFields? GbFields=null,int? GbLanguage=null,bool GbRental=false,PokemonVitalsInfo? Vitals=null);
+    int NatureId, int StatAlignment, bool CanStatAlignment, int AbilityIndex, LocalizedText[] AbilityChoices, int HeldItem, bool IsNicknamed, bool CanEditEncryptionConstant, FormArgumentInfo? FormArgument, EncounterInfo Encounter, OriginInfo Origin, EggInfo? EggInfo, ushort[]? RelearnMoves, TrainingInfo Training,string? EggOverlay=null,bool EggAsItem=false,string? HomeTracker=null,string? ItemOverlay=null,string? ShinyOverlay=null,SpriteColorLayer? TeraLayer=null,SpriteExperienceLine? ExperienceLine=null,SpriteSpecialEffects? SpecialEffects=null,string? LegalityIndicator=null,SpriteColorLayer? EncounterLayer=null,bool? LegalityParsed=null,bool? LegalityValid=null,string[]? SlotMarkers=null,bool ExperienceBeforeMarkers=false,PokemonMarkingsInfo? Markings=null,string? Potential=null,GbSpecialFields? GbFields=null,int? GbLanguage=null,bool GbRental=false,PokemonVitalsInfo? Vitals=null,int? AlphaMove=null);
 
 internal static class PokemonReader
 {
@@ -33,7 +33,7 @@ internal static class PokemonReader
     }
     public static MoveChoice[] MoveChoices(PKM p, int? maximum = null) =>
         Enumerable.Range(0, (maximum ?? p.MaxMoveID) + 1).Select(i => new MoveChoice(Text(s => Name(s.movelist, i)),
-            Enumerable.Range(0, 4).Select(up => p.GetMovePP((ushort)i, up)).ToArray())).ToArray();
+            Enumerable.Range(0, 4).Select(up => p.GetMovePP((ushort)i, up)).ToArray(),p is PA8 ? PokemonAlphaMove.IsSelectable(p,i) : null)).ToArray();
     public static AttributeChoices Attributes(PKM p) => new(
         Enumerable.Range(0, 25).Select(i => Text(s => Name(s.natures, i))).ToArray(),
         Enumerable.Range(0, p.MaxItemID + 1).Select(i => Text(s => Name(s.GetItemStrings(p.Context, p.Version), i))).ToArray(), PokemonIdentity.Choices(p));
@@ -82,6 +82,6 @@ internal static class PokemonReader
             p.IsEgg&&SaveProgramSettingsRuntime.Current is not null?SaveSpriteView.Egg(p.Species):null,
             p.IsEgg&&p.SpriteItem==0&&SaveProgramSettingsRuntime.Current?.Sprite.ShowEggSpriteAsHeldItem==true,
             p is IHomeTrack home?home.Tracker.ToString("X16"):null,SaveSpriteView.Item(p),SaveSpriteView.ShinyIcon(p),SaveSpriteView.Tera(p,storageView),slotView?.Experience??SaveSpriteView.ExperienceBar(p,storageView),SaveSpriteView.Special(p),slotView?.Indicator,slotView?.Encounter,slotView?.Parsed,slotView?.Valid,
-            storageView&&saveContext is not null?SaveSlotArtwork.Markers(saveContext,box,slot):null,slotView?.Parsed is not null,PokemonMarkings.Read(p),PokemonDisplay.Potential(p),p is GBPKM gb?StandaloneGbSpecial.Fields(gb):null,p is GBPKM gbl?gbl.GuessedLanguage():null,p is SK2 rental&&rental.IsRental,PokemonVitals.Read(p,box==-1));
+            storageView&&saveContext is not null?SaveSlotArtwork.Markers(saveContext,box,slot):null,slotView?.Parsed is not null,PokemonMarkings.Read(p),PokemonDisplay.Potential(p),p is GBPKM gb?StandaloneGbSpecial.Fields(gb):null,p is GBPKM gbl?gbl.GuessedLanguage():null,p is SK2 rental&&rental.IsRental,PokemonVitals.Read(p,box==-1),PokemonAlphaMove.Read(p));
     }
 }
