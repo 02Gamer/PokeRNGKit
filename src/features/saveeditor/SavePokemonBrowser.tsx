@@ -2,6 +2,7 @@ import {
   PokemonAdvancedStatsEditor,
   PokemonBoostRows,
 } from "./PokemonAdvancedStatsEditor";
+import { PokemonSpecialStatusEditor } from "./PokemonSpecialStatusEditor";
 import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { PokemonDraftContext } from "./pokemonDraftValidation";
 import { PokemonDraftRegistry } from "./pokemonDraftRegistry";
@@ -931,6 +932,15 @@ export function SavePokemonBrowser({
                       onRead={onReadRibbons}
                       generation={report.generation}
                     />
+                    {selected.specialStatus && (
+                      <PokemonSpecialStatusEditor
+                        key={`special-status-${selected.box}-${selected.slot}`}
+                        info={selected.specialStatus}
+                        position={selected}
+                        disabled={busy || !access.canRaw || !selected.valid}
+                        onApply={onApplyRaw}
+                      />
+                    )}
                     {selected.advancedStats && (
                       <PokemonAdvancedStatsEditor
                         key={`advanced-stats-${selected.box}-${selected.slot}`}

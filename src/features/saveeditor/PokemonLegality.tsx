@@ -1,3 +1,4 @@
+import { specialStatusWords } from "./specialStatus";
 import { trainerDetailsWords } from "./trainerDetails";
 import { advancedStatsWords } from "./advancedStats";
 import { useTranslation } from "react-i18next";
@@ -49,6 +50,7 @@ export function PokemonLegality({
     alphaMove: alphaMoveWords[lang].title,
     advancedStats: advancedStatsWords[lang].title,
     trainerDetails: trainerDetailsWords[lang].title,
+    specialStatus: specialStatusWords[lang].title,
   };
   const current =
     !blocked && report?.box === position.box && report.slot === position.slot

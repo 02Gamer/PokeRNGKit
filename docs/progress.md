@@ -1,8 +1,16 @@
 # PokeRNGKit 项目进度与交接
 
+API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、.tmp/pkhex-api176-native-full.log 默认完整原生、.tmp/pkhex-api176-verify.log 完整 npm run verify 均退出 0。350 文件／2067 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有一条提醒及既有编译／裁剪、包体提示。新专项覆盖 15 种实体的四布局、全部菌株／天数组合、感染／治愈状态表、PK5 邻位／名气、GC 原始零编码、箱位／队伍与两种牧场修订版的完整文件对照；默认完整套件带已授权 E.sav 工作副本检查。最终原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 对已授权本地页的调用仍失败，真实交互、焦点与下载尚未验收；完整接入目标继续保留。
+
+API176 阶段检查：.tmp/pkhex-special-native-ranch.log 原生专项退出 0，覆盖 15 种实体／四种布局、全部菌株与天数组合、感染／治愈切换、PK5 邻位与名气边界、GC 零天数编码、完整输出／原件保持、绿宝石／黑版公开箱位与队伍、剑盾／朱紫类型化块样本及两个牧场修订版的公开手动识别。两文件 46 项前端、完整类型、全仓格式和 .tmp/pkhex-special-core.log 核心重建均通过。默认完整原生与完整 npm run verify 最终结果见本页记录；Chrome 实际操作仍未验收。
+
+## 2026-10-16 特殊状态与记录（API176）
+
+本批基线 232f682bb53b488b11117f30fc075f7415e2ae5c，开始接入宝可病毒和 PK5 专属记录。Core 与两入口共用表单已接线，状态切换由 Core 处理，菌株天数目录来自 Core，保留未改异常值与 GC 零天数编码。三语和共享控件、草稿门禁同步，输入来源与范围见模块文档。原生专项、默认完整原生与完整前端工程门禁均通过，最终证据见本页记录。
+
 API175 最终工程门禁：.tmp/pkhex-trainer-core.log 的浏览器 Core 重建、.tmp/pkhex-api175-native-full.log 的默认完整原生、.tmp/pkhex-api175-verify.log 的完整 npm run verify 均退出 0。349 文件／2056 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒及既有编译／裁剪、包体提示。原生完整套件包含本批 14 种实体／四种布局、目录／编码／完整输出／原件保持与箱位／队伍检查，并带已授权 E.sav 工作副本的既有工程回归。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 标签读取再次失败，实际页面／连续操作／下载与所有者验收仍未完成；完整接入目标继续保留。
 
-下一步继续主窗口特殊状态字段：第三世代及以后宝可病毒的正式编辑（第二世代已有适配），以及 PK5 的 NSparkle 与 PokeStarFame。前者核对 LoadSave.LoadPokerus／SavePokerus、PKMEditor 的感染／治愈／菌株／天数事件与实际存储；不能按游戏合法性隐藏仍存在的字节。后者来源 EditPK5 与 Designer 的 0–255 名气控件，NSparkle 为独立标记。批量属性可读写不视为正式表单已接，完成后继续核对其他主窗口控件与 Chrome 实际交互。
+API175 阶段列出的特殊状态字段已由 API176 接入：第三世代及以后宝可病毒的正式编辑（第二世代已有适配），以及 PK5 的 NSparkle 与 PokeStarFame。前者核对 LoadSave.LoadPokerus／SavePokerus、PKMEditor 的感染／治愈／菌株／天数事件与实际存储；不能按游戏合法性隐藏仍存在的字节。后者来源 EditPK5 与 Designer 的 0–255 名气控件，NSparkle 为独立标记。批量属性可读写不视为正式表单已接，完成后继续核对其他主窗口控件与 Chrome 实际交互。
 
 API175 工程进度：.tmp/pkhex-trainer-native-typed.log 原生专项退出 0，覆盖 14 种实体各四种文件布局、三语目录、完整输出、姓名编码、范围与原件保持；绿宝石箱位／队伍通过公开接口，剑盾／朱紫合成块样本通过类型化适配器，未弱化正式识别。两文件 45 项前端、完整类型、定向 Lint、全仓格式及 .tmp/pkhex-trainer-core.log 浏览器核心重建均通过。最后调整三语标签以区分其他训练家与当前持有者，空姓名禁止选择其他训练家持有。默认完整原生与完整 npm run verify 接续进行，原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442；实际 Chrome 页面未验收。
 

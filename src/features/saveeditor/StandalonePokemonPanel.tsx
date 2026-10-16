@@ -2,6 +2,7 @@ import {
   PokemonAdvancedStatsEditor,
   PokemonBoostRows,
 } from "./PokemonAdvancedStatsEditor";
+import { PokemonSpecialStatusEditor } from "./PokemonSpecialStatusEditor";
 import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { saveFailureFeedback } from "./saveFailureFeedback";
 import { PokemonDraftContext } from "./pokemonDraftValidation";
@@ -1441,6 +1442,15 @@ export function StandalonePokemonPanel({
                       onRead={() => readDetails("ribbons")}
                       onApply={applyRaw}
                     />
+                    {report.pokemon.specialStatus && (
+                      <PokemonSpecialStatusEditor
+                        key={`special-status-${working.fileName}`}
+                        info={report.pokemon.specialStatus}
+                        position={report.pokemon}
+                        disabled={busy}
+                        onApply={applyRaw}
+                      />
+                    )}
                     {report.pokemon.advancedStats && (
                       <PokemonAdvancedStatsEditor
                         key="advanced-stats"

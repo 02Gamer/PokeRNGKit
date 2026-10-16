@@ -1,5 +1,21 @@
 # PKHeX 存档读取与编辑
 
+API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、.tmp/pkhex-api176-native-full.log 默认完整原生、.tmp/pkhex-api176-verify.log 完整 npm run verify 均退出 0。350 文件／2067 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有一条提醒及既有编译／裁剪、包体提示。新专项覆盖 15 种实体的四布局、全部菌株／天数组合、感染／治愈状态表、PK5 邻位／名气、GC 原始零编码、箱位／队伍与两种牧场修订版的完整文件对照；默认完整套件带已授权 E.sav 工作副本检查。最终原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 对已授权本地页的调用仍失败，真实交互、焦点与下载尚未验收；完整接入目标继续保留。
+
+API176 阶段检查：.tmp/pkhex-special-native-ranch.log 原生专项退出 0，覆盖 15 种实体／四种布局、全部菌株与天数组合、感染／治愈切换、PK5 邻位与名气边界、GC 零天数编码、完整输出／原件保持、绿宝石／黑版公开箱位与队伍、剑盾／朱紫类型化块样本及两个牧场修订版的公开手动识别。两文件 46 项前端、完整类型、全仓格式和 .tmp/pkhex-special-core.log 核心重建均通过。接续默认完整原生与完整 npm run verify；Chrome 实际操作仍未验收。
+
+## 特殊状态与记录（API176）
+
+存档与独立文件共用特殊状态表单，新增第三世代起宝可病毒感染记录、治愈状态、菌株与剩余天数，及 PK5 的 NSparkle／PokeStarFame。菌株为 0–15，天数目录由 Core.Pokerus.GetMaxDuration 提供，0 到 (strain & 3)+1；菌株改变时按来源收紧天数。菌株 0／天数 1 仍是可保存组合，不添加来源不存在的“菌株零必须零天数”规则。感染状态使用 Core.IsPokerusInfected（菌株或天数非零），治愈使用 Core.IsPokerusCured（正菌株且零天数）。
+
+感染／治愈复选框使用 Core 动作：首次感染设菌株 1／天数 1；清除感染归零两字段；治愈保留正菌株或将零菌株设 1，天数设 0；从治愈恢复感染将天数设 1。与当前状态相同的动作保持原始值。有未应用草稿时禁用切换，先应用或还原。只改动指定字段，未修改的异常原值及 GC 零天数的原始编码保持；不触发通用队伍能力重算。
+
+能力按实体字段实际可保存性探测并按类型缓存；不把无法正常获得感染当作没有该字段。PB7、PK9、PA9 仍可读取和编辑保存的病毒字节，合法性另由 Core 检查。第二世代沿已有 GB 特殊字段适配器，避免重复表单。所有控件沿共享 Select、check、fieldset 和按钮样式，三语标签及集中草稿门禁同步；稳定挂载并在元数据更新后同步草稿，实际焦点行为待 Chrome 核验。
+
+来源：只读 PKHeX.WinForms/Controls/PKM Editor/LoadSave.cs 的 LoadPokerus／SavePokerus；PKMEditor.cs 的 UpdatePKRSstrain、ChangePKRSstrainDropDownLists、UpdatePKRSdays、UpdatePKRSCured 与 UpdatePKRSInfected；PKM.cs 的感染／治愈属性及 Core.Pokerus.GetMaxDuration。PK5 两字段来自 EditPK5.PopulateFieldsPK5／PreparePK5；Designer 的 NUD_PokeStarFame.Maximum=255，十进制整数、最小 0。NSparkle 只改 0x42 的 bit1，PokeStarFame 使用 0x87 的 byte，IsPokeStar 由大于 250 的名气派生。
+
+Core、Worker 与版本夹具同步 API176。专项、核心重建、默认完整原生与完整前端工程检查均通过；未宣称完整功能或真实页面已验收。
+
 API175 最终工程门禁：.tmp/pkhex-trainer-core.log 的浏览器 Core 重建、.tmp/pkhex-api175-native-full.log 的默认完整原生、.tmp/pkhex-api175-verify.log 的完整 npm run verify 均退出 0。349 文件／2056 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒及既有编译／裁剪、包体提示。原生完整套件包含本批 14 种实体／四种布局、目录／编码／完整输出／原件保持与箱位／队伍检查，并带已授权 E.sav 工作副本的既有工程回归。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 标签读取再次失败，实际页面／连续操作／下载与所有者验收仍未完成；完整接入目标继续保留。
 
 API175 工程进度：.tmp/pkhex-trainer-native-typed.log 原生专项退出 0，覆盖 14 种实体各四种文件布局、三语目录、完整输出、姓名编码、范围与原件保持；绿宝石箱位／队伍通过公开接口，剑盾／朱紫合成块样本通过类型化适配器，未弱化正式识别。两文件 45 项前端、完整类型、定向 Lint、全仓格式及 .tmp/pkhex-trainer-core.log 浏览器核心重建均通过。最后调整三语标签以区分其他训练家与当前持有者，空姓名禁止选择其他训练家持有。默认完整原生与完整 npm run verify 接续进行，原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442；实际 Chrome 页面未验收。
