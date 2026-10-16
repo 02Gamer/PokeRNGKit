@@ -34,7 +34,7 @@ internal static class Raid9EditingTests
     private static R9Field[] Fields() => [new("IsEnabled", "False"), new("AreaID", "4294967295"), new("LotteryGroup", "0xFFFFFFFF"), new("SpawnPointID", "0"), new("Seed", "0xFFFFFFFe"), new("Unused", "0x80000000"), new("Content", "123"), new("IsClaimedLeaguePoints", "False")];
     internal static void Run()
     {
-        Check(SaveService.ApiVersion == 174, "Raid9 product protocol");
+        Check(SaveService.ApiVersion == 175, "Raid9 product protocol");
         foreach (var version in new[] { GameVersion.SL, GameVersion.VL })
         foreach (int revision in new[] { 0, 1, 2 })
         {

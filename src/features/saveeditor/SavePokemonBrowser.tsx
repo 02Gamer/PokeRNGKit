@@ -23,6 +23,7 @@ import {
 } from "./PokemonSuperTrainingEditor";
 import { PlusRecordEditor, type PlusRecordActions } from "./PlusRecordEditor";
 import { TechRecordEditor, type TechRecordActions } from "./TechRecordEditor";
+import { PokemonTrainerDetailsEditor } from "./PokemonTrainerDetailsEditor";
 import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
@@ -97,6 +98,7 @@ export function SavePokemonBrowser({
   onSuggestRelearn,
   onReadRibbons,
   onReadHistory,
+  onReadTrainerDetails,
   onReadMemory,
   onAnalyze,
   onApplyBox,
@@ -142,6 +144,9 @@ export function SavePokemonBrowser({
   onExportBoxBinary: BoxBinaryActions["onExportBoxBinary"];
   legality?: PokemonLegalityReport;
   onSuggestRelearn(position: PokemonPosition): Promise<number[] | undefined>;
+  onReadTrainerDetails(
+    position: PokemonPosition,
+  ): Promise<import("./trainerDetails").TrainerDetailsCatalog | undefined>;
   onReadHistory(
     position: PokemonPosition,
   ): Promise<import("./domain").HistoryCatalog | undefined>;
@@ -881,6 +886,15 @@ export function SavePokemonBrowser({
                           {...techRecord}
                         />
                       )}
+                    <PokemonTrainerDetailsEditor
+                      key={`trainer-details-${selected.box}-${selected.slot}`}
+                      revision={revision}
+                      position={selected}
+                      disabled={busy || !access.canRaw || !selected.valid}
+                      readDisabled={busy || !selected.valid}
+                      onRead={onReadTrainerDetails}
+                      onApply={onApplyRaw}
+                    />
                     <PokemonEncounterEditor
                       key={`encounter-${JSON.stringify(selected)}`}
                       encounter={selected.encounter}

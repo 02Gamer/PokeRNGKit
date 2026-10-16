@@ -1,5 +1,17 @@
 # PokeRNGKit 项目进度与交接
 
+API175 最终工程门禁：.tmp/pkhex-trainer-core.log 的浏览器 Core 重建、.tmp/pkhex-api175-native-full.log 的默认完整原生、.tmp/pkhex-api175-verify.log 的完整 npm run verify 均退出 0。349 文件／2056 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒及既有编译／裁剪、包体提示。原生完整套件包含本批 14 种实体／四种布局、目录／编码／完整输出／原件保持与箱位／队伍检查，并带已授权 E.sav 工作副本的既有工程回归。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 标签读取再次失败，实际页面／连续操作／下载与所有者验收仍未完成；完整接入目标继续保留。
+
+下一步继续主窗口特殊状态字段：第三世代及以后宝可病毒的正式编辑（第二世代已有适配），以及 PK5 的 NSparkle 与 PokeStarFame。前者核对 LoadSave.LoadPokerus／SavePokerus、PKMEditor 的感染／治愈／菌株／天数事件与实际存储；不能按游戏合法性隐藏仍存在的字节。后者来源 EditPK5 与 Designer 的 0–255 名气控件，NSparkle 为独立标记。批量属性可读写不视为正式表单已接，完成后继续核对其他主窗口控件与 Chrome 实际交互。
+
+API175 工程进度：.tmp/pkhex-trainer-native-typed.log 原生专项退出 0，覆盖 14 种实体各四种文件布局、三语目录、完整输出、姓名编码、范围与原件保持；绿宝石箱位／队伍通过公开接口，剑盾／朱紫合成块样本通过类型化适配器，未弱化正式识别。两文件 45 项前端、完整类型、定向 Lint、全仓格式及 .tmp/pkhex-trainer-core.log 浏览器核心重建均通过。最后调整三语标签以区分其他训练家与当前持有者，空姓名禁止选择其他训练家持有。默认完整原生与完整 npm run verify 接续进行，原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442；实际 Chrome 页面未验收。
+
+## 2026-10-16 训练家与来源信息（API175）
+
+本批提交前基线为 0bfb262fd4b8340d7ad75e4246d50a38febffa09。继续接入主编辑器训练家字段，新增按需目录及编辑动作，存档与独立文件共用三语表单。包含语言、原训练家性别、持有者姓名／性别／归属／语言、原始地区、对战版本与服从等级；目录、空值、宽度和转换见模块文档。源码、协议和版本断言同步 API175，完整工程门禁已通过，结果见本页最终记录。完整 PKHeX 目标继续保留，不能将本批当作全功能完成。
+
+Chrome 4 对已授权 http://127.0.0.1:5173/ 的读取仍失败。真实页面、下载与所有者验收未完成；不追加权限请求，不使用内置浏览器替代。确认的原存档仍是 C:\Users\Hakuhiro\Desktop\200\battery\E.sav，原文件保持只读。
+
 API174 最终工程门禁：最后核心重建 .tmp/pkhex-stats-final-core.log、默认完整原生 .tmp/pkhex-api174-native-full.log、完整 npm run verify 的 .tmp/pkhex-api174-final-verify.log 均退出 0。348 文件／2046 项前端、完整类型、Lint、格式与网页／PWA 通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒、既有 .NET 编译／裁剪及包体提示。原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Native 默认套件包含本批六种实体／四种布局、所有来源动作和太晶选项、零 IV 建议差异、隐藏 EV 保留以及七种类型／修订存档的箱位／队伍或 LGPE 队伍引用对照。最后使用稳定挂载同步草稿并条件恢复焦点；实际 Chrome 布局／交互／下载仍未验收。Chrome 4 可被识别，但现有标签读取及同一连接中新建标签均失败；不使用内置浏览器替代工程核验。
 
 后续原生专项 .tmp/pkhex-stats-native-hidden-ev.log 退出 0，包含零 IV 攻击／速度的 AV 最低值及 GV 推荐／满值区别、LGPE 普通昵称编辑完整文件对照与隐藏 EV 字节保留。LGPE 普通模式按来源以 AV 替代 EV 输入，摘要同步显示实际 AV／GV，未发送的 EV 数据保持；三文件 46 项专项 .tmp/pkhex-stats-final-front.log 通过。首轮完整前端检查的 347 文件／2039 项、类型／Lint／格式通过，但网页复制与核心资源替换发生 ENOENT 交叠（System.Linq 压缩资源），该次完整 verify 退出 1，不列为完整通过。最后核心 .tmp/pkhex-stats-final-core.log 已退出 0，资源稳定后重跑 .tmp/pkhex-api174-final-verify.log；默认完整原生 .tmp/pkhex-api174-native-full.log 同时运行。Chrome 4 本地页读取再次失败，实际布局／焦点／下载未验收。

@@ -133,6 +133,7 @@ internal static class SaveEditorTests
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-gb-special") { StandaloneGbSpecialTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-gb") { StandaloneGbTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-egg") { StandaloneEggTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "trainer-details") { PokemonTrainerDetailsTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "advanced-stats") { PokemonAdvancedStatsTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "alpha-move") { PokemonAlphaMoveTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "vitals") { PokemonVitalsTests.Run(); return; }
@@ -187,7 +188,7 @@ internal static class SaveEditorTests
             var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
             Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
             Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
-            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 174, $"{version}: API version");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 175, $"{version}: API version");
             Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
             var boxes = document.RootElement.GetProperty("boxes");
             Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");
@@ -438,6 +439,7 @@ internal static class SaveEditorTests
         PokemonVitalsTests.Run();
         PokemonAlphaMoveTests.Run();
         PokemonAdvancedStatsTests.Run();
+        PokemonTrainerDetailsTests.Run();
         PokemonOriginTests.Run();
         PokemonEggTests.Run();
         PokemonMakeEggTests.Run();

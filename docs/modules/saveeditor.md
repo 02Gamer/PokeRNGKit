@@ -1,5 +1,19 @@
 # PKHeX 存档读取与编辑
 
+API175 最终工程门禁：.tmp/pkhex-trainer-core.log 的浏览器 Core 重建、.tmp/pkhex-api175-native-full.log 的默认完整原生、.tmp/pkhex-api175-verify.log 的完整 npm run verify 均退出 0。349 文件／2056 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒及既有编译／裁剪、包体提示。原生完整套件包含本批 14 种实体／四种布局、目录／编码／完整输出／原件保持与箱位／队伍检查，并带已授权 E.sav 工作副本的既有工程回归。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 标签读取再次失败，实际页面／连续操作／下载与所有者验收仍未完成；完整接入目标继续保留。
+
+API175 工程进度：.tmp/pkhex-trainer-native-typed.log 原生专项退出 0，覆盖 14 种实体各四种文件布局、三语目录、完整输出、姓名编码、范围与原件保持；绿宝石箱位／队伍通过公开接口，剑盾／朱紫合成块样本通过类型化适配器，未弱化正式识别。两文件 45 项前端、完整类型、定向 Lint、全仓格式及 .tmp/pkhex-trainer-core.log 浏览器核心重建均通过。最后调整三语标签以区分其他训练家与当前持有者，空姓名禁止选择其他训练家持有。默认完整原生与完整 npm run verify 接续进行，原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442；实际 Chrome 页面未验收。
+
+## 训练家与来源信息（API175）
+
+新增按需读取的训练家目录及共用编辑表单，存档与独立实体两个入口使用同一组共享控件。语言按 GameDataSource.LanguageDataSource 的世代／context 目录，原训练家性别仅允许新增 0／1；当前持有者姓名使用实际 MaxStringLengthTrainer 的 UTF-16 长度，性别及持有者索引均为 0／1。第六世代起提供持有者姓名／性别／归属，IHandlerLanguage 提供语言目录及空值 0。清空或仅空白姓名时沿 UpdateNotOT 将归属、性别归零，保留亲密度与记忆；归属 1 需要非空姓名。
+
+原始国家、省／州及主机地区仅向 IRegionOrigin 显示，与 IGeoTrack 的五条居住历史分别保存。目录复用 Core 的 countries、sr_###、GameDataSource.Regions；新增地区必须匹配选定国家。IBattleVersion 使用同世代可选游戏及 0；IObedienceLevel 使用三位十进制掩码（空值 0、0–999），保存按来源转为 byte，256 为 0、999 为 231；建议值调用 GetSuggestedObedienceLevel 并将相遇等级限制到 0–100。未修改的异常原值保持。
+
+来源为只读 PKHeX.WinForms/Controls/PKM Editor/LoadSave.cs 的 LoadOT／SaveOT、LoadHandlingTrainer／SaveHandlingTrainer、LoadGeolocation／SaveGeolocation、LoadMisc8／SaveMisc8／SaveMisc9；PKMEditor.cs 的 PopulateFilteredDataSources、UpdateNickname、IsPossibleNotNicknamed、UpdateNotOT、ClickGT 与 L_Obedience_Click；Designer 的 TB_ObedienceLevel.Mask=000。语言修改沿来源保留现有任一语言物种名／蛋名；非起名且旧内容不符合来源名字时才使用 Core 物种名。手动起名不自动生成物种名；语言变更按 PreparePK3 的保存顺序重新编码姓名，早期字符集无法表示的文字可能截断，界面明确说明，工作副本可撤销。首轮检查修复了相遇等级 Clamp 重载冲突与独立入口的蛋操作误路由；物种名用例区分没有独立起名标记的早期格式，合成块存档使用类型化检查。
+
+编辑先在克隆上验证后复制，只发送已改字段；不触发通用队伍能力重算。草稿接集中合法性门禁，工作副本版本变化后必须重新读取，避免覆盖其他面板的较新修改。专项、核心重建与完整门禁均通过，结果在进度页记录，实际 Chrome 交互仍待核验。
+
 API174 最终工程门禁：最后核心重建 .tmp/pkhex-stats-final-core.log、默认完整原生 .tmp/pkhex-api174-native-full.log、完整 npm run verify 的 .tmp/pkhex-api174-final-verify.log 均退出 0。348 文件／2046 项前端、完整类型、Lint、格式与网页／PWA 通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒、既有 .NET 编译／裁剪及包体提示。原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Native 默认套件包含本批六种实体／四种布局、所有来源动作和太晶选项、零 IV 建议差异、隐藏 EV 保留以及七种类型／修订存档的箱位／队伍或 LGPE 队伍引用对照。最后使用稳定挂载同步草稿并条件恢复焦点；实际 Chrome 布局／交互／下载仍未验收。Chrome 4 可被识别，但现有标签读取及同一连接中新建标签均失败；不使用内置浏览器替代工程核验。
 
 后续原生专项 .tmp/pkhex-stats-native-hidden-ev.log 退出 0，包含零 IV 攻击／速度的 AV 最低值及 GV 推荐／满值区别、LGPE 普通昵称编辑完整文件对照与隐藏 EV 字节保留。LGPE 普通模式按来源以 AV 替代 EV 输入，摘要同步显示实际 AV／GV，未发送的 EV 数据保持；三文件 46 项专项 .tmp/pkhex-stats-final-front.log 通过。首轮完整前端检查的 347 文件／2039 项、类型／Lint／格式通过，但网页复制与核心资源替换发生 ENOENT 交叠（System.Linq 压缩资源），该次完整 verify 退出 1，不列为完整通过。最后核心 .tmp/pkhex-stats-final-core.log 已退出 0，资源稳定后重跑 .tmp/pkhex-api174-final-verify.log；默认完整原生 .tmp/pkhex-api174-native-full.log 同时运行。Chrome 4 本地页读取再次失败，实际布局／焦点／下载未验收。

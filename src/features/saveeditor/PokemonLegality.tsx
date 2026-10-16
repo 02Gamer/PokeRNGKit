@@ -1,3 +1,4 @@
+import { trainerDetailsWords } from "./trainerDetails";
 import { advancedStatsWords } from "./advancedStats";
 import { useTranslation } from "react-i18next";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -47,6 +48,7 @@ export function PokemonLegality({
     history: words.historyTitle,
     alphaMove: alphaMoveWords[lang].title,
     advancedStats: advancedStatsWords[lang].title,
+    trainerDetails: trainerDetailsWords[lang].title,
   };
   const current =
     !blocked && report?.box === position.box && report.slot === position.slot

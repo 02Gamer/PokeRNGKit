@@ -62,7 +62,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 174;
+  apiVersion: 175;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -732,8 +732,10 @@ export interface PokemonRawEdit extends PokemonPosition {
     | "markings"
     | "vitals"
     | "alphaMove"
-    | "advancedStats";
+    | "advancedStats"
+    | "trainerDetails";
   advancedStats?: import("./advancedStats").AdvancedStatsEdit;
+  trainerDetails?: import("./trainerDetails").TrainerDetailsEdit;
   alphaMove?: number;
   vitals?: import("./pokemonVitals").PokemonVitalsEdit;
   markings?: number[];
@@ -1048,6 +1050,7 @@ export interface SaveEditorResult {
   inventory?: BagReport;
   memoryCatalog?: MemoryCatalog;
   historyCatalog?: HistoryCatalog;
+  trainerDetails?: import("./trainerDetails").TrainerDetailsCatalog;
   ribbons?: RibbonCatalog;
   relearnSuggestion?: number[];
   originCatalog?: OriginCatalog;

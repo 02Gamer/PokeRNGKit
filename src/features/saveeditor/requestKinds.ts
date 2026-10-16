@@ -330,6 +330,7 @@ export type SaveEditorRequestKind =
   | "storage"
   | "pokemonImport"
   | "historyCatalog"
+  | "trainerDetails"
   | "memoryCatalog"
   | "ribbons"
   | "relearnSuggestion"

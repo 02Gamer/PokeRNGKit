@@ -3968,6 +3968,25 @@ export function SaveEditorPanel(
     return catalog;
   };
 
+  const readTrainerDetails = async (
+    query: import("./domain").PokemonPosition,
+  ) => {
+    let catalog: import("./trainerDetails").TrainerDetailsCatalog | undefined;
+    await perform(async (id) => {
+      if (!working.current) return;
+      const result = await client.current.run(
+        working.current,
+        JSON.stringify(query),
+        "trainerDetails",
+      );
+      if (id !== operation.current) return;
+      if (!result.trainerDetails)
+        throw new Error("No trainer details were returned.");
+      catalog = result.trainerDetails;
+    });
+    return catalog;
+  };
+
   const readHistory = async (query: import("./domain").PokemonPosition) => {
     let catalog: import("./domain").HistoryCatalog | undefined;
     await perform(async (id) => {
@@ -6195,6 +6214,7 @@ export function SaveEditorPanel(
                     onSuggestRelearn={suggestRelearn}
                     onReadRibbons={readRibbons}
                     onReadHistory={readHistory}
+                    onReadTrainerDetails={readTrainerDetails}
                     onReadMemory={readMemory}
                     onAnalyze={analyzePokemon}
                   />

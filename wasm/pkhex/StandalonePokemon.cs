@@ -113,7 +113,8 @@ internal static class StandalonePokemon
             throw new ArgumentException("Entity file editing is unavailable for this data.");
         PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party, () =>
         {
-            if (edit.Action == "origin") PokemonOrigin.Apply(p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
+            if (edit.Action == "trainerDetails") PokemonTrainerDetails.Apply(p, edit.TrainerDetails ?? throw new ArgumentException("Trainer detail edit is missing."));
+            else if (edit.Action == "origin") PokemonOrigin.Apply(p, edit.Origin ?? throw new ArgumentException("Origin edit is missing."));
             else StandaloneEgg.Apply(p, edit.Egg ?? throw new ArgumentException("Entity egg edit is missing."),
                 eggTrainer ?? throw new ArgumentException("Entity egg operations require a trainer context."));
         });

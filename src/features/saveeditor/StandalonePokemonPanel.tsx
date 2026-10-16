@@ -59,6 +59,7 @@ import { PokemonEncounterEditor } from "./PokemonEncounterEditor";
 import { PokemonFormArgumentEditor } from "./PokemonFormArgumentEditor";
 import { PokemonRibbonEditor } from "./PokemonRibbonEditor";
 import { PokemonMemoryEditor } from "./PokemonMemoryEditor";
+import { PokemonTrainerDetailsEditor } from "./PokemonTrainerDetailsEditor";
 import { PokemonHistoryEditor } from "./PokemonHistoryEditor";
 import { PokemonRelearnEditor } from "./PokemonRelearnEditor";
 import { PokemonCareEditor } from "./PokemonCareEditor";
@@ -1412,6 +1413,15 @@ export function StandalonePokemonPanel({
                         onApply={applyRaw}
                       />
                     )}
+                    <PokemonTrainerDetailsEditor
+                      key={`trainer-details-${working.fileName}`}
+                      revision={revision}
+                      position={report.pokemon}
+                      disabled={busy}
+                      readDisabled={busy}
+                      onRead={() => readDetails("trainerDetails")}
+                      onApply={applyRaw}
+                    />
                     {report.generation >= 6 && (
                       <PokemonHistoryEditor
                         key={`history-${revision}`}
