@@ -135,6 +135,7 @@ internal static class SaveEditorTests
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "standalone-egg") { StandaloneEggTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "trainer-details") { PokemonTrainerDetailsTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "identity-tools") { PokemonIdentityToolsTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "prepared-set") { PokemonSetTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "dimensions-legacy") { PokemonDimensionsLegacyTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "special-status") { PokemonSpecialStatusTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "advanced-stats") { PokemonAdvancedStatsTests.Run(); return; }
@@ -442,6 +443,7 @@ internal static class SaveEditorTests
         PokemonVitalsTests.Run();
         PokemonAlphaMoveTests.Run();
         PokemonAdvancedStatsTests.Run();
+        PokemonSetTests.Run();
         PokemonIdentityToolsTests.Run();
         PokemonSpecialStatusTests.Run();
         PokemonDimensionsLegacyTests.Run();
