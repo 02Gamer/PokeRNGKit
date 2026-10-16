@@ -6,7 +6,7 @@ internal static class MailboxSessionTests
 {
     internal static void Run()
     {
-        Check(SaveService.ApiVersion == 179,"Mailbox product protocol");
+        Check(SaveService.ApiVersion == 180,"Mailbox product protocol");
         foreach(string version in new[]{"E","D","Pt","HG","B","B2"})
         {
             var original=File.ReadAllBytes($".tmp/pkhex-fixtures/{version}.sav");var copy=original.ToArray();

@@ -10,6 +10,8 @@ import {
   vitalInteger,
   experienceInput,
   levelInput,
+  partyStatInput,
+  partyStatsWords,
   vitalsWords,
   type PokemonVitalsInfo,
 } from "./pokemonVitals";
@@ -55,6 +57,58 @@ function render(lang: "zh" | "en" | "ja", data = info, generation = 3) {
   );
 }
 describe("source entity editor vitals", () => {
+  it.each(["zh", "en", "ja"] as const)(
+    "renders localized, initially locked party stats with shared controls in %s",
+    (lang) => {
+      const html = render(lang, {
+        ...info,
+        partyStats: {
+          values: [12, 23, 34, 45, 56, 67],
+          computed: [100, 101, 102, 103, 104, 105],
+          writable: [true, true, true, true, true, true],
+          maximum: 65535,
+        },
+      });
+      expect(html).toContain(partyStatsWords[lang].manual);
+      expect(html).toContain(partyStatsWords[lang].hint);
+      expect(html).toContain('class="field save-editor-checkbox"');
+      expect(html.match(/maxLength="5" disabled=""/g)).toHaveLength(6);
+      expect(html).toContain('value="100"');
+      expect(
+        html.indexOf(`<span>${partyStatsWords[lang].stats[4]}</span>`),
+      ).toBeLessThan(
+        html.indexOf(`<span>${partyStatsWords[lang].stats[3]}</span>`),
+      );
+      const first = render(
+        lang,
+        {
+          ...info,
+          partyStats: {
+            values: [12, 23, 34, 45, 56, 56],
+            computed: [100, 101, 102, 103, 104, 104],
+            writable: [true, true, true, true, true, false],
+            maximum: 65535,
+          },
+        },
+        1,
+      );
+      expect(first.match(/maxLength="5" disabled=""/g)).toHaveLength(5);
+      expect(first).toContain(`<span>${partyStatsWords[lang].special}</span>`);
+      expect(first).not.toContain(
+        `<span>${partyStatsWords[lang].stats[5]}</span>`,
+      );
+      expect(render(lang)).not.toContain(partyStatsWords[lang].manual);
+    },
+  );
+  it("normalizes the five-digit source controls without wrapping", () => {
+    for (const value of ["", " ", "00000"])
+      expect(partyStatInput(value)).toBe(0);
+    expect(partyStatInput("12 34")).toBe(1234);
+    expect(partyStatInput("65535")).toBe(65535);
+    expect(partyStatInput("99999")).toBe(65535);
+    for (const value of ["100000", "-1", "1.5", "1e3", "0xFF", "１２"])
+      expect(() => partyStatInput(value)).toThrow();
+  });
   it.each(["zh", "en", "ja"] as const)(
     "renders shared controls and source sleep/EXP limits in %s",
     (lang) => {

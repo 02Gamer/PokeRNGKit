@@ -25,12 +25,12 @@ internal static class PokemonRawEditing
                     throw new ArgumentException("Storage party must contain a non-egg Pokemon when adding an egg.");
                 PokemonEgg.Apply(save, p, edit.Egg ?? throw new ArgumentException("Pokemon egg edit is missing."));
             }
-        }, save.MaxAbilityID);
+        }, save.MaxAbilityID,save);
         if (edit.Box == -1) save.SetPartySlotAtIndex(p, edit.Slot, EntityImportSettings.None);
         else save.SetBoxSlotAtIndex(p, edit.Box, edit.Slot, EntityImportSettings.None);
     }
 
-    public static void Apply(PKM p, PokemonRawEdit edit, bool party, Action? applyContext = null, int? saveMaxAbility = null)
+    public static void Apply(PKM p, PokemonRawEdit edit, bool party, Action? applyContext = null, int? saveMaxAbility = null,SaveFile? saveContext=null)
     {
         if(edit.Vitals is not null&&edit.Action!="vitals")throw new ArgumentException("Unexpected Pokemon vital edit.");
         if(edit.AlphaMove is not null&&edit.Action!="alphaMove")throw new ArgumentException("Unexpected alpha mastery edit.");
@@ -70,7 +70,7 @@ internal static class PokemonRawEditing
                 PokemonAlphaMove.Apply(p,edit.AlphaMove??throw new ArgumentException("Alpha mastery move is missing."));
                 break;
             case "vitals":
-                PokemonVitals.Apply(p,edit.Vitals??throw new ArgumentException("Pokemon vital edit is missing."),party);
+                PokemonVitals.Apply(p,edit.Vitals??throw new ArgumentException("Pokemon vital edit is missing."),party,saveContext);
                 break;
             case "markings":
                 PokemonMarkings.Apply(p,edit.Markings??throw new ArgumentException("Pokemon markings are missing."));

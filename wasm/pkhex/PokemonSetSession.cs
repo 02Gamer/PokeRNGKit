@@ -39,12 +39,12 @@ internal static class PokemonSetSession
         if(request is null||request.Capture is null||request.SourceHash!=hash||request.Scope!=request.Capture.Scope||request.Source is null||request.Target is null)throw new ArgumentException("Editor snapshot is stale or incomplete.");
         if(request.Source.Box==-1){if(!source.HasParty||(uint)request.Source.Slot>=6)throw new ArgumentException("Invalid editor source.");}
         else if((uint)request.Source.Box>=source.BoxCount||(uint)request.Source.Slot>=source.BoxSlotCount)throw new ArgumentException("Invalid editor source.");
-        PKM original;
+        PKM original;bool? editorParty=null;
         if(request.EditorFile is{} buffer)
         {
             if(buffer.Data is null||buffer.Data.Length>1024*1024)throw new ArgumentException("Editor buffer is too large.");
             byte[] bytes;try{bytes=Convert.FromBase64String(buffer.Data);}catch(FormatException){throw new ArgumentException("Invalid editor buffer.");}
-            original=StandalonePokemon.Open(bytes,buffer.FileName,useFileFormat:true).Entity;
+            var opened=StandalonePokemon.Open(bytes,buffer.FileName,useFileFormat:true);original=opened.Entity;editorParty=opened.Party;
             // SK2 has one fixed width and no language marker. Resolve ambiguous
             // names using the already recognized save's encoding, as its reader does.
             if(original is SK2 stadium&&source.BlankPKM is SK2 stadiumLayout)
@@ -55,7 +55,7 @@ internal static class PokemonSetSession
             if(original is GBPKM gb&&source.BlankPKM is GBPKM blank&&(gb.Japanese!=blank.Japanese||gb.Korean!=blank.Korean))throw new ArgumentException("GB editor encoding conflicts with the save.");
         }
         else original=PokemonEditing.Read(source,request.Source.Box,request.Source.Slot);
-        var p=PokemonDraftPreparing.Prepare(source,original,request.Source,request.Capture);
+        var p=PokemonDraftPreparing.Prepare(source,original,request.Source,request.Capture,editorParty);
         var target=StorageEditing.Target(source,request.Target);StorageEditing.Writable(source,target);
         ISlotInfo slot=target.Box==-1?new SlotInfoParty(target.Slot):new SlotInfoBox(target.Box,target.Slot,source);
         if(!slot.CanWriteTo(source)||slot.CanWriteTo(source,p)!=WriteBlockedMessage.None)throw new ArgumentException("Prepared Pokemon cannot be written to this slot or party configuration.");
@@ -65,7 +65,7 @@ internal static class PokemonSetSession
         var fileCopy=p.Clone();
         var file=new PokemonFile("prepared."+p.Extension,Convert.ToBase64String(StandalonePokemon.Serialize(fileCopy,true,false)));
         bool overwrite=target.Box==-1?target.Slot<source.PartyCount:source.GetBoxSlotAtIndex(target.Box,target.Slot).Species!=0;
-        var scratch=source.Clone();var stored=p.Clone();
+        var scratch=PokemonEditorContext.CloneSave(source);var stored=p.Clone();
         if(target.Box==-1){if(!new SlotInfoParty(target.Slot).WriteTo(scratch,stored))throw new ArgumentException("Party write was rejected.");}
         else PokemonSlotWriter.Box(scratch,stored,target.Box,target.Slot,default(EntityImportSettings));
         // Some Core readers decrypt their supplied buffer in place. Verification

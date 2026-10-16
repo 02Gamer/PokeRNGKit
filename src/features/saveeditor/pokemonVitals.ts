@@ -26,12 +26,21 @@ export interface PokemonVitalsInfo {
     sleepTurns: number;
   };
   showGender: boolean;
+  partyStats?: PokemonPartyStatsInfo | null;
+}
+export interface PokemonPartyStatsInfo {
+  values: number[];
+  computed: number[];
+  writable: boolean[];
+  maximum: number;
 }
 export interface PokemonVitalsEdit {
   action:
     | "experience"
     | "level"
     | "hiddenPower"
+    | "partyStats"
+    | "resetPartyStats"
     | "status"
     | "bar"
     | "wheel"
@@ -51,7 +60,36 @@ export interface PokemonVitalsEdit {
   alt?: boolean;
   shift?: boolean;
   control?: boolean;
+  stats?: number[];
 }
+// Five decimal source mask, blank -> 0, clamped to UInt16 by StatEditor.
+export function partyStatInput(value: string) {
+  if (!/^[0-9 ]{0,5}$/.test(value)) throw Error("range");
+  return Math.min(65535, Number(value.replaceAll(" ", "") || "0"));
+}
+export const partyStatsWords = {
+  zh: {
+    title: "队伍能力值",
+    special: "特殊",
+    manual: "手动能力值（HaX）",
+    hint: "HP 同时写入当前值和上限；普通箱位可能不保存这些数值。放入时以预览结果为准。",
+    stats: ["HP", "攻击", "防御", "速度", "特攻", "特防"],
+  },
+  en: {
+    title: "Party stats",
+    special: "Special",
+    manual: "Manual stats (HaX)",
+    hint: "HP sets both current and maximum HP. Ordinary box slots may not retain these values; review the Set preview.",
+    stats: ["HP", "Attack", "Defense", "Speed", "Sp. Atk", "Sp. Def"],
+  },
+  ja: {
+    title: "手持ちの能力値",
+    special: "とくしゅ",
+    manual: "能力値を手動入力（HaX）",
+    hint: "HPは現在値と最大値の両方に設定されます。通常のボックスは能力値を保存しない場合があります。配置のプレビューを確認してください。",
+    stats: ["HP", "こうげき", "ぼうぎょ", "すばやさ", "とくこう", "とくぼう"],
+  },
+} as const;
 export function statusChoice(value: number, generation: number) {
   const low = value & 255;
   if (generation > 4) return [0, 64, 1, 32, 16, 8][low] ?? low + 256;

@@ -7,7 +7,7 @@ export interface BattleTemplateQuery {
   slot?: number;
 }
 export interface BattleTemplateReport {
-  apiVersion: 179;
+  apiVersion: 180;
   sourceHash: string;
   scope: BattleTemplateScope;
   box: number | null;
@@ -24,7 +24,7 @@ export function parseBattleTemplate(
     throw new Error("Missing battle template.");
   const v = value as BattleTemplateReport;
   if (
-    v.apiVersion !== 179 ||
+    v.apiVersion !== 180 ||
     !/^[A-F0-9]{64}$/.test(hash) ||
     v.sourceHash !== hash ||
     v.scope !== query.scope ||

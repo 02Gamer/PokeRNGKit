@@ -1,5 +1,17 @@
 # PKHeX 完整接入清单
 
+## 2026-10-17 手动队伍能力值（API180）
+
+基线 1828aed3a6a25566c2cd485b0a77a0b045d93295。共用经验／状态面板增加手动队伍能力值，沿共享控件和三语。第一世代显示五项并合并特殊，后续显示六项且速度置后；Core 保持HP／攻击／防御／速度／特攻／特防顺序。默认显示计算值，未操作本区时保留原有生命与数值；点击应用更新编辑缓冲，切换手动模式后在放入准备末尾写数值或按最终字段重算。实际存档继续经预览、确认、撤销和导出链路更新。
+
+输入来源为 WinForms Controls/PKM Editor/StatEditor.cs 的 LoadPartyStats、SavePartyStats、UpdateStats、UpdateHackedStatText，以及 Designer 的六项00000掩码：十进制五字符、空白按0、网页超限夹到65535，Core拒绝负数／超过UInt16／非六项数组。HP同时写当前值与上限；按实际序列化能力开放字段，PK1特殊共用，SK2临时属性及RK4只读计算属性不作为已保存值，普通箱位不承诺保存队伍扩展。网页拒绝依赖ushort截断绕回的输入。
+
+计算模式使用当前存档的Personal表，不直接沿PK3默认的PersonalTable.RS；只读上下文和放入克隆保留火红／叶绿运行时选择。来源为Core PKM/PK3.cs、PKM/PKM.cs、Saves/SAV3RS.cs、SAV3E.cs、SAV3FRLG.cs及PersonalInfo/Table/PersonalTable3.cs。四游戏表专项以代欧奇希斯对照存档元数据、只读克隆、公开实体重算、准备及直接存档编辑；R/FR/LG为重建校验和的类型化工程布局，不写作自动识别或所有者验收。
+
+.tmp/pkhex-api180-personal-final-native.log 专项、.tmp/pkhex-api180-final-core.log 最终浏览器核心、.tmp/pkhex-api180-verify.log 完整网页检查及核心修正后的 .tmp/pkhex-api180-final-web.log 网页／PWA重新打包均退出0。356文件／2156项前端、类型、Lint和格式通过；18种实体／两种长度、UInt16边界、第一世代共用字段、草稿顺序及真实E.sav公开读取箱中缓冲／冻结放入队伍／回读／来源保护通过。最终默认完整原生 .tmp/pkhex-api180-final-native-full.log 退出0，已覆盖修正后的代码及真实存档工作副本；保留既有Hook、裁剪、包体及插件耗时提醒。
+
+最终复核E.sav原件和工作副本SHA-256保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。外部Chrome重建控制会话后仍返回nodeRepl.fetch request failed，页面、焦点、三语连续操作和下载未验收。全局HaX空白实体／空格位、精确菜单写保护和其余主窗口／设置消费点继续保留，完整接入目标未完成。
+
 ## 2026-10-16 存档上下文与独立宝可梦缓冲（API179）
 
 基线 afaf78a707dd224aa8fe74889ab25786489cd83c。本批开放读取编辑文件及放入预览／确认／取消 RPC，并接单箱、全览、双箱、队伍、工具栏和 Shift 单键入口。右侧复用独立宝可梦编辑器，编辑、随机／建议命令与局部撤销只改变实体缓冲；查看其他宝可梦才切换缓冲，空格位和箱页变化保留已查看内容。实际存档仅在确认放入时改变，沿既有保存历史和导出链路。
@@ -12,7 +24,7 @@
 
 ### 本轮源码复核后的剩余项
 
-- `StatEditor.LoadPartyStats／SavePartyStats` 的当前生命和手动队伍六项数值尚未接正式控件；现有逻辑只在重算时保留／夹取原生命值，并用状态元数据表示濒死，不能写作这一组已经完整接入。来源为 WinForms `Controls/PKM Editor/StatEditor.cs:548–570`，HaX 开关与实际储存布局仍需逐项核对。
+- `StatEditor.LoadPartyStats／SavePartyStats` 的手动队伍六项数值已接正式控件与准备流程，工程通过、页面待验收，详见顶部；全局 HaX 开关仍未接齐，不能据此写作主编辑器完整接入。
 - 普通查看与独立缓冲已经接线；全局 HaX 空白编辑／空格位模式、格位菜单按精确写保护隐藏项目、其他主窗口和设置消费点仍待核对。Core 对实际写保护的拒绝保持有效。
 - 页面布局、三语、焦点、连续操作、实际存档导入和下载仍需外部 Chrome／Edge 的可用连接；当前读取失败不视为授权不足，也不以工程检查替代所有者验收。
 
@@ -42,28 +54,28 @@ API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、
 
 本表补充下方子窗口清单，按当前正式输入路径与上游主窗口分组对照；“已接”只表示代码入口存在，工程结果另见本页最新记录，所有组仍须实际页面核验。表内没有把批量属性编辑视为正式表单，也不以本表宣称穷尽上游全部行为。读写边界和字段范围继续以模块文档与对应源码为准。
 
-| 字段组                                               | 当前正式路径                                      | 当前状态与继续核对项                                                                                   |
-| ---------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 种类、形态、性别、起名标记                           | PokemonEditor／PokemonIdentity                    | 已接；来源切换、异常原值与特殊形态联动仍随真实页面核验                                                 |
-| 昵称、原训练家姓名、TID／SID                         | PokemonEditor／PokemonEditing                     | API178 已按来源接五位／六位编号、秘密编号及原始 ID／TSV 提示；未改原值保持                             |
-| 文字编码与尾部字节                                   | 文本／Trash 共用编辑器                            | 已接，不能当作普通训练家字段表单的替代                                                                 |
-| 语言、原训练家性别、经手训练家／归属／语言、原始地区 | PokemonTrainerDetails                             | API175 已接两入口；按实际格式与目录显示                                                                |
-| PID、加密常量、HOME、异色动作                        | PokemonRawEditor／PokemonRawEditing／PokemonShiny | 已接；与保存的原值及派生数据分别处理                                                                   |
-| 性格、能力性格、普通特性槽位、持有道具               | PokemonEditor／PokemonEditing                     | API178 另接手动特性、一位特性编号和按编号查找；存档游戏／实体格式目录分别校验                          |
-| 经验值、等级、经验条、异常状态、觉醒力量             | PokemonVitals                                     | API172 已接；无实际状态存储的格式明确限制                                                              |
-| 六项 IV／EV、极限特训、华丽与光泽                    | PokemonEditor／PokemonTraining                    | 已接；LGPE 隐藏普通 EV 时保留原数据                                                                    |
-| AV／GV、极巨／超极巨、头目／王、太晶原始／覆盖       | PokemonAdvancedStats                              | API174 已接实际接口；PA9 不虚构 ITeraType                                                              |
-| 当前招式、PP、提升次数、回忆招式、学习／精通记录     | 基础招式／Relearn／TechRecord／AlphaMove          | 已接多个正式路径；不能把初始头目精通招式当成商店学习标记                                               |
-| 游戏、球、相遇／蛋地点、相遇等级、日期、命运相遇     | PokemonOrigin／PokemonEncounter                   | API177 已按 G4PKM 补 RK4 日期；其他格式仍须随完整覆盖审计核对                                          |
-| 地形 GroundTile                                      | 原版 EditPK4／5 与相关格式路径                    | API177 通过 PokemonLegacyDetails 接入 Gen4 原游戏的正式地形选择；完整工程门禁通过，实际页面未验收      |
-| 蛋转换、孵化、周期、训练家上下文                     | PokemonEgg／StandaloneEgg                         | 已接；完整队伍与空位规则随源类型处理                                                                   |
-| 缎带、计数、佩戴称号                                 | PokemonRibbons                                    | 已接 Affixed／目录及分析动作                                                                           |
-| 记忆、居住历史、亲密／友好／饱腹等                   | PokemonMemories／PokemonHistory／PokemonCare      | 已接多个区域；与原始地区区别保存                                                                       |
-| 六类标记及显示                                       | PokemonMarkings                                   | 已接；不是 N 闪耀或宝可病毒标记的替代                                                                  |
-| 宝可病毒与第五世代 N／名气                           | PokemonSpecialStatus                              | API176 已接两入口；完整工程门禁通过，实际页面未验收                                                    |
-| 闪耀叶子、散步心情                                   | 原版 EditPK4 与 ShinyLeaf 控件                    | API177 已接六位叶子／冠冕和 -127–127 心情；保留未改异常原值，完整工程门禁通过，实际页面未验收          |
-| 身高、体重、大小、CP 与尺寸动作                      | 原版 SizeCP／Designer、EditPK7／8／9              | API177 已接接口对应的正式尺寸、CP、自动／手动、随机／重置和 PA8 联动；完整工程门禁通过，实际页面未验收 |
-| 额外字节目录与值                                     | PokemonExpertEditor／PokemonIdentityTools         | API178 仅开放当前实体 ExtraBytes 目录、三位十进制和来源255上限，禁止跨偏移丢弃草稿                     |
+| 字段组                                                   | 当前正式路径                                      | 当前状态与继续核对项                                                                                   |
+| -------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 种类、形态、性别、起名标记                               | PokemonEditor／PokemonIdentity                    | 已接；来源切换、异常原值与特殊形态联动仍随真实页面核验                                                 |
+| 昵称、原训练家姓名、TID／SID                             | PokemonEditor／PokemonEditing                     | API178 已按来源接五位／六位编号、秘密编号及原始 ID／TSV 提示；未改原值保持                             |
+| 文字编码与尾部字节                                       | 文本／Trash 共用编辑器                            | 已接，不能当作普通训练家字段表单的替代                                                                 |
+| 语言、原训练家性别、经手训练家／归属／语言、原始地区     | PokemonTrainerDetails                             | API175 已接两入口；按实际格式与目录显示                                                                |
+| PID、加密常量、HOME、异色动作                            | PokemonRawEditor／PokemonRawEditing／PokemonShiny | 已接；与保存的原值及派生数据分别处理                                                                   |
+| 性格、能力性格、普通特性槽位、持有道具                   | PokemonEditor／PokemonEditing                     | API178 另接手动特性、一位特性编号和按编号查找；存档游戏／实体格式目录分别校验                          |
+| 经验值、等级、经验条、异常状态、觉醒力量、手动队伍能力值 | PokemonVitals                                     | API172 已接；无实际状态存储的格式明确限制                                                              |
+| 六项 IV／EV、极限特训、华丽与光泽                        | PokemonEditor／PokemonTraining                    | 已接；LGPE 隐藏普通 EV 时保留原数据                                                                    |
+| AV／GV、极巨／超极巨、头目／王、太晶原始／覆盖           | PokemonAdvancedStats                              | API174 已接实际接口；PA9 不虚构 ITeraType                                                              |
+| 当前招式、PP、提升次数、回忆招式、学习／精通记录         | 基础招式／Relearn／TechRecord／AlphaMove          | 已接多个正式路径；不能把初始头目精通招式当成商店学习标记                                               |
+| 游戏、球、相遇／蛋地点、相遇等级、日期、命运相遇         | PokemonOrigin／PokemonEncounter                   | API177 已按 G4PKM 补 RK4 日期；其他格式仍须随完整覆盖审计核对                                          |
+| 地形 GroundTile                                          | 原版 EditPK4／5 与相关格式路径                    | API177 通过 PokemonLegacyDetails 接入 Gen4 原游戏的正式地形选择；完整工程门禁通过，实际页面未验收      |
+| 蛋转换、孵化、周期、训练家上下文                         | PokemonEgg／StandaloneEgg                         | 已接；完整队伍与空位规则随源类型处理                                                                   |
+| 缎带、计数、佩戴称号                                     | PokemonRibbons                                    | 已接 Affixed／目录及分析动作                                                                           |
+| 记忆、居住历史、亲密／友好／饱腹等                       | PokemonMemories／PokemonHistory／PokemonCare      | 已接多个区域；与原始地区区别保存                                                                       |
+| 六类标记及显示                                           | PokemonMarkings                                   | 已接；不是 N 闪耀或宝可病毒标记的替代                                                                  |
+| 宝可病毒与第五世代 N／名气                               | PokemonSpecialStatus                              | API176 已接两入口；完整工程门禁通过，实际页面未验收                                                    |
+| 闪耀叶子、散步心情                                       | 原版 EditPK4 与 ShinyLeaf 控件                    | API177 已接六位叶子／冠冕和 -127–127 心情；保留未改异常原值，完整工程门禁通过，实际页面未验收          |
+| 身高、体重、大小、CP 与尺寸动作                          | 原版 SizeCP／Designer、EditPK7／8／9              | API177 已接接口对应的正式尺寸、CP、自动／手动、随机／重置和 PA8 联动；完整工程门禁通过，实际页面未验收 |
+| 额外字节目录与值                                         | PokemonExpertEditor／PokemonIdentityTools         | API178 仅开放当前实体 ExtraBytes 目录、三位十进制和来源255上限，禁止跨偏移丢弃草稿                     |
 
 API178 已接 TrainerIDManager 的新版编号、开发模式特性及 ExtraBytes 目录。存档与独立实体共用正式面板、三语、草稿保护和工作修订。16 项前端、完整类型、定向 Lint、原生专项及浏览器 Core 已通过；默认完整原生、352 文件／2096 项完整前端门禁与真实 E.sav 工程专项均已通过，Chrome 4 读取本地页仍失败。静态平台限制、设置消费点与真实 UI 操作仍需核对，完整目标保留。
 

@@ -12,6 +12,8 @@ import {
   vitalInteger,
   experienceInput,
   levelInput,
+  partyStatInput,
+  partyStatsWords,
   vitalsWords,
   type PokemonVitalsEdit,
   type PokemonVitalsInfo,
@@ -45,6 +47,21 @@ export function PokemonVitalsEditor({
   const [preview, setPreview] = useState(info.experience.value),
     [running, setRunning] = useState(false),
     [error, setError] = useState(false);
+  const [manualStats, setManualStats] = useState(false),
+    [statsTouched, setStatsTouched] = useState(false),
+    [partyStats, setPartyStats] = useState(
+      () => info.partyStats?.computed.map(String) ?? [],
+    );
+  function statsEdit(): PokemonVitalsEdit {
+    const stats = info.partyStats;
+    if (!stats) throw Error("Party stats unavailable");
+    if (!manualStats) return { action: "resetPartyStats" };
+    const values = partyStats.map((value, index) =>
+      stats.writable[index] ? partyStatInput(value) : stats.values[index],
+    );
+    if (generation === 1) values[5] = values[4];
+    return { action: "partyStats", stats: values };
+  }
   const locked = disabled || running,
     pending = useRef(false),
     restoreBarFocus = useRef(false),
@@ -55,6 +72,7 @@ export function PokemonVitalsEditor({
     () => {
       experienceInput(experience);
       levelInput(level);
+      if (info.partyStats && (manualStats || statsTouched)) statsEdit();
       if (
         info.status.show &&
         info.status.canEdit &&
@@ -69,6 +87,8 @@ export function PokemonVitalsEditor({
     "vitals",
     () => {
       const edits: PokemonVitalsEdit[] = [];
+      if (info.partyStats && (manualStats || statsTouched))
+        edits.push(statsEdit());
       const exp = experienceInput(experience),
         lev = levelInput(level);
       if (exp !== info.experience.value)
@@ -120,6 +140,22 @@ export function PokemonVitalsEditor({
       active = false;
     };
   }, [info, generation]);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      const stats = info.partyStats;
+      setPartyStats(
+        (manualStats && stats?.values[1] !== 0
+          ? stats?.values
+          : stats?.computed
+        )?.map(String) ?? [],
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [info.partyStats, manualStats]);
   async function apply(edit: PokemonVitalsEdit) {
     if (disabled || pending.current) return;
     restoreBarFocus.current = document.activeElement === bar.current;
@@ -442,6 +478,60 @@ export function PokemonVitalsEditor({
             <p className="save-editor-note">{w.noParty}</p>
           ) : null}
         </>
+      )}
+      {info.partyStats && (
+        <fieldset className="save-editor-fields" disabled={locked}>
+          <legend>{partyStatsWords[lang].title}</legend>
+          <label className="field save-editor-checkbox">
+            <input
+              type="checkbox"
+              checked={manualStats}
+              onChange={(e) => {
+                setManualStats(e.target.checked);
+                setStatsTouched(true);
+              }}
+            />
+            <span>{partyStatsWords[lang].manual}</span>
+          </label>
+          {(generation === 1 ? [0, 1, 2, 3, 4] : [0, 1, 2, 4, 5, 3]).map(
+            (index) => (
+              <label className="field" key={index}>
+                <span>
+                  {generation === 1 && index === 4
+                    ? partyStatsWords[lang].special
+                    : partyStatsWords[lang].stats[index]}
+                </span>
+                <input
+                  inputMode="numeric"
+                  maxLength={5}
+                  disabled={!manualStats || !info.partyStats?.writable[index]}
+                  value={partyStats[index] ?? ""}
+                  onChange={(e) =>
+                    setPartyStats((current) =>
+                      current.map((value, i) =>
+                        i === index ? e.target.value : value,
+                      ),
+                    )
+                  }
+                />
+              </label>
+            ),
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                void apply(statsEdit());
+              } catch {
+                playSaveSound("other", "exclamation");
+                setError(true);
+              }
+            }}
+          >
+            {w.apply}
+          </button>
+          <p className="save-editor-note">{partyStatsWords[lang].hint}</p>
+        </fieldset>
       )}
       {error && (
         <p role="alert" className="save-editor-error">

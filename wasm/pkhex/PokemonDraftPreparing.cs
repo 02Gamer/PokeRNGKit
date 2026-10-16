@@ -26,7 +26,7 @@ internal static class PokemonDraftPreparing
         foreach(string field in step.Fields)if(!step.Edit.TryGetProperty(field,out var value)||value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)throw new ArgumentException("Masked editor value is missing.");
         return step.Fields.ToHashSet(StringComparer.Ordinal);
     }
-    internal static PKM Prepare(SaveFile save,PKM original,PokemonPosition source,PokemonDraftCapture capture)
+    internal static PKM Prepare(SaveFile save,PKM original,PokemonPosition source,PokemonDraftCapture capture,bool? editorParty=null)
     {
         if(capture.Scope is not{Length:>0 and <=256}||capture.Sections is null||capture.Sections.Length>64||capture.Sections.Any(s=>s is null||s.Section is not{Length:>0 and <=64}||s.Steps is not{Length:>0 and <=32})||capture.Sections.Select(s=>s.Section).Distinct(StringComparer.Ordinal).Count()!=capture.Sections.Length)throw new ArgumentException("Invalid editor snapshot scope or sections.");
         var steps=capture.Sections.SelectMany(s=>s.Steps).ToArray();if(steps.Length>64)throw new ArgumentException("Editor snapshot exceeds operation limit.");
@@ -62,14 +62,15 @@ internal static class PokemonDraftPreparing
                 }
                 case "vitals":
                 {
-                    if(step.Edit.ValueKind!=JsonValueKind.Undefined||step.Fields is not null||step.Edits is not{Length:>0 and <=4}||step.Edits.Any(v=>v is null)||step.Edits.Select(v=>v.Action).Distinct().Count()!=step.Edits.Length)throw new ArgumentException("Invalid vital draft.");
+                    if(step.Edit.ValueKind!=JsonValueKind.Undefined||step.Fields is not null||step.Edits is not{Length:>0 and <=5}||step.Edits.Any(v=>v is null)||step.Edits.Select(v=>v.Action).Distinct().Count()!=step.Edits.Length)throw new ArgumentException("Invalid vital draft.");
+                    if(step.Edits.Count(v=>v.Action is "partyStats" or "resetPartyStats")>1)throw new ArgumentException("Conflicting manual and calculated party stats.");
                     foreach(var edit in step.Edits)
                     {
-                        if(edit.Action is not("experience" or "level" or "hiddenPower" or "status"))throw new ArgumentException("Editor preparation does not execute vital commands.");
+                        if(edit.Action is not("experience" or "level" or "hiddenPower" or "status" or "partyStats" or "resetPartyStats"))throw new ArgumentException("Editor preparation does not execute vital commands.");
                         if(edit.Action=="level"){if(edit.Level is not int l||l is <0 or >999)throw new ArgumentException("Invalid editor level.");levels.Add(Math.Clamp(l,1,100));}
                         else if(edit.Action=="experience"){if(edit.Experience is not uint exp)throw new ArgumentException("Missing editor experience.");experiences.Add(exp);}
-                        else Claim(edit.Action=="hiddenPower"?"ivs":"status",index,edit.Action+JsonSerializer.Serialize(edit,PokemonSetJson.Default.PokemonVitalsEdit));
-                        actions.Add((edit.Action=="level"?60:edit.Action=="experience"?61:50,index,()=>PokemonVitals.Apply(p,edit,source.Box==-1)));
+                        else Claim(edit.Action=="hiddenPower"?"ivs":edit.Action is "partyStats" or "resetPartyStats"?"partyStats":"status",index,edit.Action+JsonSerializer.Serialize(edit,PokemonSetJson.Default.PokemonVitalsEdit));
+                        actions.Add((edit.Action is "partyStats" or "resetPartyStats"?90:edit.Action=="level"?60:edit.Action=="experience"?61:50,index,()=>PokemonVitals.Apply(p,edit,editorParty??source.Box==-1,save)));
                     }break;
                 }
                 case "gbSpecial":

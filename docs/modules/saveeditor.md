@@ -1,5 +1,17 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-17 手动队伍能力值（API180）
+
+基线 1828aed3a6a25566c2cd485b0a77a0b045d93295。共用经验／状态面板增加手动队伍能力值，沿共享控件和三语。第一世代显示五项并合并特殊，后续显示六项且速度置后；Core 保持HP／攻击／防御／速度／特攻／特防顺序。默认显示计算值，未操作本区时保留原有生命与数值；点击应用更新编辑缓冲，切换手动模式后在放入准备末尾写数值或按最终字段重算。实际存档继续经预览、确认、撤销和导出链路更新。
+
+输入来源为 WinForms Controls/PKM Editor/StatEditor.cs 的 LoadPartyStats、SavePartyStats、UpdateStats、UpdateHackedStatText，以及 Designer 的六项00000掩码：十进制五字符、空白按0、网页超限夹到65535，Core拒绝负数／超过UInt16／非六项数组。HP同时写当前值与上限；按实际序列化能力开放字段，PK1特殊共用，SK2临时属性及RK4只读计算属性不作为已保存值，普通箱位不承诺保存队伍扩展。网页拒绝依赖ushort截断绕回的输入。
+
+计算模式使用当前存档的Personal表，不直接沿PK3默认的PersonalTable.RS；只读上下文和放入克隆保留火红／叶绿运行时选择。来源为Core PKM/PK3.cs、PKM/PKM.cs、Saves/SAV3RS.cs、SAV3E.cs、SAV3FRLG.cs及PersonalInfo/Table/PersonalTable3.cs。四游戏表专项以代欧奇希斯对照存档元数据、只读克隆、公开实体重算、准备及直接存档编辑；R/FR/LG为重建校验和的类型化工程布局，不写作自动识别或所有者验收。
+
+.tmp/pkhex-api180-personal-final-native.log 专项、.tmp/pkhex-api180-final-core.log 最终浏览器核心、.tmp/pkhex-api180-verify.log 完整网页检查及核心修正后的 .tmp/pkhex-api180-final-web.log 网页／PWA重新打包均退出0。356文件／2156项前端、类型、Lint和格式通过；18种实体／两种长度、UInt16边界、第一世代共用字段、草稿顺序及真实E.sav公开读取箱中缓冲／冻结放入队伍／回读／来源保护通过。最终默认完整原生 .tmp/pkhex-api180-final-native-full.log 退出0，已覆盖修正后的代码及真实存档工作副本；保留既有Hook、裁剪、包体及插件耗时提醒。
+
+最终复核E.sav原件和工作副本SHA-256保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。外部Chrome重建控制会话后仍返回nodeRepl.fetch request failed，页面、焦点、三语连续操作和下载未验收。全局HaX空白实体／空格位、精确菜单写保护和其余主窗口／设置消费点继续保留，完整接入目标未完成。
+
 ## 2026-10-16 存档上下文与独立宝可梦缓冲（API179）
 
 基线 afaf78a707dd224aa8fe74889ab25786489cd83c。本批开放读取编辑文件及放入预览／确认／取消 RPC，并接单箱、全览、双箱、队伍、工具栏和 Shift 单键入口。右侧复用独立宝可梦编辑器，编辑、随机／建议命令与局部撤销只改变实体缓冲；查看其他宝可梦才切换缓冲，空格位和箱页变化保留已查看内容。实际存档仅在确认放入时改变，沿既有保存历史和导出链路。

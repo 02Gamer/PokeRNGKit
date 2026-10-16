@@ -7,12 +7,54 @@ namespace PokeRNGKit.SaveEditor;
 public sealed record PokemonExperienceInfo(uint Value,int Level,uint Maximum,uint Start,uint End,double Progress,bool ShowBar);
 public sealed record PokemonHiddenPowerInfo(int Type,int? Power,OriginChoice[] Types,bool Maximize);
 public sealed record PokemonStatusInfo(int Value,bool CanEdit,bool Present,bool Fainted,bool Show,OriginChoice[] Choices,int SleepTurns);
-public sealed record PokemonVitalsInfo(PokemonExperienceInfo Experience,PokemonHiddenPowerInfo? HiddenPower,PokemonStatusInfo Status,bool ShowGender);
+public sealed record PokemonPartyStatsInfo(int[] Values,int[] Computed,bool[] Writable,int Maximum=65535);
+public sealed record PokemonVitalsInfo(PokemonExperienceInfo Experience,PokemonHiddenPowerInfo? HiddenPower,PokemonStatusInfo Status,bool ShowGender,PokemonPartyStatsInfo? PartyStats);
 public sealed record PokemonVitalsEdit(string Action,uint? Experience=null,int? Level=null,int? Type=null,int? Status=null,int? SleepTurns=null,
-    int? Position=null,int? Width=null,int? Direction=null,bool Alt=false,bool Shift=false,bool Control=false);
+    int? Position=null,int? Width=null,int? Direction=null,bool Alt=false,bool Shift=false,bool Control=false,int[]? Stats=null);
 
 internal static class PokemonVitals
 {
+    // StatEditor uses HP / Atk / Def / Spe / SpA / SpD; its HP field writes
+    // both current and maximum HP. PK1's SpD aliases SpA with a no-op setter.
+    internal static int[] PartyValues(PKM p)=>[p.Stat_HPCurrent,p.Stat_ATK,p.Stat_DEF,p.Stat_SPE,p.Stat_SPA,p.Stat_SPD];
+    private static void SetPartyValue(PKM p,int index,int value)
+    {
+        switch(index){case 0:p.Stat_HPCurrent=value;p.Stat_HPMax=value;break;case 1:p.Stat_ATK=value;break;
+            case 2:p.Stat_DEF=value;break;case 3:p.Stat_SPE=value;break;case 4:p.Stat_SPA=value;break;case 5:p.Stat_SPD=value;break;}
+    }
+    private static byte[] PartyBytes(PKM p,bool party)
+    {
+        // A boxed PK2 stores 32 bytes, not the complete PK2 list used by a file.
+        if(p is PK2&&!party)return p.Data[..32].ToArray();
+        var bytes=new byte[party?p.SIZE_PARTY:p.SIZE_STORED];
+        if(party)p.WriteDecryptedDataParty(bytes);else p.WriteDecryptedDataStored(bytes);return bytes;
+    }
+    internal static PokemonPartyStatsInfo? ReadPartyStats(PKM p,bool party,SaveFile? save=null)
+    {
+        var values=PartyValues(p);var writable=new bool[6];var before=PartyBytes(p,party);
+        for(int i=0;i<6;i++)
+        {
+            var copy=p.Clone();int value=values[i]==65535?1:65535;SetPartyValue(copy,i,value);
+            writable[i]=PartyValues(copy)[i]==value&&(i!=0||copy.Stat_HPMax==value)&&!before.SequenceEqual(PartyBytes(copy,party));
+            if(i==0){var max=p.Clone();max.Stat_HPMax=p.Stat_HPMax==65535?1:65535;writable[i]&=!before.SequenceEqual(PartyBytes(max,party));}
+        }
+        if(!writable.Any(v=>v))return null;
+        var computed=p.Clone();Span<ushort> stats=stackalloc ushort[6];
+        var personal=(save??PokemonEditorContext.Save)?.Personal.GetFormEntry(p.Species,p.Form)??p.PersonalInfo;
+        computed.LoadStats(personal,stats);computed.SetStats(stats);return new(values,PartyValues(computed),writable);
+    }
+    private static void ApplyPartyStats(PKM p,PokemonVitalsEdit edit,bool party,SaveFile? save=null)
+    {
+        var info=ReadPartyStats(p,party,save)??throw new ArgumentException("This record does not store manual party stats.");
+        if(edit.Stats is not{Length:6} stats||stats.Any(v=>v is <0 or >65535))throw new ArgumentException("Party stats are outside the six unsigned 16-bit source controls.");
+        for(int i=0;i<6;i++)
+        {
+            if(info.Writable[i])SetPartyValue(p,i,stats[i]);
+            else if(p is PK1&&i==5){if(stats[i]!=stats[4])throw new ArgumentException("Generation I Special stats must agree.");}
+            else if(stats[i]!=info.Values[i])throw new ArgumentException("A party stat is not stored in this record.");
+        }
+        p.RefreshChecksum();
+    }
     internal static bool ShowGender(PKM p)=>p.Format!=1||SaveProgramSettingsRuntime.Current?.EntityEditor.ShowGenderGen1==true;
     private static OriginChoice Choice(int id,string zh,string en,string ja)=>new(id,new(zh,en,ja));
     private static OriginChoice[] StatusChoices(PKM p)=>[
@@ -28,7 +70,7 @@ internal static class PokemonVitals
         var before=Bytes();copy.Status_Condition=(copy.Status_Condition&~255)|((copy.Status_Condition&255)==0?1:0);
         return !before.SequenceEqual(Bytes());
     }
-    public static PokemonVitalsInfo Read(PKM p,bool party)
+    public static PokemonVitalsInfo Read(PKM p,bool party,SaveFile? save=null)
     {
         var settings=SaveProgramSettingsRuntime.Current?.EntityEditor??new();byte level=p.CurrentLevel,growth=p.PersonalInfo.EXPGrowth;
         uint start=Experience.GetEXP(level,growth),range=Experience.GetEXPToLevelUp(level,growth);
@@ -37,17 +79,25 @@ internal static class PokemonVitals
             Experience.GetEXPToLevelUpPercentage(level,p.EXP,growth),settings.ShowExperienceBar),
             p.Format<=7||p is PB8?new(p.HPType,p.Format<=5?p.HPPower:null,
                 Enumerable.Range(0,16).Select(i=>new OriginChoice(i,PokemonReader.Text(s=>s.types[i+1]))).ToArray(),settings.HiddenPowerOnChangeMaxPower):null,
-            new(p.Status_Condition,status,present,present&&p.Stat_HPCurrent==0,settings.ShowStatusCondition,StatusChoices(p),p.Format<=4?Math.Max(1,p.Status_Condition&7):1),ShowGender(p));
+            new(p.Status_Condition,status,present,present&&p.Stat_HPCurrent==0,settings.ShowStatusCondition,StatusChoices(p),p.Format<=4?Math.Max(1,p.Status_Condition&7):1),ShowGender(p),ReadPartyStats(p,party,save));
     }
-    public static void Apply(PKM p,PokemonVitalsEdit edit,bool party)
+    public static void Apply(PKM p,PokemonVitalsEdit edit,bool party,SaveFile? save=null)
     {
-        bool exp=edit.Action=="experience",level=edit.Action=="level",hp=edit.Action=="hiddenPower",status=edit.Action=="status",
+        bool reset=edit.Action=="resetPartyStats",stats=edit.Action=="partyStats",exp=edit.Action=="experience",level=edit.Action=="level",hp=edit.Action=="hiddenPower",status=edit.Action=="status",
             bar=edit.Action=="bar",wheel=edit.Action=="wheel",edge=edit.Action is "edgeLow" or "edgeHigh" or "overflow" or "underflow" or "downlevel";
-        if(!(exp||level||hp||status||bar||wheel||edge)||
+        if(!(reset||stats||exp||level||hp||status||bar||wheel||edge)||(edit.Stats is not null)!=stats||
             (edit.Experience is not null)!=exp||(edit.Level is not null)!=level||(edit.Type is not null)!=hp||
             (edit.Status is not null)!=status||(!status&&edit.SleepTurns is not null)||
             (edit.Position is not null)!=bar||(edit.Width is not null)!=(bar||wheel)||(edit.Direction is not null)!=wheel||
             (!bar&&(edit.Alt||edit.Shift||edit.Control)))throw new ArgumentException("Invalid Pokemon vital operation.");
+        if(stats){ApplyPartyStats(p,edit,party,save);return;}
+        if(reset)
+        {
+            var info=ReadPartyStats(p,party,save)??throw new ArgumentException("This record does not store party stats.");
+            var values=info.Values.ToArray();for(int i=0;i<6;i++)if(info.Writable[i])values[i]=info.Computed[i];
+            if(p is PK1)values[5]=values[4];
+            ApplyPartyStats(p,edit with{Action="partyStats",Stats=values},party,save);p.Stat_Level=p.CurrentLevel;p.RefreshChecksum();return;
+        }
         var original=p.Clone();
         if(status)
         {

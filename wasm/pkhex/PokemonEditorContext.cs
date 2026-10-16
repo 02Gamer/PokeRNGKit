@@ -27,7 +27,14 @@ internal static class PokemonEditorContext
         Clear();SavePokemonEditing.Require(save);
         if(position.Box==-1){if(!save.HasParty||(uint)position.Slot>=6)throw new ArgumentException("Invalid editor source.");}
         else if(!save.HasBox||(uint)position.Box>=save.BoxCount||(uint)position.Slot>=save.BoxSlotCount)throw new ArgumentException("Invalid editor source.");
-        Save=save.Clone();Source=position;
+        Save=CloneSave(save);Source=position;
+    }
+    internal static SaveFile CloneSave(SaveFile save)
+    {
+        var copy=save.Clone();
+        // FR/LG's selected personal table is runtime context, not save bytes.
+        if(save is SAV3FRLG source&&copy is SAV3FRLG target)target.ResetPersonal(source.Version);
+        return copy;
     }
     internal static PKM Validate(PKM p)
     {

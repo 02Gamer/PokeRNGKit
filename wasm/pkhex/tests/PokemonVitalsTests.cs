@@ -60,9 +60,86 @@ internal static class PokemonVitalsTests
             foreach(var bad in new PokemonVitalsEdit[]{new("unknown"),new("experience"),new("experience",Experience:10000000),new("level",Level:0),new("level",Level:101),new("hiddenPower",Type:16),new("status",Status:2),new("status",Status:1,SleepTurns:8),new("bar",Position:0,Width:0),new("wheel",Width:100,Direction:0),new("level",Level:20,Experience:100),new("edgeLow",Alt:true)})Reject(()=>Edit(input,p,bad));
             Check(input.SequenceEqual(original),"Immutable independent input");Console.WriteLine($"PASS vitals {p.GetType().Name}/party={party}: public experience, IV policy/all HP types, actual stored status, full output and rejection");
         }
-        SaveProgramSettingsRuntime.Reset();Bar();GbSave();Real();
+        SaveProgramSettingsRuntime.Reset();PartyStats();PersonalStats();Bar();GbSave();Real();
         foreach(bool show in new[]{false,true}){settings.EntityEditor.ShowGenderGen1=show;settings.EntityEditor.ShowExperienceBar=show;settings.EntityEditor.ShowStatusCondition=show;SetSettings(settings);var info=PokemonVitals.Read(Seed(new PK1()),true);Check(info.ShowGender==show&&info.Experience.ShowBar==show&&info.Status.Show==show,"All editor visibility settings consumed");}
         SaveProgramSettingsRuntime.Reset();
+    }
+    private static void PartyStats()
+    {
+        foreach(var candidate in Entities())foreach(bool party in new[]{false,true})
+        {
+            var p=Seed(candidate.Clone());var input=Bytes(p,party);
+            var opened=StandalonePokemon.Open(input,"entity."+p.Extension,useFileFormat:true);
+            p=opened.Entity;bool actualParty=opened.Party;
+            var info=PokemonVitals.Read(p,actualParty).PartyStats;
+            if(info is null){Reject(()=>Edit(input,p,new("partyStats",Stats:[1,2,3,4,5,6])));continue;}
+            foreach(int boundary in new[]{0,65535})
+            {
+                int[] values=info.Values.ToArray();var expected=p.Clone();
+                for(int i=0;i<6;i++)if(info.Writable[i])
+                {
+                    int v=boundary;values[i]=v;
+                    switch(i){case 0:expected.Stat_HPCurrent=v;expected.Stat_HPMax=v;break;case 1:expected.Stat_ATK=v;break;
+                        case 2:expected.Stat_DEF=v;break;case 3:expected.Stat_SPE=v;break;case 4:expected.Stat_SPA=v;break;case 5:expected.Stat_SPD=v;break;}
+                }
+                if(p is PK1)values[5]=values[4];
+                Check(Edit(input,p,new("partyStats",Stats:values)).SequenceEqual(Bytes(expected,actualParty)),"Manual stats full public output, HP pair, level/status unchanged");
+            }
+            foreach(var bad in new PokemonVitalsEdit[]{new("partyStats"),new("partyStats",Stats:[1,2]),new("partyStats",Stats:[-1,0,0,0,0,0]),new("partyStats",Stats:[65536,0,0,0,0,0]),new("partyStats",Stats:info.Values,Level:20),new("level",Level:20,Stats:info.Values)})Reject(()=>Edit(input,p,bad));
+            if(p is PK1){int[] bad=info.Values.ToArray();bad[5]=bad[4]+1;Reject(()=>Edit(input,p,new("partyStats",Stats:bad)));}
+            var calculated=p.Clone();
+            for(int i=0;i<6;i++)if(info.Writable[i])
+            {
+                int value=info.Computed[i];switch(i){case 0:calculated.Stat_HPCurrent=value;calculated.Stat_HPMax=value;break;case 1:calculated.Stat_ATK=value;break;
+                    case 2:calculated.Stat_DEF=value;break;case 3:calculated.Stat_SPE=value;break;case 4:calculated.Stat_SPA=value;break;case 5:calculated.Stat_SPD=value;break;}
+            }
+            calculated.Stat_Level=calculated.CurrentLevel;
+            Check(Edit(input,p,new("resetPartyStats")).SequenceEqual(Bytes(calculated,actualParty)),"Calculated stats full output without healing status or discarding metadata");
+            Check(input.SequenceEqual(Bytes(p,actualParty)),"Manual stats input immutable");
+        }
+        // The editor's full party buffer can originate from an ordinary box.
+        var save=new SAV3E();var entity=Seed(new PK3{Version=GameVersion.E});int[] final=[123,234,345,456,567,678];
+        var step=new PokemonDraftStep("vitals",Edits:[new("partyStats",Stats:final),new("level",Level:21)]);
+        var capture=new PokemonDraftCapture("party-stats",[new("vitals",[step])]);
+        var prepared=PokemonDraftPreparing.Prepare(save,entity,new(0,0),capture,true);
+        Check(PokemonVitals.PartyValues(prepared).SequenceEqual(final)&&prepared.CurrentLevel==21&&prepared.Stat_HPMax==123,"Manual stats run after calculated stats in a boxed source's party buffer");
+        Reject(()=>PokemonDraftPreparing.Prepare(save,entity,new(0,0),capture,false));
+        var reset=step with{Edits=[new("resetPartyStats"),new("level",Level:40)]};
+        var recalculated=PokemonDraftPreparing.Prepare(save,entity,new(0,0),new("party-stats",[new("vitals",[reset])]),true);
+        Check(recalculated.CurrentLevel==40&&PokemonVitals.PartyValues(recalculated).SequenceEqual(PokemonVitals.ReadPartyStats(recalculated,true)!.Computed),"Calculated draft uses final level rather than old displayed stats");
+        Reject(()=>PokemonDraftPreparing.Prepare(save,entity,new(0,0),new("party-stats",[new("vitals",[step with{Edits=[new("partyStats",Stats:final),new("resetPartyStats")] }])]),true));
+        Console.WriteLine("PASS manual party stats: all entity formats, both lengths, UInt16 boundaries, aliases, immutable full output and draft order");
+    }
+    private static void PersonalStats()
+    {
+        foreach(GameVersion version in new[]{GameVersion.R,GameVersion.E,GameVersion.FR,GameVersion.LG})
+        {
+            // Typed engineering layouts, with checksums rebuilt for each type;
+            // this is not an automatic-recognition fixture for R/FR/LG.
+            SaveFile Open(byte[] bytes)=>version switch{GameVersion.R=>new SAV3RS(bytes),GameVersion.E=>new SAV3E(bytes),_=>new SAV3FRLG(bytes)};
+            var save=Open(Open(File.ReadAllBytes(".tmp/pkhex-fixtures/E.sav")).Write().ToArray());
+            if(save is SAV3FRLG frlg)frlg.ResetPersonal(version);
+            var p=Seed(new PK3{Version=GameVersion.R});p.Species=386;p.CurrentLevel=50;p.RefreshChecksum();
+            int[] expected=p.GetStats(save.Personal.GetFormEntry(p.Species,p.Form)).Select(v=>(int)v).ToArray();
+            if(version!=GameVersion.R)Check(!expected.SequenceEqual(p.GetStats(p.PersonalInfo).Select(v=>(int)v)),"Deoxys oracle must distinguish save and entity personal tables");
+            Check(PokemonVitals.Read(p,true,save).PartyStats!.Computed.SequenceEqual(expected),"Read uses save personal table");
+            Check(PokemonReader.Read(p,-1,0,true,save).Vitals!.PartyStats!.Computed.SequenceEqual(expected),"Storage metadata uses save personal table");
+            PokemonEditorContext.Bind(save,new(0,0));
+            try
+            {
+                byte[] input=Bytes(p,true);
+                Check(StandalonePokemon.Inspect(input,"entity.pk3",useFileFormat:true).Pokemon.Vitals!.PartyStats!.Computed.SequenceEqual(expected),"Read-only editor clone preserves selected game personal table");
+                var output=Edit(input,p,new("resetPartyStats"));
+                Check(PokemonVitals.PartyValues(StandalonePokemon.Open(output,"entity.pk3",useFileFormat:true).Entity).SequenceEqual(expected),"Standalone reset uses current save table");
+            }
+            finally{PokemonEditorContext.Clear();}
+            var capture=new PokemonDraftCapture("personal",[new("vitals",[new("vitals",Edits:[new("resetPartyStats")])])]);
+            Check(PokemonVitals.PartyValues(PokemonDraftPreparing.Prepare(save,p,new(0,0),capture,true)).SequenceEqual(expected),"Set preparation uses current save table");
+            p.Stat_HPCurrent=1;p.RefreshChecksum();save.SetPartySlotAtIndex(p,0,EntityImportSettings.None);
+            PokemonRawEditing.Apply(save,new(-1,0,"vitals",Vitals:new("resetPartyStats")));
+            Check(PokemonVitals.PartyValues(save.GetPartySlotAtIndex(0)).SequenceEqual(expected),"Save raw operation uses its own table");
+        }
+        Console.WriteLine("PASS Deoxys personal tables R/E/FR/LG: storage metadata, readonly clone, public entity reset, prepared reset and save raw path");
     }
     private static void Bar()
     {
@@ -90,6 +167,18 @@ internal static class PokemonVitalsTests
         string? file=Environment.GetEnvironmentVariable("PKHEX_REAL_SAVE_PATH");if(file is null)return;
         byte[] input=File.ReadAllBytes(file);foreach(int box in new[]{-1,0})
         {var save=SaveUtil.GetSaveFile(input.ToArray())!;var p=PokemonEditing.Read(save,box,0);var edit=new PokemonRawEdit(box,0,"vitals",Vitals:new("experience",Experience:12345));var output=SaveService.EditPokemonRaw(input,JsonSerializer.Serialize(edit,SaveJsonContext.Default.PokemonRawEdit));var reopened=SaveUtil.GetSaveFile(output)!;Check(PokemonEditing.Read(reopened,box,0).EXP==12345&&SaveChecksums.Valid(reopened),"Real save public experience output");}
+        var source=new PokemonPosition(0,0);var target=new PokemonPosition(-1,0);
+        var editor=JsonSerializer.Deserialize(Program.ReadPokemonEditorFile(input,JsonSerializer.Serialize(source,SaveJsonContext.Default.PokemonPosition)),SaveJsonContext.Default.PokemonFile)!;
+        int[] values=[123,234,345,456,567,678];
+        var capture=new PokemonDraftCapture("real-stats",[new("vitals",[new("vitals",Edits:[new("partyStats",Stats:values),new("level",Level:30)])])]);
+        var request=new PokemonSetRequest(Br4Editing.Hash(input),"real-stats",source,target,capture,editor);
+        var ticket=JsonSerializer.Deserialize(Program.PreviewPokemonSet(input,JsonSerializer.Serialize(request,PokemonSetJson.Default.PokemonSetRequest)),PokemonSetJson.Default.PokemonSetTicket)!;
+        var confirmation=new PokemonSetConfirmation(ticket.Token,ticket.SourceHash,ticket.TargetHash,true);
+        byte[] placed=Program.CommitPokemonSet(input,JsonSerializer.Serialize(confirmation,PokemonSetJson.Default.PokemonSetConfirmation));
+        var result=SaveUtil.GetSaveFile(placed)!;var changed=PokemonEditing.Read(result,-1,0);
+        Check(SaveChecksums.Valid(result)&&PokemonVitals.PartyValues(changed).SequenceEqual(values)&&changed.Stat_HPMax==123&&changed.CurrentLevel==30,"Real save boxed editor buffer / public frozen Set / stored party stats");
+        var before=SaveUtil.GetSaveFile(input.ToArray())!;
+        Check(PokemonEditing.Read(before,0,0).Data.SequenceEqual(PokemonEditing.Read(result,0,0).Data),"Real save Set keeps source box Pokemon untouched");
         Check(File.ReadAllBytes(file).SequenceEqual(input),"Real file unchanged");Console.WriteLine("PASS real save working copy: box/party public experience, valid export and immutable file");
     }
 }

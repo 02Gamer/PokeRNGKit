@@ -45,7 +45,7 @@ export interface TrainerDateField {
   max: string;
 }
 
-export const SAVE_EDITOR_API_VERSION = 179;
+export const SAVE_EDITOR_API_VERSION = 180;
 export interface SaveReport {
   registeredTeams?: boolean;
   brProfiles?: import("./br4").Br4Profiles | null;
@@ -63,7 +63,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 179;
+  apiVersion: 180;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;

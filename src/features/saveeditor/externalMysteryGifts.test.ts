@@ -43,7 +43,7 @@ async function dispatched() {
 }
 function respond(worker: WorkerPort) {
   const message = worker.postMessage.mock.calls.at(-1)![0];
-  worker.onmessage?.({ data: { id: message.id, report: { apiVersion: 179 } } });
+  worker.onmessage?.({ data: { id: message.id, report: { apiVersion: 180 } } });
   return message;
 }
 beforeEach(() => {
