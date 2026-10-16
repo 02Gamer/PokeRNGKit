@@ -15,9 +15,9 @@ public static partial class Program
     [JSExport]public static string ReadPokemonEditorFile(byte[] input,string json)
     {
         var position=PokemonEditorContext.ReadPosition(json);
-        var save=SaveService.OpenDatabaseSave(input);SavePokemonEditing.Require(save);var p=PokemonEditing.Read(save,position.Box,position.Slot);
-        if(p.Species==0||!p.Valid||!p.ChecksumValid)throw new ArgumentException("Editor source must contain valid Pokemon data.");
-        var file=new PokemonFile("editor."+p.Extension,Convert.ToBase64String(StandalonePokemon.Serialize(p.Clone(),true,false)));
+        var save=SaveService.OpenDatabaseSave(input);SavePokemonEditing.Require(save);var p=PokemonEditorMode.Read(save,position);
+        if(!PokemonEditorMode.Readable(p))throw new ArgumentException("Editor source must contain valid Pokemon data.");
+        var file=new PokemonFile("editor."+p.Extension,Convert.ToBase64String(PokemonEditorMode.Snapshot(p)));
         return JsonSerializer.Serialize(file,SaveJsonContext.Default.PokemonFile);
     }
 }

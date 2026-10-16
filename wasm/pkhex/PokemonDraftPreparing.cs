@@ -30,7 +30,7 @@ internal static class PokemonDraftPreparing
     {
         if(capture.Scope is not{Length:>0 and <=256}||capture.Sections is null||capture.Sections.Length>64||capture.Sections.Any(s=>s is null||s.Section is not{Length:>0 and <=64}||s.Steps is not{Length:>0 and <=32})||capture.Sections.Select(s=>s.Section).Distinct(StringComparer.Ordinal).Count()!=capture.Sections.Length)throw new ArgumentException("Invalid editor snapshot scope or sections.");
         var steps=capture.Sections.SelectMany(s=>s.Steps).ToArray();if(steps.Length>64)throw new ArgumentException("Editor snapshot exceeds operation limit.");
-        if(original.Species==0||!original.Valid||!original.ChecksumValid||original.GetType()!=save.PKMType)throw new ArgumentException("Editor must contain a valid supported Pokemon.");
+        if(!PokemonEditorMode.Readable(original)||original.GetType()!=save.PKMType)throw new ArgumentException("Editor must contain a valid supported Pokemon.");
         if(steps.Count(s=>s?.Kind is "basic" or "gb")>1)throw new ArgumentException("Duplicate primary editor draft.");
         var p=original.Clone();var actions=new List<(int Order,int Index,Action Apply)>();var claims=new Dictionary<string,(int Index,string Value)>();var levels=new List<int>();var experiences=new List<uint>();
         void Claim(string key,int index,object? value){string text=value is null?"null":Convert.ToString(value,System.Globalization.CultureInfo.InvariantCulture)??"null";if(claims.TryGetValue(key,out var prior)&&prior.Index!=index&&prior.Value!=text)throw new ArgumentException("Conflicting editor fields: "+key);claims[key]=(index,text);}

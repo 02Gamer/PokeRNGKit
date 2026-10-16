@@ -30,6 +30,7 @@ export interface PokemonSetTicket {
   compatibility: LocalizedText[];
   overwrite: boolean;
   changedBytes: number;
+  clear?: boolean;
 }
 export interface PokemonSetConfirmation {
   token: string;
@@ -117,12 +118,14 @@ export function parsePokemonSet(
       ? v.target.slot > target.slot || v.target.slot >= 6
       : v.target.slot !== target.slot) ||
     typeof v.overwrite !== "boolean" ||
+    (v.clear !== undefined && typeof v.clear !== "boolean") ||
     !Number.isSafeInteger(v.changedBytes) ||
     v.changedBytes < 0 ||
     !v.pokemon ||
     v.pokemon.box !== v.target.box ||
     v.pokemon.slot !== v.target.slot ||
-    v.pokemon.species <= 0 ||
+    v.pokemon.species < 0 ||
+    (v.pokemon.species === 0 && v.clear !== true) ||
     !Array.isArray(v.compatibility) ||
     !v.compatibility.every(
       (t) => t && [t.zh, t.en, t.ja].every((s) => typeof s === "string"),
@@ -136,6 +139,8 @@ export const pokemonSetWords = {
   zh: {
     set: "放入当前编辑的宝可梦",
     title: "确认放入格位",
+    clear: "清空目标格位",
+    clearParty: "删除目标队伍格位，后续成员前移",
     note: "右侧修改保留在编辑缓冲中；放入格位后才会写入存档工作副本。",
     empty: "查看一只宝可梦以打开编辑缓冲。",
     loading: "正在读取宝可梦编辑缓冲…",
@@ -155,6 +160,8 @@ export const pokemonSetWords = {
   en: {
     set: "Set the edited Pokémon",
     title: "Confirm slot placement",
+    clear: "Clear the destination slot",
+    clearParty: "Delete the party slot and shift later members",
     note: "Changes on the right stay in the editor buffer. Set a slot to write them to the save working copy.",
     empty: "View a Pokémon to open its editor buffer.",
     loading: "Loading the Pokémon editor buffer…",
@@ -176,6 +183,8 @@ export const pokemonSetWords = {
   ja: {
     set: "編集中のポケモンを配置",
     title: "配置先を確認",
+    clear: "配置先を空にする",
+    clearParty: "手持ちのスロットを削除して後続を詰める",
     note: "右側の変更は編集バッファーに保持されます。スロットに配置するとセーブの作業コピーへ書き込まれます。",
     empty: "ポケモンを表示して編集バッファーを開いてください。",
     loading: "ポケモン編集バッファーを読み込み中…",

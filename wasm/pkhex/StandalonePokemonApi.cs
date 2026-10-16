@@ -36,7 +36,7 @@ public static partial class Program
     {
         var request = StandalonePokemonRequests.Read(json);
         var p = StandalonePokemon.Open(data, request.FileName, request.InputEncrypted, request.UseFileFormat).Entity;
-        if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
+        if (!PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         var result = request.ReadKind switch
         {

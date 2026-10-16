@@ -10,7 +10,7 @@ internal static class PokemonRawEditing
     public static void Apply(SaveFile save, PokemonRawEdit edit)
     {
         var p = PokemonEditing.Read(save, edit.Box, edit.Slot);
-        if (p.Species == 0 || !p.ChecksumValid || p.Format < 3)
+        if (p.Format < 3 || !PokemonEditorMode.Readable(p))
             throw new ArgumentException("Pokemon slot must contain valid data.");
         if (edit.Box >= 0 && save.IsBoxSlotLocked(edit.Box, edit.Slot))
             throw new ArgumentException("Storage slot is locked.");
@@ -41,7 +41,7 @@ internal static class PokemonRawEditing
         if(edit.LegacyDetails is not null&&edit.Action!="legacyDetails")throw new ArgumentException("Unexpected legacy detail edit.");
         if(edit.Expert is not null&&edit.Action!="expert")throw new ArgumentException("Unexpected expert edit.");
         var original=p is PB7?p.Clone():null;
-        if (p.Species == 0 || !p.ChecksumValid || p.Format < 3)
+        if (p.Format < 3 || !PokemonEditorMode.Readable(p))
             throw new ArgumentException("Pokemon slot must contain valid data.");
         if(edit.HomeTracker is not null&&(edit.Action!="values"||p is not IHomeTrack||edit.HomeTracker.Length>16))
             throw new ArgumentException("HOME tracker is unavailable or invalid.");

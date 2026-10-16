@@ -33,7 +33,7 @@ internal static class StorageEditing
             throw new ArgumentException("Storage operation is invalid.");
         if (edit.Source.Box == -1 && (uint)edit.Source.Slot >= 6)
             throw new ArgumentException("Storage party position is invalid.");
-        var source = PokemonEditing.Read(save, edit.Source.Box, edit.Source.Slot);
+        var source = edit.Action=="delete"?PokemonEditorMode.Read(save,edit.Source):PokemonEditing.Read(save, edit.Source.Box, edit.Source.Slot);
         if (edit.Action != "delete" && (source.Species == 0 || !source.ChecksumValid))
             throw new ArgumentException("Storage source must contain valid Pokemon data.");
         if (edit.Action != "copy") Writable(save, edit.Source);

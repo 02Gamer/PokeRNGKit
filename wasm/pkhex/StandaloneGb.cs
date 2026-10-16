@@ -15,11 +15,11 @@ internal static class StandaloneGb
         if (!gen1 && extension != ".pk2") throw new ArgumentException("GB format is unsupported.");
         var jpSize = gen1 ? PokeList1.GetListLengthSingle(true) : PokeList2.GetListLengthSingle(true);
         var intlSize = gen1 ? PokeList1.GetListLengthSingle(false) : PokeList2.GetListLengthSingle(false);
-        if ((data.Length != jpSize && data.Length != intlSize) || data[0] != 1 || data[2] != 0xFF)
+        if ((data.Length != jpSize && data.Length != intlSize) || (data[0] != 1 && !(PokemonEditorMode.HaX && data[0] == 0)) || data[2] != 0xFF)
             throw new ArgumentException("GB entity must be a complete single-entry list.");
         GBPKML p = gen1 ? PokeList1.ReadFromSingle(data) : PokeList2.ReadFromSingle(data);
         var marker = p is PK1 first ? PokeList1.GetHeaderIdentifierMark(first) : PokeList2.GetHeaderIdentifierMark((PK2)p);
-        if (!p.Valid || p.Species == 0 || p.Species > p.MaxSpeciesID || data[1] != marker)
+        if ((!PokemonEditorMode.HaX && (!p.Valid || p.Species == 0 || p.Species > p.MaxSpeciesID)) || data[1] != marker)
             throw new ArgumentException("GB list header conflicts with entity data.");
         return p;
     }
@@ -45,7 +45,7 @@ internal static class StandaloneGb
         if(edit.Nickname is null||edit.Ot is null)throw new ArgumentException("GB name is invalid.");
         if(p is SK2 {IsRental:true}&&edit.Ot!=p.OriginalTrainerName)throw new ArgumentException("Rental Pokemon do not store an original trainer name.");
         var original = p.Clone();
-        if (edit.Species < 1 || edit.Species > p.MaxSpeciesID || edit.Tid is < 0 or > 65535 || edit.Level is < 1 or > 100)
+        if (edit.Species < (PokemonEditorMode.HaX ? 0 : 1) || edit.Species > p.MaxSpeciesID || edit.Tid is < 0 or > 65535 || edit.Level is < 1 or > 100)
             throw new ArgumentException("GB identity value is outside the format limits.");
         Values(edit.Dvs, 4, 15); Values(edit.StatExperience, 5, 65535);
         Values(edit.MovePp, 4, 63); Values(edit.MovePpUps, 4, 3);
@@ -96,6 +96,6 @@ internal static class StandaloneGb
     }
     private static void Name(string value, int max)
     {
-        if (string.IsNullOrEmpty(value) || value.Length > max || value.Any(char.IsControl)) throw new ArgumentException("GB name is invalid.");
+        if (value is null || (!PokemonEditorMode.HaX && value.Length == 0) || value.Length > max || value.Any(char.IsControl)) throw new ArgumentException("GB name is invalid.");
     }
 }

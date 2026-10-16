@@ -33,7 +33,7 @@ internal static class PokemonIdentity
         };
     }
 
-    public static SpeciesChoice[] Choices(SaveFile save) => Enumerable.Range(1, save.BlankPKM.MaxSpeciesID)
+    public static SpeciesChoice[] Choices(SaveFile save) => Enumerable.Range(PokemonEditorMode.HaX?0:1, save.BlankPKM.MaxSpeciesID+(PokemonEditorMode.HaX?1:0))
         .Select(id =>
         {
             var species = (ushort)id;
@@ -48,7 +48,7 @@ internal static class PokemonIdentity
 
     public static void Apply(SaveFile save, PKM p, PokemonIdentityEdit edit, int box)
     {
-        if (edit.Species == 0 || edit.Species > p.MaxSpeciesID || edit.Form >= Forms(save, edit.Species, GameInfo.GetStrings("en")).Length)
+        if ((!PokemonEditorMode.HaX && edit.Species == 0) || edit.Species > p.MaxSpeciesID || (!(PokemonEditorMode.HaX&&p.Format>=4)&&edit.Form >= Forms(save, edit.Species, GameInfo.GetStrings("en")).Length))
             throw new ArgumentException("Pokemon species or form is outside the format limits.");
         if (!Genders(save, edit.Species, edit.Form).Contains(edit.Gender))
             throw new ArgumentException("Pokemon gender is outside the species limits.");
@@ -78,7 +78,7 @@ internal static class PokemonIdentity
             PersonalInfo.RatioMagicMale => [0], _ => [0, 1],
         };
     }
-    public static SpeciesChoice[] Choices(PKM p) => Enumerable.Range(1, p.MaxSpeciesID).Select(id =>
+    public static SpeciesChoice[] Choices(PKM p) => Enumerable.Range(PokemonEditorMode.HaX?0:1, p.MaxSpeciesID+(PokemonEditorMode.HaX?1:0)).Select(id =>
     {
         var species = (ushort)id;
         var forms = Forms(p, species, GameInfo.GetStrings("en"));
@@ -91,7 +91,7 @@ internal static class PokemonIdentity
     }).ToArray();
     public static void Apply(PKM p, PokemonIdentityEdit edit, int box)
     {
-        if (edit.Species == 0 || edit.Species > p.MaxSpeciesID || edit.Form >= Forms(p, edit.Species, GameInfo.GetStrings("en")).Length)
+        if ((!PokemonEditorMode.HaX && edit.Species == 0) || edit.Species > p.MaxSpeciesID || (!(PokemonEditorMode.HaX&&p.Format>=4)&&edit.Form >= Forms(p, edit.Species, GameInfo.GetStrings("en")).Length))
             throw new ArgumentException("Pokemon species or form is outside the format limits.");
         if (!Genders(p, edit.Species, edit.Form).Contains(edit.Gender))
             throw new ArgumentException("Pokemon gender is outside the species limits.");
@@ -104,8 +104,9 @@ internal static class PokemonIdentity
         var oldForm = p.Form;
         p.Species = edit.Species;
         if (p.Form != edit.Form) p.Form = edit.Form;
-        PokemonFormArgument.NormalizeIdentityChange(p, oldSpecies, oldForm, box);
-        if (changed && p.Format <= 5) p.SetPIDGender(edit.Gender);
+        if(p.Form!=edit.Form)throw new ArgumentException("Form cannot be stored by this format.");
+        if(!PokemonEditorMode.HaX)PokemonFormArgument.NormalizeIdentityChange(p, oldSpecies, oldForm, box);
+        if (changed && p.Format <= 5 && (!PokemonEditorMode.HaX || oldSpecies != edit.Species || p.Gender != edit.Gender)) p.SetPIDGender(edit.Gender);
         p.Gender = edit.Gender;
     }
 }

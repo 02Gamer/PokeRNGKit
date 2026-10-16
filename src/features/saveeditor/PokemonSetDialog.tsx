@@ -42,13 +42,22 @@ export function PokemonSetDialog({
         if (!busy) onCancel();
       }}
     >
-      <h3 id={titleId}>{w.title}</h3>
-      <div className="save-pokemon-identity">
-        <PokemonSprite pokemon={ticket.pokemon} alt="" width={68} height={56} />
-        <h4>
-          {ticket.pokemon.nickname} · {ticket.pokemon.speciesName[lang]}
-        </h4>
-      </div>
+      <h3 id={titleId}>{ticket.clear ? w.clear : w.title}</h3>
+      {ticket.clear ? (
+        <p>{ticket.target.box === -1 ? w.clearParty : w.clear}</p>
+      ) : (
+        <div className="save-pokemon-identity">
+          <PokemonSprite
+            pokemon={ticket.pokemon}
+            alt=""
+            width={68}
+            height={56}
+          />
+          <h4>
+            {ticket.pokemon.nickname} · {ticket.pokemon.speciesName[lang]}
+          </h4>
+        </div>
+      )}
       <p>
         {w.target}:{" "}
         {ticket.target.box === -1
@@ -67,7 +76,7 @@ export function PokemonSetDialog({
             disabled={busy}
             onChange={(event) => setOverwrite(event.target.checked)}
           />
-          <span>{w.overwrite}</span>
+          <span>{ticket.clear ? w.clear : w.overwrite}</span>
         </label>
       )}
       {ticket.compatibility.length > 0 && (
@@ -98,7 +107,7 @@ export function PokemonSetDialog({
           }
           onClick={onConfirm}
         >
-          {w.confirm}
+          {ticket.clear ? w.clear : w.confirm}
         </button>
         <button type="button" ref={cancel} disabled={busy} onClick={onCancel}>
           {w.cancel}

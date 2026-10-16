@@ -31,7 +31,7 @@ internal static class PokemonVitals
     }
     internal static PokemonPartyStatsInfo? ReadPartyStats(PKM p,bool party,SaveFile? save=null)
     {
-        var values=PartyValues(p);var writable=new bool[6];var before=PartyBytes(p,party);
+        var values=PartyValues(p);var writable=new bool[6];var before=PartyBytes(p.Clone(),party);
         for(int i=0;i<6;i++)
         {
             var copy=p.Clone();int value=values[i]==65535?1:65535;SetPartyValue(copy,i,value);
@@ -122,7 +122,7 @@ internal static class PokemonVitals
             else
             {
                 byte growth=p.PersonalInfo.EXPGrowth;
-                if(exp){if(edit.Experience>9999999)throw new ArgumentException("Experience exceeds the seven-digit source control.");p.EXP=Math.Min(edit.Experience!.Value,Experience.GetEXP(100,growth));}
+                if(exp){if(edit.Experience>9999999)throw new ArgumentException("Experience exceeds the seven-digit source control.");p.EXP=PokemonEditorMode.HaX?edit.Experience!.Value:Math.Min(edit.Experience!.Value,Experience.GetEXP(100,growth));}
                 else if(level){if(edit.Level is <1 or >100)throw new ArgumentException("Level is outside 1-100.");p.CurrentLevel=(byte)edit.Level!.Value;}
                 else {uint result=Bar(p,edit);if(result==p.EXP)return;p.EXP=result;}
                 p.Stat_Level=p.CurrentLevel;if(p is PK1 first)first.Stat_LevelBox=p.CurrentLevel;

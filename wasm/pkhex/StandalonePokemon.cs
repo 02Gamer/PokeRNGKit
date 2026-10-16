@@ -16,7 +16,7 @@ internal static class StandalonePokemon
     {
         var file = Open(input, filename, inputEncrypted, useFileFormat);
         var p = file.Entity;
-        if (!p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
+        if (!PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file analysis requires valid data.");
         // File serialization width does not establish its original save slot. Use the
         // entity personal info and Core's independent-entity context, not a fictitious save.
@@ -73,14 +73,14 @@ internal static class StandalonePokemon
             PB8 => new PB8(data), PA8 => new PA8(data), PK9 => new PK9(data), PA9 => new PA9(data),
             _ => throw new ArgumentException("Explicit entity format is unsupported."),
         };
-        if (!result.Valid || !result.ChecksumValid) throw new ArgumentException("Entity file checksum is invalid.");
+        if (!PokemonEditorMode.HaX && (!result.Valid || !result.ChecksumValid)) throw new ArgumentException("Entity file checksum is invalid.");
         return result;
     }
 
     public static StandalonePokemonReport Inspect(byte[] input, string filename, bool inputEncrypted = false, bool useFileFormat = false)
     {
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
-        if (p.Species == 0 || p.Species > p.MaxSpeciesID || !p.Valid || !p.ChecksumValid)
+        if (!PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         return new(p.GetType().Name, p.Extension, file.Party, CanEdit(p), PokemonReader.Read(p, file.Party ? -1 : 0, 0),
             PokemonEditorContext.Save is{} save?PokemonReader.Attributes(save):PokemonReader.Attributes(p), PokemonReader.MoveChoices(p,PokemonEditorContext.Save?.MaxMoveID), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : [], p is GBPKM gb ? StandaloneGbSpecial.Read(gb) : null, SaveSpriteView.Mode);
@@ -89,7 +89,7 @@ internal static class StandalonePokemon
     public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
     {
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
-        if (p.Format < 3 || !CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
+        if (p.Format < 3 || !CanEdit(p) || !PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file editing is unavailable for this data.");
         var applied = PokemonEditing.Apply(p, edit, file.Party, identity => PokemonEditorContext.Identity(p,identity,file.Party));
         var output = Serialize(p, file.Party, false);
@@ -101,7 +101,7 @@ internal static class StandalonePokemon
     public static byte[] Export(byte[] input, string filename, bool party, bool encrypted, bool inputEncrypted = false, bool useFileFormat = false)
     {
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
-        if (!CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
+        if (!CanEdit(p) || !PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file export requires valid data.");
         if (party && !file.Party && p.SIZE_PARTY != p.SIZE_STORED) p.ForcePartyData();
         return Serialize(p, party, encrypted);
@@ -110,7 +110,7 @@ internal static class StandalonePokemon
     public static byte[] EditRaw(byte[] input, string filename, PokemonRawEdit edit, bool inputEncrypted = false, bool useFileFormat = false, StandaloneEggTrainer? eggTrainer = null)
     {
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
-        if (p.Format < 3 || !CanEdit(p) || !p.Valid || !p.ChecksumValid || p.Species == 0 || p.Species > p.MaxSpeciesID)
+        if (p.Format < 3 || !CanEdit(p) || !PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file editing is unavailable for this data.");
         PokemonRawEditing.Apply(p, edit with {Box = file.Party ? -1 : 0, Slot = 0}, file.Party, () =>
         {
@@ -132,7 +132,7 @@ internal static class StandalonePokemon
         if (party) { if (encrypted) p.WriteEncryptedDataParty(data); else p.WriteDecryptedDataParty(data); }
         else { if (encrypted) p.WriteEncryptedDataStored(data); else p.WriteDecryptedDataStored(data); }
         var reopened = Open(data, "." + p.Extension, encrypted, useFileFormat: true).Entity;
-        if (reopened.GetType() != p.GetType() || !reopened.Valid || !reopened.ChecksumValid ||
+        if (reopened.GetType() != p.GetType() || (!PokemonEditorMode.HaX && (!reopened.Valid || !reopened.ChecksumValid)) ||
             !(p is GBPKML gb && reopened is GBPKML other ? StandaloneGb.Equal(gb, other) :
                 p.Data[..(party ? p.SIZE_PARTY : p.SIZE_STORED)].SequenceEqual(reopened.Data[..(party ? p.SIZE_PARTY : p.SIZE_STORED)])))
             throw new InvalidOperationException("Entity file export verification failed.");

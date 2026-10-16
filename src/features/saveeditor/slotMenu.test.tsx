@@ -36,6 +36,53 @@ const report = {
   boxes: [],
   pokemon: [p, { ...p, box: -1 }],
 } as unknown as SaveReport;
+it("opens HaX empty slots without an editor buffer while retaining physical locks", () => {
+  const hax = {
+    ...report,
+    pokemon: [],
+    pokemonEditing: {
+      canEdit: true,
+      canRaw: true,
+      canImport: true,
+      canStorage: true,
+      editor: "standard" as const,
+      haX: true,
+    },
+  };
+  expect(slotMenuActions(hax, { box: 1, slot: 0 }, keys, true, false)).toEqual([
+    "view",
+    "delete",
+    "legality",
+  ]);
+  expect(slotMenuActions(hax, { box: -1, slot: 5 }, keys, true, false)).toEqual(
+    ["view", "delete", "legality"],
+  );
+  expect(
+    slotMenuActions(
+      {
+        ...hax,
+        slotAccess: {
+          hasBox: true,
+          hasParty: true,
+          blocked: [{ box: 1, slot: 0 }],
+        },
+      },
+      { box: 1, slot: 0 },
+      keys,
+      true,
+      false,
+    ),
+  ).toEqual(["view", "legality"]);
+  expect(
+    slotMenuActions(
+      { ...hax, pokemonEditing: { ...hax.pokemonEditing, haX: false } },
+      { box: 1, slot: 0 },
+      keys,
+      true,
+      false,
+    ),
+  ).toEqual([]);
+});
 it.each(Array.from({ length: 16 }, (_, mask) => mask))(
   "matches exact-Control visibility, mask %s",
   (mask) => {

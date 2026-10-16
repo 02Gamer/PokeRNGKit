@@ -83,7 +83,7 @@ export function PokemonEditor({
   });
   const [initialValues] = useState(() => structuredClone(values));
   const [error, setError] = useState("");
-  const showEvs = !pokemon.advancedStats?.awakening;
+  const showEvs = !!pokemon.haX || !pokemon.advancedStats?.awakening;
   const speciesChoice = attributeChoices.species.find(
     (choice) => choice.id === Number(values.species),
   );
@@ -105,19 +105,22 @@ export function PokemonEditor({
       species,
       form,
       gender: String(
-        target?.genders.includes(Number(values.gender))
+        (pokemon.haX && !target) ||
+          target?.genders.includes(Number(values.gender))
           ? Number(values.gender)
           : (target?.genders[0] ?? 2),
       ),
-      abilityIndex: String(
-        Math.max(
-          0,
-          Math.min(
-            Number(values.abilityIndex),
-            (target?.abilities.length ?? 1) - 1,
+      abilityIndex: pokemon.haX
+        ? values.abilityIndex
+        : String(
+            Math.max(
+              0,
+              Math.min(
+                Number(values.abilityIndex),
+                (target?.abilities.length ?? 1) - 1,
+              ),
+            ),
           ),
-        ),
-      ),
     });
   };
   const statNames = [
@@ -137,7 +140,7 @@ export function PokemonEditor({
     const evs = showEvs
       ? values.evs.map((value) => integer(value, pokemon.limits.ev))
       : pokemon.evs;
-    if (showEvs && evs.reduce((a, b) => a + b, 0) > 510)
+    if (!pokemon.haX && showEvs && evs.reduce((a, b) => a + b, 0) > 510)
       throw Error(words.pokemonValueError);
     return {
       box: pokemon.box,
@@ -148,9 +151,13 @@ export function PokemonEditor({
             species: integer(
               values.species,
               attributeChoices.species.at(-1)?.id ?? 0,
-              1,
+              pokemon.haX ? 0 : 1,
             ),
-            form: integer(values.form, (speciesChoice?.forms.length ?? 1) - 1),
+            form: integer(
+              values.form,
+              pokemon.manualFormMaximum ??
+                (speciesChoice?.forms.length ?? 1) - 1,
+            ),
             gender: integer(values.gender, 2),
             useSpeciesName: values.useSpeciesName,
           }
@@ -165,7 +172,8 @@ export function PokemonEditor({
           ? null
           : integer(values.statAlignment, 24),
       abilityIndex:
-        !identityChanged && Number(values.abilityIndex) === pokemon.abilityIndex
+        (!identityChanged || pokemon.haX) &&
+        Number(values.abilityIndex) === pokemon.abilityIndex
           ? null
           : integer(values.abilityIndex, abilityChoices.length - 1),
       heldItem:
@@ -198,9 +206,9 @@ export function PokemonEditor({
       buildEdit();
       if (
         !speciesChoice ||
-        Number(values.species) === 0 ||
-        !formChoice ||
-        !abilityChoices[Number(values.abilityIndex)] ||
+        (!pokemon.haX && Number(values.species) === 0) ||
+        (!pokemon.haX && !formChoice) ||
+        (!pokemon.haX && !abilityChoices[Number(values.abilityIndex)]) ||
         !attributeChoices.items[Number(values.heldItem)]
       )
         throw Error(words.pokemonValueError);
@@ -251,22 +259,34 @@ export function PokemonEditor({
         </label>
         <label className="field">
           <span>{words.formChoice}</span>
-          <Select
-            disabled={disabled}
-            value={values.form}
-            onChange={(e) => changeIdentity(values.species, e.target.value)}
-          >
-            {!formChoice && (
-              <option value={values.form} disabled data-source-invalid>
-                #{values.form}
-              </option>
-            )}
-            {speciesChoice?.forms.map((choice, id) => (
-              <option key={id} value={id}>
-                {choice.name[lang] || words.defaultForm}
-              </option>
-            ))}
-          </Select>
+          {pokemon.manualFormMaximum != null ? (
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={pokemon.manualFormMaximum}
+              maxLength={3}
+              value={values.form}
+              onChange={(e) => changeIdentity(values.species, e.target.value)}
+            />
+          ) : (
+            <Select
+              disabled={disabled}
+              value={values.form}
+              onChange={(e) => changeIdentity(values.species, e.target.value)}
+            >
+              {!formChoice && (
+                <option value={values.form} disabled data-source-invalid>
+                  #{values.form}
+                </option>
+              )}
+              {speciesChoice?.forms.map((choice, id) => (
+                <option key={id} value={id}>
+                  {choice.name[lang] || words.defaultForm}
+                </option>
+              ))}
+            </Select>
+          )}
         </label>
         <label className="field">
           <span>{words.gender}</span>

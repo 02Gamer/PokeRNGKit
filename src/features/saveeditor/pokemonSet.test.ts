@@ -25,6 +25,16 @@ function ticket(): PokemonSetTicket {
     changedBytes: 42,
   };
 }
+it("requires an explicit clear operation before accepting an empty target result", () => {
+  const empty = { ...ticket(), pokemon: { ...ticket().pokemon, species: 0 } };
+  expect(() => parsePokemonSet(empty, hash, source, target)).toThrow();
+  expect(
+    parsePokemonSet({ ...empty, clear: true }, hash, source, target).clear,
+  ).toBe(true);
+  expect(() =>
+    parsePokemonSet({ ...empty, clear: "true" }, hash, source, target),
+  ).toThrow();
+});
 it("keeps the prepared editor file independent of the frozen imported slot", () => {
   const input = ticket(),
     view = parsePokemonSet(input, hash, source, target);

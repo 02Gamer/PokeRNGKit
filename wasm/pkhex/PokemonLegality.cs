@@ -11,8 +11,8 @@ internal static class PokemonLegality
 {
     public static PokemonLegalityReport Analyze(SaveFile save, PokemonPosition position)
     {
-        var pokemon = PokemonEditing.Read(save, position.Box, position.Slot);
-        if (pokemon.Species == 0)
+        var pokemon = PokemonEditorMode.Read(save,position);
+        if (!PokemonEditorMode.HaX && pokemon.Species == 0)
             throw new ArgumentException("Pokemon slot is empty.");
         // Use the save's personal table, just like the desktop editor. Explicit slot
         // context also preserves party-only checks instead of treating every PKM as a box entry.

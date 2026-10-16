@@ -40,7 +40,7 @@ internal static class PokemonEditing
     {
         var original = p.Clone();
         var requestedForm = edit.Identity?.Form ?? p.Form;
-        if (p.Species == 0 || !p.ChecksumValid)
+        if (!PokemonEditorMode.HaX && (p.Species == 0 || !p.ChecksumValid))
             throw new ArgumentException("Pokemon slot must contain valid data.");
         if (edit.Level is < 1 or > 100)
             throw new ArgumentException("Pokemon level must be between 1 and 100.");
@@ -50,7 +50,7 @@ internal static class PokemonEditing
             if (edit.Identity.UseSpeciesName)
                 edit = edit with { Nickname = SpeciesName.GetSpeciesNameGeneration(p.Species, p.Language, p.Format) };
             // Changing species/form must select an ability from the new personal entry.
-            edit = edit with { AbilityIndex = edit.AbilityIndex ?? Math.Clamp(p.AbilityNumber >> 1, 0, p.PersonalInfo.AbilityCount - 1) };
+            if(!PokemonEditorMode.HaX)edit = edit with { AbilityIndex = edit.AbilityIndex ?? Math.Clamp(p.AbilityNumber >> 1, 0, p.PersonalInfo.AbilityCount - 1) };
         }
         if (edit.Nature is < 0 or > 24 || edit.StatAlignment is < 0 or > 24)
             throw new ArgumentException("Pokemon nature is outside the format limits.");
@@ -87,7 +87,7 @@ internal static class PokemonEditing
         bool preserveHiddenEvs = p is IAwakened && edit.Evs is { Length: 6 } &&
             edit.Evs.SequenceEqual(new[] { original.EV_HP, original.EV_ATK, original.EV_DEF, original.EV_SPA, original.EV_SPD, original.EV_SPE });
         if (!preserveHiddenEvs) CheckValues(edit.Evs, 6, p.MaxEV, "EV");
-        if (!preserveHiddenEvs && p.Format >= 3 && edit.Evs.Sum() > EffortValues.Max510)
+        if (!PokemonEditorMode.HaX && !preserveHiddenEvs && p.Format >= 3 && edit.Evs.Sum() > EffortValues.Max510)
             throw new ArgumentException("Pokemon EV total cannot exceed 510.");
         if (edit.Moves is null || edit.Moves.Length != 4 || edit.Moves.Any(m => m > p.MaxMoveID))
             throw new ArgumentException("Pokemon move value is outside the format limits.");
@@ -192,7 +192,7 @@ internal static class PokemonEditing
 
     private static void CheckName(string value, int maximum)
     {
-        if (string.IsNullOrEmpty(value) || value.Length > maximum || value.Any(char.IsControl))
+        if (value is null || (!PokemonEditorMode.HaX && value.Length == 0) || value.Length > maximum || value.Any(char.IsControl))
             throw new ArgumentException("Pokemon name is empty, too long, or contains control characters.");
     }
 }

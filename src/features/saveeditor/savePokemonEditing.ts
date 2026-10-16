@@ -3,6 +3,7 @@ import type { SaveReport } from "./domain";
 import type { GbPokemonEdit, GbSpecialEdit } from "./standalonePokemon";
 
 export interface SavePokemonCapability {
+  haX?: boolean;
   canEdit: boolean;
   editor: "none" | "gb" | "standard";
   canRaw: boolean;
@@ -44,6 +45,7 @@ export function checkPokemonAccess(
   const v = value as Record<string, unknown>;
   if (
     !["none", "gb", "standard"].includes(v.editor as string) ||
+    (v.haX !== undefined && typeof v.haX !== "boolean") ||
     ["canEdit", "canRaw", "canImport", "canStorage"].some(
       (key) => typeof v[key] !== "boolean",
     ) ||

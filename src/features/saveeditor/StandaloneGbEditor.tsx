@@ -67,7 +67,7 @@ export function StandaloneGbEditor({
       [draft.ot, p.limits.trainerName, p.ot],
     ] as const)
       if (
-        (!name.length && name !== previous) ||
+        (!p.haX && !name.length && name !== previous) ||
         name.length > max ||
         /\p{Cc}/u.test(name)
       )
@@ -90,7 +90,7 @@ export function StandaloneGbEditor({
       species: integer(
         draft.species,
         report.attributeChoices.species.at(-1)?.id ?? 0,
-        1,
+        p.haX ? 0 : 1,
       ),
       nickname: draft.nickname,
       ot: draft.ot,

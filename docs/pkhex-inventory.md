@@ -1,5 +1,13 @@
 # PKHeX 完整接入清单
 
+## 2026-10-17 HaX空白编辑与清空准备（API182）
+
+基线 b36c1480d2d42e6043b7682fc8e85adce780702f。以Startup.ForceHaXOnLaunch作为统一Core模式，模式元数据随存档与实体返回。HaX允许查看实际空格位、GB空列表和空队尾，读取时保留类型、编码、主体／姓名及损坏的校验和；原始存档不写。基础编辑可从空记录创建宝可梦，准备和冻结放入可用空记录清空箱位或删除队伍成员。确认预览明确区分清空与普通放入，队伍删除后前移，空队尾删除不改变成员。普通模式继续拒绝空记录及不合格输入，物理锁仍按API181权限处理。
+
+HaX分支同时保留七位经验值而不按100级经验封顶、允许保留超过普通总量的EV（各字段原有上限不变）、显示LGPE隐藏EV及格式4以上的手动形态。形态沿DEV_Form的0–255输入，Core仍拒绝具体格式无法回读的值；不依赖截断回绕，原始PID与手动特性在无关形态修改时保留。来源为WinForms PKMEditor.EditsComplete／SetForms／UpdateLevelEXP、LoadSave.LoadSpeciesLevelEXP、StatEditor.ToggleInterface，及Core SlotInfoParty.WriteTo／SaveFile.DeletePartySlot、GB PokeList1／2。模式切换沿已有设置指纹重新建立Worker并废弃旧票据，不放宽容器宽度、存档校验或地区编码保护。
+
+四文件161项前端专项及 .tmp/pkhex-api182-hax-final-native.log 原生专项退出0；覆盖18实体的空白读取／元数据／创建、GB名单容器、可修改校验和格式的损坏值保留、七种公开存档与真实E.sav工作副本的冻结清空／队伍删除／空队尾，以及普通模式拒绝。 .tmp/pkhex-api182-core.log 浏览器核心构建退出0，.tmp/pkhex-api182-verify.log 完整网页检查退出0，357文件／2162项前端、类型、Lint、格式及网页／PWA构建通过；保留既有Hook与包体／插件耗时提醒。 .tmp/pkhex-api182-native-full.log 默认完整原生检查退出0，包含真实E.sav工作副本。原件及副本SHA-256保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。外部Chrome连接超时，正式页面未核验。上一轮b36c1480的Actions 38941612499在Cloudflare发布阶段返回Unknown internal error occurred，未将该轮记为部署成功。全局HaX的目录过滤、额外格位、自动提示、部分可见性与背包关联仍未完成，完整范围见 docs/pkhex-hax.md；不能将本批当作全模式完成。
+
 ## 2026-10-17 格位写入权限（API181）
 
 基线 a2eabb816afb0bf5cbc1e39fbd35bf8c915085da。Core返回实际箱子／独立队伍结构及受保护箱位，沿SlotInfoBox／SlotInfoParty.CanWriteTo，与图标、合法性、标记显示设置分别处理。菜单保留查看和合法性分析，隐藏不可写格位的放入／删除；工具栏放入、Shift放入和存储工具复用同一状态。受保护来源仍可复制到可写目标，其余来源写入禁用；不能独立写队伍的布局不显示伪队伍选项。游戏兼容性与最后非蛋等实体相关约束仍在Core实际写入时判断。

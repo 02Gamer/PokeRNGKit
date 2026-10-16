@@ -316,6 +316,7 @@ export function SavePokemonBrowser({
     if (locked) return;
     if (
       notifyEmpty &&
+      !report.pokemonEditing?.haX &&
       !locked &&
       !report.pokemon.some(
         (p) =>
@@ -325,6 +326,7 @@ export function SavePokemonBrowser({
       playSaveSound("other");
     setSelection(position);
     if (
+      report.pokemonEditing?.haX ||
       report.pokemon.some(
         (p) =>
           p.box === position.box && p.slot === position.slot && p.species > 0,

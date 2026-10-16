@@ -45,7 +45,7 @@ export interface TrainerDateField {
   max: string;
 }
 
-export const SAVE_EDITOR_API_VERSION = 181;
+export const SAVE_EDITOR_API_VERSION = 182;
 export interface SaveReport {
   slotAccess?: import("./slotAccess").SaveSlotAccessInfo;
   registeredTeams?: boolean;
@@ -64,7 +64,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 181;
+  apiVersion: 182;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -185,6 +185,8 @@ export interface PokemonEntry {
   advancedStats?: import("./advancedStats").AdvancedStatsInfo | null;
   alphaMove?: number | null;
   gbRental?: boolean;
+  haX?: boolean;
+  manualFormMaximum?: number | null;
   vitals?: import("./pokemonVitals").PokemonVitalsInfo;
   gbFields?: import("./standalonePokemon").GbSpecialFields | null;
   gbLanguage?: number | null;

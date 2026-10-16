@@ -7,7 +7,7 @@ namespace PokeRNGKit.SaveEditor;
 
 internal sealed record PokemonSetRequest([property:JsonRequired]string SourceHash,[property:JsonRequired]string Scope,[property:JsonRequired]PokemonPosition Source,[property:JsonRequired]PokemonPosition Target,[property:JsonRequired]PokemonDraftCapture Capture,PokemonFile? EditorFile=null);
 internal sealed record PokemonSetConfirmation([property:JsonRequired]string Token,[property:JsonRequired]string SourceHash,[property:JsonRequired]string TargetHash,[property:JsonRequired]bool AllowCompatibility);
-internal sealed record PokemonSetTicket(string Token,string SourceHash,string TargetHash,PokemonPosition Source,PokemonPosition Target,PokemonEntry Pokemon,PokemonFile EditorFile,LocalizedText[] Compatibility,bool Overwrite,int ChangedBytes);
+internal sealed record PokemonSetTicket(string Token,string SourceHash,string TargetHash,PokemonPosition Source,PokemonPosition Target,PokemonEntry Pokemon,PokemonFile EditorFile,LocalizedText[] Compatibility,bool Overwrite,int ChangedBytes,bool Clear=false);
 internal static class PokemonSetSession
 {
     private sealed record Pending(string Token,string SourceHash,string TargetHash,string Policy,byte[] Output,bool Warnings);
@@ -54,7 +54,7 @@ internal static class PokemonSetSession
             }
             if(original is GBPKM gb&&source.BlankPKM is GBPKM blank&&(gb.Japanese!=blank.Japanese||gb.Korean!=blank.Korean))throw new ArgumentException("GB editor encoding conflicts with the save.");
         }
-        else original=PokemonEditing.Read(source,request.Source.Box,request.Source.Slot);
+        else original=PokemonEditorMode.Read(source,request.Source);
         var p=PokemonDraftPreparing.Prepare(source,original,request.Source,request.Capture,editorParty);
         var target=StorageEditing.Target(source,request.Target);StorageEditing.Writable(source,target);
         ISlotInfo slot=target.Box==-1?new SlotInfoParty(target.Slot):new SlotInfoBox(target.Box,target.Slot,source);
@@ -74,11 +74,12 @@ internal static class PokemonSetSession
         if(output.Length!=input.Length||checkedSave.GetType()!=source.GetType()||checkedSave.PartyCount!=partyCount||!SaveChecksums.Valid(checkedSave)||!StorageEditing.StoredData(checkedSave,target).SequenceEqual(expected))throw new InvalidOperationException("Prepared Pokemon export verification failed.");
         // Preview the actual imported target; EditorFile retains the pre-import
         // editor clone separately (for example, before a boxed form is reset).
-        var info=PokemonReader.Read(PokemonEditing.Read(checkedSave,target.Box,target.Slot),target.Box,target.Slot);
+        var actual=target.Box==-1&&target.Slot>=checkedSave.PartyCount?checkedSave.BlankPKM:PokemonEditing.Read(checkedSave,target.Box,target.Slot);
+        var info=PokemonReader.Read(actual,target.Box,target.Slot);
         string token="set:"+(++revision).ToString(System.Globalization.CultureInfo.InvariantCulture),targetHash=Br4Editing.Hash(output);
         current=new(token,hash,targetHash,Policy(),output,warnings.Length!=0);
         int changed=0;for(int i=0;i<input.Length;i++)if(input[i]!=output[i])changed++;
-        return new(token,hash,targetHash,request.Source,target,info,file,warnings,overwrite,changed);
+        return new(token,hash,targetHash,request.Source,target,info,file,warnings,overwrite,changed,p.Species==0);
     }
     internal static byte[] Commit(byte[] input,PokemonSetConfirmation confirmation)
     {

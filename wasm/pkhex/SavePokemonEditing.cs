@@ -5,7 +5,7 @@ using PKHeX.Core;
 
 namespace PokeRNGKit.SaveEditor;
 
-public sealed record SavePokemonCapability(bool CanEdit, string Editor, bool CanRaw, bool CanImport, bool CanStorage);
+public sealed record SavePokemonCapability(bool CanEdit, string Editor, bool CanRaw, bool CanImport, bool CanStorage,bool HaX=false);
 internal sealed record GbSavePokemonEdit(int Box, int Slot, GbPokemonEdit? Basic = null, GbSpecialEdit? Special = null);
 
 internal static class SavePokemonEditing
@@ -14,7 +14,7 @@ internal static class SavePokemonEditing
     internal static SavePokemonCapability Read(SaveFile save, bool valid)
     {
         bool supported=Supports(save), editable=supported&&valid&&save.State.Exportable;
-        return new(editable,!supported?"none":save.BlankPKM is GBPKM?"gb":"standard",editable&&save.Generation>=3,editable,editable);
+        return new(editable,!supported?"none":save.BlankPKM is GBPKM?"gb":"standard",editable&&save.Generation>=3,editable,editable,PokemonEditorMode.HaX);
     }
     internal static void Require(SaveFile save, bool gb = false)
     {

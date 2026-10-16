@@ -37,12 +37,13 @@ export function slotMenuActions(
   canSet = false,
 ): SlotAction[] {
   if (busy) return [];
+  const hax = report.pokemonEditing?.haX === true;
   const inside =
     Number.isInteger(position.slot) &&
     position.slot >= 0 &&
     Number.isInteger(position.box) &&
     (position.box === -1
-      ? position.slot < (canSet ? 6 : report.partyCount)
+      ? position.slot < (canSet || hax ? 6 : report.partyCount)
       : position.box >= 0 &&
         position.box < report.boxCount &&
         position.slot < report.boxSlotCount);
@@ -53,13 +54,14 @@ export function slotMenuActions(
     );
   if (!inside) return [];
   const occupied = !!p && p.species > 0;
-  const result: SlotAction[] = occupied ? ["view"] : [];
+  const canView = occupied || hax;
+  const result: SlotAction[] = canView ? ["view"] : [];
   const writable =
     pokemonAccess(report).canStorage && slotCanWrite(report, position);
   if (canSet && writable) result.push("set");
-  if (occupied && writable) result.push("delete");
+  if (canView && writable) result.push("delete");
   if (
-    occupied &&
+    canView &&
     canAnalyze &&
     (always ||
       (keys.ctrlKey && !keys.shiftKey && !keys.altKey && !keys.metaKey))
