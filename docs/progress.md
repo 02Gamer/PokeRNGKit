@@ -1,5 +1,17 @@
 # PokeRNGKit 项目进度与交接
 
+API174 最终工程门禁：最后核心重建 .tmp/pkhex-stats-final-core.log、默认完整原生 .tmp/pkhex-api174-native-full.log、完整 npm run verify 的 .tmp/pkhex-api174-final-verify.log 均退出 0。348 文件／2046 项前端、完整类型、Lint、格式与网页／PWA 通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒、既有 .NET 编译／裁剪及包体提示。原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Native 默认套件包含本批六种实体／四种布局、所有来源动作和太晶选项、零 IV 建议差异、隐藏 EV 保留以及七种类型／修订存档的箱位／队伍或 LGPE 队伍引用对照。最后使用稳定挂载同步草稿并条件恢复焦点；实际 Chrome 布局／交互／下载仍未验收。Chrome 4 可被识别，但现有标签读取及同一连接中新建标签均失败；不使用内置浏览器替代工程核验。
+
+后续原生专项 .tmp/pkhex-stats-native-hidden-ev.log 退出 0，包含零 IV 攻击／速度的 AV 最低值及 GV 推荐／满值区别、LGPE 普通昵称编辑完整文件对照与隐藏 EV 字节保留。LGPE 普通模式按来源以 AV 替代 EV 输入，摘要同步显示实际 AV／GV，未发送的 EV 数据保持；三文件 46 项专项 .tmp/pkhex-stats-final-front.log 通过。首轮完整前端检查的 347 文件／2039 项、类型／Lint／格式通过，但网页复制与核心资源替换发生 ENOENT 交叠（System.Linq 压缩资源），该次完整 verify 退出 1，不列为完整通过。最后核心 .tmp/pkhex-stats-final-core.log 已退出 0，资源稳定后重跑 .tmp/pkhex-api174-final-verify.log；默认完整原生 .tmp/pkhex-api174-native-full.log 同时运行。Chrome 4 本地页读取再次失败，实际布局／焦点／下载未验收。
+
+API174 修正后原生专项 .tmp/pkhex-stats-native-linked.log 退出 0，LGPE 队伍采用存储引用并沿实际箱位编辑，其他六类／修订存档完整对照通过。两次样本准备失败及修正已记模块文档。完整类型与定向 Lint 通过；面板改为稳定挂载、元数据回读同步草稿并仅在焦点回到 body 时恢复原控件。浏览器核心和完整 npm run verify 运行中，随后执行默认完整原生；不作真实页面验收。
+
+## 2026-10-16 世代专属统计字段（API174）
+
+基线 58296fa0802604172d335fcc1d4486038c7ab426 已推送。本批将四组明确缺口一起接入：LGPE AV、PLA GV、极巨／超极巨／头目／王标记、PK9 原始／覆盖太晶属性。元数据沿实体实际接口，两个正式入口共用控件与三语文案，纳入草稿门禁；只发修改项，快捷动作保护当前面板草稿。范围和特殊值均已从 StatEditor、LoadSave 和 Core 接口核对，详见模块文档；API／Worker／夹具统一为 174。
+
+五文件 189 项前端及全仓格式通过，完整类型进行中。原生首轮六种实体／四布局与原值、异常请求检查通过，存档样本准备在 LGPE 未初始化队伍箱位引用处失败；已沿既有测试的 PartyData 初始化修正样本并重跑。产品解析与写入规则未改变。浏览器核心、默认完整原生与完整工程门禁已通过，真实 Chrome 页面待核验。
+
 API173 最终工程检查：.tmp/pkhex-alpha-filter-core.log 的浏览器核心重建、.tmp/pkhex-api173-native-full.log 的默认完整原生，以及 .tmp/pkhex-api173-verify.log 的完整 npm run verify 均退出 0。346 文件／2005 项前端、完整类型、Lint、全仓格式与网页／PWA 通过；保留第三世代定点既有的一条 Hook 提醒、既有裁剪／编译和包体提示。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实交互／下载与所有者验收未完成；完整接入目标及统计字段余项继续保留。
 
 主编辑器统计字段另有四组明确待接：AV／GV、极巨等级／超极巨、头目／王标记、太晶原始／覆盖属性。来源与正式表单缺口已记入模块文档，不以图像读取或批量属性能力当作控件已完成。后续按字段组批量实施。

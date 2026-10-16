@@ -1,3 +1,4 @@
+import { advancedStatsWords } from "./advancedStats";
 import { useTranslation } from "react-i18next";
 import { useContext, useEffect, useRef, useState } from "react";
 import {
@@ -45,6 +46,7 @@ export function PokemonLegality({
     relearn: words.relearnMoves,
     history: words.historyTitle,
     alphaMove: alphaMoveWords[lang].title,
+    advancedStats: advancedStatsWords[lang].title,
   };
   const current =
     !blocked && report?.box === position.box && report.slot === position.slot

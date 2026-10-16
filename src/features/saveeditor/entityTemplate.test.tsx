@@ -17,7 +17,7 @@ import type { DatabaseLocalFile } from "./databaseRepository";
 const hash = "A".repeat(64),
   names = { zh: "测试", en: "Test", ja: "テスト" };
 const catalog: EntityTemplateCatalog = {
-  apiVersion: 173,
+  apiVersion: 174,
   sourceHash: hash,
   version: 3,
   versions: [{ id: 3, name: names }],
@@ -26,7 +26,7 @@ const catalog: EntityTemplateCatalog = {
   format: "PK3",
 };
 const created = {
-  apiVersion: 173,
+  apiVersion: 174,
   sourceHash: hash,
   version: 3,
   directory: "my/template",

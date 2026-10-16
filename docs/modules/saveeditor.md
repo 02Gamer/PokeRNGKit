@@ -1,5 +1,19 @@
 # PKHeX 存档读取与编辑
 
+API174 最终工程门禁：最后核心重建 .tmp/pkhex-stats-final-core.log、默认完整原生 .tmp/pkhex-api174-native-full.log、完整 npm run verify 的 .tmp/pkhex-api174-final-verify.log 均退出 0。348 文件／2046 项前端、完整类型、Lint、格式与网页／PWA 通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒、既有 .NET 编译／裁剪及包体提示。原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Native 默认套件包含本批六种实体／四种布局、所有来源动作和太晶选项、零 IV 建议差异、隐藏 EV 保留以及七种类型／修订存档的箱位／队伍或 LGPE 队伍引用对照。最后使用稳定挂载同步草稿并条件恢复焦点；实际 Chrome 布局／交互／下载仍未验收。Chrome 4 可被识别，但现有标签读取及同一连接中新建标签均失败；不使用内置浏览器替代工程核验。
+
+后续原生专项 .tmp/pkhex-stats-native-hidden-ev.log 退出 0，包含零 IV 攻击／速度的 AV 最低值及 GV 推荐／满值区别、LGPE 普通昵称编辑完整文件对照与隐藏 EV 字节保留。LGPE 普通模式按来源以 AV 替代 EV 输入，摘要同步显示实际 AV／GV，未发送的 EV 数据保持；三文件 46 项专项 .tmp/pkhex-stats-final-front.log 通过。首轮完整前端检查的 347 文件／2039 项、类型／Lint／格式通过，但网页复制与核心资源替换发生 ENOENT 交叠（System.Linq 压缩资源），该次完整 verify 退出 1，不列为完整通过。最后核心 .tmp/pkhex-stats-final-core.log 已退出 0，资源稳定后重跑 .tmp/pkhex-api174-final-verify.log；默认完整原生 .tmp/pkhex-api174-native-full.log 同时运行。Chrome 4 本地页读取再次失败，实际布局／焦点／下载未验收。
+
+## 世代专属能力与标记（API174）
+
+新增 PokemonAdvancedStats 元数据与编辑动作，存档及独立实体共用三语表单、共享 Select／按钮及集中草稿门禁。按实际实体接口显示 AV／GV、极巨化等级、超极巨、头目、王、原始／覆盖太晶属性；PA9 没有 ITeraType，不虚构太晶字段。只发送修改字段，未修改的异常值与非规范标记字节保持。快捷动作在当前面板有草稿时禁用，先应用再操作；Ctrl+单击数值切换最大／零，Alt+单击清零，Ctrl 优先。随机 AV 的精确 Ctrl／Alt 单键组合分别对应推荐／最低值，其他组合沿随机动作。
+
+输入来源为 StatEditor.cs 的 UpdateAVs／UpdateGVs／ClickAV／ClickGV／UpdateRandomAVs、LoadSave.cs:425–524 和 StatEditor.Designer.cs:742／840／1311。AV 与 GV 均为三位十进制掩码、空值 0，显示输入按各自上限归到 0–200／0–10；Core 请求拒绝新增越界值。GV.GetMax 当前 IV 对应的上限只是提示，保留手动输入 10 的来源行为。六维顺序显式转换为 HP／攻击／防御／特攻／特防／速度；上游 Core 为 HP／攻击／防御／速度／特攻／特防。AV 另接最低、推荐、随机、全满／清零；GV 接建议值、各项当前 IV 上限及清零，均调用 Core 原方法。
+
+极巨化等级目录为 0–10，附来源标签切换端点动作；超极巨／头目／王沿实际接口写位。太晶两个下拉框复用上游同一目录：普通属性 0–17、不覆盖 19（---）、星晶 99。依据 StatEditor.InitializeDataSources／ChangeTeraType 和 ITeraType.cs；不将星晶显示字符串下标 18 写入字段。第一／第二属性和来源切换动作同时清除覆盖；重置覆盖按实体是否 SV 决定用 19 或原始属性。写入先在克隆上验证，异常不改原实体。AV／GV 改变能力值时刷新实际队伍数值并保持当前 HP／状态；PB7 继续使用既有派生能力与 CP 刷新路径。标记与太晶写入保持无关数值。无 RNG 算法或上游源文件改动。
+
+首轮五文件 189 项前端与全仓格式通过，完整类型进行中。原生专项六种独立实体／四布局全部通过，存档阶段的 LGPE 合成样本缺少队伍箱位引用，已沿既有测试的 PartyData 初始化修正并重跑；未放宽产品识别或写入规则。最终完整工程门禁已通过；真实页面继续待核验，不以本批关闭全部主编辑器或完整接入目标。
+
 API173 最终工程检查：.tmp/pkhex-alpha-filter-core.log 的浏览器核心重建、.tmp/pkhex-api173-native-full.log 的默认完整原生，以及 .tmp/pkhex-api173-verify.log 的完整 npm run verify 均退出 0。346 文件／2005 项前端、完整类型、Lint、全仓格式与网页／PWA 通过；保留第三世代定点既有的一条 Hook 提醒、既有裁剪／编译和包体提示。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实交互／下载与所有者验收未完成；完整接入目标及统计字段余项继续保留。
 
 补查并修正下拉框筛选：来源 FilteredGameDataSource.GetFilteredMoves 与 GameDataSource.LegalMoveDataSource 排除战斗专用及 PLA 未使用招式。Core 为招式目录返回 alphaSelectable，前端只显示可选项；普通写入也按相同 Core 规则拒绝未列出编号，保留旧存档原值可读。修正后 .tmp/pkhex-alpha-filter-native.log 退出 0，逐项对照全部 0–850 编号，与上游 178 项集合完全一致，全部可选／不可选编号均检查，并重跑四布局及完整输出。首轮范围检查与核心构建已通过，但不替代本次筛选修正后的核心重建和完整门禁；后者均已通过，最终结果见本页当前记录。
@@ -14,16 +28,16 @@ PA8 的 AlphaMove 新增独立读取、编辑及回读，两正式入口复用 P
 
 ## 主编辑器统计字段的剩余核对
 
-本表记录本轮直接对照发现的缺口，范围是正式表单；不把底层批量属性能力或图像读取算作对应控件已接，也不声称穷尽全部主窗口控件。写入范围、派生更新与格式差异须在实施前继续核对来源。
+本表记录 API173 审计发现及 API174 接入状态，范围是正式表单；不把底层批量属性能力或图像读取算作对应控件已接，也不声称穷尽全部主窗口控件。来源范围与派生更新已在本页 API174 节核对，真实页面仍待验收。
 
-| 来源字段组             | 当前正式入口                                       | 来源与下一步                                                                                                     |
-| ---------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| 觉醒值 AV、奋斗等级 GV | 基础表单仅编辑 IV／EV，未提供 AV／GV 控件          | StatEditor.LoadAVs／LoadGVs、RefreshGanbaru 与 ToggleInterface；接 Core 上限和能力值刷新，不能将 IV／EV 当成替代 |
-| 极巨等级、超极巨化     | 超极巨标记用于图像读取；无专用编辑请求             | LoadSave 的 G8PKM／PA8 保存路径、StatEditor.CHK_Gigantamax；按实际类型与保存语义接入                             |
-| 头目、王标记           | 头目标记用于图像读取；本批 AlphaMove 不修改它      | LoadSave 的 PA8／PA9 与 StatEditor.ToggleInterface；PA8 的 IsNoble 单独处理，不混同初始精通招式                  |
-| 太晶原始／覆盖属性     | 现有图层读取最终属性；无两个原始字段的正式编辑表单 | LoadSave 的 PK9／PA9、StatEditor.ChangeTeraType；核对默认／星晶值与跨游戏语义                                    |
+| 来源字段组             | 当前正式入口                           | 来源与下一步                                                                                                     |
+| ---------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 觉醒值 AV、奋斗等级 GV | API174 共用表单已接，保留独立 IV／EV   | StatEditor.LoadAVs／LoadGVs、RefreshGanbaru 与 ToggleInterface；接 Core 上限和能力值刷新，不能将 IV／EV 当成替代 |
+| 极巨等级、超极巨化     | API174 已接极巨等级、超极巨及图像联动  | LoadSave 的 G8PKM／PA8 保存路径、StatEditor.CHK_Gigantamax；按实际类型与保存语义接入                             |
+| 头目、王标记           | API174 已接头目／王；与 AlphaMove 独立 | LoadSave 的 PA8／PA9 与 StatEditor.ToggleInterface；PA8 的 IsNoble 单独处理，不混同初始精通招式                  |
+| 太晶原始／覆盖属性     | API174 已接两个字段及来源快捷动作      | LoadSave 的 PK9、StatEditor.ChangeTeraType（PA9 不实现 ITeraType）；核对默认／星晶值与跨游戏语义                 |
 
-产品对照文件：wasm/pkhex/PokemonEditing.cs、PokemonRawEditing.cs、PokemonTraining.cs、PokemonVitals.cs、SaveSpriteView.cs 和 src/features/saveeditor/PokemonEditor.tsx。普通请求中的现有字段不包含上述写入；批量属性路径能覆盖哪些行为仍须逐项验证，不能据此关闭缺口。
+产品对照文件：wasm/pkhex/PokemonEditing.cs、PokemonRawEditing.cs、PokemonTraining.cs、PokemonVitals.cs、SaveSpriteView.cs 和 src/features/saveeditor/PokemonEditor.tsx。API174 的 advancedStats 请求已包含本表字段；主窗口的其他统计／身份控件与批量属性路径仍须逐项核对，不能据此宣称完整接入。
 
 ## 集中草稿校验与请求失败反馈（API172 前端）
 
@@ -4049,3 +4063,5 @@ TrashEditor 只将临时编码中实际写出的前缀复制到原始缓冲。SA
 迁移前后 AST 对照确认全部 62 项标签／能力表达式一致。新增接线 Lint 与两文件 10 项 95878、4096 MB 类型 12748、完整 verify 19959 均退出码 0；网页／PWA 253 项、24180.09 KiB。固定工作区样式仅作用于存档文件编辑器，单只宝可梦编辑器保留原有长表单滚动。Core／Worker 协议未改，沿用已通过工程检查的 API 137 核心。Chrome 连接仍返回通信错误，尚未执行外部浏览器或真实存档核验，不能将源码或 SSR 检查等同于所有者验收。
 
 本批首轮完整类型退出 0；定向 Lint 无错误，发现两处校验上下文 useMemo 未使用依赖的提醒，已将实体／修订标识显式纳入注册表 scope，待完整工程重跑。拦截提示增加无效表单名称，方便定位修正。
+
+本批后续 .tmp/pkhex-stats-native-linked.log 退出 0：六格式四文件布局，以及 LGPE 引用队伍的箱位、BDSP／SWSH／LA／SV／ZA 箱位与普通队伍的完整存档对照通过。LGPE 两次样本准备失败分别为直接 SetPartySlotAtIndex 与仍按普通 PartyData 初始化；按来源 HasParty=false 和已存在的 TextTrashSessionTests 样本方法，初始化存储队伍指针、重开并使用实际箱位后通过。产品范围与识别未改。另补零 IV 的攻击／速度推荐值区别覆盖，由后续默认完整套件执行。首轮完整类型与定向 Lint 已通过；最后增加稳定面板、草稿同步和条件焦点恢复，实际 Chrome 行为未核验。

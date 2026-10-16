@@ -83,8 +83,11 @@ internal static class PokemonEditing
             // FR selects the core's Unown PID constraints; the stored origin stays unchanged.
             p.PID = EntityPID.GetRandomPID(Util.Rand, p.Species, 2, GameVersion.FR, p.Nature, requestedForm, p.PID);
         }
-        CheckValues(edit.Evs, 6, p.MaxEV, "EV");
-        if (p.Format >= 3 && edit.Evs.Sum() > EffortValues.Max510)
+        // Normal LGPE uses AVs. Preserve untouched hidden EV bytes during other edits.
+        bool preserveHiddenEvs = p is IAwakened && edit.Evs is { Length: 6 } &&
+            edit.Evs.SequenceEqual(new[] { original.EV_HP, original.EV_ATK, original.EV_DEF, original.EV_SPA, original.EV_SPD, original.EV_SPE });
+        if (!preserveHiddenEvs) CheckValues(edit.Evs, 6, p.MaxEV, "EV");
+        if (!preserveHiddenEvs && p.Format >= 3 && edit.Evs.Sum() > EffortValues.Max510)
             throw new ArgumentException("Pokemon EV total cannot exceed 510.");
         if (edit.Moves is null || edit.Moves.Length != 4 || edit.Moves.Any(m => m > p.MaxMoveID))
             throw new ArgumentException("Pokemon move value is outside the format limits.");

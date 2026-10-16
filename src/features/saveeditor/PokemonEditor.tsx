@@ -78,6 +78,7 @@ export function PokemonEditor({
     movePpUps: pokemon.movePpUps.map(String),
   });
   const [error, setError] = useState("");
+  const showEvs = !pokemon.advancedStats?.awakening;
   const speciesChoice = attributeChoices.species.find(
     (choice) => choice.id === Number(values.species),
   );
@@ -128,8 +129,10 @@ export function PokemonEditor({
     return Number(value);
   };
   const buildEdit = (): PokemonEdit => {
-    const evs = values.evs.map((value) => integer(value, pokemon.limits.ev));
-    if (evs.reduce((a, b) => a + b, 0) > 510)
+    const evs = showEvs
+      ? values.evs.map((value) => integer(value, pokemon.limits.ev))
+      : pokemon.evs;
+    if (showEvs && evs.reduce((a, b) => a + b, 0) > 510)
       throw Error(words.pokemonValueError);
     return {
       box: pokemon.box,
@@ -334,7 +337,8 @@ export function PokemonEditor({
       </fieldset>
       <fieldset disabled={disabled} className="save-editor-fields">
         <legend>
-          {words.ivs} / {words.evs}
+          {words.ivs}
+          {showEvs ? ` / ${words.evs}` : ""}
         </legend>
         {pokemon.potential ? (
           <p className="save-editor-note">
@@ -380,30 +384,32 @@ export function PokemonEditor({
         ))}
         <p className="save-editor-note">{words.pidChangeNote}</p>
         {statNames.flatMap((stat, index) =>
-          (["ivs", "evs"] as const).map((key) => (
-            <label className="field" key={`${key}-${index}`}>
-              <span>
-                {stat} · {words[key]}
-              </span>
-              <input
-                inputMode="numeric"
-                type="number"
-                min={0}
-                max={key === "ivs" ? pokemon.limits.iv : pokemon.limits.ev}
-                step={1}
-                value={values[key][index]}
-                maxLength={3}
-                onChange={(e) =>
-                  setValues({
-                    ...values,
-                    [key]: values[key].map((value, i) =>
-                      i === index ? e.target.value : value,
-                    ),
-                  })
-                }
-              />
-            </label>
-          )),
+          (showEvs ? (["ivs", "evs"] as const) : (["ivs"] as const)).map(
+            (key) => (
+              <label className="field" key={`${key}-${index}`}>
+                <span>
+                  {stat} · {words[key]}
+                </span>
+                <input
+                  inputMode="numeric"
+                  type="number"
+                  min={0}
+                  max={key === "ivs" ? pokemon.limits.iv : pokemon.limits.ev}
+                  step={1}
+                  value={values[key][index]}
+                  maxLength={3}
+                  onChange={(e) =>
+                    setValues({
+                      ...values,
+                      [key]: values[key].map((value, i) =>
+                        i === index ? e.target.value : value,
+                      ),
+                    })
+                  }
+                />
+              </label>
+            ),
+          ),
         )}
       </fieldset>
       <fieldset disabled={disabled} className="save-editor-fields">

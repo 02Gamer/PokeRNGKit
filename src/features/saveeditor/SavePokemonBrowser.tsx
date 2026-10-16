@@ -1,3 +1,7 @@
+import {
+  PokemonAdvancedStatsEditor,
+  PokemonBoostRows,
+} from "./PokemonAdvancedStatsEditor";
 import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { PokemonDraftContext } from "./pokemonDraftValidation";
 import { PokemonDraftRegistry } from "./pokemonDraftRegistry";
@@ -913,6 +917,15 @@ export function SavePokemonBrowser({
                       onRead={onReadRibbons}
                       generation={report.generation}
                     />
+                    {selected.advancedStats && (
+                      <PokemonAdvancedStatsEditor
+                        key={`advanced-stats-${selected.box}-${selected.slot}`}
+                        info={selected.advancedStats}
+                        position={selected}
+                        disabled={busy || !access.canRaw || !selected.valid}
+                        onApply={onApplyRaw}
+                      />
+                    )}
                     {selected.alphaMove != null && (
                       <PokemonAlphaMoveEditor
                         key={`alpha-move-${revision}-${selected.box}-${selected.slot}`}
@@ -993,16 +1006,22 @@ export function SavePokemonBrowser({
                           <td key={i}>{selected.ivs[i]}</td>
                         ))}
                       </tr>
-                      <tr>
-                        <th scope="row">
-                          {report.generation < 3
-                            ? standaloneWords[lang].statExperience
-                            : words.evs}
-                        </th>
-                        {statIndices.map((i) => (
-                          <td key={i}>{selected.evs[i]}</td>
-                        ))}
-                      </tr>
+                      {!selected.advancedStats?.awakening && (
+                        <tr>
+                          <th scope="row">
+                            {report.generation < 3
+                              ? standaloneWords[lang].statExperience
+                              : words.evs}
+                          </th>
+                          {statIndices.map((i) => (
+                            <td key={i}>{selected.evs[i]}</td>
+                          ))}
+                        </tr>
+                      )}
+                      <PokemonBoostRows
+                        info={selected.advancedStats}
+                        lang={lang}
+                      />
                     </tbody>
                   </table>
                 </div>

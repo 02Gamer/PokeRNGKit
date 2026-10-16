@@ -1,5 +1,9 @@
 # PKHeX 完整接入清单
 
+API174 最终工程门禁：最后核心重建 .tmp/pkhex-stats-final-core.log、默认完整原生 .tmp/pkhex-api174-native-full.log、完整 npm run verify 的 .tmp/pkhex-api174-final-verify.log 均退出 0。348 文件／2046 项前端、完整类型、Lint、格式与网页／PWA 通过；保留 Gen3StaticPanel.tsx:404 既有的一条提醒、既有 .NET 编译／裁剪及包体提示。原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Native 默认套件包含本批六种实体／四种布局、所有来源动作和太晶选项、零 IV 建议差异、隐藏 EV 保留以及七种类型／修订存档的箱位／队伍或 LGPE 队伍引用对照。最后使用稳定挂载同步草稿并条件恢复焦点；实际 Chrome 布局／交互／下载仍未验收。Chrome 4 可被识别，但现有标签读取及同一连接中新建标签均失败；不使用内置浏览器替代工程核验。
+
+后续原生专项 .tmp/pkhex-stats-native-hidden-ev.log 退出 0，包含零 IV 攻击／速度的 AV 最低值及 GV 推荐／满值区别、LGPE 普通昵称编辑完整文件对照与隐藏 EV 字节保留。LGPE 普通模式按来源以 AV 替代 EV 输入，摘要同步显示实际 AV／GV，未发送的 EV 数据保持；三文件 46 项专项 .tmp/pkhex-stats-final-front.log 通过。首轮完整前端检查的 347 文件／2039 项、类型／Lint／格式通过，但网页复制与核心资源替换发生 ENOENT 交叠（System.Linq 压缩资源），该次完整 verify 退出 1，不列为完整通过。最后核心 .tmp/pkhex-stats-final-core.log 已退出 0，资源稳定后重跑 .tmp/pkhex-api174-final-verify.log；默认完整原生 .tmp/pkhex-api174-native-full.log 同时运行。Chrome 4 本地页读取再次失败，实际布局／焦点／下载未验收。
+
 API173 最终工程检查：.tmp/pkhex-alpha-filter-core.log 的浏览器核心重建、.tmp/pkhex-api173-native-full.log 的默认完整原生，以及 .tmp/pkhex-api173-verify.log 的完整 npm run verify 均退出 0。346 文件／2005 项前端、完整类型、Lint、全仓格式与网页／PWA 通过；保留第三世代定点既有的一条 Hook 提醒、既有裁剪／编译和包体提示。最终原存档 SHA-256 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 读取已授权本地页仍失败，真实交互／下载与所有者验收未完成；完整接入目标及统计字段余项继续保留。
 
 补查并修正下拉框筛选：来源 FilteredGameDataSource.GetFilteredMoves 与 GameDataSource.LegalMoveDataSource 排除战斗专用及 PLA 未使用招式。Core 为招式目录返回 alphaSelectable，前端只显示可选项；普通写入也按相同 Core 规则拒绝未列出编号，保留旧存档原值可读。修正后 .tmp/pkhex-alpha-filter-native.log 退出 0，逐项对照全部 0–850 编号，与上游 178 项集合完全一致，全部可选／不可选编号均检查，并重跑四布局及完整输出。首轮范围检查与核心构建已通过，但不替代本次筛选修正后的核心重建和完整门禁；后者均已通过，最终结果见本页当前记录。

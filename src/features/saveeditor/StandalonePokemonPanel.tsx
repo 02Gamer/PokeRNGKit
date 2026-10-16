@@ -1,3 +1,7 @@
+import {
+  PokemonAdvancedStatsEditor,
+  PokemonBoostRows,
+} from "./PokemonAdvancedStatsEditor";
 import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { saveFailureFeedback } from "./saveFailureFeedback";
 import { PokemonDraftContext } from "./pokemonDraftValidation";
@@ -1095,19 +1099,25 @@ export function StandalonePokemonPanel({
                       <td key={index}>{value}</td>
                     ))}
                   </tr>
-                  <tr>
-                    <th scope="row">
-                      {report.generation < 3
-                        ? words.statExperience
-                        : common.evs}
-                    </th>
-                    {(report.generation < 3
-                      ? [0, 1, 2, 5, 3].map((i) => report.pokemon.evs[i])
-                      : report.pokemon.evs
-                    ).map((value, index) => (
-                      <td key={index}>{value}</td>
-                    ))}
-                  </tr>
+                  {!report.pokemon.advancedStats?.awakening && (
+                    <tr>
+                      <th scope="row">
+                        {report.generation < 3
+                          ? words.statExperience
+                          : common.evs}
+                      </th>
+                      {(report.generation < 3
+                        ? [0, 1, 2, 5, 3].map((i) => report.pokemon.evs[i])
+                        : report.pokemon.evs
+                      ).map((value, index) => (
+                        <td key={index}>{value}</td>
+                      ))}
+                    </tr>
+                  )}
+                  <PokemonBoostRows
+                    info={report.pokemon.advancedStats}
+                    lang={lang}
+                  />
                 </tbody>
               </table>
             </div>
@@ -1421,6 +1431,15 @@ export function StandalonePokemonPanel({
                       onRead={() => readDetails("ribbons")}
                       onApply={applyRaw}
                     />
+                    {report.pokemon.advancedStats && (
+                      <PokemonAdvancedStatsEditor
+                        key="advanced-stats"
+                        info={report.pokemon.advancedStats}
+                        position={report.pokemon}
+                        disabled={busy}
+                        onApply={applyRaw}
+                      />
+                    )}
                     {report.pokemon.alphaMove != null && (
                       <PokemonAlphaMoveEditor
                         key={`alpha-move-${revision}`}
