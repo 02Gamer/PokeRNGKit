@@ -1,5 +1,13 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-17 完整接入证据与平台边界（文档审计）
+
+产品代码基线d426c7603bf9f1a9d3c2c4a5b603560eb78706dc，API189。重新读取Actions39019277406，build、GitHub Pages、Cloudflare Pages和Windows桌面包四任务均success。工作区在本轮开始时干净。新增[完整接入证据与平台边界](pkhex-completion-audit.md)，逐项区分代码／工程证据、缺失的页面证据及平台行为；129行来源路径唯一，均能对应当前上游文件，但不据此推导完整功能覆盖。
+
+补记已核对的平台来源：额外存档扩展名只扩展桌面选择器，网页文件入口本来不限制扩展名；BAKPrompt是首次创建备份目录的询问记账，不是逐次备份开关；最近磁盘文件初值、Windows箱子临时文件／OLE拖出、覆盖／另存及WinForms焦点绘图分别记录，不伪装成同等网页功能。DragStartThreshold仍是待验证交互：当前原生浏览器拖放没有该配置，不能仅取消dragstart就宣称已适配，也不能未经浏览器验证直接排除。
+
+本轮外部Chrome读取已授权本地5173仍在20秒后超时并重置，未取得页面，没有权限拒绝提示。该浏览器阻塞已连续重复；剩余布局、三语、连续焦点、实际格位操作、文件导入／下载及拖动阈值需要可用外部浏览器。未新增产品代码、未重跑测试／构建，不把文档审计当作验收。完整目标未完成，保留所有历史功能范围和待核验项。
+
 ## 2026-10-17 相遇训练家文件资料（API189，工程通过，页面待核验）
 
 基线bb86bef01cfbc6327a462acaf3f6bc07ec2ddc0a。上一轮Actions39010940505已完成，build、GitHub Pages、Cloudflare Pages及Windows桌面包四任务均成功；这属于工程与部署证据，页面仍未验收。源码复核发现localResources.trainerPath尚无消费点，上游Main.MainMenuEncounterDB从该目录递归读取宝可梦，再调用TrainerDatabase.RegisterCopy(PKM)。现有手动训练家来源不能替代这个目录功能。
