@@ -132,7 +132,7 @@ internal static class PokemonDraftPreparing
         if(claims.TryGetValue("currentFriendship",out var friendship)){string key=p.IsEgg||p.CurrentHandler==0?"care.originalFriendship":"care.handlingFriendship";if(claims.TryGetValue(key,out var care)&&care.Value!=friendship.Value)throw new ArgumentException("Conflicting friendship drafts.");}
         foreach(var action in actions.Where(a=>a.Order>=30).OrderBy(a=>a.Order).ThenBy(a=>a.Index))action.Apply();
         if(levels.Count!=0&&p.CurrentLevel!=levels[0])throw new ArgumentException("Editor level conflicts with the prepared experience.");
-        p.RefreshChecksum();return p;
+        PokemonEditorFinalizing.Apply(p);return p;
     }
     private static PokemonEdit Rebase(PKM p,PokemonEdit e,HashSet<string> f,DraftLocation source)=>e with{
         Box=source.FormBoxHint,Slot=source.Slot,Nickname=f.Contains("nickname")?e.Nickname:p.Nickname,Ot=f.Contains("ot")?e.Ot:p.OriginalTrainerName,

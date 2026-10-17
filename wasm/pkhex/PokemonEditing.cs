@@ -98,8 +98,8 @@ internal static class PokemonEditing
         var ups = edit.MovePpUps ?? new[] { p.Move1_PPUps, p.Move2_PPUps, p.Move3_PPUps, p.Move4_PPUps };
         CheckValues(ups, 4, 3, "PP Ups");
         for (var i = 0; i < 4; i++)
-            if (edit.Moves[i] == 0 && (ups[i] != 0 || edit.MovePp[i] != 0))
-                throw new ArgumentException("Pokemon empty move must have zero PP and PP Ups.");
+            if (edit.Moves[i] == 0 && (ups[i] != 0 || p is not PA9 && edit.MovePp[i] != 0))
+                throw new ArgumentException("Pokemon empty move PP or PP Ups is outside the concrete format limits.");
         if (edit.Nickname != p.Nickname)
         {
             CheckName(edit.Nickname, p.MaxStringLengthNickname);

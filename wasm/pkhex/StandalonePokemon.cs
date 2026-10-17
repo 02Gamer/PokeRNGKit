@@ -104,6 +104,7 @@ internal static class StandalonePokemon
         if (!CanEdit(p) || !PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file export requires valid data.");
         if (party && !file.Party && p.SIZE_PARTY != p.SIZE_STORED) p.ForcePartyData();
+        PokemonEditorFinalizing.Apply(p);
         return Serialize(p, party, encrypted);
     }
 

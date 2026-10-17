@@ -1,5 +1,19 @@
 # PKHeX 完整接入清单
 
+## 2026-10-17 最终招式与特性保存（API187，工程通过，页面待核验）
+
+基线`ca13c8c4e045634013da20733d5ecb23e7c21a2c`。合并全部草稿后调用具体实体的Core `FixMoves`，第五世代HaX按最终特性重算隐藏特性标记，再刷新校验和；独立文件显式导出采用相同处理。中间编辑、只读载入和原始来源不提前规范化，确认使用已冻结输出。协议与全部前端握手／夹具同步升级API187。
+
+来源为WinForms `EditPK1`至`EditPK9`的`PreparePK*`及Core `PKM.FixMoves`／`PA9.FixMoves`。普通格式将空招式移至末尾，保持各招式的PP／PP提升组合，末尾清零；PA9使用自己的覆盖，保留位置，空招式PP设35、PP提升设0。基础编辑接受PA9目录规定的空招式PP上限35，修复最终文件再次编辑时被零PP假设拒绝的问题，其他输入上限不变。
+
+扩展原生专项和默认完整原生重跑均退出0，包含真实E.sav工作副本。覆盖18种实体、普通／HaX、存储／队伍及加密／解密四种布局、PK5派生标记、ZA再次编辑、冻结放入、公开文件导出、额外格位、相遇建议、草稿提示和来源保护。证据见`.tmp/pkhex-api187-finalizing-checked.log`与`.tmp/pkhex-api187-native-full-final.log`。首轮旧SAV9ZA整文件预期及公开导出预期遗漏最终FixMoves，已按独立Core规范化修正，完整逐字节与原输入保护断言保留，失败日志保留。
+
+浏览器核心、完整Lint／类型、364文件／2223项前端测试及最新核心的网页／PWA打包均退出0。证据见`.tmp/pkhex-api187-core.log`、`.tmp/pkhex-api187-lint.log`、`.tmp/pkhex-api187-typecheck.log`、`.tmp/pkhex-api187-tests-full.log`与`.tmp/pkhex-api187-web.log`。保留第三世代定点既有Hook、既有反射／裁剪和包体／插件耗时提示。原件与工作副本SHA-256均保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。
+
+只读清单覆盖复核：上游Subforms的129个非Designer C#源码路径全部列入现有盘点，没有漏列路径；此项只证明来源清单覆盖，不证明所有行为已完成。上一轮ca13c8c4的Actions38997537497已成功（build、Windows、两处部署）。外部Chrome绑定本地5173页面仍超时，未读取页面；正式交互、连续焦点和实际下载未核验，不作所有者验收。
+
+下一步继续核对WinForms EditPK6至EditPK9的FixRelearn与受ModifyPKM控制的FixMemories；MainWindow/Main.cs将开关绑定SlotWrite.SetUpdatePKM，当前产品没有这两项调用。PK6与PK7的Data[0xFE..]清理也保留待接，不将本批FixMoves写作全部最终保存行为已完成。完整PKHeX接入目标保持未完成。
+
 ## 2026-10-17 已接设置入口修正（前端，API186）
 
 基线`0dd34787534c34f0417671338ef213730b985f9e`。设置页旧可用列表遗漏`startup.forceHaXOnLaunch`和`display.unicode`，导致已有功能仍显示待接并禁用。抽出共用可用状态判定后开放两项：HaX沿既有Worker模式与设置指纹重建流程，Unicode沿实际性别／形态和异色符号消费点。静态集合对照仅增加这两个路径；其他未接消费点继续保留待接状态。
@@ -114,7 +128,7 @@ API177 阶段检查：.tmp/pkhex-dimensions-native-floats.log 原生专项、两
 
 API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、.tmp/pkhex-api176-native-full.log 默认完整原生、.tmp/pkhex-api176-verify.log 完整 npm run verify 均退出 0。350 文件／2067 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有一条提醒及既有编译／裁剪、包体提示。新专项覆盖 15 种实体的四布局、全部菌株／天数组合、感染／治愈状态表、PK5 邻位／名气、GC 原始零编码、箱位／队伍与两种牧场修订版的完整文件对照；默认完整套件带已授权 E.sav 工作副本检查。最终原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 对已授权本地页的调用仍失败，真实交互、焦点与下载尚未验收；完整接入目标继续保留。
 
-## 主编辑器字段当前对照（至API186）
+## 主编辑器字段当前对照（至API187）
 
 本页保留各阶段工程记录；历史条目中的待完成只描述当时状态，不能直接作为当前缺口。当前范围以本表、下方子窗口盘点、HaX调用面和提示音清单逐项核对，仍不替代实际页面与所有者验收。
 

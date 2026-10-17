@@ -35,22 +35,15 @@ internal static class StandalonePokemonApiTests
             var request = new StandalonePokemonRequest("entity." + p.Extension, encrypted, party, encrypted);
             using var report = JsonDocument.Parse(Api.InspectStandalonePokemon(input, Json(request)));
             var root = report.RootElement;
-            Check(root.GetProperty("apiVersion").GetInt32() == 186 && root.GetProperty("canEdit").GetBoolean(), "Public API version and editable format");
+            Check(root.GetProperty("apiVersion").GetInt32() == 187 && root.GetProperty("canEdit").GetBoolean(), "Public API version and editable format");
             Check(root.GetProperty("pokemon").GetProperty("speciesName").GetProperty("zh").GetString() == "皮卡丘", "Nested localized report survives source generation");
             Check(root.GetProperty("attributeChoices").GetProperty("species").GetArrayLength() == p.MaxSpeciesID, "Full entity catalog serialized");
-            var expectedNoOp = original.ToArray();
-            // A deliberately uninitialized BK4 party input is normalized by Core's constructor.
-            if (party && p is BK4) expectedNoOp[4] |= 0x80;
-            Check(Api.ExportStandalonePokemon(input, Json(request)).SequenceEqual(expectedNoOp), "Public serialization preserves bytes except Core's BK4 party initialization flag");
+            var expectedNoOp = ExportOracle(input, request.FileName, encrypted, party, encrypted);
+            Check(Api.ExportStandalonePokemon(input, Json(request)).SequenceEqual(expectedNoOp), "Public final export matches the independent full-byte Core oracle");
             foreach (bool targetParty in new[] {false, true})
             foreach (bool targetEncrypted in new[] {false, true})
             {
-                var reference = StandalonePokemon.Open(input, request.FileName, encrypted).Entity;
-                if (targetParty && input.Length != reference.SIZE_PARTY) reference.ForcePartyData();
-                if (targetParty && reference is BK4 bk4) bk4.IsDecryptedStateParty = true;
-                var expected = new byte[targetParty ? reference.SIZE_PARTY : reference.SIZE_STORED];
-                if (targetParty) { if (targetEncrypted) reference.WriteEncryptedDataParty(expected); else reference.WriteDecryptedDataParty(expected); }
-                else { if (targetEncrypted) reference.WriteEncryptedDataStored(expected); else reference.WriteDecryptedDataStored(expected); }
+                var expected = ExportOracle(input, request.FileName, encrypted, targetParty, targetEncrypted);
                 Check(Api.ExportStandalonePokemon(input, Json(request with {Party = targetParty, Encrypted = targetEncrypted})).SequenceEqual(
                     expected), "Export options match Core serialization and BK4 party initialization");
             }
@@ -71,5 +64,16 @@ internal static class StandalonePokemonApiTests
             Reject(() => Api.ExportStandalonePokemon([], invalid));
         }
         Console.WriteLine("PASS standalone API: 14 types, JSON catalogs, four input/export modes, edits, decrypted re-read, limits and original preservation");
+    }
+    private static byte[] ExportOracle(byte[] input, string fileName, bool inputEncrypted, bool party, bool encrypted)
+    {
+        var reference = StandalonePokemon.Open(input, fileName, inputEncrypted).Entity;
+        if (party && input.Length != reference.SIZE_PARTY) reference.ForcePartyData();
+        if (party && reference is BK4 bk4) bk4.IsDecryptedStateParty = true;
+        reference.FixMoves(); reference.RefreshChecksum();
+        var expected = new byte[party ? reference.SIZE_PARTY : reference.SIZE_STORED];
+        if (party) { if (encrypted) reference.WriteEncryptedDataParty(expected); else reference.WriteDecryptedDataParty(expected); }
+        else { if (encrypted) reference.WriteEncryptedDataStored(expected); else reference.WriteDecryptedDataStored(expected); }
+        return expected;
     }
 }

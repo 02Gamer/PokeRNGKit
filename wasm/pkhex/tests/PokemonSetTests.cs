@@ -150,7 +150,7 @@ internal static class PokemonSetTests
             var request=new PokemonSetRequest(Br4Editing.Hash(input),"layout",new(0,0),new(0,1),capture);
             PokemonEditorContextTests.Typed(save,original,input);
             var ticket=PokemonSetSession.Prepare(save,input,request,reopen);var output=PokemonSetSession.Commit(input,new(ticket.Token,ticket.SourceHash,ticket.TargetHash,true));
-            var expected=reopen(input.ToArray());var wanted=original.Clone();if(gbEdit is not null)StandaloneGb.Apply((GBPKM)wanted,gbEdit);PokemonSlotWriter.Box(expected,wanted,0,1,default(EntityImportSettings));
+            var expected=reopen(input.ToArray());var wanted=original.Clone();if(gbEdit is not null)StandaloneGb.Apply((GBPKM)wanted,gbEdit);wanted.FixMoves();wanted.RefreshChecksum();PokemonSlotWriter.Box(expected,wanted,0,1,default(EntityImportSettings));
             Check(output.SequenceEqual(expected.Write().ToArray()),"Complete typed layout default-import oracle "+save.GetType().Name);
             var serialized=StandalonePokemon.Open(Convert.FromBase64String(ticket.EditorFile.Data),ticket.EditorFile.FileName,useFileFormat:true).Entity;
             Check(serialized.GetType()==original.GetType()&&serialized.Species==original.Species,"Prepared editor buffer roundtrip "+save.GetType().Name);

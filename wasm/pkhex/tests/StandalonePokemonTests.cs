@@ -66,6 +66,9 @@ internal static class StandalonePokemonTests
     }
     private static void Exercise(PKM p)
     {
+        // No-op export equality applies to a canonical editor entity. Separate
+        // finalizing tests cover noncanonical input and the exact output delta.
+        p.FixMoves(); p.RefreshChecksum();
         var filename = "entity." + p.Extension;
         var directory=PokemonChoiceCatalog.Read(p);
         ushort identitySpecies=(ushort)directory.Species.Where(id=>id!=0&&id!=p.Species).Order().First(id=>PokemonIdentity.Genders(p,(ushort)id,0).SequenceEqual(new byte[]{2}));
