@@ -1,5 +1,11 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-17 已接设置入口修正（前端，API186）
+
+基线`0dd34787534c34f0417671338ef213730b985f9e`。设置页旧可用列表遗漏`startup.forceHaXOnLaunch`和`display.unicode`，导致已有功能仍显示待接并禁用。抽出共用可用状态判定后开放两项：HaX沿既有Worker模式与设置指纹重建流程，Unicode沿实际性别／形态和异色符号消费点。静态集合对照仅增加这两个路径；其他未接消费点继续保留待接状态。
+
+输入依据为上游WinForms `Settings/StartupSettings.cs`的`ForceHaXOnLaunch`与`Settings/DisplaySettings.cs`的`Unicode`，两项均为bool，默认分别false／true。中文／英文／日文名称和说明复用现有来源资源。六文件45项专项及定向Lint通过，覆盖真实设置控件的可编辑状态、保存值、忙碌禁用、未接路径、字符显示和既有客户端重建；完整前端检查已退出0：364文件／2223项测试、类型、Lint、网页与PWA打包通过，保留第三世代定点既有Hook及包体／插件耗时提示；证据见`.tmp/pkhex-settings-availability-verify.log`。Core与协议不变，复用0dd34787的API186完整原生基线，本批不写原始存档，也不将原生基线写作重跑。页面仍受外部Chrome标签接口失败影响，未验收。
+
 ## 2026-10-17 当前输入提示与招式候选（API186，工程通过，页面待核验）
 
 来源为 WinForms `PKMEditor.UpdateLegality`／`ValidateMovePaint` 与 Core `LegalMoveInfo`／`LegalMoveComboSource`。可学习性包含进化链与原始相遇的招式来源；零号始终不是可学习候选，缓存宽度沿 `Move.MAX_COUNT + 1`，不另建JS学习表。源选择器先按可学习组，再按名称 `String.CompareOrdinal` 排序。当前可选目录、当前招式与回忆招式的范围沿既有 `PokemonChoiceCatalog`，不把可学习性当作写入限制。

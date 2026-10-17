@@ -9,6 +9,7 @@ import {
 } from "./settingsRepository";
 import type { SaveSettingsBundle } from "./settingsProtocol";
 import { settingsWords } from "./settingsLabels";
+import { unavailableProgramSettings } from "./settingsAvailability";
 import { useSaveClientBusy } from "./useSaveClientBusy";
 import { getSaveRequestCount } from "./clientActivity";
 import { hydrateDatabaseSettings } from "./programDatabaseSettings";
@@ -114,95 +115,10 @@ export function SaveSettingsWorkspace({
   if (!loaded) return <p role="status">{words.loading}</p>;
   // Keep the complete source directory visible, but never enable a saved option
   // until its actual browser behavior is bound. Remaining bindings stay in scope.
-  const unavailable: Record<string, string> = {};
-  const enabled = new Set([
-    "startup.defaultSaveVersion",
-    "localResources.templatePath",
-    "entityEditor.showLegalBallsFirst",
-    "entityEditor.hiddenPowerOnChangeMaxPower",
-    "entityEditor.showGenderGen1",
-    "entityEditor.showStatusCondition",
-    "entityEditor.showExperienceBar",
-    "hover.hoverSlotShowPreview",
-    "hover.hoverSlotPlayCry",
-    "hover.hoverSlotGlowEdges",
-    "draw.markBlue",
-    "draw.markPink",
-    "draw.invalidSelection",
-    "draw.shinyUnicode",
-    "draw.shinyDefault",
-    "sounds.playSoundSAVLoad",
-    "sounds.playSoundLegalityCheck",
-    "sounds.playSoundOther",
-    "localResources.soundPath",
-    "hover.hoverSlotShowText",
-    "hover.hoverSlotShowEncounter",
-    "hover.hoverSlotShowEncounterVerbose",
-    "hover.hoverSlotShowLegalityHint",
-    "hover.previewShowPaste",
-    "hover.previewCursorShift.x",
-    "hover.previewCursorShift.y",
-    "backup.bakEnabled",
-    "localResources.backupPath",
-    "localResources.databasePath",
-    "localResources.mgDatabasePath",
-    "startup.autoLoadSaveOnStartup",
-    "startup.recentlyLoadedMaxCount",
-    "entityDb.searchBackups",
-    "entityDb.searchExtraSaves",
-    "entityDb.searchExtraSavesDeep",
-    "backup.otherBackupPaths",
-    "privacy.hideSecretDetails",
-    "privacy.hideSAVDetails",
-    "sprite.spritePreference",
-    "sprite.shinySprites",
-    "sprite.showEggSpriteAsHeldItem",
-    "sprite.showTeraType",
-    "sprite.showTeraThicknessStripe",
-    "sprite.showTeraOpacityBackground",
-    "sprite.showTeraOpacityStripe",
-    "sprite.showExperiencePercent",
-    "sprite.showEncounterBall",
-    "sprite.showEncounterColor",
-    "sprite.showEncounterColorPKM",
-    "sprite.filterMismatchOpacity",
-    "sprite.filterMismatchGrayscale",
-    "display.flagIllegal",
-    "display.slotLegalityAlwaysVisible",
-    "display.ignoreLegalPopup",
-    "display.exportLegalityVerboseProperties",
-    "display.exportLegalityAlwaysVerbose",
-    "display.exportLegalityNeverClipboard",
-    "sprite.showEncounterThicknessStripe",
-    "sprite.showEncounterOpacityBackground",
-    "sprite.showEncounterOpacityStripe",
-    "entityDb.initialSortMode",
-    "entityDb.filterUnavailableSpecies",
-    "entityDb.resultsGridRowCount",
-    "report.extraProperties",
-    "report.hiddenProperties",
-    "slotExport.boxExport.scope",
-    "slotExport.boxExport.folderCreation",
-    "slotExport.boxExport.folderPrefix",
-    "slotExport.boxExport.emptySlots",
-    "slotExport.boxExport.fileIndexPrefix",
-    "slotExport.boxExport.notify",
-    "slotExport.defaultBoxExportNamer",
-  ]);
-  for (const field of loaded.bundle.catalog.groups.flatMap(
-    (group) => group.fields,
-  )) {
-    if (
-      !/^(legality|converter|import|slotWrite|saveLanguage|encounterDb|mysteryDb)\./.test(
-        field.path,
-      ) &&
-      !/^battleTemplate\.(hover|export)\.(language|styleStatEVs|styleStatIVs|styleStatSPs|styleStatOther|styleMove|includeChampionsStatPoints|tokenOrder|tokenOrderCustom)$/.test(
-        field.path,
-      ) &&
-      !enabled.has(field.path)
-    )
-      unavailable[field.path] = words.pending;
-  }
+  const unavailable = unavailableProgramSettings(
+    loaded.bundle.catalog,
+    words.pending,
+  );
   return (
     <>
       <div className="save-editor-toolbar">{reloadButton}</div>
