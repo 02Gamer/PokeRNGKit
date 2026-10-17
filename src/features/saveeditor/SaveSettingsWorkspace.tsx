@@ -19,6 +19,7 @@ import { loadLegacyMysterySettings } from "./mysteryGiftSettings";
 import { saveLibraryWords } from "./saveLibrarySettings";
 import { CryLibraryWorkspace } from "./CryLibraryWorkspace";
 import { SaveSoundControl } from "./SaveSoundControl";
+import { BlockKeyLibraryWorkspace } from "./BlockKeyLibraryWorkspace";
 
 export function SaveSettingsWorkspace({
   lang,
@@ -124,6 +125,11 @@ export function SaveSettingsWorkspace({
       <div className="save-editor-toolbar">{reloadButton}</div>
       <p>{saveLibraryWords[lang].scope}</p>
       <SaveSettingsEditor
+        renderGroupTools={(current) =>
+          current === "advanced" ? (
+            <BlockKeyLibraryWorkspace lang={lang} busy={busy} />
+          ) : undefined
+        }
         initialGroup={group}
         bundle={loaded.bundle}
         json={loaded.json}

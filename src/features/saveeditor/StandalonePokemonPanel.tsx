@@ -9,8 +9,10 @@ import { PokemonSpecialStatusEditor } from "./PokemonSpecialStatusEditor";
 import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { saveFailureFeedback } from "./saveFailureFeedback";
 import { PokemonDraftRegistry } from "./pokemonDraftRegistry";
+import { SaveExportContext, equalEntityBytes } from "./saveExportRegistry";
 import {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useEffectEvent,
@@ -139,6 +141,8 @@ export function StandalonePokemonPanel({
   const previousGiftRevision = useRef(giftRevision);
   const original = useRef<StandalonePokemonSnapshot | undefined>(undefined);
   const [working, setWorking] = useState<StandalonePokemonSnapshot>();
+  const saveExports = useContext(SaveExportContext);
+  const lastExported = useRef<Uint8Array | undefined>(undefined);
   const [history, setHistory] = useState<StandalonePokemonSnapshot[]>([]);
   const [report, setReport] = useState<StandalonePokemonReport>();
   const [legality, setLegality] = useState<PokemonLegalityReport>();
@@ -219,6 +223,7 @@ export function StandalonePokemonPanel({
       setHistory([]);
       setReport(result.entity);
       setLegality(undefined);
+      lastExported.current = undefined;
       setChanged(false);
       setParty(result.entity.party);
       setEncrypted(false);
@@ -270,6 +275,7 @@ export function StandalonePokemonPanel({
       if (id !== operation.current) return;
       original.current = snapshot;
       setLegality(undefined);
+      lastExported.current = undefined;
       setChanged(false);
       setWorking(snapshot);
       setHistory([]);
@@ -866,6 +872,7 @@ export function StandalonePokemonPanel({
         result.entityFile,
         `${stem}-edited${encrypted ? "-encrypted" : ""}.${report.extension.replace(/^\./, "")}`,
       );
+      lastExported.current = working.bytes.slice();
     });
   const prepare = (
     action: (snapshot: StandalonePokemonSnapshot) => Promise<void>,
@@ -900,6 +907,35 @@ export function StandalonePokemonPanel({
     () => new PokemonDraftRegistry(`${working?.fileName ?? ""}:${revision}`),
     [revision, working?.fileName],
   );
+  useLayoutEffect(() => {
+    if (!saveExports || !saveContext || !working || !report) return;
+    return saveExports.register(() => {
+      const draft = draftRegistry.snapshot();
+      const pending =
+        draft === "invalid" || JSON.parse(draft).sections.length > 0;
+      const acknowledged = lastExported.current ?? original.current?.bytes;
+      const unexported =
+        changed &&
+        (!acknowledged || !equalEntityBytes(working.bytes, acknowledged));
+      if (!busy && !pending && !unexported) return undefined;
+      return JSON.stringify({
+        context: saveContext.source,
+        bytes: Array.from(working.bytes),
+        draft,
+        revision,
+        busy,
+      });
+    });
+  }, [
+    saveExports,
+    saveContext,
+    working,
+    report,
+    draftRegistry,
+    changed,
+    revision,
+    busy,
+  ]);
   const previewMetSuggestion = () =>
     perform(async (id) => {
       if (!working || !report || report.pokemon.haX) return;
@@ -997,6 +1033,7 @@ export function StandalonePokemonPanel({
       setWorking(snapshot);
       setReport(result.entity);
       setLegality(undefined);
+      lastExported.current = snapshot.bytes.slice();
       setChanged(false);
       setRevision((v) => v + 1);
     });
@@ -1102,6 +1139,7 @@ export function StandalonePokemonPanel({
                 onClick={() => {
                   original.current = undefined;
                   setLegality(undefined);
+                  lastExported.current = undefined;
                   setChanged(false);
                   setWorking(undefined);
                   setReport(undefined);

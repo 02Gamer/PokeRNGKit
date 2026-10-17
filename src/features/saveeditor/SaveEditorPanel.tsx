@@ -1,4 +1,8 @@
 import { saveFailureFeedback } from "./saveFailureFeedback";
+import { SaveExportContext, SaveExportRegistry } from "./saveExportRegistry";
+import { SaveExportDialog } from "./SaveExportDialog";
+import { saveExportWords } from "./saveExportWords";
+import { programAdvancedSettings } from "./programAdvancedSettings";
 import {
   parsePokemonSet,
   pokemonSetWords,
@@ -213,6 +217,7 @@ import { TrainerAppearance6Fields } from "./TrainerAppearance6Fields";
 import { TrainerDateFields } from "./TrainerDateFields";
 import {
   useCallback,
+  createElement,
   useEffect,
   useEffectEvent,
   useRef,
@@ -338,6 +343,14 @@ export function SaveEditorPanel(
   const gen5 = useGen5Profiles();
   const client = useRef(new SaveEditorClient());
   const settingsJson = useSaveSettingsJson();
+  const [exportRegistry] = useState(() => new SaveExportRegistry());
+  const [exportReview, setExportReview] = useState<{
+    input: Uint8Array;
+    settings: string;
+    snapshot: string;
+    fileRevision: number;
+    workingRevision: number;
+  }>();
   const previousSettings = useRef(settingsJson);
   const giftRevision = useMysteryGiftChanges();
   const previousGiftRevision = useRef(giftRevision);
@@ -780,7 +793,7 @@ export function SaveEditorPanel(
     refreshGiftData();
   }, [giftRevision, busy]);
 
-  const exportFile = () =>
+  const performExport = () =>
     perform(async (id) => {
       if (!report || !original.current) return;
       const result =
@@ -807,6 +820,44 @@ export function SaveEditorPanel(
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
       setStatus("exported");
     });
+
+  const exportFile = () => {
+    try {
+      const input = working.current ?? original.current;
+      if (!input || busy) return;
+      if (
+        programAdvancedSettings(settingsJson).checkUnsavedEntity &&
+        exportRegistry.hasUnsaved()
+      ) {
+        setExportReview({
+          input,
+          settings: settingsJson,
+          snapshot: exportRegistry.snapshot(),
+          fileRevision,
+          workingRevision,
+        });
+        return;
+      }
+      return performExport();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error));
+    }
+  };
+  const confirmExport = () => {
+    const review = exportReview;
+    setExportReview(undefined);
+    if (
+      !review ||
+      busy ||
+      review.input !== (working.current ?? original.current) ||
+      review.settings !== settingsJson ||
+      review.snapshot !== exportRegistry.snapshot()
+    ) {
+      setError(saveExportWords[batchLang].stale);
+      return;
+    }
+    void performExport();
+  };
 
   const discardPropertyPreview = useCallback((token: string) => {
     if (working.current)
@@ -5280,7 +5331,9 @@ export function SaveEditorPanel(
       ]
     : [];
 
-  return (
+  return createElement(
+    SaveExportContext.Provider,
+    { value: exportRegistry },
     <div
       className="save-editor-panel save-file-workspace"
       data-open={Boolean(report)}
@@ -5923,6 +5976,7 @@ export function SaveEditorPanel(
                 />
               ) : section === "event9a" && supportsEvent9a(report.format) ? (
                 <Event9aEditor
+                  format={report.format}
                   revision={workingRevision}
                   busy={busy}
                   lang={batchLang}
@@ -6300,6 +6354,7 @@ export function SaveEditorPanel(
                 />
               ) : section === "scblock" ? (
                 <SCBlockEditor
+                  format={report.format}
                   revision={workingRevision}
                   busy={busy}
                   lang={batchLang}
@@ -6575,7 +6630,10 @@ export function SaveEditorPanel(
                         <Select
                           value={draft.gameVersion}
                           onChange={(e) =>
-                            setDraft({ ...draft, gameVersion: e.target.value })
+                            setDraft({
+                              ...draft,
+                              gameVersion: e.target.value,
+                            })
                           }
                         >
                           {!report.trainer.gameVersion.choices.some(
@@ -6648,7 +6706,10 @@ export function SaveEditorPanel(
                           maxLength={String(field.max).length}
                           value={draft[field.key]}
                           onChange={(e) =>
-                            setDraft({ ...draft, [field.key]: e.target.value })
+                            setDraft({
+                              ...draft,
+                              [field.key]: e.target.value,
+                            })
                           }
                         />
                         {words.trainerCurrencyNotes[field.key] && (
@@ -6912,6 +6973,16 @@ export function SaveEditorPanel(
         </a>{" "}
         · GPL-3.0-or-later
       </p>
-    </div>
+      {exportReview &&
+        exportReview.fileRevision === fileRevision &&
+        exportReview.workingRevision === workingRevision &&
+        exportReview.settings === settingsJson && (
+          <SaveExportDialog
+            lang={batchLang}
+            onCancel={() => setExportReview(undefined)}
+            onConfirm={confirmExport}
+          />
+        )}
+    </div>,
   );
 }

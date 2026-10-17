@@ -1,5 +1,15 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-17 Advanced 设置联动（API188，工程通过，页面待核验）
+
+基线465f3676663468d6456476ac1ede63c6dca6352a。补接导出存档前的宝可梦未保存检查、区块名称目录及事件排除词，复用现有44px控件和确认对话框样式。确认绑定存档副本、程序设置和编辑快照，状态变化后拒绝沿用旧确认。独立宝可梦文件导出按上游NotifyWasExported记录当前编辑内容，尚未应用的表单草稿仍需提示。
+
+名称TXT由所有者明确选择后存入专用IndexedDB资料库，按配置分类及<存档类型>.txt或<存档类型>_flagwork.txt匹配，不扫描磁盘。保留原始文件、重复文件显式移除、修订比较与撤销；资料不可用时提示并保留手动导入和Core内置名称。排除词沿AdvancedSettings.GetExclusionList8的先移除空项、再Trim顺序，不在JS另建区块名称规则。入口跟随设置面板实际选择的Advanced分类，初始化期间锁定输入。核心协议维持API188，本批没有重跑原生或核心构建。
+
+专项检查、完整npm run verify已退出0，368文件／2235项前端测试、类型、Lint、全仓格式和网页／PWA打包通过，日志为.tmp/pkhex-advanced-focus-final.log与.tmp/pkhex-advanced-verify-final.log。首次类型检查触及默认2GiB堆上限，后续沿项目既有临时4GiB上限通过，环境变量在任务后恢复；首轮Lint发现的渲染期ref读取和同步effect清理已修正，最终仅保留第三世代定点既有Hook提醒。首次资料库专项的标识符及大小写预期问题已修正，最终专项通过。放入存档后的编辑保存基准改为实际接受的字节，避免撤销编辑后误报未保存；最终状态的类型、定向Lint／专项和格式记录于.tmp/pkhex-advanced-final-audit.log。
+
+外部Chrome读取127.0.0.1:5173仍在20秒连接请求后超时并重置，未读到页面，布局、焦点、真实导入与下载交互未核验。原件Desktop/200/battery/E.sav与confirmed-input.sav工作副本的SHA-256均保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。完整PKHeX接入目标保持未完成。
+
 ## 2026-10-17 回忆招式与记忆保存（API188，工程通过，页面待核验）
 
 基线`19b365766c191727a8bc97db4181896960b53201`。最终准备出口补接PK6／PK7／PB7／PK8／PB8／PA8／PK9／PA9的Core FixRelearn，记忆清理沿实际应用的SlotWrite.SetUpdatePKM开关，默认true；Core-only设置作用域同样生效。HaX不隐式绕过该开关。PK6和PK7按WinForms来源清理Data[0xFE..]的六个保留队伍字节，PB7不套用该偏移。中间编辑和原始输入不提前清理，确认仍使用冻结输出，协议同步升级API188。

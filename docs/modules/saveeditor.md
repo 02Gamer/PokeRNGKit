@@ -1,5 +1,13 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-17 Advanced 设置联动（API188，工程通过，页面待核验）
+
+来源为WinForms MainWindow/Main.cs的ExportSAV、PKMEditor.PKMIsUnsaved／NotifyWasExported、SAV_BlockDump8构造函数、SAV_FlagWork9a构造函数和Core AdvancedSettings.GetExclusionList8。存档导出前检查当前宝可梦的已应用编辑及未应用草稿；确认绑定存档、设置和完整编辑快照，状态变化后拒绝旧确认。单独导出宝可梦文件记录当前编辑状态，不将未应用表单视为已保存。默认启用，设置关闭时不提示。
+
+区块名称通过Advanced组的本机资料入口显式导入，存入独立IndexedDB分类；配置空路径对应local。SCBlock按具体存档类型加.txt、Z-A事件按具体类型加_flagwork.txt匹配，保留Core内置名称与手动覆盖入口。此分类是浏览器资料库，不代表自动访问同名磁盘目录。每个TXT最多4MiB，最多256文件、总计32MiB；重名替换先明确移除，持久化按修订比较，失败不覆盖旧资料。目录与排除文本沿设置编解码器32767字符限制；SCBlock查询沿既有C#最多512排除项、每项32767字符、名称4Mi字符上限，不扩大Core输入范围。排除词先去除原始空项再Trim，保留空白项Trim后的空串行为。
+
+本批只改变前端消费点，API188与原生核心维持既有基线，未重跑原生／核心构建。专项及完整npm run verify通过，证据见.tmp/pkhex-advanced-focus-final.log和.tmp/pkhex-advanced-verify-final.log。外部Chrome仍未取得页面，尚无正式页面验收。
+
 ## 2026-10-17 回忆招式与记忆保存（API188，工程通过，页面待核验）
 
 基线`19b365766c191727a8bc97db4181896960b53201`。最终准备出口补接PK6／PK7／PB7／PK8／PB8／PA8／PK9／PA9的Core FixRelearn，记忆清理沿实际应用的SlotWrite.SetUpdatePKM开关，默认true；Core-only设置作用域同样生效。HaX不隐式绕过该开关。PK6和PK7按WinForms来源清理Data[0xFE..]的六个保留队伍字节，PB7不套用该偏移。中间编辑和原始输入不提前清理，确认仍使用冻结输出，协议同步升级API188。

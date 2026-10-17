@@ -48,6 +48,50 @@ it("exposes existing HaX and symbol consumers while unbound and unknown browser 
     "startup.pluginLoadEnable",
   ]);
 });
+it("enables the three bound Advanced consumers and keeps unknown settings unavailable", () => {
+  const fields = [
+    "advanced.saveExportCheckUnsavedEntity",
+    "advanced.pathBlockKeyList",
+    "advanced.hideEvent8Contains",
+    "advanced.future",
+  ].map((path) => field(path, path));
+  expect(
+    unavailableProgramSettings(
+      { groups: [{ id: "advanced", fields }] },
+      "pending",
+    ),
+  ).toEqual({ "advanced.future": "pending" });
+});
+it("places contextual tools in the actually selected settings group", () => {
+  const props = {
+    bundle: {
+      apiVersion: SAVE_EDITOR_API_VERSION,
+      json: "{}",
+      catalog: {
+        groups: [
+          { id: "advanced", fields: [] },
+          { id: "legality", fields: [] },
+        ],
+      },
+    },
+    json: "{}",
+    lang: "zh" as const,
+    busy: false,
+    onValidate: async (json: string) => json,
+    onSave: async () => {},
+    renderGroupTools: (group: string) => <span>{`tools-for-${group}`}</span>,
+  };
+  const advanced = renderToStaticMarkup(
+    <SaveSettingsEditor {...props} initialGroup="advanced" />,
+  );
+  expect(advanced).toContain("tools-for-advanced");
+  expect(advanced).not.toContain("tools-for-legality");
+  expect(
+    renderToStaticMarkup(
+      <SaveSettingsEditor {...props} initialGroup="legality" />,
+    ),
+  ).toContain("tools-for-legality");
+});
 it.each(["zh", "en", "ja"] as const)(
   "renders enabled, localized mode and symbol controls and preserves their saved values in %s",
   (lang) => {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Select } from "../shared/Select";
 import type { SaveSettingsBundle, SaveSettingsField } from "./settingsProtocol";
 import {
@@ -34,6 +34,7 @@ export function SaveSettingsEditor({
   onValidate,
   onSave,
   initialGroup = "legality",
+  renderGroupTools,
 }: {
   bundle: SaveSettingsBundle;
   json: string;
@@ -43,6 +44,7 @@ export function SaveSettingsEditor({
   onValidate(json: string): Promise<string>;
   onSave(json: string): Promise<void>;
   initialGroup?: string;
+  renderGroupTools?(group: string): ReactNode;
 }) {
   const words = settingsWords[lang];
   const noticeId = useId();
@@ -163,6 +165,7 @@ export function SaveSettingsEditor({
           ))}
         </Select>
       </label>
+      {renderGroupTools?.(group)}
       {invalid && <p role="alert">{invalid}</p>}
       {reasons.length > 0 && (
         <p id={noticeId} className="save-editor-note">

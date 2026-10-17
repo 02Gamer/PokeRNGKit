@@ -1,5 +1,9 @@
 # PKHeX 完整接入清单
 
+## 2026-10-17 Advanced 设置联动（API188，工程通过，页面待核验）
+
+saveExportCheckUnsavedEntity接存档导出前的当前宝可梦编辑检查及过期确认保护；pathBlockKeyList接显式导入的本机TXT资料分类，区块与Z-A事件分别匹配具体类型的.txt和_flagwork.txt；hideEvent8Contains接区块初始排除词，沿Core先去空项再Trim的顺序。三个设置已有实际消费点，可用状态表同步开放，专项与完整前端门禁通过。来源、限制和平台差异见[存档模块文档](modules/saveeditor.md)。这不表示完整PKHeX目标或正式页面已验收。
+
 ## 2026-10-17 回忆招式与记忆保存（API188，工程通过，页面待核验）
 
 基线`19b365766c191727a8bc97db4181896960b53201`。最终准备出口补接PK6／PK7／PB7／PK8／PB8／PA8／PK9／PA9的Core FixRelearn，记忆清理沿实际应用的SlotWrite.SetUpdatePKM开关，默认true；Core-only设置作用域同样生效。HaX不隐式绕过该开关。PK6和PK7按WinForms来源清理Data[0xFE..]的六个保留队伍字节，PB7不套用该偏移。中间编辑和原始输入不提前清理，确认仍使用冻结输出，协议同步升级API188。

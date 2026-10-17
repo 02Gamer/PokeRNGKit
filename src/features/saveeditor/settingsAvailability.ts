@@ -7,6 +7,9 @@ export function unavailableProgramSettings(
 ): Record<string, string> {
   const unavailable: Record<string, string> = {};
   const enabled = new Set([
+    "advanced.saveExportCheckUnsavedEntity",
+    "advanced.hideEvent8Contains",
+    "advanced.pathBlockKeyList",
     "startup.forceHaXOnLaunch",
     "display.unicode",
     "startup.defaultSaveVersion",

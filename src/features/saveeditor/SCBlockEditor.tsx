@@ -15,7 +15,10 @@ import {
 } from "./scblock";
 import { scblockWords } from "./scblockWords";
 import "./SCBlockEditor.css";
+import { blockKeyDefaults, blockKeyWords } from "./blockKeyDefaults";
+import { readSaveSettings } from "./settingsRepository";
 type Props = {
+  format: string;
   revision: number;
   busy: boolean;
   lang: "zh" | "en" | "ja";
@@ -48,9 +51,10 @@ async function fileData(file: File) {
   return btoa(text);
 }
 export function SCBlockEditor(props: Props) {
-  return <Form key={props.revision} {...props} />;
+  return <Form key={`${props.revision}:${props.format}`} {...props} />;
 }
 function Form({
+  format,
   busy,
   lang,
   onRead,
@@ -71,15 +75,21 @@ function Form({
     "blocks",
   );
   const [directory, setDirectory] = useState(false);
+  const [resourceFailed, setResourceFailed] = useState(false);
+  const defaultExclusions = useRef<string[]>([]);
   const [importPage, setImportPage] = useState(0);
   const [options, setOptions] = useState(9),
     [accepted, setAccepted] = useState(false),
-    [pending, setPending] = useState(false),
+    [pending, setPending] = useState(true),
     [error, setError] = useState(false);
   const flight = useRef(false);
-  const initial = useRef<Promise<SCBlockPage | undefined> | undefined>(
-    undefined,
-  );
+  const initial = useRef<
+    | Promise<{
+        result: SCBlockPage | undefined;
+        defaults: Awaited<ReturnType<typeof blockKeyDefaults>>;
+      }>
+    | undefined
+  >(undefined);
   const life = useRef({
     alive: true,
     epoch: 0,
@@ -96,19 +106,35 @@ function Form({
     const state = life.current;
     state.alive = true;
     const epoch = ++state.epoch;
-    initial.current ??= state.onRead({
-      names: "",
-      exclusions: [],
-      filter: "",
-      offset: 0,
-      limit: 50,
-    });
+    initial.current ??= Promise.resolve()
+      .then(() =>
+        blockKeyDefaults(format, false, readSaveSettings()?.json ?? ""),
+      )
+      .then(async (defaults) => {
+        const result = await state.onRead({
+          names: defaults.names,
+          exclusions: defaults.exclusions,
+          filter: "",
+          offset: 0,
+          limit: 50,
+        });
+        return { result, defaults };
+      });
     void initial.current
-      .then((result) => {
-        if (state.alive && epoch === state.epoch) setPage(result);
+      .then(({ result, defaults }) => {
+        if (state.alive && epoch === state.epoch) {
+          setPage(result);
+          setNames(defaults.names);
+          setExclusions(defaults.exclusions.join("\n"));
+          defaultExclusions.current = defaults.exclusions;
+          setResourceFailed(defaults.failed);
+        }
       })
       .catch(() => {
         if (state.alive && epoch === state.epoch) setError(true);
+      })
+      .finally(() => {
+        if (state.alive && epoch === state.epoch) setPending(false);
       });
     const downloads = urls.current;
     return () => {
@@ -121,7 +147,7 @@ function Form({
       }
       downloads.clear();
     };
-  }, []);
+  }, [format]);
   const locked = busy || pending;
   const editing = !!page?.canEdit && !ticket;
   async function perform(task: (epoch: number) => Promise<void>) {
@@ -146,7 +172,10 @@ function Form({
     await perform(async (epoch) => {
       const result = await onRead({
         names,
-        exclusions: exclusions.split(/\r?\n/).filter(Boolean),
+        exclusions:
+          exclusions === defaultExclusions.current.join("\n")
+            ? defaultExclusions.current
+            : exclusions.split(/\r?\n/).filter(Boolean),
         filter: search,
         offset,
         limit: 50,
@@ -202,6 +231,11 @@ function Form({
       aria-busy={locked}
     >
       <h3>{w.title}</h3>
+      {resourceFailed && (
+        <p className="save-editor-note" role="status">
+          {blockKeyWords[lang].failed}
+        </p>
+      )}
       {error && (
         <p className="save-editor-error" role="alert">
           {w.error}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Select } from "../shared/Select";
 import type { Br4Lang } from "./br4";
 import {
@@ -19,8 +19,11 @@ import {
 } from "./event9a";
 import { event9aWords } from "./event9aWords";
 import "./Event9aEditor.css";
+import { blockKeyDefaults, blockKeyWords } from "./blockKeyDefaults";
+import { readSaveSettings } from "./settingsRepository";
 
 type Props = {
+  format: string;
   revision: number;
   busy: boolean;
   lang: Br4Lang;
@@ -35,9 +38,10 @@ type Props = {
   ): Promise<Ew9aComparison | undefined>;
 };
 export function Event9aEditor(p: Props) {
-  return <Form key={p.revision} {...p} />;
+  return <Form key={`${p.revision}:${p.format}`} {...p} />;
 }
 function Form({
+  format,
   busy,
   lang,
   onRead,
@@ -52,13 +56,21 @@ function Form({
   const [search, setSearch] = useState("");
   const [jump, setJump] = useState("0");
   const [namesInput, setNamesInput] = useState("");
+  const [resourceFailed, setResourceFailed] = useState(false);
+  const initial = useRef<
+    | Promise<{
+        page: Ew9aPage | undefined;
+        defaults: Awaited<ReturnType<typeof blockKeyDefaults>>;
+      }>
+    | undefined
+  >(undefined);
   const [changes, setChanges] = useState<Ew9aRowChange[]>([]);
   const [ticket, setTicket] = useState<Ew9aTicket>();
   const [comparison, setComparison] = useState<Ew9aComparison>();
   const [oldFile, setOldFile] = useState<File>();
   const [newFile, setNewFile] = useState<File>();
   const [dropped, setDropped] = useState<File[]>([]);
-  const [pending, setPending] = useState(false);
+  const [pending, setPending] = useState(true);
   const [error, setError] = useState("");
   const reader = useRef(onRead),
     discard = useRef(onDiscard);
@@ -66,6 +78,7 @@ function Form({
     origin = useRef<HTMLElement | null>(null);
   const alive = useRef(true),
     request = useRef(0);
+  const initialFailed = useEffectEvent(() => setError(w.invalid));
   useEffect(() => {
     reader.current = onRead;
     discard.current = onDiscard;
@@ -74,15 +87,35 @@ function Form({
     alive.current = true;
     let active = true;
     const id = ++request.current;
-    void reader.current(event9aReadQuery("")).then((p) => {
-      if (active && id === request.current && p) setPage(p);
-    });
+    initial.current ??= Promise.resolve()
+      .then(() =>
+        blockKeyDefaults(format, true, readSaveSettings()?.json ?? ""),
+      )
+      .then(async (defaults) => ({
+        defaults,
+        page: await reader.current(event9aReadQuery(defaults.names)),
+      }));
+    void initial.current
+      .then(({ page, defaults }) => {
+        if (active && id === request.current) {
+          if (page) setPage(page);
+          setQuery(event9aReadQuery(defaults.names));
+          setNamesInput(defaults.names);
+          setResourceFailed(defaults.failed);
+        }
+      })
+      .catch(() => {
+        if (active && id === request.current) initialFailed();
+      })
+      .finally(() => {
+        if (active && id === request.current) setPending(false);
+      });
     return () => {
       active = false;
       alive.current = false;
       if (token.current) void discard.current(token.current);
     };
-  }, []);
+  }, [format]);
   const locked = busy || pending || !!ticket;
   const group = page?.groups.find((g) => g.id === query.group);
   const label = (id: string) => w.groups[id as keyof typeof w.groups] ?? id;
@@ -217,6 +250,11 @@ function Form({
       }}
     >
       <h3>{w.title}</h3>
+      {resourceFailed && (
+        <p className="save-editor-note" role="status">
+          {blockKeyWords[lang].failed}
+        </p>
+      )}
       {!page ? (
         <button
           type="button"
