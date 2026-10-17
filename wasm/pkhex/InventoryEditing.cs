@@ -22,6 +22,7 @@ internal static class InventoryEditing
 
     public static string Apply(SaveFile save, BagEdit edit)
     {
+        edit=edit with{Advanced=edit.Advanced||PokemonEditorMode.HaX};
         var bag = save.Inventory;
         if ((uint)edit.Pouch >= bag.Pouches.Count) throw new ArgumentException("Inventory pouch is out of range.");
         var pouch = bag.Pouches[edit.Pouch];

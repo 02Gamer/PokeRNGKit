@@ -44,6 +44,8 @@ internal static class PokemonEditing
             throw new ArgumentException("Pokemon slot must contain valid data.");
         if (edit.Level is < 1 or > 100)
             throw new ArgumentException("Pokemon level must be between 1 and 100.");
+        if(edit.HeldItem is int held&&held!=p.HeldItem&&!PokemonModeRules.Read(p).HeldItem)
+            throw new ArgumentException("Held item editing is hidden for this format in normal mode.");
         PokemonChoiceCatalog.ValidateChanges(p,edit.Identity?.Species??p.Species,edit.HeldItem,edit.Moves,saveContext);
         if (edit.Identity is not null)
         {
@@ -51,7 +53,7 @@ internal static class PokemonEditing
             if (edit.Identity.UseSpeciesName)
                 edit = edit with { Nickname = SpeciesName.GetSpeciesNameGeneration(p.Species, p.Language, p.Format) };
             // Changing species/form must select an ability from the new personal entry.
-            if(!PokemonEditorMode.HaX)edit = edit with { AbilityIndex = edit.AbilityIndex ?? Math.Clamp(p.AbilityNumber >> 1, 0, p.PersonalInfo.AbilityCount - 1) };
+            if(!PokemonEditorMode.HaX&&!PokemonModeRules.Read(p).ManualAbility)edit = edit with { AbilityIndex = edit.AbilityIndex ?? Math.Clamp(p.AbilityNumber >> 1, 0, p.PersonalInfo.AbilityCount - 1) };
         }
         if (edit.Nature is < 0 or > 24 || edit.StatAlignment is < 0 or > 24)
             throw new ArgumentException("Pokemon nature is outside the format limits.");

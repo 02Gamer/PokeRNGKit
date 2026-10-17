@@ -49,8 +49,9 @@ internal static class PokemonIdentityTools
     public static PokemonExpertCatalog Read(PKM p, int? saveMaxAbility = null)
     {
         if (p.Format < 3) throw new ArgumentException("Expert Pokemon controls are unavailable for this format.");
-        var abilities = p.Format >= 4 ? PokemonOrigin.Localize(s => s.AbilityDataSource.Where(c => c.Value <= Math.Min(p.MaxAbilityID, saveMaxAbility ?? p.MaxAbilityID))) : [];
-        return new(p.Ability, p.Format >= 6 ? p.AbilityNumber : null, abilities,
+        var rules=PokemonModeRules.Read(p);
+        var abilities = rules.ManualAbility ? PokemonOrigin.Localize(s => s.AbilityDataSource.Where(c => c.Value <= Math.Min(p.MaxAbilityID, saveMaxAbility ?? p.MaxAbilityID))) : [];
+        return new(p.Ability, rules.AbilityNumber ? p.AbilityNumber : null, abilities,
             p.ExtraBytes.ToArray().Where(offset => offset < p.Data.Length).Select(offset => new PokemonExtraByte(offset, p.Data[offset])).ToArray());
     }
     public static void Apply(PKM p, PokemonExpertEdit edit, int? saveMaxAbility = null)

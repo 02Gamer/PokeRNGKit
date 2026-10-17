@@ -32,12 +32,19 @@ internal static class PokemonDraftPreparing
     // helper; no extra record is resolved as a box/party position.
     internal static PKM PrepareExtra(SaveFile save,PKM original,SlotInfoMisc slot,PokemonDraftCapture capture,bool? editorParty=null)
         =>PrepareCore(save,original,new(slot.PartyFormat,slot.PartyFormat?-1:0,slot.Slot),capture,editorParty);
+    internal static PKM PrepareFile(PKM original,PokemonDraftCapture capture,bool party)
+    {
+        var save=PokemonEditorContext.Save;
+        int box=PokemonEditorContext.Source?.Box??(PokemonEditorContext.Extra?.PartyFormat==true?-1:0);
+        int slot=PokemonEditorContext.Source?.Slot??PokemonEditorContext.Extra?.Slot??0;
+        return PrepareCore(save,original,new(save is null?party:box==-1,save is null?(party?-1:0):box,slot),capture,party);
+    }
     private sealed record DraftLocation(bool Party,int FormBoxHint,int Slot);
-    private static PKM PrepareCore(SaveFile save,PKM original,DraftLocation source,PokemonDraftCapture capture,bool? editorParty)
+    private static PKM PrepareCore(SaveFile? save,PKM original,DraftLocation source,PokemonDraftCapture capture,bool? editorParty)
     {
         if(capture.Scope is not{Length:>0 and <=256}||capture.Sections is null||capture.Sections.Length>64||capture.Sections.Any(s=>s is null||s.Section is not{Length:>0 and <=64}||s.Steps is not{Length:>0 and <=32})||capture.Sections.Select(s=>s.Section).Distinct(StringComparer.Ordinal).Count()!=capture.Sections.Length)throw new ArgumentException("Invalid editor snapshot scope or sections.");
         var steps=capture.Sections.SelectMany(s=>s.Steps).ToArray();if(steps.Length>64)throw new ArgumentException("Editor snapshot exceeds operation limit.");
-        if(!PokemonEditorMode.Readable(original)||original.GetType()!=save.PKMType)throw new ArgumentException("Editor must contain a valid supported Pokemon.");
+        if(!PokemonEditorMode.Readable(original)||!StandalonePokemon.CanEdit(original)||save is not null&&original.GetType()!=save.PKMType)throw new ArgumentException("Editor must contain a valid supported Pokemon.");
         if(steps.Count(s=>s?.Kind is "basic" or "gb")>1)throw new ArgumentException("Duplicate primary editor draft.");
         var p=original.Clone();var actions=new List<(int Order,int Index,Action Apply)>();var claims=new Dictionary<string,(int Index,string Value)>();var levels=new List<int>();var experiences=new List<uint>();
         void Claim(string key,int index,object? value){string text=value is null?"null":Convert.ToString(value,System.Globalization.CultureInfo.InvariantCulture)??"null";if(claims.TryGetValue(key,out var prior)&&prior.Index!=index&&prior.Value!=text)throw new ArgumentException("Conflicting editor fields: "+key);claims[key]=(index,text);}
@@ -53,11 +60,15 @@ internal static class PokemonDraftPreparing
                     if(fields.Contains("trainerIds")&&(fields.Contains("tid")||fields.Contains("sid")))throw new ArgumentException("Conflicting trainer ID representations.");
                     if(fields.Contains("level")){if(edit.Level is <1 or >100)throw new ArgumentException("Invalid editor level.");levels.Add(edit.Level);}
                     foreach(var field in fields.Where(f=>f!="level"))Claim(field=="friendship"?Friendship():field=="abilityIndex"?"ability":field,index,step.Edit.GetProperty(field).GetRawText());
-                    if(fields.Contains("identity")){Claim("ability",index,"identity");if(p.Format<=5)Claim("pid",index,"identity");}
+                    if(fields.Contains("identity"))
+                    {
+                        if(!PokemonEditorMode.HaX&&!PokemonModeRules.Read(p).ManualAbility)Claim("ability",index,"identity");
+                        if(p.Format<=5&&(!PokemonEditorMode.HaX||edit.Identity is{} identity&&(identity.Species!=p.Species||identity.Gender!=p.Gender)))Claim("pid",index,"identity");
+                    }
                     if(fields.Contains("nature")&&p.Format<=4)Claim("pid",index,"nature");
                     actions.Add((30,index,()=>{
                         if(fields.Contains("trainerIds")&&original.TrainerIDDisplayFormat!=p.TrainerIDDisplayFormat)throw new ArgumentException("Apply the origin version before editing its trainer ID format.");
-                        var merged=Rebase(p,edit,fields,source);PokemonEditing.Apply(p,merged,source.Party,identity=>PokemonIdentity.Apply(save,p,identity,source.FormBoxHint),save);
+                        var merged=Rebase(p,edit,fields,source);PokemonEditing.Apply(p,merged,source.Party,identity=>{if(save is not null)PokemonIdentity.Apply(save,p,identity,source.FormBoxHint);else PokemonIdentity.Apply(p,identity,source.FormBoxHint);},save);
                     }));break;
                 }
                 case "gb":
@@ -107,11 +118,11 @@ internal static class PokemonDraftPreparing
                     else Claim("raw."+edit.Action,index,step.Edit.GetRawText());
                     int order=edit.Action=="origin"?0:edit.Action=="trainerDetails"?10:edit.Action=="history"?20:edit.Action=="values"?70:40;
                     actions.Add((order,index,()=>PokemonRawEditing.Apply(p,edit,source.Party,()=>{
-                        if(edit.Action=="origin")PokemonOrigin.Apply(save,p,edit.Origin??throw new ArgumentException("Origin draft missing."));
+                        if(edit.Action=="origin"){var origin=edit.Origin??throw new ArgumentException("Origin draft missing.");if(save is not null)PokemonOrigin.Apply(save,p,origin);else PokemonOrigin.Apply(p,origin);}
                         else if(edit.Action=="trainerDetails")PokemonTrainerDetails.Apply(p,edit.TrainerDetails??throw new ArgumentException("Trainer draft missing."),save);
                         else if(edit.Action=="egg")PokemonEgg.Apply(save,p,edit.Egg??throw new ArgumentException("Egg draft missing."));
                         else throw new ArgumentException("Unexpected contextual editor action.");
-                    },save.MaxAbilityID,save)));break;
+                    },save?.MaxAbilityID,save)));break;
                 }
                 default:throw new ArgumentException("Unknown editor operation.");
             }

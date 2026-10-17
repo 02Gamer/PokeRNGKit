@@ -7,7 +7,7 @@ public sealed record BagItem(int Slot, int Id, LocalizedText Name, int Count, in
     bool? Favorite, bool? IsNew, bool? FreeSpace, uint? FreeSpaceIndex, bool? NewShop, bool? Held, string Sprite);
 public sealed record BagChoice(int Id, LocalizedText Name, int MaxCount, string Sprite);
 public sealed record BagPouch(int Index, string Type, int MaxCount, BagItem[] Items, BagChoice[] Choices, bool CanGive, bool IsCramped);
-public sealed record BagReport(BagPouch[] Pouches, BagChoice[] AdvancedChoices, ApricornItem[]? Apricorns = null);
+public sealed record BagReport(BagPouch[] Pouches, BagChoice[] AdvancedChoices, ApricornItem[]? Apricorns = null,bool HaX=false);
 
 internal static class InventoryReader
 {
@@ -38,8 +38,8 @@ internal static class InventoryReader
         return new(bag.Pouches.Select((pouch, index) => new BagPouch(index, pouch.Type.ToString(), pouch.MaxCount,
             pouch.Items.Select((item, slot) => new BagItem(slot, item.Index,
                 new(Name(zh, item.Index), Name(en, item.Index), Name(ja, item.Index)),
-                item.Count, bag.GetMaxCount(pouch.Type, item.Index),
-                item.Index == 0 || (item.Index is > 0 and <= ushort.MaxValue && pouch.CanContain((ushort)item.Index)),
+                item.Count, PokemonEditorMode.HaX?bag.MaxQuantityHaX:bag.GetMaxCount(pouch.Type, item.Index),
+                item.Index == 0 || (item.Index is > 0 and <= ushort.MaxValue && (PokemonEditorMode.HaX?item.Index<en.Length:pouch.CanContain((ushort)item.Index))),
                 item is IItemFavorite favorite ? favorite.IsFavorite : null,
                 item is IItemNewFlag fresh ? fresh.IsNew : null,
                 item is IItemFreeSpace free ? free.IsFreeSpace : null,
@@ -48,9 +48,9 @@ internal static class InventoryReader
                 item is IItemHeldFlag held ? held.IsHeld : null, Sprite(item.Index,save.Context))).ToArray(),
             new ushort[] { 0 }.Concat(pouch.GetAllItems().ToArray()).Distinct().Select(id =>
                 new BagChoice(id, new(Name(zh,id),Name(en,id),Name(ja,id)), id == 0 ? 0 : bag.GetMaxCount(pouch.Type,id), Sprite(id,save.Context))).ToArray(),
-            InventoryBatch.CanGive(save,pouch),pouch.IsCramped)).ToArray(),
+            PokemonEditorMode.HaX||InventoryBatch.CanGive(save,pouch),pouch.IsCramped)).ToArray(),
             Enumerable.Range(0,en.Length).Select(id => new BagChoice(id,
                 new(Name(zh,id),Name(en,id),Name(ja,id)),bag.MaxQuantityHaX,Sprite(id,save.Context))).ToArray(),
-            save is SAV4HGSS hgss ? ApricornInventory.Read(hgss) : null);
+            save is SAV4HGSS hgss ? ApricornInventory.Read(hgss) : null,PokemonEditorMode.HaX);
     }
 }

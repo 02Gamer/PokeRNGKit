@@ -34,6 +34,13 @@ internal static class PokemonIdentityToolsTests
     }
     internal static void Run()
     {
+        SaveProgramSettingsRuntime.Reset();
+        var settings=SaveProgramSettingsCodec.Defaults();settings.Startup.ForceHaXOnLaunch=true;
+        SaveProgramSettingsRuntime.Configure(JsonSerializer.Serialize(settings,SaveProgramSettingsJson.Default.SaveProgramSettings));
+        try{RunAdvanced();}finally{SaveProgramSettingsRuntime.Reset();PokemonEditorContext.Clear();}
+    }
+    private static void RunAdvanced()
+    {
         foreach(PKM p in new PKM[]{new PK3(),new CK3(),new XK3(),new PK4(),new BK4(),new RK4(),new PK5(),new PK6(),new PK7(),new PB7(),new PK8(),new PB8(),new PA8(),new PK9(),new PA9()})
         {
             Seed(p);var ids=PokemonTrainerIds.Read(p)!;bool modern=p.TrainerIDDisplayFormat==TrainerIDFormat.SixDigit;

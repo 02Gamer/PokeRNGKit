@@ -37,7 +37,7 @@ export function SaveDetectionEditor({
       .then((result) => {
         if (!active) return;
         const value = result.saveDetectionCatalog;
-        if (!value || value.apiVersion !== 184 || !value.types.length)
+        if (!value || value.apiVersion !== 185 || !value.types.length)
           throw new Error("Invalid catalog");
         setCatalog(value);
         setType(value.types[0].id);

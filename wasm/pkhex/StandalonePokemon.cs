@@ -5,7 +5,7 @@ namespace PokeRNGKit.SaveEditor;
 
 internal sealed record StandalonePokemonFile(PKM Entity, bool Party);
 internal sealed record StandalonePokemonReport(string Format, string Extension, bool Party, bool CanEdit, PokemonEntry Pokemon,
-    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices, int Generation, bool CanMemories, CareField[] Care, GbSpecialInfo? Gb = null, string SpriteMode="b")
+    AttributeChoices AttributeChoices, MoveChoice[] MoveChoices, int Generation, bool CanMemories, CareField[] Care, GbSpecialInfo? Gb = null, string SpriteMode="b",PokemonAutomaticHints? AutomaticHints=null)
 {
     public int ApiVersion => SaveService.ApiVersion;
 }
@@ -20,7 +20,7 @@ internal static class StandalonePokemon
             throw new ArgumentException("Entity file analysis requires valid data.");
         // File serialization width does not establish its original save slot. Use the
         // entity personal info and Core's independent-entity context, not a fictitious save.
-        return PokemonLegality.Report(new LegalityAnalysis(p, StorageSlotType.None), new(file.Party ? -1 : 0, 0));
+        return PokemonLegality.Report(PokemonHints.Analyze(p), new(file.Party ? -1 : 0, 0));
     }
 
     public static StandalonePokemonFile Open(byte[] input, string filename, bool inputEncrypted = false, bool useFileFormat = false)
@@ -83,7 +83,7 @@ internal static class StandalonePokemon
         if (!PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file must contain valid Pokemon data.");
         return new(p.GetType().Name, p.Extension, file.Party, CanEdit(p), PokemonReader.Read(p, file.Party ? -1 : 0, 0),
-            PokemonEditorContext.Save is{} save?PokemonReader.Attributes(save):PokemonReader.Attributes(p), PokemonReader.MoveChoices(p,PokemonEditorContext.Save?.MaxMoveID), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : [], p is GBPKM gb ? StandaloneGbSpecial.Read(gb) : null, SaveSpriteView.Mode);
+            PokemonEditorContext.Save is{} save?PokemonReader.Attributes(save):PokemonReader.Attributes(p), PokemonReader.MoveChoices(p,PokemonEditorContext.Save?.MaxMoveID,PokemonEditorContext.Save), p.Format, p is ITrainerMemories, p.Format >= 6 ? PokemonCare.Read(p) : [], p is GBPKM gb ? StandaloneGbSpecial.Read(gb) : null, SaveSpriteView.Mode,PokemonHints.Read(p));
     }
 
     public static byte[] Edit(byte[] input, string filename, PokemonEdit edit, bool inputEncrypted = false, bool useFileFormat = false)
@@ -91,7 +91,7 @@ internal static class StandalonePokemon
         var file = Open(input, filename, inputEncrypted, useFileFormat); var p = file.Entity;
         if (p.Format < 3 || !CanEdit(p) || !PokemonEditorMode.Readable(p))
             throw new ArgumentException("Entity file editing is unavailable for this data.");
-        var applied = PokemonEditing.Apply(p, edit, file.Party, identity => PokemonEditorContext.Identity(p,identity,file.Party));
+        var applied = PokemonEditing.Apply(p, edit, file.Party, identity => PokemonEditorContext.Identity(p,identity,file.Party),PokemonEditorContext.Save);
         var output = Serialize(p, file.Party, false);
         var reopened = Open(output, "." + p.Extension, useFileFormat: true).Entity;
         PokemonEditing.Verify(reopened, applied);

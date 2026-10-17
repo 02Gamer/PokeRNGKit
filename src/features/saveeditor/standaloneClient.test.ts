@@ -19,6 +19,34 @@ const request = {
   useFileFormat: true,
 };
 describe("independent entity worker lifecycle", () => {
+  it.each([
+    "entityMetSuggestionPreview",
+    "entityMetSuggestionCommit",
+    "entityMetSuggestionDiscard",
+  ] as const)("preserves source and file metadata for %s", async (kind) => {
+    const client = new StandalonePokemonClient();
+    const source = new Uint8Array([1, 2, 3]);
+    const input = { ...request, metSuggestionToken: "met:1" };
+    const pending = client.run(source, input, kind);
+    const worker = FakeWorker.instances[0];
+    const [message, transfer] = worker.postMessage.mock.calls[0];
+    expect(message.kind).toBe(kind);
+    expect(JSON.parse(message.edit)).toEqual(input);
+    expect(message.bytes).not.toBe(source);
+    expect(transfer).toEqual([message.bytes.buffer]);
+    const fields =
+      kind === "entityMetSuggestionPreview"
+        ? { metSuggestion: { available: false } }
+        : kind === "entityMetSuggestionCommit"
+          ? { output: new Uint8Array([4]) }
+          : {};
+    worker.onmessage?.({
+      data: { id: message.id, entity: { apiVersion: 185 }, ...fields },
+    });
+    expect(await pending).toMatchObject(fields);
+    expect(source).toEqual(new Uint8Array([1, 2, 3]));
+    client.dispose();
+  });
   it("sends saved policies and restores the visible entity mode after settings reconstruction", async () => {
     let raw: string | null = null;
     const storage = {
@@ -86,7 +114,7 @@ describe("independent entity worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect(transfer).toEqual([message.bytes.buffer]);
       worker.onmessage?.({
-        data: { id: message.id, entity: { apiVersion: 184 }, ...fields },
+        data: { id: message.id, entity: { apiVersion: 185 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(original);
@@ -328,7 +356,7 @@ describe("independent entity worker lifecycle", () => {
     expect(transfer).toContain(message.editorSave.buffer);
     expect(message.editorSave.buffer).not.toBe(save.buffer);
     worker.onmessage?.({
-      data: { id: message.id, entity: { apiVersion: 184 } },
+      data: { id: message.id, entity: { apiVersion: 185 } },
     });
     await pending;
     const next = client.run(new Uint8Array([4]), request),

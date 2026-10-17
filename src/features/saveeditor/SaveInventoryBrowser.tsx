@@ -8,6 +8,7 @@ import { ApricornEditor } from "./ApricornEditor";
 import { apricornWords } from "./apricorns";
 import { ItemImage } from "./ItemImage";
 import type { saveEditorResources } from "./locales";
+import { useSaveSettingsJson } from "./useSaveSettingsJson";
 
 export function SaveInventoryBrowser({
   busy,
@@ -31,9 +32,15 @@ export function SaveInventoryBrowser({
     : i18n.language.startsWith("ja")
       ? "ja"
       : "en";
-  const [report, setReport] = useState<BagReport>();
+  const settings = useSaveSettingsJson();
+  const [loaded, setLoaded] = useState<{
+    report: BagReport;
+    settings: string;
+  }>();
+  const report = loaded?.settings === settings ? loaded.report : undefined;
   const [apricornDirty, setApricornDirty] = useState(false);
-  const [advanced, setAdvanced] = useState(false);
+  const [localAdvanced, setAdvanced] = useState(false);
+  const advanced = report?.haX === true || localAdvanced;
   const [pouchIndex, setPouchIndex] = useState(0);
   const [search, setSearch] = useState("");
   const [showEmpty, setShowEmpty] = useState(false);
@@ -45,12 +52,12 @@ export function SaveInventoryBrowser({
     return () => {
       lifecycle.current++;
     };
-  }, []);
+  }, [settings]);
   const load = async () => {
     const id = ++request.current;
     const value = await onRead();
     if (!value || id !== request.current) return;
-    setReport(value);
+    setLoaded({ report: value, settings });
     setPouchIndex(0);
     setPage(0);
   };
@@ -131,7 +138,7 @@ export function SaveInventoryBrowser({
                   <input
                     type="checkbox"
                     checked={advanced}
-                    disabled={busy}
+                    disabled={busy || report.haX === true}
                     onChange={(e) => setAdvanced(e.target.checked)}
                   />
                   {words.bagAdvanced}

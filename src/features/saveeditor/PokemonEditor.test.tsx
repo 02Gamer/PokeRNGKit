@@ -106,3 +106,36 @@ it.each(["zh", "en", "ja"] as const)(
     );
   },
 );
+
+it.each(["zh", "en", "ja"] as const)(
+  "uses Core visibility for hidden held items and manual abilities in %s",
+  (lang) => {
+    language = lang;
+    const rules = {
+      heldItem: false,
+      originRegion: false,
+      manualAbility: true,
+      abilityNumber: true,
+      automaticHints: false,
+    };
+    const render = (heldItem: boolean) =>
+      renderToStaticMarkup(
+        <PokemonEditor
+          pokemon={{ ...pokemon, editorRules: { ...rules, heldItem } }}
+          attributeChoices={attributes}
+          moveChoices={[{ name: text, maxPp: [0, 0, 0, 0] }]}
+          disabled={false}
+          onApply={async () => {}}
+        />,
+      );
+    expect(render(false)).not.toContain(
+      `<span>${saveEditorResources[lang].item}</span>`,
+    );
+    expect(render(true)).toContain(
+      `<span>${saveEditorResources[lang].item}</span>`,
+    );
+    expect(render(true)).not.toContain(
+      `<span>${saveEditorResources[lang].ability}</span>`,
+    );
+  },
+);

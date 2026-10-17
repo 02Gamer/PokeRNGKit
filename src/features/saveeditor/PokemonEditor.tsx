@@ -84,6 +84,7 @@ export function PokemonEditor({
   const [initialValues] = useState(() => structuredClone(values));
   const [error, setError] = useState("");
   const showEvs = !!pokemon.haX || !pokemon.advancedStats?.awakening;
+  const manualAbility = !!pokemon.haX || !!pokemon.editorRules?.manualAbility;
   const speciesChoice = attributeChoices.species.find(
     (choice) => choice.id === Number(values.species),
   );
@@ -110,7 +111,7 @@ export function PokemonEditor({
           ? Number(values.gender)
           : (target?.genders[0] ?? 2),
       ),
-      abilityIndex: pokemon.haX
+      abilityIndex: manualAbility
         ? values.abilityIndex
         : String(
             Math.max(
@@ -184,7 +185,7 @@ export function PokemonEditor({
           ? null
           : integer(values.statAlignment, 24),
       abilityIndex:
-        (!identityChanged || pokemon.haX) &&
+        (!identityChanged || manualAbility) &&
         Number(values.abilityIndex) === pokemon.abilityIndex
           ? null
           : integer(values.abilityIndex, abilityChoices.length - 1),
@@ -220,8 +221,13 @@ export function PokemonEditor({
         !speciesChoice ||
         (!pokemon.haX && Number(values.species) === 0) ||
         (!pokemon.haX && !formChoice) ||
-        (!pokemon.haX && !abilityChoices[Number(values.abilityIndex)]) ||
-        !attributeChoices.items[Number(values.heldItem)]
+        (!pokemon.haX &&
+          !pokemon.editorRules?.manualAbility &&
+          !abilityChoices[Number(values.abilityIndex)] &&
+          (Number(values.abilityIndex) !== pokemon.abilityIndex ||
+            identityChanged)) ||
+        (Number(values.heldItem) !== pokemon.heldItem &&
+          !attributeChoices.items[Number(values.heldItem)])
       )
         throw Error(words.pokemonValueError);
       integer(values.nature, 24);
@@ -427,8 +433,12 @@ export function PokemonEditor({
                   ] as const,
                 ]
               : []),
-            ["abilityIndex", words.ability, abilityChoices],
-            ["heldItem", words.item, attributeChoices.items],
+            ...(pokemon.editorRules?.manualAbility
+              ? []
+              : [["abilityIndex", words.ability, abilityChoices] as const]),
+            ...(pokemon.editorRules?.heldItem === false
+              ? []
+              : [["heldItem", words.item, attributeChoices.items] as const]),
           ] as const
         ).map(([key, label, choices]) => (
           <label className="field" key={key}>

@@ -37,6 +37,12 @@ import { standaloneWords } from "./standaloneWords";
 import { saveEditorResources } from "./locales";
 import { PokemonSprite } from "./PokemonSprite";
 import { PokemonLegality } from "./PokemonLegality";
+import { PokemonAutomaticHints } from "./PokemonAutomaticHints";
+import { MetSuggestionWorkspace } from "./MetSuggestionWorkspace";
+import {
+  parseMetSuggestion,
+  type MetSuggestionConfirmation,
+} from "./metSuggestion";
 import { BattleTemplateWorkspace } from "./BattleTemplateWorkspace";
 import {
   parseBattleTemplateImport,
@@ -135,7 +141,8 @@ export function StandalonePokemonPanel({
   const [revision, setRevision] = useState(0);
   const [changed, setChanged] = useState(false);
   const [localBusy, setBusy] = useState(false);
-  const busy = localBusy || disabled;
+  const [metReviewing, setMetReviewing] = useState(false);
+  const busy = localBusy || disabled || metReviewing;
   const initialLoaded = useRef(false);
   const running = useRef(false),
     operation = useRef(0);
@@ -281,6 +288,7 @@ export function StandalonePokemonPanel({
       | "plusRecordConfirmation"
       | "techRecordConfirmation"
       | "battleTemplateImportConfirmation"
+      | "metSuggestionConfirmation"
     >,
     kind:
       | "entityEdit"
@@ -291,7 +299,8 @@ export function StandalonePokemonPanel({
       | "entityTextTrashCommit"
       | "entityPlusRecordCommit"
       | "entityTechRecordCommit"
-      | "entityBattleTemplateImportCommit",
+      | "entityBattleTemplateImportCommit"
+      | "entityMetSuggestionCommit",
     onApplied?: () => void,
   ) =>
     perform(async (id) => {
@@ -887,6 +896,66 @@ export function StandalonePokemonPanel({
     () => new PokemonDraftRegistry(`${working?.fileName ?? ""}:${revision}`),
     [revision, working?.fileName],
   );
+  const previewMetSuggestion = () =>
+    perform(async (id) => {
+      if (!working || !report || report.pokemon.haX) return;
+      const source = working,
+        sourceHash = bulkLegalitySourceHash(source.bytes);
+      const result = await client.current.run(
+        source.bytes,
+        {
+          fileName: source.fileName,
+          inputEncrypted: source.inputEncrypted,
+          useFileFormat: source.useFileFormat,
+          metSuggestion: {
+            sourceHash,
+            capture: draftRegistry.capture(draftRegistry.scope),
+          },
+        },
+        "entityMetSuggestionPreview",
+      );
+      if (id !== operation.current) {
+        if (result.metSuggestion?.token)
+          await client.current.run(
+            source.bytes,
+            {
+              fileName: source.fileName,
+              inputEncrypted: source.inputEncrypted,
+              useFileFormat: source.useFileFormat,
+              metSuggestionToken: result.metSuggestion.token,
+            },
+            "entityMetSuggestionDiscard",
+          );
+        return;
+      }
+      return parseMetSuggestion(result.metSuggestion, sourceHash);
+    });
+  const applyMetSuggestion = async (
+    confirmation: MetSuggestionConfirmation,
+  ) => {
+    let applied = false;
+    await applyRequest(
+      { metSuggestionConfirmation: confirmation },
+      "entityMetSuggestionCommit",
+      () => {
+        applied = true;
+      },
+    );
+    return applied;
+  };
+  const discardMetSuggestion = async (token: string) => {
+    if (working)
+      await client.current.run(
+        working.bytes,
+        {
+          fileName: working.fileName,
+          inputEncrypted: working.inputEncrypted,
+          useFileFormat: working.useFileFormat,
+          metSuggestionToken: token,
+        },
+        "entityMetSuggestionDiscard",
+      );
+  };
   useLayoutEffect(() => {
     if (!onEditorReady) return;
     if (!working || !report || busy || disabled || acceptedFile) {
@@ -1207,6 +1276,25 @@ export function StandalonePokemonPanel({
                 importActions={battleImportActions}
               />
             )}
+            {working &&
+              !report.pokemon.haX &&
+              report.generation >= 2 &&
+              report.format !== "SK2" && (
+                <MetSuggestionWorkspace
+                  key={`met:${revision}:${settingsJson}`}
+                  hash={bulkLegalitySourceHash(working.bytes)}
+                  lang={lang}
+                  disabled={localBusy || disabled}
+                  onPreview={previewMetSuggestion}
+                  onApply={applyMetSuggestion}
+                  onDiscard={discardMetSuggestion}
+                  onReviewing={setMetReviewing}
+                />
+              )}
+            <PokemonAutomaticHints
+              info={report.pokemon.haX ? undefined : report.automaticHints}
+              lang={lang}
+            />
             <PokemonLegality
               position={report.pokemon}
               report={legality}

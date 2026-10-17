@@ -11,7 +11,9 @@ internal static class PokemonEditorContext
     internal static SaveFile? Save {get;private set;}
     internal static PokemonPosition? Source {get;private set;}
     internal static ExtraSlotKey? Extra {get;private set;}
-    internal static void Clear(){Save=null;Source=null;Extra=null;}
+    private static string bindingHash="";
+    internal static string Fingerprint=>Save is{} save?$"{bindingHash}:{save.GetType().Name}:{(int)save.Version}:{save.Language}:{(save is SAV4BR br?br.CurrentSlot:-1)}:{Source?.Box}:{Source?.Slot}:{Extra?.Type}:{Extra?.Slot}:{Extra?.PartyFormat}":"";
+    internal static void Clear(){Save=null;Source=null;Extra=null;bindingHash="";}
     internal static void Configure(byte[] input,string json)
     {
         Clear();
@@ -19,8 +21,8 @@ internal static class PokemonEditorContext
         using var doc=JsonDocument.Parse(json);PokemonSetSession.Unique(doc.RootElement);
         var save=SaveService.OpenDatabaseSave(input);
         if(doc.RootElement.ValueKind==JsonValueKind.Object&&doc.RootElement.TryGetProperty("extra",out var extra))
-            BindExtra(save,ExtraSlots.Decode(extra.GetRawText()),json);
-        else Bind(save,ReadPosition(json));
+            BindExtra(save,ExtraSlots.Decode(extra.GetRawText()),json,Br4Editing.Hash(input));
+        else Bind(save,ReadPosition(json),Br4Editing.Hash(input));
     }
     internal static PokemonPosition ReadPosition(string json)
     {
@@ -29,12 +31,13 @@ internal static class PokemonEditorContext
         if(root.ValueKind!=JsonValueKind.Object||root.EnumerateObject().Count()!=2||!root.TryGetProperty("box",out var box)||!root.TryGetProperty("slot",out var slot)||box.ValueKind!=JsonValueKind.Number||slot.ValueKind!=JsonValueKind.Number||!box.TryGetInt32(out int b)||!slot.TryGetInt32(out int s))throw new ArgumentException("Missing editor source.");
         return new(b,s);
     }
-    internal static void Bind(SaveFile save,PokemonPosition position)
+    internal static void Bind(SaveFile save,PokemonPosition position,string? sourceHash=null)
     {
         Clear();SavePokemonEditing.Require(save);
         if(position.Box==-1){if(!save.HasParty||(uint)position.Slot>=6)throw new ArgumentException("Invalid editor source.");}
         else if(!save.HasBox||(uint)position.Box>=save.BoxCount||(uint)position.Slot>=save.BoxSlotCount)throw new ArgumentException("Invalid editor source.");
         Save=CloneSave(save);Source=position;
+        bindingHash=sourceHash??Br4Editing.Hash(CloneSave(save).Write().ToArray());
     }
     internal static SaveFile CloneSave(SaveFile save)
     {
@@ -43,11 +46,12 @@ internal static class PokemonEditorContext
         if(save is SAV3FRLG source&&copy is SAV3FRLG target)target.ResetPersonal(source.Version);
         return copy;
     }
-    internal static void BindExtra(SaveFile save,ExtraSlotKey key,string? json=null)
+    internal static void BindExtra(SaveFile save,ExtraSlotKey key,string? json=null,string? sourceHash=null)
     {
         Clear();SavePokemonEditing.Require(save);
         if(json is not null)JsonSerializer.Deserialize(json,ExtraSlotJson.Default.ExtraSlotSource);
         ExtraSlots.Resolve(save,key);Save=CloneSave(save);Extra=key;
+        bindingHash=sourceHash??Br4Editing.Hash(CloneSave(save).Write().ToArray());
     }
     internal static PKM Validate(PKM p)
     {

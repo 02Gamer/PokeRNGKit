@@ -45,6 +45,13 @@ internal static class PokemonTrainerDetailsTests
     }
     internal static void Run()
     {
+        SaveProgramSettingsRuntime.Reset();
+        var settings=SaveProgramSettingsCodec.Defaults();settings.Startup.ForceHaXOnLaunch=true;
+        SaveProgramSettingsRuntime.Configure(JsonSerializer.Serialize(settings,SaveProgramSettingsJson.Default.SaveProgramSettings));
+        try{RunAdvanced();}finally{SaveProgramSettingsRuntime.Reset();PokemonEditorContext.Clear();}
+    }
+    private static void RunAdvanced()
+    {
         foreach(var entity in Entities())foreach(bool party in new[]{false,true})foreach(bool encrypted in new[]{false,true})
         {
             var seed=Seed(entity.Clone());byte[] input=StandalonePokemon.Serialize(seed,party,encrypted),original=input.ToArray();string name="entity."+seed.Extension;

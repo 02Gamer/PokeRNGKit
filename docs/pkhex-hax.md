@@ -1,5 +1,21 @@
 # PKHeX HaX 接入范围
 
+## 2026-10-17 全局模式与相遇建议（API185，工程通过，页面待核验）
+
+基线 `5edf994bb834b2102a6b082c68f72414ed0caa39`。增加按实际实体格式计算的共享编辑规则，统一手动特性／编号、PA9普通模式例外、LGPE／PLA持有道具及LGPE原始地区可见性；无关编辑保留原值。基础编辑与草稿准备沿相同规则，HaX身份与手动特性不再被当作隐式特性覆盖冲突。
+
+全局HaX已关联背包目录、单项数量与批量可用状态，保留独立高级入口及实际格式回读保护；球果仍沿自己的字段范围。设置改变后，旧背包目录与请求失效。独立编辑器读取招式目录及基础编辑补传实际存档上下文，修复绑定SM目录与PB7道具上限的读写不一致。
+
+普通模式已接当前已应用缓冲的自动状态、招式／回忆格位提示；HaX隐藏自动提示，显式分析保留，分析采用实际绑定存档的个人表。相遇建议已接入共享编辑器的冻结预览／一次确认，包含当前有效草稿，确认后更新可撤销实体缓冲；存档仍需放入与导出。HaX不提供自动建议。其他未核对主窗口事件继续保留待核对，不能据此宣称全局HaX完成。
+
+API185模式／相遇专项与默认完整原生检查均退出0，包含真实E.sav工作副本。覆盖18种实体的两种模式、16种相遇格式的来源对照、全局背包完整文件对照、绑定SM目录／PB7道具1057、草稿合并、独立文件布局、冻结确认与来源保护。首轮PA9测试快照漏算校验和已修正，未放宽产品校验。原生证据见`.tmp/pkhex-api185-met-native-final.log`和`.tmp/pkhex-api185-native-full.log`。
+
+完整前端361文件／2202项、Lint、类型、API185核心及最新核心网页／PWA打包通过，保留既有Hook、裁剪与包体／插件耗时警告。首轮完整前端在内存紧张时停止，保留原日志；释放内存后完整重跑通过，未修改测试标准。证据见`.tmp/pkhex-api185-tests-full-serial.log`、`.tmp/pkhex-api185-lint.log`、`.tmp/pkhex-api185-typecheck.log`、`.tmp/pkhex-api185-core.log`和`.tmp/pkhex-api185-web.log`。
+
+原始`C:\Users\Hakuhiro\Desktop\200\battery\E.sav`与工作副本SHA-256均保持`7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442`。上一批5edf994b的Actions38981330349已成功部署。外部Chrome连接再次超时，正式页面、连续操作及实际下载未核验，不作所有者验收；完整接入目标与剩余调用点仍保留待完成。
+
+输入来源为WinForms `PKMEditor.ToggleInterface`／`FinalizeInterface`、`LoadSave`、`EditPK4`／`EditPK5`、`SAV_Inventory` 与Core `PlayerBag.IsQuantitySane`。手动特性沿实体／实际存档目录上限，一位编号沿0–9及空值为0的既有掩码；单项背包沿Core `MaxQuantityHaX`，批量数量仍沿原袋上限，不能假定所有物理格式都能保存整个输入范围。
+
 ## 当前边界
 
 源码基线为本机 PKHeX 26.08.26，只读参考位于
@@ -42,10 +58,12 @@ Core内部LGPE招式名单固定取自26.08.26，并与SAV7b目录对照；道�
 损坏校验和的读取不修复来源；只有显式编辑／导出时按Core重新计算。
 
 目录过滤和额外格位的工程接入已完成，实际页面仍待核验。
-自动合法性／相遇提示、其他字段可见性与背包全局关联继续保持未完成；
+API185已接共享模式规则、当前缓冲自动提示、相遇建议与背包全局关联，完整门禁检查中；其余主窗口调用点仍待逐项核对。
 下表仍为整组核对范围，不能跳过其余调用点。
 
 ## 上游调用面
+
+2026-10-17只读复核：`EditPK4` 的手动特性读取及 `EditPK5.PreparePK5` 的隐藏特性同步已存在于相应编辑助手，但仍需按主窗口完整保存顺序逐项核对。`PKMEditor.ValidateMovePaint` 使用 `LegalMoveSource.Info.CanLearn` 的候选高亮，与本轮已接的当前四格招式／回忆警告是独立行为，继续列为待接项；不得以目录过滤或格位提示替代此项。
 
 以下为 WinForms `.cs` 中 `HaX` 调用点的功能分组；每组仍须核对赋值顺序、控件掩码、空值、
 格式存储和交互，不一律放宽到数值类型上限。
@@ -57,13 +75,13 @@ Core内部LGPE招式名单固定取自26.08.26，并与SAV7b目录对照；道�
 | 空白实体的完整编辑与准备               | `Controls/PKM Editor/PKMEditor.cs.EditsComplete`、`PreparePKM`、`LoadSave.cs`                                                 | API182 已接空记录读取、基础创建与准备，保留类型／字节／编码；其他高级编辑器的可见性仍待逐项核对    |
 | 目录与过滤                             | `MainWindow/Main.cs` 的 `FilteredGameDataSource` 与 `LocalizeUtil.InitializeStrings`、`PKMEditor.PopulateFilteredDataSources` | API183种类／持有道具／招式／回忆目录已接，保留三语和编号；相关专项、完整原生与前端通过，页面待核验 |
 | 载入等级、经验与保存数值               | `LoadSave.cs.LoadSpeciesLevelEXP`／`SaveSpeciesLevelEXP`、`PKMEditor.cs` 等级经验处理、`StatEditor.SavePartyStats`            | 六项能力值、HaX 七位超等级经验及 EV 超总量已接；其他载入／保存分支继续核对                         |
-| 手动特性和编号                         | `LoadSave.cs.SaveMisc*`、`PKMEditor.ToggleInterface`／`FinalizeInterface`                                                     | 手动字段已有；HaX 目录、能力编号及 PA9 普通模式例外仍需统一核对                                    |
+| 手动特性和编号                         | `LoadSave.cs.SaveMisc*`、`PKMEditor.ToggleInterface`／`FinalizeInterface`                                                     | API185统一手动目录、编号及PA9普通例外；专项通过，完整门禁通过，页面待核验                          |
 | 手动形态与无形态时保留                 | `PKMEditor.SetForms`／`ToggleInterface`                                                                                       | API182 已接格式4以上0–255输入，拒绝物理截断并保留原始 PID／手动特性；页面待核验                    |
 | 第四／第五世代特殊载入与保存           | `EditPK4.cs`、`EditPK5.cs`                                                                                                    | 须逐项核对 HaX 分支；不只开放前端控件而继续走普通模式覆盖逻辑                                      |
-| 相遇建议、自动合法性与招式提示         | `PKMEditor.UpdateLegality`、`ClickMetLocation`、招式提示处理，`Main.PKME_Tabs_LegalityChanged`                                | 格位自动标记已有模式消费；主编辑器自动状态、建议和提示仍待核对，显式菜单分析分别处理               |
+| 相遇建议、自动合法性与招式提示         | `PKMEditor.UpdateLegality`、`ClickMetLocation`、招式提示处理，`Main.PKME_Tabs_LegalityChanged`                                | API185接自动状态／招式提示与相遇建议冻结预览，HaX隐藏；显式分析保留，完整门禁通过，页面待核验      |
 | LGPE／PLA 原本隐藏字段、努力值与觉醒值 | `PKMEditor.FinalizeInterface`、`StatEditor.ToggleInterface`                                                                   | 相关字段与 AV/GV 功能已有；普通与 HaX 的可见性、可写性组合待核对                                   |
 | 额外存储格位                           | `Controls/SAV Editor/SAVEditor.cs.InitializeExtraSlots` 的 `GetExtraSlots(HaX)`                                               | API184独立查看、模式过滤与可变格位冻结写入工程通过，额外位置单独绑定；页面与下载待核验             |
-| 背包                                   | `Subforms/Save Editors/SAV_Inventory.cs`                                                                                      | 局部 HaX 编辑已有；全局模式对目录、整理、数量和禁用状态的关联仍需核对                              |
+| 背包                                   | `Subforms/Save Editors/SAV_Inventory.cs`                                                                                      | API185全局关联目录／单项数量及批量可用状态，实际格式回读保护保留；专项通过                         |
 
 ## 实施与检查
 

@@ -11,6 +11,8 @@ internal static class SaveEditorTests
 
     public static void Main()
     {
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "met-suggestion") { PokemonMetSuggestionTests.Run(); PokemonModeRulesTests.Run(); PokemonSetTests.Run(); return; }
+        if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "mode-rules") { PokemonModeRulesTests.Run(); PokemonIdentityToolsTests.Run(); PokemonTrainerDetailsTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "extra-slots") { ExtraSlotTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "catalogue") { PokemonChoiceCatalogTests.Run(); return; }
         if (Environment.GetEnvironmentVariable("PKHEX_TEST_FOCUS") == "catalogue-tail") { PokemonChoiceCatalogTests.Run(); StandaloneGbTests.Run(); PokemonRelearnTests.Run(); PokemonEditorContextTests.Run(); PokemonSetTests.Run(); PokemonHaXTests.Run(); return; }
@@ -199,7 +201,7 @@ internal static class SaveEditorTests
             var thunderbolt = document.RootElement.GetProperty("moveChoices")[85];
             Require(thunderbolt.GetProperty("name").GetProperty("zh").GetString() == "十万伏特", $"{version}: localized move choices");
             Require(thunderbolt.GetProperty("maxPp")[3].GetInt32() == pokemon.GetMovePP(85, 3), $"{version}: PP Up limit");
-            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 184, $"{version}: API version");
+            Require(document.RootElement.GetProperty("apiVersion").GetInt32() == 185, $"{version}: API version");
             Require(document.RootElement.GetProperty("boxSlotCount").GetInt32() == save.BoxSlotCount, $"{version}: box dimensions");
             var boxes = document.RootElement.GetProperty("boxes");
             Require(boxes.GetArrayLength() == save.BoxCount, $"{version}: box metadata count");
@@ -456,6 +458,8 @@ internal static class SaveEditorTests
         SaveSlotAccessTests.Run();
         PokemonSetTests.Run();
         PokemonEditorContextTests.Run();
+        PokemonMetSuggestionTests.Run();
+        PokemonModeRulesTests.Run();
         PokemonIdentityToolsTests.Run();
         PokemonSpecialStatusTests.Run();
         PokemonDimensionsLegacyTests.Run();

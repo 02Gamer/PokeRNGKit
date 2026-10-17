@@ -15,7 +15,8 @@ import type { PokemonEdit } from "./PokemonEditor";
 
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
-  apiVersion: 184;
+  automaticHints?: import("./PokemonAutomaticHints").AutomaticHints | null;
+  apiVersion: 185;
   spriteMode?: "a" | "b" | "c";
   format: string;
   extension: string;
@@ -30,6 +31,9 @@ export interface StandalonePokemonReport {
   gb?: GbSpecialInfo | null;
 }
 export interface StandalonePokemonRequest {
+  metSuggestion?: import("./metSuggestion").MetSuggestionInput;
+  metSuggestionConfirmation?: import("./metSuggestion").MetSuggestionConfirmation;
+  metSuggestionToken?: string;
   battleTemplateImport?: import("./battleTemplateImport").BattleTemplateImportRequest;
   battleTemplateImportConfirmation?: import("./battleTemplateImport").BattleTemplateImportConfirmation;
   battleTemplateImportToken?: string;
@@ -107,6 +111,9 @@ export interface StandaloneAdvancedData {
   relearn?: number[] | null;
 }
 export type StandalonePokemonOperation =
+  | "entityMetSuggestionPreview"
+  | "entityMetSuggestionCommit"
+  | "entityMetSuggestionDiscard"
   | "entityTextTrash"
   | "entityTextTrashDraft"
   | "entityTextTrashPreview"
@@ -154,6 +161,7 @@ export interface GbPokemonEdit {
   heldItem: number | null;
 }
 export interface StandalonePokemonResult {
+  metSuggestion?: import("./metSuggestion").MetSuggestionPreview;
   battleTemplateImport?: import("./battleTemplateImport").BattleTemplateImportTicket;
   battleTemplate?: import("./battleTemplate").BattleTemplateReport;
   textTrash?: import("./textTrash").TextTrashCatalog;

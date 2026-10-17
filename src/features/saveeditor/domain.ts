@@ -45,7 +45,7 @@ export interface TrainerDateField {
   max: string;
 }
 
-export const SAVE_EDITOR_API_VERSION = 184;
+export const SAVE_EDITOR_API_VERSION = 185;
 export interface SaveReport {
   slotAccess?: import("./slotAccess").SaveSlotAccessInfo;
   registeredTeams?: boolean;
@@ -64,7 +64,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 184;
+  apiVersion: 185;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -190,6 +190,13 @@ export interface PokemonEntry {
   alphaMove?: number | null;
   gbRental?: boolean;
   haX?: boolean;
+  editorRules?: {
+    heldItem: boolean;
+    originRegion: boolean;
+    manualAbility: boolean;
+    abilityNumber: boolean;
+    automaticHints: boolean;
+  };
   manualFormMaximum?: number | null;
   vitals?: import("./pokemonVitals").PokemonVitalsInfo;
   gbFields?: import("./standalonePokemon").GbSpecialFields | null;
@@ -879,6 +886,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  metSuggestion?: import("./metSuggestion").MetSuggestionPreview;
   pokemonSet?: import("./pokemonSet").PokemonSetTicket;
   pokemonEditorFile?: { fileName: string; data: string };
   entityTemplateCatalog?: import("./entityTemplate").EntityTemplateCatalog;
@@ -1132,6 +1140,7 @@ export interface BagItem {
   held: boolean | null;
 }
 export interface BagReport {
+  haX?: boolean;
   apricorns?:
     | {
         index: number;

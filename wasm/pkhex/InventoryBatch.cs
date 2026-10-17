@@ -16,6 +16,7 @@ internal static class InventoryBatch
             ApricornInventory.Apply(save, edit);
             return InventoryEditing.Snapshot(save);
         }
+        edit=edit with{Advanced=edit.Advanced||PokemonEditorMode.HaX};
         if (edit.ApricornValues is not null) throw new ArgumentException("Apricorn values require an apricorn action.");
         var bag = save.Inventory;
         if ((uint)edit.Pouch >= bag.Pouches.Count) throw new ArgumentException("Inventory pouch is out of range.");

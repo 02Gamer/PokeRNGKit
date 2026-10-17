@@ -23,7 +23,7 @@ internal static class PokemonTrainerDetails
         var games = GameUtil.GetVersionsWithinRange(limits, context).ToHashSet();
         var versions = p is IBattleVersion ? PokemonOrigin.Localize(s => s.VersionDataSource.Where(c => c.Value == 0 || games.Contains((GameVersion)c.Value))) : [];
         var handlingLanguages = p is IHandlerLanguage ? PokemonOrigin.Localize(s => new[] { s.Empty }.Concat(s.LanguageDataSource(generation, context))) : [];
-        TrainerOriginRegion? origin = p is IRegionOrigin r ? new(r.Country, r.Region, r.ConsoleRegion, GeographicCatalog.Countries.Value, GeographicCatalog.Regions.Value, PokemonOrigin.Localize(s => s.Regions)) : null;
+        TrainerOriginRegion? origin = PokemonModeRules.Read(p).OriginRegion&&p is IRegionOrigin r ? new(r.Country, r.Region, r.ConsoleRegion, GeographicCatalog.Countries.Value, GeographicCatalog.Regions.Value, PokemonOrigin.Localize(s => s.Regions)) : null;
         bool handling = p.Format >= 6;
         return new(p.Language, p.OriginalTrainerGender, languages, p.MaxStringLengthTrainer,
             handling ? p.HandlingTrainerName : null, handling ? p.HandlingTrainerGender : null, handling ? p.CurrentHandler : null,
