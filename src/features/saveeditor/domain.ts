@@ -45,7 +45,7 @@ export interface TrainerDateField {
   max: string;
 }
 
-export const SAVE_EDITOR_API_VERSION = 188;
+export const SAVE_EDITOR_API_VERSION = 189;
 export interface SaveReport {
   slotAccess?: import("./slotAccess").SaveSlotAccessInfo;
   registeredTeams?: boolean;
@@ -64,7 +64,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 188;
+  apiVersion: 189;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;

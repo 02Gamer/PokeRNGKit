@@ -24,13 +24,17 @@ internal sealed class PokemonEncounterDatabase
     internal void SetCriteria(EncounterCriteria value)=>criteria=value;
     internal IEncounterInfo[] Results {get;private set;}=[];
     internal int GridRows {get;}
+    internal int TrainerFileCount {get;}
     internal PokemonEncounterDatabase(SaveFile source,PKM prepared,EncounterCriteria? criteria=null,
-        IReadOnlyList<ITrainerInfo>? training=null,PokemonEncounterDatabaseOptions? options=null)
+        IReadOnlyList<ITrainerInfo>? training=null,PokemonEncounterDatabaseOptions? options=null,IReadOnlyList<PKM>? trainerPokemon=null)
     {
         save=PokemonDatabase.Copy(source);editor=prepared.Clone();this.options=options??new();
         this.criteria=criteria??BuildCriteria(editor);GridRows=Math.Clamp(this.options.GridRows,5,20);
-        if(training is {Count:>1024})throw new ArgumentException("Encounter trainer database exceeds the browser limit.");
+        if((training?.Count??0)+(trainerPokemon?.Count??0)>1024)throw new ArgumentException("Encounter trainer database exceeds the browser limit.");
         foreach(var trainer in training??[])trainers.RegisterCopy(trainer);
+        int before=trainers.CountTrainers;
+        foreach(var pokemon in trainerPokemon??[])trainers.RegisterCopy(pokemon);
+        TrainerFileCount=trainers.CountTrainers-before;
     }
     internal static EncounterCriteria BuildCriteria(PKM editor)
     {

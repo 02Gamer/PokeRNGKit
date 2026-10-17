@@ -1,5 +1,19 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-17 相遇训练家文件资料（API189，工程通过，页面待核验）
+
+基线bb86bef01cfbc6327a462acaf3f6bc07ec2ddc0a。上一轮Actions39010940505已完成，build、GitHub Pages、Cloudflare Pages及Windows桌面包四任务均成功；这属于工程与部署证据，页面仍未验收。源码复核发现localResources.trainerPath尚无消费点，上游Main.MainMenuEncounterDB从该目录递归读取宝可梦，再调用TrainerDatabase.RegisterCopy(PKM)。现有手动训练家来源不能替代这个目录功能。
+
+本轮接显式选择的宝可梦文件／目录，保存在共用IndexedDB资料库的独立分类；按配置路径递归取文件，其他分类和存档文件不参与。读取沿Core BoxUtil.GetPKMsFromPaths的大小判断、扩展名上下文、EntityFormat.GetFromBytes及Species>0筛选，训练家复制／地区回退仍由Core执行。导入、移除、撤销使用资料库原子比较，重复文件先明确移除。文件只读，不改原件；相遇预览仍冻结输出。
+
+新输入同步API189，实际文件训练家计数由核心返回。单文件1MiB、总计2MiB、最多1024文件；手动及解析后的文件训练家合计最多1024。相遇打开JSON上限4Mi UTF-16码元，其他相遇请求仍为1Mi，资料载入失败明确提示并保留手动／存档来源。资源列表独立滚动，不新增控件皮肤。
+
+原生专项.tmp/pkhex-trainer-library-native-focus-final.log已退出0：覆盖E／PK3、X／PK6、X／PK9、US／PK7、US／PK9的储存／队伍及加密组合、GB列表、地区回退、复制隔离、公共计数、十三类存档公开接口及真实E.sav工作副本的相遇生成／冻结确认与字节保护。首轮夹具类型名错误已修正。前端四文件25项、定向Lint与类型检查通过，证据为.tmp/pkhex-trainer-library-front-focus-expanded.log、.tmp/pkhex-trainer-library-lint-focus.log和.tmp/pkhex-trainer-library-type.log。
+
+浏览器核心.tmp/pkhex-api189-core.log、默认完整原生.tmp/pkhex-api189-native-full.log与完整npm run verify的.tmp/pkhex-api189-verify.log均退出0；371文件／2243项前端测试、全仓格式、Lint、类型及最新核心网页／PWA打包通过。保留第三世代定点既有Hook、既有编译／裁剪及包体／插件耗时提示。资料变化后阻止沿用旧来源生成预览，保存并重新载入成功后恢复；三语提示复用现有按钮名称并随语言切换，不重复显示成功信息。
+
+外部Chrome读取本地5173和连接清单均在20秒请求后超时并重置，未取得页面或可用连接；不请求重复授权，不使用内置浏览器替代。正式布局、连续焦点、实际导入及下载交互仍待核验。原件与工作副本的SHA-256均保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442，完整接入目标未完成。
+
 ## 2026-10-17 Advanced 设置联动（API188，工程通过，页面待核验）
 
 基线465f3676663468d6456476ac1ede63c6dca6352a。补接导出存档前的宝可梦未保存检查、区块名称目录及事件排除词，复用现有44px控件和确认对话框样式。确认绑定存档副本、程序设置和编辑快照，状态变化后拒绝沿用旧确认。独立宝可梦文件导出按上游NotifyWasExported记录当前编辑内容，尚未应用的表单草稿仍需提示。

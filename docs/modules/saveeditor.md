@@ -1,5 +1,15 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-17 相遇训练家文件资料（API189，工程通过，页面待核验）
+
+来源为WinForms MainWindow/Main.cs的MainMenuEncounterDB、Core LocalResourceSettings.GetTrainerPath／Resolve、BoxUtil.GetPKMsFromPaths及TrainerDatabase.RegisterCopy(PKM)／GetTrainerReference。来源目录使用AllDirectories递归；空路径解析程序本地根目录。网页以显式导入的本机资料分类对应，默认trainers，空路径对应local，不扫描磁盘。
+
+相遇数据库原有手动训练家继续有效；增加已导入文件参与版本与旧世代语言匹配。Core执行EntityDetection.IsSizePlausible、扩展名上下文选择、EntityFormat.GetFromBytes、非空种类筛选及训练家复制。含IRegionOrigin的实体直接复制地区；其他Gen6／7来源实体沿Core按语言回退地区。JS不重写训练家身份或地区推断。打开、重新应用来源均读取当前分类，读资料期间设置变化则拒绝旧目录结果。未识别文件不参与；资料不可用时显示提示，保留手动来源或存档回退。
+
+文件传输沿既有PokemonFiles.MaximumSize的1MiB浏览器保护，总计2MiB，最多1024文件；元数据文件名1–4096字符，路径沿设置32767字符上限。手动和已解析文件训练家总计最多1024，相遇打开JSON最多4Mi UTF-16码元，其余请求维持1Mi。文件资料分类共享既有资料库总容量和原子比较；同名替换先移除，撤销不得覆盖其他标签的资料变更。资料变更后须点击现有“保存设置并重新载入”再生成预览，保留冻结确认。文件列表独立滚动，沿用既有控件皮肤。
+
+新输入与返回计数同步API189。原生专项、默认完整原生、浏览器核心、完整前端门禁及网页／PWA打包通过，日志见.tmp/pkhex-trainer-library-native-focus-final.log、.tmp/pkhex-api189-native-full.log、.tmp/pkhex-api189-core.log和.tmp/pkhex-api189-verify.log。真实E.sav工作副本的公开相遇生成与冻结确认通过，输入字节不变；这不是页面或真实游戏验收。外部Chrome标签及连接清单仍超时，正式交互待核验。
+
 ## 2026-10-17 Advanced 设置联动（API188，工程通过，页面待核验）
 
 来源为WinForms MainWindow/Main.cs的ExportSAV、PKMEditor.PKMIsUnsaved／NotifyWasExported、SAV_BlockDump8构造函数、SAV_FlagWork9a构造函数和Core AdvancedSettings.GetExclusionList8。存档导出前检查当前宝可梦的已应用编辑及未应用草稿；确认绑定存档、设置和完整编辑快照，状态变化后拒绝旧确认。单独导出宝可梦文件记录当前编辑状态，不将未应用表单视为已保存。默认启用，设置关闭时不提示。

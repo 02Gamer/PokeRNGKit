@@ -7,14 +7,14 @@ using PKHeX.Drawing.PokeSprite;
 namespace PokeRNGKit.SaveEditor;
 
 internal sealed record PokemonEncounterOpenRequest(PokemonPosition? Position=null,string? FileName=null,
-    PokemonEncounterCriteria? Criteria=null,PokemonEncounterTrainer[]? Trainers=null,PokemonEncounterDatabaseOptions? Options=null);
+    PokemonEncounterCriteria? Criteria=null,PokemonEncounterTrainer[]? Trainers=null,PokemonEncounterDatabaseOptions? Options=null,PokemonFile[]? TrainerFiles=null);
 internal sealed record PokemonEncounterReadRequest(PokemonEncounterDatabaseQuery? Query=null,int Offset=0);
 internal sealed record PokemonEncounterCriteriaRequest(string Action,PokemonEncounterCriteria? Criteria=null);
 internal sealed record PokemonEncounterDetails(string[] Zh,string[] En,string[] Ja);
 internal sealed record PokemonEncounterRow(int Id,ushort Species,byte Form,int Gender,byte Generation,int Version,
     byte LevelMin,byte LevelMax,ushort Location,ushort EggLocation,bool Egg,bool Shiny,int Ability,string Type,string Sprite,PokemonEncounterDetails Details,PokemonArtwork? Artwork=null);
 internal sealed record PokemonEncounterView(string SourceHash,int Matches,int Offset,int GridRows,
-    PokemonEncounterCriteria Criteria,PokemonEncounterRow[] Rows);
+    PokemonEncounterCriteria Criteria,PokemonEncounterRow[] Rows,int TrainerFileCount=0);
 
 public static partial class Program
 {
@@ -42,7 +42,7 @@ internal static class PokemonEncounterRuntime
     private static SaveFile? source;
     internal static string Open(byte[] input,byte[] entity,string json)
     {
-        Reset();var request=Decode(json,PokemonEncounterJson.Default.PokemonEncounterOpenRequest);
+        Reset();var request=Decode(json,PokemonEncounterJson.Default.PokemonEncounterOpenRequest,4*1024*1024);
         if(input is null||input.Length is 0 or >32*1024*1024||entity is null||entity.Length>PokemonFiles.MaximumSize||request.Trainers is {Length:>1024})throw new ArgumentException("Invalid encounter sources.");
         var save=SaveService.OpenDatabaseSave(input.ToArray());SaveSpriteView.Select(save);PKM prepared;
         if(entity.Length!=0) {
@@ -53,7 +53,8 @@ internal static class PokemonEncounterRuntime
             prepared=request.Position is {} position?PokemonEditing.Read(save,position.Box,position.Slot):save.BlankPKM;
         }
         var trainers=request.Trainers?.Select(value=>value?.ToCore()??throw new ArgumentException("Missing encounter trainer.")).ToArray();
-        var next=new PokemonEncounterSession(input,prepared,request.Criteria?.ToCore(),trainers,request.Options);
+        var trainerPokemon=PokemonEncounterTrainerFiles.Read(request.TrainerFiles,save.Context);
+        var next=new PokemonEncounterSession(input,prepared,request.Criteria?.ToCore(),trainers,request.Options,trainerPokemon);
         session=next;source=save;return View(next,0);
     }
     internal static string Read(byte[] input,string json)
@@ -75,7 +76,7 @@ internal static class PokemonEncounterRuntime
             value.LevelMin,value.LevelMax,value.Location,value.EggLocation,value.IsEgg,value.IsShiny,(int)value.Ability,
             value.GetType().Name,Sprite(value),new(value.GetTextLines(language:"zh-Hans").ToArray(),value.GetTextLines(language:"en").ToArray(),value.GetTextLines(language:"ja").ToArray()),SaveProgramSettingsRuntime.Current is not null?SaveArtwork.Encounter(value):null)).ToArray();
         return JsonSerializer.Serialize(new PokemonEncounterView(current.SourceHash,results.Length,offset,current.Database.GridRows,
-            PokemonEncounterCriteria.From(current.Database.Criteria),rows),PokemonEncounterJson.Default.PokemonEncounterView);
+            PokemonEncounterCriteria.From(current.Database.Criteria),rows,current.Database.TrainerFileCount),PokemonEncounterJson.Default.PokemonEncounterView);
     }
     internal static string Sprite(IEncounterInfo value)
     {
@@ -114,9 +115,9 @@ internal static class PokemonEncounterRuntime
         return (uint)id<results.Length?results[id]:throw new ArgumentException("Invalid encounter hover id.");
     }
     private static PokemonEncounterSession Session()=>session??throw new ArgumentException("Load the encounter database first.");
-    private static T Decode<T>(string json,System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> type)where T:class
+    private static T Decode<T>(string json,System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> type,int maximum=1024*1024)where T:class
     {
-        if(json is null||json.Length>1024*1024)throw new ArgumentException("Encounter metadata exceeds the browser limit.");
+        if(json is null||json.Length>maximum)throw new ArgumentException("Encounter metadata exceeds the browser limit.");
         return JsonSerializer.Deserialize(json,type)??throw new ArgumentException("Missing encounter metadata.");
     }
 }

@@ -1,5 +1,9 @@
 # PKHeX 完整接入清单
 
+## 2026-10-17 相遇训练家文件资料（API189，工程通过，页面待核验）
+
+上游Main.MainMenuEncounterDB会从TrainerPath递归读取宝可梦文件。既有手动训练家表单已接线，但没有该文件来源；本轮补真实文件资料分类、Core身份／地区提取、相遇版本匹配及注册计数，保留手动来源和冻结预览。输入限制及来源见[存档模块文档](modules/saveeditor.md)。API189专项、默认完整原生、浏览器核心及完整前端门禁通过，真实E.sav工作副本的生成／冻结确认通过且字节不变；不以这些工程结果代替页面验收。上一轮bb86bef0的Actions39010940505四任务均成功部署／打包，正式页面仍待外部浏览器核验。
+
 ## 2026-10-17 Advanced 设置联动（API188，工程通过，页面待核验）
 
 saveExportCheckUnsavedEntity接存档导出前的当前宝可梦编辑检查及过期确认保护；pathBlockKeyList接显式导入的本机TXT资料分类，区块与Z-A事件分别匹配具体类型的.txt和_flagwork.txt；hideEvent8Contains接区块初始排除词，沿Core先去空项再Trim的顺序。三个设置已有实际消费点，可用状态表同步开放，专项与完整前端门禁通过。来源、限制和平台差异见[存档模块文档](modules/saveeditor.md)。这不表示完整PKHeX目标或正式页面已验收。

@@ -30,6 +30,9 @@ import type { StandalonePokemonSnapshot } from "./standalonePokemon";
 import "./PokemonEncounterViewer.css";
 import { settingsWords } from "./settingsLabels";
 import { playSaveSound } from "./saveSound";
+import { loadEncounterTrainerFiles } from "./trainerLibrary";
+import { TrainerLibraryWorkspace } from "./TrainerLibraryWorkspace";
+import { trainerLibraryWords } from "./trainerLibraryWords";
 
 export interface EncounterActions {
   hover?: import("./pokemonHover").ReadPokemonHoverTarget;
@@ -62,6 +65,9 @@ export function PokemonEncounterViewer({
   const [local] = useState(loadEncounterSettings);
   const [options] = useState<EncounterOptions>(local.options),
     [trainers, setTrainers] = useState<EncounterTrainer[]>(local.trainers);
+  const [trainerLibraryUnavailable, setTrainerLibraryUnavailable] =
+    useState(false);
+  const [trainerLibraryChanged, setTrainerLibraryChanged] = useState(false);
   const [view, setView] = useState<EncounterView>(),
     [catalog, setCatalog] = useState<EncounterCatalog>(),
     [criteria, setCriteria] = useState<EncounterCriteria>();
@@ -108,15 +114,25 @@ export function PokemonEncounterViewer({
       await Promise.resolve();
       if (!active) return;
       try {
+        const library = await loadEncounterTrainerFiles();
+        if (!active) return;
+        setTrainerLibraryUnavailable(library.failed);
         let result = await latest.current.request(
           "encounterOpen",
-          JSON.stringify({ options: local.options, trainers: local.trainers }),
+          JSON.stringify({
+            options: local.options,
+            trainers: local.trainers,
+            trainerFiles: library.files,
+          }),
         );
         if (!active) return;
         if (!result?.encounters) {
           // Keep stored drafts editable even if Core rejects a stale trainer
           // reference. Open a fresh source to obtain current candidate lists.
-          result = await latest.current.request("encounterOpen", "{}");
+          result = await latest.current.request(
+            "encounterOpen",
+            JSON.stringify({ trainerFiles: library.files }),
+          );
           if (!active) return;
           setMessage(currentWords.current.failed);
         }
@@ -174,7 +190,14 @@ export function PokemonEncounterViewer({
     setView(undefined);
     setFocused(undefined);
     setTicket(undefined);
-    const source: EncounterOpen = { options, trainers };
+    const library = await loadEncounterTrainerFiles();
+    if (!life.current) return;
+    setTrainerLibraryUnavailable(library.failed);
+    const source: EncounterOpen = {
+      options,
+      trainers,
+      trainerFiles: library.files,
+    };
     if (sourceKind === "slot" && !edited) source.position = { box, slot };
     if (edited) {
       if (edited.inputEncrypted || !edited.useFileFormat) throw Error();
@@ -198,6 +221,7 @@ export function PokemonEncounterViewer({
     if (!life.current) return;
     setCatalog(next.encounterCatalog);
     setTicket(undefined);
+    setTrainerLibraryChanged(false);
     if (saveSettings)
       try {
         saveEncounterSettings(options, trainers);
@@ -236,7 +260,7 @@ export function PokemonEncounterViewer({
     if (life.current && action !== "set") playSaveSound("other");
   }
   async function generate() {
-    if (focused === undefined) return;
+    if (focused === undefined || trainerLibraryChanged) return;
     const result = await actions.request("encounterPreview", String(focused));
     if (!result?.encounterPreview) throw Error();
     if (life.current) setTicket(result.encounterPreview);
@@ -781,6 +805,14 @@ export function PokemonEncounterViewer({
           {catalog && tab === "trainers" && (
             <>
               <p>{w.trainerHint}</p>
+              <TrainerLibraryWorkspace
+                lang={lang}
+                busy={blocked}
+                onChanged={() => setTrainerLibraryChanged(true)}
+              />
+              <p>
+                {trainerLibraryWords[lang].count}: {view?.trainerFileCount ?? 0}
+              </p>
               <button
                 type="button"
                 disabled={blocked || trainers.length >= 1024}
@@ -954,6 +986,7 @@ export function PokemonEncounterViewer({
                   type="button"
                   disabled={
                     blocked ||
+                    trainerLibraryChanged ||
                     focused === undefined ||
                     JSON.stringify(criteria) !== JSON.stringify(view.criteria)
                   }
@@ -1072,6 +1105,12 @@ export function PokemonEncounterViewer({
             </section>
           )}
         </div>
+        {trainerLibraryUnavailable && (
+          <p role="status">{trainerLibraryWords[lang].unavailable}</p>
+        )}
+        {trainerLibraryChanged && (
+          <p role="status">{trainerLibraryWords[lang].saved}</p>
+        )}
         {message && <p role="status">{message}</p>}
       </section>
     </PokemonHoverSurface>

@@ -17,11 +17,11 @@ internal sealed class PokemonEncounterSession
     private PokemonFile? frozen;
     private static long sequence;
     internal PokemonEncounterSession(byte[] input,PKM prepared,EncounterCriteria? criteria=null,
-        IReadOnlyList<ITrainerInfo>? trainers=null,PokemonEncounterDatabaseOptions? options=null)
+        IReadOnlyList<ITrainerInfo>? trainers=null,PokemonEncounterDatabaseOptions? options=null,IReadOnlyList<PKM>? trainerPokemon=null)
     {
         if(input is null || input.Length is 0 or >32*1024*1024)throw new ArgumentException("Invalid encounter save size.");
         var owned=input.ToArray();sourceHash=Br4Editing.Hash(owned);source=SaveService.OpenDatabaseSave(owned);
-        Database=new(source,prepared,criteria,trainers,options);
+        Database=new(source,prepared,criteria,trainers,options,trainerPokemon);
     }
     internal IEncounterInfo[] Search(byte[] input,PokemonEncounterDatabaseQuery query)
     {

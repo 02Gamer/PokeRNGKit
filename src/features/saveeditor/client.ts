@@ -112,6 +112,10 @@ export class SaveEditorClient {
     kind: import("./encounterProtocol").EncounterRequestKind,
     entity?: Uint8Array,
   ): Promise<SaveEditorResult> {
+    if (json.length > (kind === "encounterOpen" ? 4 : 1) * 1024 * 1024)
+      return Promise.reject(
+        new Error("Encounter metadata exceeds the local size limit."),
+      );
     if (entity && entity.byteLength > 1024 * 1024)
       return Promise.reject(
         new Error("Encounter entity exceeds the local size limit."),

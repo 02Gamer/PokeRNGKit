@@ -5,7 +5,7 @@ import { parseBattleTemplate, battleTemplateWords } from "./battleTemplate";
 import { BattleTemplateViewer } from "./BattleTemplateViewer";
 const hash = "A".repeat(64);
 const value = {
-  apiVersion: 188,
+  apiVersion: 189,
   sourceHash: hash,
   scope: "single",
   box: null,

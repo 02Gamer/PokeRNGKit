@@ -50,6 +50,7 @@ export interface EncounterOpen {
   fileName?: string;
   criteria?: EncounterCriteria;
   trainers?: EncounterTrainer[];
+  trainerFiles?: { fileName: string; data: string }[];
   options?: EncounterOptions;
 }
 export interface EncounterQuery {
@@ -81,6 +82,7 @@ export interface EncounterRow {
   details: { zh: string[]; en: string[]; ja: string[] };
 }
 export interface EncounterView {
+  trainerFileCount: number;
   sourceHash: string;
   matches: number;
   offset: number;
