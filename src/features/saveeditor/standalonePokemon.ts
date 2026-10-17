@@ -16,7 +16,7 @@ import type { PokemonEdit } from "./PokemonEditor";
 export const MAX_ENTITY_BYTES = 1024 * 1024;
 export interface StandalonePokemonReport {
   automaticHints?: import("./PokemonAutomaticHints").AutomaticHints | null;
-  apiVersion: 185;
+  apiVersion: 186;
   spriteMode?: "a" | "b" | "c";
   format: string;
   extension: string;
@@ -31,6 +31,10 @@ export interface StandalonePokemonReport {
   gb?: GbSpecialInfo | null;
 }
 export interface StandalonePokemonRequest {
+  draftHints?: {
+    sourceHash: string;
+    capture: import("./pokemonDraftPlan").PokemonDraftCapture;
+  };
   metSuggestion?: import("./metSuggestion").MetSuggestionInput;
   metSuggestionConfirmation?: import("./metSuggestion").MetSuggestionConfirmation;
   metSuggestionToken?: string;
@@ -161,6 +165,7 @@ export interface GbPokemonEdit {
   heldItem: number | null;
 }
 export interface StandalonePokemonResult {
+  draftHints?: import("./pokemonHintsPreview").PokemonHintsPreview;
   metSuggestion?: import("./metSuggestion").MetSuggestionPreview;
   battleTemplateImport?: import("./battleTemplateImport").BattleTemplateImportTicket;
   battleTemplate?: import("./battleTemplate").BattleTemplateReport;

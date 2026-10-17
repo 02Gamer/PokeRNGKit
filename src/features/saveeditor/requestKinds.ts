@@ -353,6 +353,7 @@ export type SaveEditorRequestKind =
   | "entityGb"
   | "entityDetails"
   | "entityLegality"
+  | "entityDraftHints"
   | "entityInspect"
   | "entityEdit"
   | "entityExport";

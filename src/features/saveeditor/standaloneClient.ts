@@ -39,6 +39,16 @@ export class StandalonePokemonClient {
       kind,
     ) as unknown as Promise<StandalonePokemonResult>;
   }
+  readDraftHints(bytes: Uint8Array, request: StandalonePokemonRequest) {
+    if (!bytes.length || bytes.length > MAX_ENTITY_BYTES)
+      return Promise.reject(new Error("Entity file size is invalid."));
+    return this.client
+      .run(bytes, JSON.stringify(request), "entityDraftHints")
+      .then((result) => {
+        if (!result.draftHints) throw Error("Missing draft hints");
+        return result.draftHints;
+      });
+  }
   dispose(message = "Entity file operation cancelled.") {
     this.client.dispose(message);
   }

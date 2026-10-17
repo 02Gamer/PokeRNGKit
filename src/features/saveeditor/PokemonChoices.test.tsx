@@ -17,7 +17,17 @@ vi.mock("react-i18next", () => ({
 }));
 // Observe the option contract independently of the shared popup's open state.
 vi.mock("./PokemonSelect", () => ({
-  PokemonSelect: (props: ComponentProps<"select">) => <select {...props} />,
+  PokemonSelect: ({
+    highlightedValues,
+    ...props
+  }: ComponentProps<"select"> & {
+    highlightedValues?: ReadonlySet<string>;
+  }) => (
+    <select
+      {...props}
+      data-highlights={[...(highlightedValues ?? [])].join(",")}
+    />
+  ),
 }));
 vi.mock("./useGenderLabel", () => ({
   useGenderLabel: () => (v: number) => String(v),

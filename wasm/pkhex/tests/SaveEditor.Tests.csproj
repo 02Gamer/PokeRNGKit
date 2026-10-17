@@ -25,6 +25,7 @@
     <Compile Include="../PokemonEditorMode.cs" Link="PokemonEditorMode.cs" />
     <Compile Include="../PokemonEditorRules.cs" Link="PokemonEditorRules.cs" />
     <Compile Include="../PokemonAutomaticHints.cs" Link="PokemonAutomaticHints.cs" />
+    <Compile Include="../PokemonHintsPreview.cs" Link="PokemonHintsPreview.cs" />
     <Compile Include="../PokemonMetSuggestion.cs" Link="PokemonMetSuggestion.cs" />
     <Compile Include="../PokemonMetSuggestionSession.cs" Link="PokemonMetSuggestionSession.cs" />
     <Compile Include="../PokemonChoiceCatalog.cs" Link="PokemonChoiceCatalog.cs" />

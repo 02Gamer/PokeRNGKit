@@ -5,6 +5,7 @@ import { useState } from "react";
 import { playSaveSound } from "./saveSound";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
+import { PokemonMoveSelect } from "./PokemonMoveSelect";
 import { saveEditorResources } from "./locales";
 import { standaloneWords } from "./standaloneWords";
 import type {
@@ -290,7 +291,9 @@ export function StandaloneGbEditor({
             <span>
               {common.moves} {i + 1}
             </span>
-            <Select
+            <PokemonMoveSelect
+              choices={report.moveChoices}
+              lang={lang}
               disabled={disabled}
               value={move}
               onChange={(e) =>
@@ -301,22 +304,7 @@ export function StandaloneGbEditor({
                   ),
                 })
               }
-            >
-              {report.moveChoices.map((choice, id) =>
-                choice.selectable === false && id !== Number(move) ? null : (
-                  <option
-                    key={id}
-                    value={id}
-                    disabled={choice.selectable === false}
-                    data-source-invalid={
-                      choice.selectable === false || undefined
-                    }
-                  >
-                    {choice.name[lang]}
-                  </option>
-                ),
-              )}
-            </Select>
+            />
           </label>
           {(["movePp", "movePpUps"] as const).map((key) => (
             <label className="field" key={key}>

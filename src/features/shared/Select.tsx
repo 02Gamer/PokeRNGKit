@@ -20,6 +20,7 @@ type SelectProps = Omit<
   "children" | "onChange" | "onClick" | "onKeyDown" | "onMouseDown"
 > & {
   children?: ReactNode;
+  highlightedValues?: ReadonlySet<string>;
   onChange?: (event: ChangeEvent<HTMLSelectElement>) => void;
 };
 
@@ -76,6 +77,7 @@ function createChangeEvent(
 
 export function Select({
   children,
+  highlightedValues,
   className,
   disabled = false,
   id,
@@ -110,8 +112,14 @@ export function Select({
     options.findIndex((option) => option.value === selectedValue),
     0,
   );
-  const [activeIndex, setActiveIndex] = useState(selectedIndex);
   const selectedOption = options[selectedIndex];
+  const [activeValue, setActiveValue] = useState(selectedOption?.value ?? "");
+  const activeMatch = options.findIndex(
+    (option) => option.value === activeValue,
+  );
+  const activeIndex = activeMatch < 0 ? selectedIndex : activeMatch;
+  const setActiveIndex = (index: number) =>
+    setActiveValue(options[index]?.value ?? selectedOption?.value ?? "");
   const enabledIndexes = options
     .map((option, index) => (option.disabled ? -1 : index))
     .filter((index) => index >= 0);
@@ -264,6 +272,9 @@ export function Select({
                   )}
                 <button
                   aria-selected={option.value === selectedValue}
+                  data-highlighted={
+                    highlightedValues?.has(option.value) || undefined
+                  }
                   className={index === activeIndex ? "active" : undefined}
                   disabled={option.disabled}
                   id={`${listboxId}-option-${index}`}

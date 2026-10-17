@@ -19,6 +19,34 @@ const request = {
   useFileFormat: true,
 };
 describe("independent entity worker lifecycle", () => {
+  it("reads draft hints with typed capture and immutable file metadata without requiring an entity output", async () => {
+    const client = new StandalonePokemonClient(),
+      source = new Uint8Array([1, 2, 3]);
+    const input = {
+      ...request,
+      draftHints: {
+        sourceHash: "A".repeat(64),
+        capture: { scope: "live", sections: [] },
+      },
+    };
+    const pending = client.readDraftHints(source, input),
+      worker = FakeWorker.instances[0];
+    const [message, transfer] = worker.postMessage.mock.calls[0];
+    expect(message.kind).toBe("entityDraftHints");
+    expect(JSON.parse(message.edit)).toEqual(input);
+    expect(message.bytes).not.toBe(source);
+    expect(transfer).toEqual([message.bytes.buffer]);
+    const draftHints = {
+      apiVersion: 186,
+      sourceHash: input.draftHints.sourceHash,
+      requestHash: "B".repeat(64),
+      hints: null,
+    };
+    worker.onmessage?.({ data: { id: message.id, draftHints } });
+    expect(await pending).toEqual(draftHints);
+    expect(source).toEqual(new Uint8Array([1, 2, 3]));
+    client.dispose();
+  });
   it.each([
     "entityMetSuggestionPreview",
     "entityMetSuggestionCommit",
@@ -41,7 +69,7 @@ describe("independent entity worker lifecycle", () => {
           ? { output: new Uint8Array([4]) }
           : {};
     worker.onmessage?.({
-      data: { id: message.id, entity: { apiVersion: 185 }, ...fields },
+      data: { id: message.id, entity: { apiVersion: 186 }, ...fields },
     });
     expect(await pending).toMatchObject(fields);
     expect(source).toEqual(new Uint8Array([1, 2, 3]));
@@ -114,7 +142,7 @@ describe("independent entity worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect(transfer).toEqual([message.bytes.buffer]);
       worker.onmessage?.({
-        data: { id: message.id, entity: { apiVersion: 185 }, ...fields },
+        data: { id: message.id, entity: { apiVersion: 186 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(original);
@@ -356,7 +384,7 @@ describe("independent entity worker lifecycle", () => {
     expect(transfer).toContain(message.editorSave.buffer);
     expect(message.editorSave.buffer).not.toBe(save.buffer);
     worker.onmessage?.({
-      data: { id: message.id, entity: { apiVersion: 185 } },
+      data: { id: message.id, entity: { apiVersion: 186 } },
     });
     await pending;
     const next = client.run(new Uint8Array([4]), request),

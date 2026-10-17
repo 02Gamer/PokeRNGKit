@@ -8,7 +8,6 @@ import { PokemonLegacyDetailsEditor } from "./PokemonLegacyDetailsEditor";
 import { PokemonSpecialStatusEditor } from "./PokemonSpecialStatusEditor";
 import { PokemonAlphaMoveEditor } from "./PokemonAlphaMoveEditor";
 import { saveFailureFeedback } from "./saveFailureFeedback";
-import { PokemonDraftContext } from "./pokemonDraftValidation";
 import { PokemonDraftRegistry } from "./pokemonDraftRegistry";
 import {
   useCallback,
@@ -38,6 +37,11 @@ import { saveEditorResources } from "./locales";
 import { PokemonSprite } from "./PokemonSprite";
 import { PokemonLegality } from "./PokemonLegality";
 import { PokemonAutomaticHints } from "./PokemonAutomaticHints";
+import { moveHintWords } from "./pokemonHintsPreview";
+import {
+  PokemonLiveHintsProvider,
+  PokemonLiveHintsStatus,
+} from "./PokemonLiveHints";
 import { MetSuggestionWorkspace } from "./MetSuggestionWorkspace";
 import {
   parseMetSuggestion,
@@ -998,7 +1002,13 @@ export function StandalonePokemonPanel({
     });
   }, [acceptedFile, busy, disabled, perform]);
   return (
-    <PokemonDraftContext value={draftRegistry}>
+    <PokemonLiveHintsProvider
+      registry={draftRegistry}
+      snapshot={working}
+      saveContext={saveContext}
+      haX={report?.pokemon.haX ?? true}
+      disabled={busy || !report?.canEdit}
+    >
       <div className="save-editor-panel" aria-busy={busy}>
         <p>{saveContext ? pokemonSetWords[lang].note : words.intro}</p>
         {!seed && (
@@ -1291,17 +1301,26 @@ export function StandalonePokemonPanel({
                   onReviewing={setMetReviewing}
                 />
               )}
-            <PokemonAutomaticHints
-              info={report.pokemon.haX ? undefined : report.automaticHints}
-              lang={lang}
-            />
+            {report.canEdit ? (
+              <PokemonLiveHintsStatus lang={lang} />
+            ) : (
+              <PokemonAutomaticHints
+                info={report.pokemon.haX ? undefined : report.automaticHints}
+                lang={lang}
+              />
+            )}
             <PokemonLegality
               position={report.pokemon}
               report={legality}
               busy={busy}
               onAnalyze={analyze}
             />
-            <p className="save-editor-note">{words.legalityContext}</p>
+            <p className="save-editor-note">
+              {moveHintWords[lang].appliedReport}{" "}
+              {saveContext
+                ? moveHintWords[lang].boundContext
+                : words.legalityContext}
+            </p>
             {report.canEdit ? (
               <>
                 {report.generation < 3 ? (
@@ -1707,6 +1726,6 @@ export function StandalonePokemonPanel({
           </>
         )}
       </div>
-    </PokemonDraftContext>
+    </PokemonLiveHintsProvider>
   );
 }

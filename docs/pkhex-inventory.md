@@ -1,5 +1,17 @@
 # PKHeX 完整接入清单
 
+## 2026-10-17 当前输入提示与招式候选（API186，工程通过，页面待核验）
+
+基线`b4bd47db3c926d2640ffc9c0438056d618c9b3ee`。标准与第一／二世代编辑器已接Core `LegalMoveInfo`的可学习招式候选，普通模式按可学习组优先、当前语言名称的ordinal顺序排列，并复用共享选择器浅色提示；HaX关闭提示。目录过滤与当前异常值保留独立处理，可学习性不会禁止选择其他目录内招式。回忆招式仍沿其独立目录与格位提示，不套用当前招式候选规则。
+
+草稿区沿当前修订首次注册顺序稳定捕获，提示快照与实际放入使用相同顺序，控件重新注册不重排。当前有效草稿经350ms防抖进入独立只读Worker，复用既有草稿准备与真实存档上下文，不写实体缓冲或存档。请求串行、只保留最新结果；返回值绑定来源文件与完整请求哈希，来源／设置／配信列表变化后旧结果失效，无效输入与失败状态不保留旧推荐。共享选择器以候选值维护活动项，避免异步排序后键盘活动位置指向其他招式。中文／英文／日文状态与说明已接线。
+
+API186最终专项与默认完整原生检查均退出0，包含真实E.sav工作副本。覆盖18种实体的存储／队伍／加密输入、Core可学习集合对照、普通／HaX、草稿种类变更、实际E／SM／LGPE上下文、请求哈希和拒绝路径、来源保护及既有冻结确认不被只读查询消费。证据见`.tmp/pkhex-api186-native-checked.log`和`.tmp/pkhex-api186-native-full.log`。
+
+草稿捕获顺序修正后的完整类型、363文件／2219项完整前端测试、API186核心和最新核心网页／PWA打包通过。完整Lint通过，最后三文件再检查无新增警告；保留第三世代定点原有Hook以及既有编译／裁剪、包体与插件耗时提示。证据见`.tmp/pkhex-api186-order-typecheck.log`、`.tmp/pkhex-api186-order-tests-full.log`、`.tmp/pkhex-api186-lint.log`、`.tmp/pkhex-api186-order-lint.log`、`.tmp/pkhex-api186-core.log`和`.tmp/pkhex-api186-web.log`。
+
+原始`C:\Users\Hakuhiro\Desktop\200\battery\E.sav`与工作副本SHA-256均保持`7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442`。上一批b4bd47db的Actions38989598601已成功部署。Chrome可被识别，但标签读取及直接绑定仍返回超时／fetch失败；释放闲置C#编译服务后复查仍未恢复。正式页面、键盘焦点、连续操作与实际下载未核验，不作所有者验收；完整接入目标和剩余调用面继续保留。
+
 ## 2026-10-17 全局模式与相遇建议（API185，工程通过，页面待核验）
 
 基线 `5edf994bb834b2102a6b082c68f72414ed0caa39`。增加按实际实体格式计算的共享编辑规则，统一手动特性／编号、PA9普通模式例外、LGPE／PLA持有道具及LGPE原始地区可见性；无关编辑保留原值。基础编辑与草稿准备沿相同规则，HaX身份与手动特性不再被当作隐式特性覆盖冲突。
@@ -96,7 +108,9 @@ API177 阶段检查：.tmp/pkhex-dimensions-native-floats.log 原生专项、两
 
 API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、.tmp/pkhex-api176-native-full.log 默认完整原生、.tmp/pkhex-api176-verify.log 完整 npm run verify 均退出 0。350 文件／2067 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有一条提醒及既有编译／裁剪、包体提示。新专项覆盖 15 种实体的四布局、全部菌株／天数组合、感染／治愈状态表、PK5 邻位／名气、GC 原始零编码、箱位／队伍与两种牧场修订版的完整文件对照；默认完整套件带已授权 E.sav 工作副本检查。最终原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 对已授权本地页的调用仍失败，真实交互、焦点与下载尚未验收；完整接入目标继续保留。
 
-## API178 主编辑器字段当前对照
+## 主编辑器字段当前对照（至API186）
+
+本页保留各阶段工程记录；历史条目中的待完成只描述当时状态，不能直接作为当前缺口。当前范围以本表、下方子窗口盘点、HaX调用面和提示音清单逐项核对，仍不替代实际页面与所有者验收。
 
 本表补充下方子窗口清单，按当前正式输入路径与上游主窗口分组对照；“已接”只表示代码入口存在，工程结果另见本页最新记录，所有组仍须实际页面核验。表内没有把批量属性编辑视为正式表单，也不以本表宣称穷尽上游全部行为。读写边界和字段范围继续以模块文档与对应源码为准。
 
@@ -107,11 +121,11 @@ API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、
 | 文字编码与尾部字节                                       | 文本／Trash 共用编辑器                            | 已接，不能当作普通训练家字段表单的替代                                                                 |
 | 语言、原训练家性别、经手训练家／归属／语言、原始地区     | PokemonTrainerDetails                             | API175 已接两入口；按实际格式与目录显示                                                                |
 | PID、加密常量、HOME、异色动作                            | PokemonRawEditor／PokemonRawEditing／PokemonShiny | 已接；与保存的原值及派生数据分别处理                                                                   |
-| 性格、能力性格、普通特性槽位、持有道具                   | PokemonEditor／PokemonEditing                     | API178 另接手动特性、一位特性编号和按编号查找；存档游戏／实体格式目录分别校验                          |
+| 性格、能力性格、普通特性槽位、持有道具                   | PokemonEditor／PokemonEditing                     | API178接手动字段／编号；API185统一普通与HaX的特性、编号及持有道具规则；实际存档目录分别校验            |
 | 经验值、等级、经验条、异常状态、觉醒力量、手动队伍能力值 | PokemonVitals                                     | API172 已接；无实际状态存储的格式明确限制                                                              |
 | 六项 IV／EV、极限特训、华丽与光泽                        | PokemonEditor／PokemonTraining                    | 已接；LGPE 隐藏普通 EV 时保留原数据                                                                    |
 | AV／GV、极巨／超极巨、头目／王、太晶原始／覆盖           | PokemonAdvancedStats                              | API174 已接实际接口；PA9 不虚构 ITeraType                                                              |
-| 当前招式、PP、提升次数、回忆招式、学习／精通记录         | 基础招式／Relearn／TechRecord／AlphaMove          | 已接多个正式路径；不能把初始头目精通招式当成商店学习标记                                               |
+| 当前招式、PP、提升次数、回忆招式、学习／精通记录         | 基础招式／Relearn／TechRecord／AlphaMove          | API186另接当前草稿的Core可学习候选分组／排序／提示；回忆目录与记录独立，页面待核验                     |
 | 游戏、球、相遇／蛋地点、相遇等级、日期、命运相遇         | PokemonOrigin／PokemonEncounter                   | API177 已按 G4PKM 补 RK4 日期；其他格式仍须随完整覆盖审计核对                                          |
 | 地形 GroundTile                                          | 原版 EditPK4／5 与相关格式路径                    | API177 通过 PokemonLegacyDetails 接入 Gen4 原游戏的正式地形选择；完整工程门禁通过，实际页面未验收      |
 | 蛋转换、孵化、周期、训练家上下文                         | PokemonEgg／StandaloneEgg                         | 已接；完整队伍与空位规则随源类型处理                                                                   |
@@ -626,4 +640,4 @@ API 9 已接入单只文件导入与解密导出，使用核心默认转换规�
 | `Subforms/Save Editors/SAV_Wondercard.cs`                                     | API 146：Gen4–7／LGPE 相册、三语图像、领取／卡片操作与本地 QR 已接；完整工程通过，页面待核验                                                                                        |
 | `Subforms/Save Editors/TrainerStat.cs`                                        | 读写与三语名称已接入；浏览器待核验                                                                                                                                                  |
 | `Subforms/SaveHandlerTroubleshooter.cs`                                       | API163：32 类型／六处理器、来源参数目录、Worker 上下文与编辑／导出／撤销重绑定已接；完整工程通过，页面待核验                                                                        |
-| `Subforms/SettingsEditor.cs`                                                  | API164 部分接入：22 组目录、三语本机设置、Core／工作流／图片／资料目录、跨来源悬停、本机叫声、格位光晕、形状标记及蓝／粉色设置已有消费点；其余显示、声音等未完成，页面待核验        |
+| `Subforms/SettingsEditor.cs`                                                  | API164起分批接入22组目录、三语本机设置及Core／工作流／显示／声音消费点；后续已接经验状态、球种、格位及HaX关联。完整消费点审计与实际页面仍待完成                                     |

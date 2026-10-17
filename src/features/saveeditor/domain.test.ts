@@ -15,7 +15,7 @@ import {
 
 export const emeraldReport: SaveReport = {
   pokedex: { kind: "simple", canEdit: true },
-  apiVersion: 185,
+  apiVersion: 186,
   trainer: {
     appearance6: null,
     gameVersion: { value: 3, choices: [] },

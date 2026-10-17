@@ -45,7 +45,7 @@ export interface TrainerDateField {
   max: string;
 }
 
-export const SAVE_EDITOR_API_VERSION = 185;
+export const SAVE_EDITOR_API_VERSION = 186;
 export interface SaveReport {
   slotAccess?: import("./slotAccess").SaveSlotAccessInfo;
   registeredTeams?: boolean;
@@ -64,7 +64,7 @@ export interface SaveReport {
       | "za";
     canEdit: boolean;
   } | null;
-  apiVersion: 185;
+  apiVersion: 186;
   spriteMode?: "a" | "b" | "c";
   spriteFilter?: { grayscale: number; alpha: number[] } | null;
   emptySlotMarkers?: { box: number; slot: number; markers: string[] }[] | null;
@@ -886,6 +886,7 @@ export interface RibbonCatalog {
   affixedChoices: { id: number; name: LocalizedText }[];
 }
 export interface SaveEditorResult {
+  draftHints?: import("./pokemonHintsPreview").PokemonHintsPreview;
   metSuggestion?: import("./metSuggestion").MetSuggestionPreview;
   pokemonSet?: import("./pokemonSet").PokemonSetTicket;
   pokemonEditorFile?: { fileName: string; data: string };

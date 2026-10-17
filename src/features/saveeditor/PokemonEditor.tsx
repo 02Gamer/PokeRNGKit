@@ -7,6 +7,7 @@ import { playSaveSound } from "./saveSound";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PokemonSelect as Select } from "./PokemonSelect";
+import { PokemonMoveSelect } from "./PokemonMoveSelect";
 import type { MoveChoice, PokemonEntry, SaveReport } from "./domain";
 import type { saveEditorResources } from "./locales";
 
@@ -516,7 +517,9 @@ export function PokemonEditor({
               <span>
                 {words.moves} {index + 1}
               </span>
-              <Select
+              <PokemonMoveSelect
+                choices={moveChoices}
+                lang={lang}
                 disabled={disabled}
                 value={values.moves[index]}
                 onChange={(e) =>
@@ -533,23 +536,7 @@ export function PokemonEditor({
                     ),
                   })
                 }
-              >
-                {moveChoices.map((move, id) =>
-                  move.selectable === false &&
-                  id !== Number(values.moves[index]) ? null : (
-                    <option
-                      key={id}
-                      value={id}
-                      disabled={move.selectable === false}
-                      data-source-invalid={
-                        move.selectable === false || undefined
-                      }
-                    >
-                      {move.name[lang]}
-                    </option>
-                  ),
-                )}
-              </Select>
+              />
             </label>
             <label className="field">
               <span>PP</span>

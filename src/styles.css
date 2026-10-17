@@ -3264,6 +3264,10 @@ h1 {
   line-height: 22px;
 }
 
+.haku-select-menu button[data-highlighted="true"]:not(:disabled) {
+  background: var(--teal-soft);
+}
+
 .haku-select-menu button:hover:not(:disabled),
 .haku-select-menu button.active,
 .haku-select-menu button[aria-selected="true"] {

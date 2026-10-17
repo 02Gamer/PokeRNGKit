@@ -2,6 +2,63 @@
 import { expect, it, vi } from "vitest";
 import { PokemonDraftRegistry } from "./pokemonDraftRegistry";
 
+it("batches leases into one current snapshot and preserves stable section ordering", async () => {
+  const registry = new PokemonDraftRegistry("live"),
+    listener = vi.fn();
+  const unsubscribe = registry.subscribe(listener);
+  const remove = registry.registerPreparation("z", () => [
+    { kind: "raw", edit: { action: "encounter", encounter: { metLevel: 5 } } },
+  ]);
+  registry.registerPreparation("a", () => [
+    {
+      kind: "raw",
+      edit: { action: "encounter", encounter: { fateful: true } },
+    },
+  ]);
+  registry.register("a", () => {});
+  await Promise.resolve();
+  expect(listener).toHaveBeenCalledTimes(1);
+  const before = registry.snapshot();
+  expect(
+    JSON.parse(before).sections.map(
+      (section: { section: string }) => section.section,
+    ),
+  ).toEqual(["z", "a"]);
+  expect(before).toBe(JSON.stringify(registry.capture("live")));
+  remove();
+  registry.registerPreparation("z", () => [
+    { kind: "raw", edit: { action: "encounter", encounter: { metLevel: 5 } } },
+  ]);
+  await Promise.resolve();
+  expect(registry.snapshot()).toBe(before);
+  expect(registry.snapshot()).toBe(JSON.stringify(registry.capture("live")));
+  registry.register("a", () => {
+    throw Error("invalid input");
+  });
+  await Promise.resolve();
+  expect(registry.snapshot()).toBe("invalid");
+  unsubscribe();
+  const count = listener.mock.calls.length;
+  registry.registerPreparation("extra", () => []);
+  await Promise.resolve();
+  expect(listener).toHaveBeenCalledTimes(count);
+});
+
+it("captures updated pending values after replacement and ignores stale lease cleanup", async () => {
+  const registry = new PokemonDraftRegistry("live");
+  const stale = registry.registerPreparation("edit", () => [
+    { kind: "raw", edit: { action: "encounter", encounter: { metLevel: 5 } } },
+  ]);
+  registry.registerPreparation("edit", () => [
+    { kind: "raw", edit: { action: "encounter", encounter: { metLevel: 25 } } },
+  ]);
+  stale();
+  expect(
+    JSON.parse(registry.snapshot()).sections[0].steps[0].edit.encounter
+      .metLevel,
+  ).toBe(25);
+});
+
 it("collects every failing section without stopping at the first failure", () => {
   const registry = new PokemonDraftRegistry();
   const valid = vi.fn();

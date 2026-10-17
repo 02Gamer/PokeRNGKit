@@ -10,6 +10,30 @@ export interface DraftModifiers {
 /** One registry belongs to one entity position and working-copy revision. */
 export class PokemonDraftRegistry {
   constructor(readonly scope = "") {}
+  private readonly listeners = new Set<() => void>();
+  private queued = false;
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+  snapshot = (): string => {
+    try {
+      const value = this.capture(this.scope);
+      return JSON.stringify(value);
+    } catch {
+      return "invalid";
+    }
+  };
+  private changed() {
+    if (this.queued) return;
+    this.queued = true;
+    queueMicrotask(() => {
+      this.queued = false;
+      for (const listener of this.listeners) listener();
+    });
+  }
 
   private readonly validators = new Map<
     string,
@@ -20,12 +44,18 @@ export class PokemonDraftRegistry {
     string,
     { token: symbol; prepare: () => PokemonDraftStep[] }
   >();
+  private readonly sectionOrder = new Map<string, number>();
   registerPreparation(section: string, prepare: () => PokemonDraftStep[]) {
     const token = Symbol(section);
+    if (!this.sectionOrder.has(section))
+      this.sectionOrder.set(section, this.sectionOrder.size);
     this.preparers.set(section, { token, prepare });
+    this.changed();
     return () => {
-      if (this.preparers.get(section)?.token === token)
+      if (this.preparers.get(section)?.token === token) {
         this.preparers.delete(section);
+        this.changed();
+      }
     };
   }
   capture(
@@ -44,7 +74,10 @@ export class PokemonDraftRegistry {
       ]);
     const sections: PokemonDraftCapture["sections"] = [],
       failed: string[] = [];
-    for (const [section, { prepare }] of this.preparers) {
+    const ordered = [...this.preparers].sort(
+      ([a], [b]) => this.sectionOrder.get(a)! - this.sectionOrder.get(b)!,
+    );
+    for (const [section, { prepare }] of ordered) {
       try {
         const steps = structuredClone(prepare());
         if (!Array.isArray(steps) || steps.length > 32)
@@ -66,9 +99,12 @@ export class PokemonDraftRegistry {
   register(section: string, validate: () => unknown) {
     const token = Symbol(section);
     this.validators.set(section, { token, validate });
+    this.changed();
     return () => {
-      if (this.validators.get(section)?.token === token)
+      if (this.validators.get(section)?.token === token) {
         this.validators.delete(section);
+        this.changed();
+      }
     };
   }
 
