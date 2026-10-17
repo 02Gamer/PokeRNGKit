@@ -37,7 +37,7 @@ describe("independent entity worker lifecycle", () => {
     expect(message.bytes).not.toBe(source);
     expect(transfer).toEqual([message.bytes.buffer]);
     const draftHints = {
-      apiVersion: 187,
+      apiVersion: 188,
       sourceHash: input.draftHints.sourceHash,
       requestHash: "B".repeat(64),
       hints: null,
@@ -69,7 +69,7 @@ describe("independent entity worker lifecycle", () => {
           ? { output: new Uint8Array([4]) }
           : {};
     worker.onmessage?.({
-      data: { id: message.id, entity: { apiVersion: 187 }, ...fields },
+      data: { id: message.id, entity: { apiVersion: 188 }, ...fields },
     });
     expect(await pending).toMatchObject(fields);
     expect(source).toEqual(new Uint8Array([1, 2, 3]));
@@ -142,7 +142,7 @@ describe("independent entity worker lifecycle", () => {
       expect(message.bytes).not.toBe(source);
       expect(transfer).toEqual([message.bytes.buffer]);
       worker.onmessage?.({
-        data: { id: message.id, entity: { apiVersion: 187 }, ...fields },
+        data: { id: message.id, entity: { apiVersion: 188 }, ...fields },
       });
       expect(await pending).toMatchObject(fields);
       expect(source).toEqual(original);
@@ -384,7 +384,7 @@ describe("independent entity worker lifecycle", () => {
     expect(transfer).toContain(message.editorSave.buffer);
     expect(message.editorSave.buffer).not.toBe(save.buffer);
     worker.onmessage?.({
-      data: { id: message.id, entity: { apiVersion: 187 } },
+      data: { id: message.id, entity: { apiVersion: 188 } },
     });
     await pending;
     const next = client.run(new Uint8Array([4]), request),

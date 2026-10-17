@@ -112,7 +112,7 @@ internal static class ExtraSlotTests
         var input=save.Write().ToArray();var original=input.ToArray();var source=reopen(input);
         var key=ExtraSlots.Key(slot);var data=StandalonePokemon.Serialize(p.Clone(),true,false);
         var request=new ExtraSlotWriteRequest(Br4Editing.Hash(input),key,new("editor."+p.Extension,Convert.ToBase64String(data)),new("typed",[]));
-        var expected=PokemonEditorContext.CloneSave(source);var finalized=p.Clone();finalized.FixMoves();finalized.RefreshChecksum();ExtraSlots.Resolve(expected,key).WriteTo(expected,finalized);
+        var expected=PokemonEditorContext.CloneSave(source);var finalized=p.Clone();EditorFinalizingReference.Apply(finalized,SaveFile.SetUpdateSettings.UpdateToSaveFile==EntityImportOption.Enable);ExtraSlots.Resolve(expected,key).WriteTo(expected,finalized);
         var oracle=expected.Write().ToArray();
         var preview=ExtraSlotSession.Prepare(source,input,request,reopen);
         var confirmation=new ExtraSlotConfirmation(preview.Token,preview.SourceHash,preview.TargetHash,true);

@@ -35,7 +35,7 @@ internal static class StandalonePokemonApiTests
             var request = new StandalonePokemonRequest("entity." + p.Extension, encrypted, party, encrypted);
             using var report = JsonDocument.Parse(Api.InspectStandalonePokemon(input, Json(request)));
             var root = report.RootElement;
-            Check(root.GetProperty("apiVersion").GetInt32() == 187 && root.GetProperty("canEdit").GetBoolean(), "Public API version and editable format");
+            Check(root.GetProperty("apiVersion").GetInt32() == 188 && root.GetProperty("canEdit").GetBoolean(), "Public API version and editable format");
             Check(root.GetProperty("pokemon").GetProperty("speciesName").GetProperty("zh").GetString() == "皮卡丘", "Nested localized report survives source generation");
             Check(root.GetProperty("attributeChoices").GetProperty("species").GetArrayLength() == p.MaxSpeciesID, "Full entity catalog serialized");
             var expectedNoOp = ExportOracle(input, request.FileName, encrypted, party, encrypted);
@@ -70,7 +70,7 @@ internal static class StandalonePokemonApiTests
         var reference = StandalonePokemon.Open(input, fileName, inputEncrypted).Entity;
         if (party && input.Length != reference.SIZE_PARTY) reference.ForcePartyData();
         if (party && reference is BK4 bk4) bk4.IsDecryptedStateParty = true;
-        reference.FixMoves(); reference.RefreshChecksum();
+        EditorFinalizingReference.Apply(reference, SaveFile.SetUpdateSettings.UpdateToSaveFile == EntityImportOption.Enable);
         var expected = new byte[party ? reference.SIZE_PARTY : reference.SIZE_STORED];
         if (party) { if (encrypted) reference.WriteEncryptedDataParty(expected); else reference.WriteDecryptedDataParty(expected); }
         else { if (encrypted) reference.WriteEncryptedDataStored(expected); else reference.WriteDecryptedDataStored(expected); }

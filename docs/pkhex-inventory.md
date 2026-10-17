@@ -1,5 +1,19 @@
 # PKHeX 完整接入清单
 
+## 2026-10-17 回忆招式与记忆保存（API188，工程通过，页面待核验）
+
+基线`19b365766c191727a8bc97db4181896960b53201`。最终准备出口补接PK6／PK7／PB7／PK8／PB8／PA8／PK9／PA9的Core FixRelearn，记忆清理沿实际应用的SlotWrite.SetUpdatePKM开关，默认true；Core-only设置作用域同样生效。HaX不隐式绕过该开关。PK6和PK7按WinForms来源清理Data[0xFE..]的六个保留队伍字节，PB7不套用该偏移。中间编辑和原始输入不提前清理，确认仍使用冻结输出，协议同步升级API188。
+
+来源为WinForms EditPK6／7／8／9的PreparePK*、PKMEditor.ModifyPKM及MainWindow/Main.cs的设置赋值；Core沿各具体格式的FixRelearn／FixMemories，不自建记忆规则或放宽字段范围。回忆招式保持来源四槽顺序整理，开关关闭时不执行记忆清理。扩展原生专项已退出0（`.tmp/pkhex-api188-finalizing-native-final.log`）：覆盖八种现代格式、两种模式、开关开／关、蛋／未交换／已交换、四种输出布局、尾部差异、Core-only设置、冻结放入、公开导出、相遇建议、额外格位、草稿提示及真实E.sav工作副本。首轮夹具误用不共有的经手语言属性已改为IHandlerLanguage；旧Gen6占位记忆在清理后触发随机交换感受，确定性对照夹具改为已交换状态，随机交换仍单独验证冻结输出。逐字节与来源保护断言保留，失败日志保留。
+
+默认完整原生、浏览器核心及完整前端门禁均退出0。364文件／2223项前端测试、类型、Lint、全仓格式及最新核心网页／PWA打包通过，保留第三世代定点既有Hook、既有编译／反射裁剪与包体／插件耗时提示。证据见`.tmp/pkhex-api188-native-full.log`、`.tmp/pkhex-api188-core.log`与`.tmp/pkhex-api188-verify.log`。仅检查真实E.sav工作副本，原件与副本SHA-256均保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。
+
+上一轮19b36576的Actions39002611801已成功部署。API188核心生成并释放闲置编译服务后，外部Chrome绑定本地5173仍超时并重置连接，未读到页面；正式交互、连续焦点及实际下载未核验，不作所有者验收。下一步接已确认的Advanced设置消费点并记录静态平台等效路径，完整PKHeX接入目标保持未完成。
+
+2026-10-17后续设置只读复核：advanced.saveExportCheckUnsavedEntity、advanced.hideEvent8Contains与advanced.pathBlockKeyList均没有当前产品消费点，仍被可用状态表禁用。上游MainWindow/Main.cs:1380在导出存档前按PKMEditor.PKMIsUnsaved询问；当前SaveEditorPanel的exportFile直接导出并下载。SCBlockEditor虽有手动名称／排除输入，初始仍为空；上游SAV_BlockDump8从Advanced.GetExclusionList8及按存档类型命名的txt文件载入，SAV_FlagWork9a另读取<类型>_flagwork.txt。API188收口后，优先补这些全局设置与现有流程的联动，保持明确选择本机资源与原文件保护。
+
+平台行为需分开记录：startup.tryDetectRecentSave用于WinForms打开对话框的磁盘最近文件初值；slotExport.allowBoxDataDrop用于将临时box_<src>.bin以Windows FileDrop拖出，并非整箱文件导入开关。SaveExportForceSaveAs涉及桌面覆盖／另存对话框，网页当前始终下载另存；FocusBorderDeflate涉及WinForms自绘焦点矩形。不能把这些路径一概当作尚缺Core读写功能，也不能未经验证宣称浏览器具备相同OS行为；后续需给出明确的静态等效／平台说明。
+
 ## 2026-10-17 最终招式与特性保存（API187，工程通过，页面待核验）
 
 基线`ca13c8c4e045634013da20733d5ecb23e7c21a2c`。合并全部草稿后调用具体实体的Core `FixMoves`，第五世代HaX按最终特性重算隐藏特性标记，再刷新校验和；独立文件显式导出采用相同处理。中间编辑、只读载入和原始来源不提前规范化，确认使用已冻结输出。协议与全部前端握手／夹具同步升级API187。
@@ -128,7 +142,7 @@ API177 阶段检查：.tmp/pkhex-dimensions-native-floats.log 原生专项、两
 
 API176 最终工程门禁：.tmp/pkhex-special-core.log 浏览器 Core 重建、.tmp/pkhex-api176-native-full.log 默认完整原生、.tmp/pkhex-api176-verify.log 完整 npm run verify 均退出 0。350 文件／2067 项前端、完整类型、Lint、全仓格式与网页／PWA 构建通过；保留 Gen3StaticPanel.tsx:404 既有一条提醒及既有编译／裁剪、包体提示。新专项覆盖 15 种实体的四布局、全部菌株／天数组合、感染／治愈状态表、PK5 邻位／名气、GC 原始零编码、箱位／队伍与两种牧场修订版的完整文件对照；默认完整套件带已授权 E.sav 工作副本检查。最终原存档 SHA-256 保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。Chrome 4 对已授权本地页的调用仍失败，真实交互、焦点与下载尚未验收；完整接入目标继续保留。
 
-## 主编辑器字段当前对照（至API187）
+## 主编辑器字段当前对照（至API188）
 
 本页保留各阶段工程记录；历史条目中的待完成只描述当时状态，不能直接作为当前缺口。当前范围以本表、下方子窗口盘点、HaX调用面和提示音清单逐项核对，仍不替代实际页面与所有者验收。
 

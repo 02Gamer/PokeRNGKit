@@ -6,10 +6,11 @@ using PokeRNGKit.SaveEditor;
 internal static class PokemonEditorFinalizingTests
 {
     private static void Check(bool value, string message) { if (!value) throw new Exception(message); }
-    private static void Mode(bool hax)
+    private static void Mode(bool hax, bool modify = true)
     {
         SaveProgramSettingsRuntime.Reset();
         var settings = SaveProgramSettingsCodec.Defaults(); settings.Startup.ForceHaXOnLaunch = hax;
+        settings.SlotWrite.SetUpdatePKM = modify;
         SaveProgramSettingsRuntime.Configure(JsonSerializer.Serialize(settings, SaveProgramSettingsJson.Default.SaveProgramSettings));
     }
     private static PKM Seed(PKM p)
@@ -27,7 +28,7 @@ internal static class PokemonEditorFinalizingTests
         var p = source.Clone();
         if (hax && p is PK5 fifth)
             fifth.HiddenAbility = fifth.PersonalInfo.HasHiddenAbility && fifth.Ability == fifth.PersonalInfo.AbilityH;
-        p.FixMoves(); p.RefreshChecksum(); return p;
+        EditorFinalizingReference.Apply(p, SaveFile.SetUpdateSettings.UpdateToSaveFile == EntityImportOption.Enable); return p;
     }
     internal static void Run()
     {
@@ -54,9 +55,50 @@ internal static class PokemonEditorFinalizingTests
                 Check(p.Data.SequenceEqual(before), "Final preparation preserves original entity");
                 Console.WriteLine($"PASS editor finalizing {p.GetType().Name}/HaX={hax}: complete clone oracle, four output layouts, PP tuples and source");
             }
-            HiddenAbility();
+            HiddenAbility(); Modern();
         }
         finally { PokemonEditorContext.Clear(); SaveProgramSettingsRuntime.Reset(); }
+    }
+    private static void Modern()
+    {
+        foreach (PKM layout in EditorFinalizingReference.Layouts())
+        foreach (bool hax in new[] { false, true }) foreach (bool modify in new[] { false, true })
+        foreach (string state in new[] { "egg", "untraded", "traded" })
+        {
+            Mode(hax, modify); PokemonEditorContext.Clear(); var p = Seed(layout.Clone());
+            p.RelearnMoves = [0, 33, 0, 45]; p.IsEgg = state == "egg";
+            p.HandlingTrainerName = state == "traded" ? "SECOND" : "";
+            p.CurrentHandler = state == "traded" ? (byte)1 : (byte)0;
+            p.HandlingTrainerGender = 1; p.HandlingTrainerFriendship = 123;
+            if (p is IHandlerLanguage language) language.HandlingTrainerLanguage = 2;
+            if (p is ITrainerMemories memory)
+            {
+                memory.OriginalTrainerMemory = 4; memory.OriginalTrainerMemoryVariable = 9; memory.OriginalTrainerMemoryFeeling = 5; memory.OriginalTrainerMemoryIntensity = 1;
+                memory.HandlingTrainerMemory = 4; memory.HandlingTrainerMemoryVariable = 9; memory.HandlingTrainerMemoryFeeling = 5; memory.HandlingTrainerMemoryIntensity = 1;
+            }
+            if (p is PK6 or PK7 or PB7) p.Data[0xFE..].Fill(0xA5);
+            p.RefreshChecksum(); var before = p.Data.ToArray(); var expected = p.Clone(); EditorFinalizingReference.Apply(expected, modify);
+            var actual = PokemonDraftPreparing.PrepareFile(p, new("modern", []), true);
+            Check(actual.Data.SequenceEqual(expected.Data), $"Full WinForms final-save oracle {p.GetType().Name}/{state}/modify={modify}/HaX={hax}");
+            Check(actual.RelearnMoves.SequenceEqual(new ushort[] { 33, 45, 0, 0 }), "Relearn holes compact in source order independently of modification setting");
+            if (p is PK6 or PK7) Check(actual.Data[0xFE..].IndexOfAnyExcept((byte)0) < 0, "PK6/PK7 reserved party tail cleared even when modification is off");
+            if (p is PB7) Check(actual.Data[0xFE..].SequenceEqual(p.Data[0xFE..]), "LGPE tail is never cleared as PK7 party padding");
+            if (!modify) Check(actual.HandlingTrainerFriendship == p.HandlingTrainerFriendship && actual.HandlingTrainerName == p.HandlingTrainerName, "Disabled modification preserves trainer data");
+            else if (state == "untraded") Check(actual.HandlingTrainerFriendship == 0, "Enabled untraded cleanup actually clears handler friendship");
+            foreach (bool party in new[] { false, true }) foreach (bool encrypted in new[] { false, true })
+            {
+                var input = StandalonePokemon.Serialize(p.Clone(), party, encrypted); var original = input.ToArray();
+                var output = StandalonePokemon.Export(input, "modern." + p.Extension, party, encrypted, encrypted, true);
+                var parsed = StandalonePokemon.Open(input, "modern." + p.Extension, encrypted, true).Entity;
+                EditorFinalizingReference.Apply(parsed, modify);
+                Check(output.SequenceEqual(StandalonePokemon.Serialize(parsed, party, encrypted)) && input.SequenceEqual(original), "Public final file bytes match source rules without changing input");
+            }
+            Check(p.Data.SequenceEqual(before), "Modern preparation preserves full source clone");
+        }
+        SaveProgramSettingsRuntime.Reset(); var sample = (PK6)Seed(new PK6()); sample.HandlingTrainerFriendship = 123; sample.RefreshChecksum();
+        var settings = SaveCoreSettings.Defaults(); settings.SlotWrite.SetUpdatePKM = false;
+        using (SaveCoreSettingsRuntime.Begin(settings)) Check(PokemonDraftPreparing.PrepareFile(sample, new("core-only", []), true).HandlingTrainerFriendship == 123, "Core-only settings scope controls final cleanup without program settings");
+        Console.WriteLine("PASS modern final save: eight formats, ordinary/HaX, modify on/off, egg/untraded/traded, relearn, exact tails, four file layouts, Core-only scope and immutable inputs");
     }
     private static void HiddenAbility()
     {

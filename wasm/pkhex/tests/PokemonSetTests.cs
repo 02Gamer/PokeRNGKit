@@ -12,7 +12,7 @@ internal static class PokemonSetTests
         p.Species=25;p.Language=p.Japanese?1:2;p.Nickname=p.Japanese?"ピカチュウ":"TEST";p.OriginalTrainerName=p.Japanese?"サトシ":"OWNER";p.Version=p.Context.GetSingleGameVersion();p.CurrentLevel=25;p.Move1=85;p.Move1_PP=3;p.TID16=12345;p.SID16=54321;
         // Avoid Core's randomized first-trade memory in the byte-for-byte oracle.
         // Separate coverage below checks that a randomized preview is frozen.
-        if(p is PK6 memory)memory.HandlingTrainerMemory=1;
+        if(p is PK6 memory){memory.HandlingTrainerMemory=1;memory.HandlingTrainerName="PREVIOUS";}
         p.ResetPartyStats();p.Stat_HPCurrent=Math.Max(1,p.Stat_HPMax/2);p.Status_Condition=8;p.RefreshChecksum();return p;
     }
     private static JsonElement Edit<T>(T value,System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> info)
@@ -31,7 +31,7 @@ internal static class PokemonSetTests
             var capture=new PokemonDraftCapture("scope",[new("basic",[mask])]);var request=new PokemonSetRequest(Br4Editing.Hash(input),"scope",new(0,0),new(0,1),capture);
             var ticket=PokemonSetSession.Prepare(input,request);Check(input.AsSpan().SequenceEqual(before),"Preparing never changes caller input");Check(ticket.Pokemon.Nickname=="DRAFT"&&ticket.Pokemon.Level==p.CurrentLevel&&ticket.Pokemon.Ot==p.OriginalTrainerName,"Mask rebases untouched fields");
             var output=PokemonSetSession.Commit(input,new(ticket.Token,ticket.SourceHash,ticket.TargetHash,true));var actual=SaveUtil.GetSaveFile(output.ToArray())!;
-            var expected=save.Clone();var wanted=p.Clone();PokemonEditing.Apply(wanted,Basic(p) with{Nickname="DRAFT"},false,i=>PokemonIdentity.Apply(expected,wanted,i,0));expected.SetBoxSlotAtIndex(wanted,0,1);
+            var expected=save.Clone();var wanted=p.Clone();PokemonEditing.Apply(wanted,Basic(p) with{Nickname="DRAFT"},false,i=>PokemonIdentity.Apply(expected,wanted,i,0));EditorFinalizingReference.Apply(wanted,SaveFile.SetUpdateSettings.UpdateToSaveFile==EntityImportOption.Enable);expected.SetBoxSlotAtIndex(wanted,0,1);
             byte[] expectedBytes=expected.Write().ToArray();
             if(!output.SequenceEqual(expectedBytes))
             {
@@ -150,7 +150,7 @@ internal static class PokemonSetTests
             var request=new PokemonSetRequest(Br4Editing.Hash(input),"layout",new(0,0),new(0,1),capture);
             PokemonEditorContextTests.Typed(save,original,input);
             var ticket=PokemonSetSession.Prepare(save,input,request,reopen);var output=PokemonSetSession.Commit(input,new(ticket.Token,ticket.SourceHash,ticket.TargetHash,true));
-            var expected=reopen(input.ToArray());var wanted=original.Clone();if(gbEdit is not null)StandaloneGb.Apply((GBPKM)wanted,gbEdit);wanted.FixMoves();wanted.RefreshChecksum();PokemonSlotWriter.Box(expected,wanted,0,1,default(EntityImportSettings));
+            var expected=reopen(input.ToArray());var wanted=original.Clone();if(gbEdit is not null)StandaloneGb.Apply((GBPKM)wanted,gbEdit);EditorFinalizingReference.Apply(wanted,SaveFile.SetUpdateSettings.UpdateToSaveFile==EntityImportOption.Enable);PokemonSlotWriter.Box(expected,wanted,0,1,default(EntityImportSettings));
             Check(output.SequenceEqual(expected.Write().ToArray()),"Complete typed layout default-import oracle "+save.GetType().Name);
             var serialized=StandalonePokemon.Open(Convert.FromBase64String(ticket.EditorFile.Data),ticket.EditorFile.FileName,useFileFormat:true).Entity;
             Check(serialized.GetType()==original.GetType()&&serialized.Species==original.Species,"Prepared editor buffer roundtrip "+save.GetType().Name);
