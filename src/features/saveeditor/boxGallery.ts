@@ -14,6 +14,14 @@ export interface GalleryModifiers {
   ctrlKey: boolean;
   metaKey: boolean;
 }
+// PKHeX SlotUtil.GetDropModifier matches a single exact modifier.
+export function boxDropMode(mode: GalleryDropMode, keys: GalleryModifiers) {
+  return keys.shiftKey && !keys.altKey && !keys.ctrlKey && !keys.metaKey
+    ? "copy"
+    : keys.altKey && !keys.shiftKey && !keys.ctrlKey && !keys.metaKey
+      ? "overwrite"
+      : mode;
+}
 type GalleryReport = Pick<
   SaveReport,
   | "boxCount"
@@ -115,13 +123,7 @@ export function boxDropEdit(
     throw Error("Invalid box drop.");
   if (source.box === target.box && source.slot === target.slot)
     return undefined;
-  // SlotUtil.GetDropModifier matches an exact modifier, not a flag subset.
-  const modifier =
-    keys.shiftKey && !keys.altKey && !keys.ctrlKey && !keys.metaKey
-      ? "copy"
-      : keys.altKey && !keys.shiftKey && !keys.ctrlKey && !keys.metaKey
-        ? "overwrite"
-        : mode;
+  const modifier = boxDropMode(mode, keys);
   const occupied = report.pokemon.some(
     (p) => p.box === target.box && p.slot === target.slot && p.species > 0,
   );

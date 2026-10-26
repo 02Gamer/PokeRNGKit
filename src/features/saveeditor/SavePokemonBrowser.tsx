@@ -806,6 +806,7 @@ export function SavePokemonBrowser({
               lang={lang}
               revision={revision}
               scope={scope}
+              dropMode={mode}
               onMain={chooseMain}
               onSecondary={chooseSecond}
               onSelect={select}
@@ -820,6 +821,7 @@ export function SavePokemonBrowser({
               report={report}
               revision={revision}
               scope={scope}
+              dropMode={mode}
               selected={selectedPosition}
               busy={locked}
               lang={lang}
@@ -840,6 +842,7 @@ export function SavePokemonBrowser({
               lang={lang}
               revision={revision}
               scope={scope}
+              dropMode={mode}
               onSelect={select}
               onSlotMenu={openSlotMenu}
               onSet={(position) => void startSet(position)}

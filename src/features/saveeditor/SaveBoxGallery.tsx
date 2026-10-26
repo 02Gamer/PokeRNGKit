@@ -1,7 +1,11 @@
 import type { SlotMenuInvocation } from "./slotMenu";
 import { useMemo } from "react";
 import { boxBackgroundDragOver, boxBackgroundDrop } from "./boxDropFeedback";
-import { adjacentBoxEdit, type GalleryModifiers } from "./boxGallery";
+import {
+  adjacentBoxEdit,
+  type GalleryModifiers,
+  type GalleryDropMode,
+} from "./boxGallery";
 import { boxGalleryWords } from "./boxGalleryWords";
 import { SaveBoxGrid } from "./SaveBoxGrid";
 import type {
@@ -16,6 +20,7 @@ export function SaveBoxGallery({
   report,
   revision,
   scope,
+  dropMode,
   selected,
   busy,
   lang,
@@ -29,6 +34,7 @@ export function SaveBoxGallery({
   report: SaveReport;
   revision: number;
   scope: string;
+  dropMode?: GalleryDropMode;
   selected: PokemonPosition;
   busy: boolean;
   lang: "zh" | "en" | "ja";
@@ -99,6 +105,7 @@ export function SaveBoxGallery({
               lang={lang}
               revision={revision}
               scope={scope}
+              dropMode={dropMode}
               onSlotMenu={onSlotMenu}
               onSet={onSet}
               onSelect={onSelect}

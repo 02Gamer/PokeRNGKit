@@ -2,7 +2,7 @@ import type { SlotMenuInvocation } from "./slotMenu";
 import { Select } from "../shared/Select";
 import { SaveBoxGrid } from "./SaveBoxGrid";
 import { boxViewerWords, moveBoxView } from "./boxViewer";
-import type { GalleryModifiers } from "./boxGallery";
+import type { GalleryModifiers, GalleryDropMode } from "./boxGallery";
 import type { PokemonPosition, SaveReport } from "./domain";
 import "./SaveBoxViewer.css";
 
@@ -16,6 +16,7 @@ export function SaveBoxViewer({
   lang,
   revision,
   scope,
+  dropMode,
   onMain,
   onSecondary,
   onSelect,
@@ -33,6 +34,7 @@ export function SaveBoxViewer({
   lang: "zh" | "en" | "ja";
   revision: number;
   scope: string;
+  dropMode?: GalleryDropMode;
   onMain(box: number): void;
   onSecondary(box: number): void;
   onSelect(position: PokemonPosition): void;
@@ -149,6 +151,7 @@ export function SaveBoxViewer({
               lang={lang}
               revision={revision}
               scope={scope}
+              dropMode={dropMode}
               onSlotMenu={onSlotMenu}
               onSet={onSet}
               onSelect={onSelect}

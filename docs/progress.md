@@ -1,5 +1,19 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-27 箱子拖放效果一致性（API189，页面待核验）
+
+继续完整PKHeX接入目标时，发现SaveBoxGrid的dragover只按shiftKey给出copy／move，未读取当前复制模式，也未遵守实际drop的精确修饰键规则；外部文件导入还被声明为move。已让单箱、全箱及双箱传入当前模式，提示与实际操作共用SlotUtil来源规则；外部文件仅请求copy，并按来源effectAllowed拒绝不兼容效果。dragover不提前读取载荷，原存档和Core／Worker协议不变。
+
+专项五文件76项、完整类型及定向Lint通过。新覆盖三模式与16种修饰键、外部文件副本、来源效果约束、不可写目标及混合类型优先级；保留既有箱位、菜单和存储权限检查。类型与Lint日志为.tmp/pkhex-drop-feedback-typecheck.log及.tmp/pkhex-drop-feedback-lint.log。本批不重跑未改动的Native／核心构建。正式拖放与下载仍缺外部浏览器证据，本轮标签读取继续报nodeRepl.fetch请求失败，完整目标未完成。可配置起拖阈值未被替代或排除。
+
+## 2026-10-27 外部浏览器连接恢复排查
+
+本轮开始于干净的main，HEAD为7df9199d。发现本地5173端口未监听，已启动`npm run dev:web -- --host 127.0.0.1 --port 5173 --strictPort`；Vite报告ready，并确认127.0.0.1:5173监听。仅恢复开发服务，不代表页面、Worker或存档功能已通过核验。
+
+使用Chrome插件随附诊断确认Chrome运行中，Default资料中的ChatGPT扩展已安装且启用，本机NativeMessagingHosts清单、注册路径及允许来源均正确。浏览器连接清单能识别Chrome，但读取标签、新建独立测试标签及会话命名均报`nodeRepl.fetch request failed`。按随附流程为Default新开窗口后仍失败，未收到权限拒绝。Edge已安装，但未安装该浏览器扩展，不能直接作为已连接的替代入口。
+
+随附`chrome-troubleshooting.md`要求在诊断通过、新开窗口仍通信失败时通过插件界面重装Browser插件，并禁止自行安装或修复native host。当前接口没有重新授权或刷新连接的操作，未修改桥接配置、浏览器权限、原始存档或产品代码。完整接入目标继续阻塞；恢复条件为插件连接可实际读取外部浏览器标签，而非再次授予文件系统完全访问权限。
+
 ## 2026-10-17 完整接入证据与平台边界（文档审计）
 
 产品代码基线d426c7603bf9f1a9d3c2c4a5b603560eb78706dc，API189。重新读取Actions39019277406，build、GitHub Pages、Cloudflare Pages和Windows桌面包四任务均success。工作区在本轮开始时干净。新增[完整接入证据与平台边界](pkhex-completion-audit.md)，逐项区分代码／工程证据、缺失的页面证据及平台行为；129行来源路径唯一，均能对应当前上游文件，但不据此推导完整功能覆盖。

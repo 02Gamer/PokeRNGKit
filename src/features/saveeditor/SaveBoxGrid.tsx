@@ -3,7 +3,11 @@ import { useMemo, type CSSProperties, type DragEvent } from "react";
 import { boxWallpaper } from "./art";
 import { pokemonAccess } from "./savePokemonEditing";
 import { PokemonSprite } from "./PokemonSprite";
-import { boxBackgroundDragOver, boxBackgroundDrop } from "./boxDropFeedback";
+import {
+  boxBackgroundDragOver,
+  boxBackgroundDrop,
+  boxSlotDragOver,
+} from "./boxDropFeedback";
 import { playSaveSound } from "./saveSound";
 import { defaultSpriteFilter } from "./spritePixels";
 import {
@@ -11,6 +15,7 @@ import {
   boxSlotNavigation,
   encodeBoxDrag,
   type GalleryModifiers,
+  type GalleryDropMode,
 } from "./boxGallery";
 import { boxGalleryWords } from "./boxGalleryWords";
 import type { PokemonEntry, PokemonPosition, SaveReport } from "./domain";
@@ -23,6 +28,7 @@ export function SaveBoxGrid({
   lang,
   revision,
   scope,
+  dropMode = "auto",
   entries,
   onSelect,
   onDrop,
@@ -37,6 +43,7 @@ export function SaveBoxGrid({
   lang: "zh" | "en" | "ja";
   revision: number;
   scope: string;
+  dropMode?: GalleryDropMode;
   entries?: PokemonEntry[];
   onSelect(position: PokemonPosition): void;
   onSlotMenu?(invocation: SlotMenuInvocation): boolean;
@@ -195,14 +202,7 @@ export function SaveBoxGrid({
               );
             }}
             onDragOver={(e) => {
-              if (!recognized(e)) return;
-              e.preventDefault();
-              e.stopPropagation();
-              e.dataTransfer.dropEffect = writable
-                ? e.shiftKey
-                  ? "copy"
-                  : "move"
-                : "none";
+              boxSlotDragOver(e, writable, dropMode);
             }}
             onDrop={(e) => {
               if (!recognized(e)) return;

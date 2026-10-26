@@ -1,5 +1,13 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-27 箱子拖放效果一致性（API189，页面待核验）
+
+修复格位dragover与实际drop使用不同操作判断的问题。单箱、全箱和双箱共用当前复制／覆盖／自动模式，提示与写入复用同一修饰键解析：仅Shift复制，仅Alt覆盖，其他组合按当前模式处理。来源为WinForms Controls/Slots/SlotUtil.cs的GetDropModifier及Controls/SAV Editor/SlotChangeManager.cs的DragEnter／DragDrop。实际存档写入仍由既有Core存储接口处理，本批不更改Core或Worker协议。
+
+外部文件导入只请求copy，避免向来源声明移动；同时按DataTransfer.effectAllowed拒绝不兼容效果。自动移动／交换及覆盖使用move提示，复制使用copy；忙碌或只读目标为none。混合类型优先内部格位，保持drop处理优先级。dragover只读取公开的types与effectAllowed，不读取保护状态下的文件或格位载荷；外部文件内容、大小及格式仍沿既有Core入口校验，不增加输入范围。HTML拖放兼容规则见[处理模型](https://html.spec.whatwg.org/multipage/dnd.html#drag-and-drop-processing-model)。
+
+专项五文件76项、完整类型及定向Lint通过，覆盖三种模式与全部16种修饰键组合、外部文件复制、来源允许效果、只读／忙碌拒绝及既有箱位／菜单行为。类型与Lint日志为.tmp/pkhex-drop-feedback-typecheck.log及.tmp/pkhex-drop-feedback-lint.log。未重跑Native或核心构建。外部Chrome仍报nodeRepl.fetch请求失败，真实鼠标手势及文件拖入尚未核验。可配置dragStartThreshold保持未实现／待验证，不因本批反馈修复宣称完成。
+
 ## 2026-10-17 相遇训练家文件资料（API189，工程通过，页面待核验）
 
 来源为WinForms MainWindow/Main.cs的MainMenuEncounterDB、Core LocalResourceSettings.GetTrainerPath／Resolve、BoxUtil.GetPKMsFromPaths及TrainerDatabase.RegisterCopy(PKM)／GetTrainerReference。来源目录使用AllDirectories递归；空路径解析程序本地根目录。网页以显式导入的本机资料分类对应，默认trainers，空路径对应local，不扫描磁盘。
