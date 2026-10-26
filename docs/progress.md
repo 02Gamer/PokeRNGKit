@@ -1,5 +1,13 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-27 拖放修复发布与素材核验（工程通过，页面仍阻塞）
+
+产品基线e14fdffd5ec93739540877222eb05718ea42d354，API189。[Actions40371477829](https://github.com/HaKu76/PokeRNGKit/actions/runs/40371477829)已completed／success，build、GitHub Pages、Cloudflare Pages及windows-desktop四任务均成功。存档往返、完整前端、原生Core对照及Wasm／网页构建均通过。命令行跟踪曾因TLS超时退出，随后续查同一流水线并经GitHub接口与最终状态查询确认成功，未重启构建。
+
+素材只读核验覆盖art-manifest.json的7236项引用，全部文件存在；7236项PNG头部／非零尺寸通过，文件哈希均能对应已记录的上游素材哈希。其中5230个精灵键、213个壁纸键；结果见.tmp/pkhex-drop-feedback-art-integrity.json。这证明文件与记录一致，不证明页面加载、格位匹配、完整图像解码或显示效果。原始E.sav及检查副本的SHA-256仍为7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。
+
+外部Chrome旧连接3不可用；刷新清单发现连接4并绑定后，控制请求仍报nodeRepl.fetch失败，未取得页面。该阻塞在本次恢复后的连续目标轮次中重复；真实格位操作、导入／下载、三语／焦点／布局及可配置起拖阈值仍待完成。更新[完整接入审计](pkhex-completion-audit.md)，保留129项来源范围和全部未核验要求。完整目标未完成；本批仅补文档，不重跑已完成的产品构建，也不把资源检查或部署成功写作所有者验收。
+
 ## 2026-10-27 箱子拖放效果一致性（API189，页面待核验）
 
 继续完整PKHeX接入目标时，发现SaveBoxGrid的dragover只按shiftKey给出copy／move，未读取当前复制模式，也未遵守实际drop的精确修饰键规则；外部文件导入还被声明为move。已让单箱、全箱及双箱传入当前模式，提示与实际操作共用SlotUtil来源规则；外部文件仅请求copy，并按来源effectAllowed拒绝不兼容效果。dragover不提前读取载荷，原存档和Core／Worker协议不变。
