@@ -1,6 +1,18 @@
 # PokeRNGKit 项目进度与交接
 
-## 2026-10-28 箱子导出选项记忆（API190 前端，工程通过，页面待核验）
+## 2026-10-28 存档表单下拉禁用规则核对（API190 前端，待批量实现）
+
+源码扫描基于已发布产品 5d928918：182 个生产 TSX 文件中，有 158 个 Select 位于带禁用条件的 fieldset 内；67 处未显式传入 disabled，另 23 处原表达式未直接包含全部祖先条件，共涉及 40 个文件、90 个候选位置。这是源码候选统计，不表示 90 种已复现缺陷，也不替代页面核验。完整记录为 `.tmp/pkhex-select-disabled-audit.json`。
+
+已核对这些候选没有 legend 例外、JSX 属性展开或祖先条件标识符遮蔽，22 种父条件均为现有只读状态表达式；范围核对见 `.tmp/pkhex-select-disabled-scope.json`。PokemonSelect 会把 disabled 交给共享 Select，同样需要覆盖父表单状态。下一批统一以“全部祖先禁用条件 OR 原局部限制”传入控件，保留 dirty、preview、性别、空种类、计数和只读限制；不修改全局禁用变量，避免影响父 fieldset 外的浏览入口。数字限制、Core、Worker、API190 和控件皮肤均保持既有来源。
+
+下一步先补批量、导入、二进制和生命值控件的锁定／可编辑及只读回归，再按规则批量修复候选，完成定向与完整门禁。Chrome 的页面核验和导出测试偏好恢复仍待连接恢复；不以源码扫描宣称页面通过。
+
+## 2026-10-28 箱子导出选项记忆（API190 前端，已发布，页面待核验）
+
+产品提交 5d928918f27b8330e5170eee38e8a85d206d11e6 已推送。[Actions 40580217339](https://github.com/HaKu76/PokeRNGKit/actions/runs/40580217339) 的 build 122457282211、Windows 包 122467829465、Cloudflare Pages 122467829553 及 GitHub Pages 122467829565 均 completed／success；CI 的 PKHeX 往返、TypeScript、原生 Core 和 Wasm／网页构建门禁通过。终态为 `.tmp/pkhex-box-locked-release-proof.json`。本机最终门禁 382 文件／2367 项与 196 项专项通过，最后全仓格式采用内容缓存，全部文件仍在检查范围；普通完整 verify 的格式阶段也通过。四份发布记录按格式门禁收尾后以文档提交和 [skip ci] 推送，不重复部署。
+
+原始 E.sav、confirmed-input 和昵称测试下载在推送后重新核对哈希，分别仍为 7DA8AD6A…、7DA8AD6A…、1B7F81A9…，完整值见 `.tmp/pkhex-box-locked-save-guard.json`。本地 5173 服务已恢复；Chrome 同一标签的高级与直接读取均在焦点绑定阶段超时，未新增权限或改用其他调试渠道。导出测试偏好仍为六项最大值／Default，正式页面还原及后续交互检查未完成。完整目标继续进行。以下保留开发过程记录，当前提交与发布状态以上段为准。
 
 收尾新增明确的控件禁用修复：共享 Select 菜单通过 portal 渲染到 body，fieldset 的禁用不能覆盖已展开的菜单。新增 SSR 先失败（1 失败／3 通过），证明锁定时触发器未显式禁用；现给导出区六个 Select 传入 locked，目录名称继续受平铺条件限制。最终专项八文件／196 项通过，定向 Lint 退出 0；第三轮完整门禁的 382 文件／2366 项通过属于此前代码。为修复主动中止最终格式 session50438，formatExit=-1／diffExit=0 不是实际格式违规；同时只暂停已核实的本任务 Vite20772。第四轮完整 `npm run verify` 已退出 0：382 文件／2367 项、全仓格式、Lint、完整类型及网页／PWA 均通过。日志和终态为 `.tmp/pkhex-box-locked-gate.log`／同名前缀 result JSON。仅保留第三世代定点既有 Hook、包体及插件耗时提示；Core／Worker 与 API190 不变，本机原生／核心未重跑。最终文档格式检查后按既有授权提交推送，发布另行跟踪；页面及完整目标仍待核验。
 

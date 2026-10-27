@@ -1,6 +1,14 @@
 # PKHeX 存档读取与编辑
 
-## 2026-10-28 关闭时记住箱子导出选项（API190 前端，工程通过，页面待核验）
+## 2026-10-28 表单下拉禁用规则（API190 前端，待批量实现）
+
+共享 Select 的弹出菜单位于 body，必须显式接收全部祖先 fieldset 的禁用条件，并与原控件的局部限制合并。PokemonSelect 会委托共享控件，遵循相同规则；不能仅依赖原生 fieldset，也不能把局部禁用条件改成单一 busy。应保留嵌套只读、草稿／预览、性别和空种类等限制，父表单之外的浏览控件继续沿原有条件。
+
+5d928918 的生产源码扫描为 182 文件／158 个相关 Select，40 文件／90 处候选中包含 67 处缺少显式 disabled；其他 23 处需要核对与父条件的关系。候选无 legend、属性展开及标识符遮蔽例外，后续仍需行为回归和真实页面核验，不能把形式扫描视为完成。此批只计划补传状态，不改本页已记录的上游数字范围、空值、Core 参数、Worker 或 API190，也不新增控件皮肤。
+
+## 2026-10-28 关闭时记住箱子导出选项（API190 前端，已发布，页面待核验）
+
+5d928918 已发布，[Actions 40580217339](https://github.com/HaKu76/PokeRNGKit/actions/runs/40580217339) 的 build、GitHub Pages、Cloudflare Pages 和 Windows 包均成功；CI 的往返、TypeScript、原生 Core 和 Wasm／网页门禁通过。具体任务 ID 与终态见进度和 `.tmp/pkhex-box-locked-release-proof.json`。这份发布证据不补足仍待连接的页面检查。
 
 来源仍为 WinForms Subforms/BoxExporter.cs 的 BoxExporter_FormClosing／B_Export_Click、Core Editing/Saves/Slots/Exporting/BoxExportSettings.cs 及 EntityFileNamer.AvailableNamers。HTML 下拉框沿 Scope 0–1、FolderCreation 0–1、FolderPrefix 0–2、EmptySlots 0–1、FileIndexPrefix 0–3、Notify 0–1，均为默认 0 的整数，无空值或进制文本转换。静态版本仅提供内置 Default 命名规则；未知桌面插件名按上游选择回退，在明确关闭面板时保存当前内置选择。
 
