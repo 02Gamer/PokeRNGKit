@@ -1,4 +1,14 @@
 import { saveFailureFeedback } from "./saveFailureFeedback";
+import { readSaveSettings } from "./settingsRepository";
+import {
+  programStartupSettings,
+  localizeSaveStartupError,
+  recordSaveStartup,
+  SaveStartupSession,
+  type SaveStartupPolicy,
+} from "./programStartup";
+import { SAVE_STARTUP_RELEASE, saveStartupWords } from "./saveStartupRelease";
+import { SaveChangelogDialog, SaveStartupScreen } from "./SaveStartupFeedback";
 import { SaveExportContext, SaveExportRegistry } from "./saveExportRegistry";
 import { SaveExportDialog } from "./SaveExportDialog";
 import { saveExportWords } from "./saveExportWords";
@@ -324,6 +334,7 @@ import { TrainerPositionFields } from "./TrainerPositionFields";
 
 export function SaveEditorPanel(
   controllers: Omit<SaveProfileControllers, "gen5"> & {
+    startupActive?: boolean;
     onOpenSettings?(group: string): void;
     onTemplateSource?(
       source: import("./entityTemplate").EntityTemplateSource | undefined,
@@ -343,6 +354,22 @@ export function SaveEditorPanel(
   const gen5 = useGen5Profiles();
   const client = useRef(new SaveEditorClient());
   const settingsJson = useSaveSettingsJson();
+  const startupActive = controllers.startupActive ?? true;
+  const [startupSession] = useState(() => new SaveStartupSession());
+  const [startupStage, setStartupStage] = useState<
+    "idle" | "initializing" | "ready" | "failed" | "cancelled"
+  >("idle");
+  const [startupSplash, setStartupSplash] = useState(false);
+  const [startupRetry, setStartupRetry] = useState(0);
+  const [startupHistoryFailed, setStartupHistoryFailed] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
+  const startupMounted = useRef(false);
+  useEffect(() => {
+    startupMounted.current = true;
+    return () => {
+      startupMounted.current = false;
+    };
+  }, []);
   const [exportRegistry] = useState(() => new SaveExportRegistry());
   const [exportReview, setExportReview] = useState<{
     input: Uint8Array;
@@ -749,15 +776,77 @@ export function SaveEditorPanel(
       if (untouched()) setError("libraryRestoreFailed");
     }
   });
+  const initializeOnStartup = useEffectEvent(async (active: () => boolean) => {
+    try {
+      await startupSession.run(active, async () => {
+        if (running.current) return false;
+        let policy: SaveStartupPolicy | undefined;
+        let startupOperation: number | undefined;
+        await perform(async (id) => {
+          startupOperation = id;
+          setStartupStage("initializing");
+          try {
+            const snapshot = readSaveSettings();
+            const json = snapshot?.json ?? "";
+            setStartupSplash(!programStartupSettings(json).skipSplashScreen);
+            // Reuse the save client's Worker. No second runtime or settings
+            // write is needed to validate and warm up the local save tools.
+            const result = await client.current.run(
+              new Uint8Array(),
+              json || undefined,
+              json ? "programSettingsValidate" : "programSettingsRead",
+            );
+            if (!active() || id !== operation.current) return;
+            if (readSaveSettings()?.revision !== snapshot?.revision)
+              throw Error("Startup settings changed.");
+            const normalized = json
+              ? result.programSettingsJson
+              : result.programSettings?.json;
+            if (!normalized) throw Error("Missing startup settings.");
+            policy = programStartupSettings(normalized);
+          } catch (cause) {
+            throw new Error(saveStartupWords[batchLang].failed, { cause });
+          }
+        });
+        if (!startupMounted.current) return false;
+        if (!active()) {
+          setStartupStage("idle");
+          return false;
+        }
+        if (!policy) {
+          setStartupStage(
+            startupOperation === operation.current ? "failed" : "cancelled",
+          );
+          return false;
+        }
+        const record = recordSaveStartup(
+          SAVE_STARTUP_RELEASE.version,
+          policy,
+          localStorage,
+        );
+        setStartupHistoryFailed(!record.stored);
+        setShowChangelog(record.showChangelog);
+        // Remember a successful launch before opening the recent file, matching
+        // StartupUtil. Hold the notes until the workspace is visible and ready.
+        await restoreOnStartup(active);
+        if (startupMounted.current) setStartupStage("ready");
+        return true;
+      });
+    } catch {
+      if (active() && startupMounted.current) {
+        setStartupStage("failed");
+        setError(saveStartupWords[batchLang].failed);
+      }
+    }
+  });
   useEffect(() => {
+    if (!startupActive) return;
     let active = true;
-    queueMicrotask(() => {
-      if (active) void restoreOnStartup(() => active);
-    });
+    void initializeOnStartup(() => active);
     return () => {
       active = false;
     };
-  }, []);
+  }, [startupActive, startupRetry]);
 
   const refreshSettings = useEffectEvent(() => {
     client.current.dispose(
@@ -5339,6 +5428,12 @@ export function SaveEditorPanel(
       data-open={Boolean(report)}
       aria-busy={busy}
     >
+      {startupActive && startupStage === "ready" && showChangelog && !busy && (
+        <SaveChangelogDialog
+          lang={batchLang}
+          onClose={() => setShowChangelog(false)}
+        />
+      )}
       {!report && <p>{words.intro}</p>}
       <div className="save-editor-toolbar">
         <button
@@ -5464,16 +5559,45 @@ export function SaveEditorPanel(
       )}
 
       {!report && <p className="save-editor-note">{words.choose}</p>}
-      {busy && <p role="status">{words.loading}</p>}
+      {startupStage === "initializing" && startupSplash ? (
+        <SaveStartupScreen lang={batchLang} />
+      ) : busy ? (
+        <p role="status">{words.loading}</p>
+      ) : null}
+      {(startupStage === "failed" || startupStage === "cancelled") && (
+        <div className="save-editor-toolbar">
+          {startupStage === "cancelled" && (
+            <p>{saveStartupWords[batchLang].cancelled}</p>
+          )}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              // A failed runtime import is cached inside that Worker. Restart
+              // the Worker, retaining this panel's file and undo buffers.
+              client.current.dispose();
+              setStartupRetry((value) => value + 1);
+            }}
+          >
+            {saveStartupWords[batchLang].retry}
+          </button>
+        </div>
+      )}
+      {startupHistoryFailed && (
+        <p role="status" className="save-editor-note">
+          {saveStartupWords[batchLang].historyFailed}
+        </p>
+      )}
       {error && (
         <p role="alert" className="save-editor-error">
           {error === "libraryRestoreFailed"
             ? saveLibraryWords[batchLang].restoreFailed
-            : Object.values(saveDetectionWords).some(
-                  (value) => value.openError === error,
-                )
-              ? saveDetectionWords[batchLang].openError
-              : localizeSaveError(error, words)}
+            : (localizeSaveStartupError(error, batchLang) ??
+              (Object.values(saveDetectionWords).some(
+                (value) => value.openError === error,
+              )
+                ? saveDetectionWords[batchLang].openError
+                : localizeSaveError(error, words)))}
         </p>
       )}
       {status && (

@@ -13,7 +13,10 @@ import { settingsWords } from "./settingsLabels";
 import { useSaveClientBusy } from "./useSaveClientBusy";
 import "./StandalonePokemonPanel.css";
 
-export function SaveToolsPanel(props: ComponentProps<typeof SaveEditorPanel>) {
+export function SaveToolsPanel({
+  active = true,
+  ...props
+}: ComponentProps<typeof SaveEditorPanel> & { active?: boolean }) {
   const { i18n } = useTranslation();
   const lang = i18n.language.startsWith("zh")
     ? "zh"
@@ -80,6 +83,7 @@ export function SaveToolsPanel(props: ComponentProps<typeof SaveEditorPanel>) {
       <div className="save-tools-pane" hidden={mode !== "save"}>
         <SaveEditorPanel
           {...props}
+          startupActive={active}
           onTemplateSource={setTemplateSource}
           onOpenSettings={(group) => {
             setSettingsGroup(group);

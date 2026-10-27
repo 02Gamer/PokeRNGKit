@@ -1,5 +1,25 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-27 网页启动设置接线（API190 前端，工程通过，发布待跟踪）
+
+继续完整接入目标，接入此前仍待接的 ShowChangelogOnUpdate 和 SkipSplashScreen。来源为只读上游 WinForms Settings/StartupSettings.cs、Program.Main 及 Core Editing/Program/StartupUtil.GetShowChangelog：布尔默认分别 true／false；首次或无效历史版本不弹日志，只有旧版升级才自动弹出，同版和降级不弹，关闭自动显示仍记录当前版本。
+
+网页在每次打开页面后首次进入存档工作区时初始化，复用存档编辑器的同一个 Worker，先由既有 Core 设置接口校验，再恢复最近文件；RNG 工作区不提前启动该流程。启动画面仅覆盖实际初始化，跳过时保留普通处理反馈。启动设置组提供三语说明及手动日志入口；弹窗沿公共存档对话框表面、44px 控件与焦点恢复，不增加主题或控件皮肤。
+
+独立本机键 pokerngkit-save-startup-version-v1 保存网页启动历史，不改导入桌面设置中的 Startup.Version、设置修订或存档。内部比较版本为 0.API.网页修订.0，本批为 0.190.1.0，仅用于启动日志比较，不新增正式产品发布号。历史仅消费本工具写入的数字格式；记录读写失败保留原值并提示，不阻止文件编辑。首次启动、快速切换、StrictMode、取消／重试与已提交启动后的导航通过串行会话保护，日志等待工作区可见且就绪后显示。
+
+首批五文件／55 项专项及本批 TypeScript 定向 Lint 通过；随后补充导航后的会话保持断言及共享弹窗样式。真实 Chrome 已核对三语手动日志、按钮／Escape 关闭和焦点返回。Tab／Shift+Tab 曾落到 BODY，现为这个单按钮弹窗保留键盘焦点；修复后两方向均落在“关闭”按钮。日志入口及两项开关均来自正式设置页。
+
+以临时网页修订 1→2→3 核对真实启动：默认专用画面、升级自动日志、跳过画面后的普通状态、关闭日志后的新版静默及最近存档恢复均通过。正式表单只保存两项测试变化，随后恢复 skip=false／show=true；同版 3 不补弹，证明关闭日志时仍记录版本。正式元数据恢复 1 后逐字节哈希与试验前一致，降级静默；取消初始化后重试也恢复了最近存档。临时值及原设置均已恢复，原始存档没有写入。
+
+深色及 390px 布局的弹窗边界、15px 字号与约 44px 控件已核对；模拟尺寸下整图截图多次超时／裁切异常，保留该诊断，不能外推为所有设备视觉通过。清除视口覆盖、恢复 Light 与中文后，原生默认尺寸截图成功，完整弹窗和关闭按钮可见，证据为 `.tmp/pkhex-startup-native-default.png`。页面没有项目脚本错误，捕获一条 chrome-extension 来源的 fetchError，未据此重启应用或重复授权。详细记录见 `.tmp/pkhex-startup-browser-audit.json`。
+
+首轮完整门禁的格式、Lint 和类型通过，进入前端测试后为修正启动失败消息的语言切换映射主动中止；`.tmp/pkhex-startup-verify.log`／同名 result 的退出 1 是本任务中止结果，不是失败用例。已在渲染时按活动语言重新映射已知启动错误，并补三语交叉断言；最终专项五文件／59 项通过。
+
+最终完整 `npm run verify` 退出 0，378 文件／2328 项、全仓格式、Lint、类型、网页及 PWA 缓存生成通过，日志和终态分别为 `.tmp/pkhex-startup-final-verify.log`、`.tmp/pkhex-startup-final-verify-result.json`。保留第三世代定点既有 Hook、包体与插件耗时提示。原件及输入副本 SHA-256 均保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。检查期间停止本任务 Vite 并关闭重复测试标签释放内存，结束后恢复服务与新预览。Core、Worker 协议和输入范围未改，复用已发布 API190 原生及核心证据，不写作本批重跑；提交发布待跟踪，当前已发布产品仍为 fcfbcd2c，文档基线 8a2fb555。
+
+后续设置页核对发现：上游 Startup.Version／RecentlyLoaded／Language 标为 Browsable(false)，当前通用目录仍把这些元数据暴露为“待接”；DefaultSaveVersion 则由 SettingsEditor.CB_Blank 独立提供，中文来源标签为“空白存档版本：”。应修正字段可见性及对应标签，保留 JSON 元数据与实际默认版本功能。SlotExport 的顶层属性虽也有该标记，但 SettingsEditor.LoadSettings 使用的 ReflectUtil 不据此排除分组，不能套用叶字段规则隐藏整个分组。完整目标继续进行。
+
 ## 2026-10-27 昵称编辑保留个性值修复（API190，已发布）
 
 真实 Chrome 检查发现：第三世代大颚蚁仅取消“使用种类名称”并改昵称 UIAUDIT 后，编辑缓冲的异色状态由是变否，原箱位尚未变化。已撤销缓冲，恢复 TRAPINCH／异色是；原始 E.sav 和输入工作副本没有写入。缺陷截图与状态见 `.tmp/pkhex-nickname-before-fix.jpg`、`.tmp/pkhex-nickname-regression-before.json`，原生新增夹具已复现 PK3 命名意外重新生成 PID 的失败。

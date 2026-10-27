@@ -688,7 +688,7 @@
   text-align: start;
   white-space: normal;
 }
-.save-pokemon-set-dialog {
+:is(.save-editor-dialog, .save-pokemon-set-dialog) {
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   border: 1px solid var(--line);
@@ -696,9 +696,9 @@
   background: var(--surface);
   color: var(--text);
 }
-.save-pokemon-set-dialog:not([open]) {
+:is(.save-editor-dialog, .save-pokemon-set-dialog):not([open]) {
   display: none;
 }
-.save-pokemon-set-dialog::backdrop {
+:is(.save-editor-dialog, .save-pokemon-set-dialog)::backdrop {
   background: color-mix(in srgb, var(--text) 32%, transparent);
 }

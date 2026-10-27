@@ -20,6 +20,7 @@ import { saveLibraryWords } from "./saveLibrarySettings";
 import { CryLibraryWorkspace } from "./CryLibraryWorkspace";
 import { SaveSoundControl } from "./SaveSoundControl";
 import { BlockKeyLibraryWorkspace } from "./BlockKeyLibraryWorkspace";
+import { SaveStartupSettingsTools } from "./SaveStartupFeedback";
 
 export function SaveSettingsWorkspace({
   lang,
@@ -129,6 +130,8 @@ export function SaveSettingsWorkspace({
         renderGroupTools={(current) =>
           current === "advanced" ? (
             <BlockKeyLibraryWorkspace lang={lang} busy={busy} />
+          ) : current === "startup" ? (
+            <SaveStartupSettingsTools lang={lang} />
           ) : undefined
         }
         initialGroup={group}

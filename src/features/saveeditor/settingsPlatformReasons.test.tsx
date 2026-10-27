@@ -25,12 +25,10 @@ const enabled = [
   "startup.forceHaXOnLaunch",
   "display.unicode",
   "advanced.dragStartThreshold",
-];
-const pending = [
-  "advanced.future",
   "startup.showChangelogOnUpdate",
   "startup.skipSplashScreen",
 ];
+const pending = ["advanced.future"];
 const field = (path: string): SaveSettingsField => ({
   path,
   name: path.split(".").at(-1)!,

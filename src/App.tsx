@@ -1396,6 +1396,7 @@ function App() {
         inert={primaryWorkspace !== "save" ? true : undefined}
       >
         <SaveToolsPanel
+          active={primaryWorkspace === "save"}
           gen3={profiles}
           gen4={gen4Profiles}
           gen8={gen8Profiles}

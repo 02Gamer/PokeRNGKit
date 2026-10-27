@@ -15,6 +15,8 @@ export function unavailableProgramSettings(
     "advanced.pathBlockKeyList",
     "advanced.dragStartThreshold",
     "startup.forceHaXOnLaunch",
+    "startup.showChangelogOnUpdate",
+    "startup.skipSplashScreen",
     "display.unicode",
     "startup.defaultSaveVersion",
     "localResources.templatePath",
