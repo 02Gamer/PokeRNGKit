@@ -1,6 +1,18 @@
 # PokeRNGKit 项目进度与交接
 
-## 2026-10-27 设置字段可见性与空白版本标签（API190 前端，工程通过，发布待跟踪）
+## 2026-10-28 箱子导出真实流程核验与选项记忆缺口（API190，只读核验）
+
+外部 Chrome 的本地 5173 页面使用真实 E.sav 派生工作副本 `edited-confirmed-input (2).sav`，未重新写入原件。全部箱子、平铺、无编号导出得到 20 个 100 字节 PK3；当前 BOX1、逐箱目录、编号和名称及箱号／格位前缀得到 10 个文件，目录 `01 BOX1/`，前缀对应实际 0 起始格位。勾选包含空格后得到 30 个文件，已有 10 只的文件字节与上一份 ZIP 完全一致。
+
+BOX14 空箱在跳过空格时拒绝导出，中文／英文／日文错误均从真实页面读取，没有新增 ZIP。主箱切换按已有 currentBoxEdit 写当前箱子记录，产生一条可撤销修改；这条位置变更已撤销。随后完整存档下载 SHA-256 与本轮输入同为 1B7F81A9D451F3A00484199F49736E290D115E6CE28A6BA679C5FD974FF9A995，证明测试流程恢复到输入字节。原始 E.sav 及 confirmed-input.sav 仍为 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。
+
+从实际全部箱子 ZIP 取出的 UIAUDIT 文件在独立宝可梦入口重读为 PK3 队伍格式，100 字节、PID 2ECD5732；昵称、等级 20、MICHAEL、TID／SID、性别、异色与合法性保持。预览恢复 BOX1、中文及 Light，撤销禁用；证据及三份 ZIP 哈希见 `.tmp/pkhex-box-export-browser-audit.json`。本批只补有限绿宝石流程的工程证据，其他格式、所有选项组合、重名、静默、触控及离线仍需适当页面检查。
+
+源码对照确认一个未接行为：WinForms `Subforms/BoxExporter.cs.BoxExporter_FormClosing` 将本次 BoxExport 和 DefaultBoxExportNamer 写回 Main.Settings；网页 BoxArchiveEditor 只有每次挂载的 useState，本次覆盖值不写回统一设置。切换箱子／修订后面板重建会重新读旧默认值。该差异仍属完整接入范围，不能把 ZIP 下载通过写成整个 BoxExporter 等价完成。下一步实现关闭时的导出选项记忆，先核对完整 JSON 的 Core 验证、设置修订比较、跨标签变更和现有草稿／冻结确认保护，不能用自动保存覆盖其他设置或绕过校验。
+
+本轮产品代码未改，沿用同一 59a2fc89 的本机完整门禁 379 文件／2335 项；未重跑 Core、原生或前端测试，只执行上述已授权浏览器及下载文件读取。四份交接文档按格式门禁收尾后，以文档提交和 [skip ci] 推送，避免重复部署。完整 PKHeX 目标继续进行。
+
+## 2026-10-27 设置字段可见性与空白版本标签（API190 前端，已发布）
 
 按只读上游 StartupSettings 的 Browsable(false) 隐藏 Version、RecentlyLoaded 和 Language；完整 Core 目录及 JSON 保留，恢复默认草稿也保留这三个自动维护值。DefaultSaveVersion 虽有相同标记，但上游 SettingsEditor.CB_Blank 提供独立控件，网页保留现有功能并复用 L_Blank 的中／英／日来源标签。SlotExport 分组与未知待接字段仍可见，不把顶层或未来字段推断为平台排除。
 
@@ -11,6 +23,8 @@
 2026-10-28 完整 `npm run verify` 退出 0：379 文件／2335 项前端测试、全仓格式、Lint、类型、网页及 PWA 缓存生成通过。日志与终态为 `.tmp/pkhex-settings-visibility-verify.log` 和同名前缀 `verify-result.json`；仅保留第三世代定点既有 Hook、包体及插件耗时提示。Core／Worker 未改，未重跑本机原生／核心，沿 API190 已发布证据。原件和输入副本 SHA-256 均保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。检查期间只停止本任务 Vite，结束后恢复 5173 服务。
 
 本批基于已发布 main／f8f1a594，全部工作区改动属于本任务，按既有授权提交并推送，发布待跟踪。下一步先核对新流水线终态，再继续整箱导出与其余 129 项行为清单的实际页面核验；不以本批显示修正宣称完整 PKHeX 接入或所有者验收。
+
+2026-10-28 已核对 [Actions 40538823305](https://github.com/HaKu76/PokeRNGKit/actions/runs/40538823305)：build 122311314078、GitHub Pages 122326219312、Cloudflare Pages 122326219426、Windows 包 122326219736 均 completed／success，原生／核心及发布门禁通过。产品 59a2fc89 为当前已发布基线，文档 1b7b0929 未重复部署。终态记录为 `.tmp/pkhex-settings-visibility-release-proof.json`；这不替代所有者验收。
 
 产品提交 59a2fc89 已推送，工作区曾干净；[Actions 40538823305](https://github.com/HaKu76/PokeRNGKit/actions/runs/40538823305) 已启动，build 122311314078 正在运行原生往返检查。恢复 Chrome 时旧标签焦点绑定超时，新建标签的导航等待也超时，但绑定同一个新标签 1601081988 后读取成功；自动恢复 E.sav 测试下载，UIAUDIT／异色／合法性及禁用撤销均保持，新版四条日志正常显示并关闭。未重启应用或新增授权，预览已保留。补记上述状态并纠正审计中的两处过期表述，仅文档跟进使用 [skip ci]，继续跟踪产品流水线，不重复部署。
 
