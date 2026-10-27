@@ -1,6 +1,6 @@
 # PokeRNGKit 项目进度与交接
 
-## 2026-10-27 昵称编辑保留个性值修复（API190，工程通过，发布待跟踪）
+## 2026-10-27 昵称编辑保留个性值修复（API190，已发布）
 
 真实 Chrome 检查发现：第三世代大颚蚁仅取消“使用种类名称”并改昵称 UIAUDIT 后，编辑缓冲的异色状态由是变否，原箱位尚未变化。已撤销缓冲，恢复 TRAPINCH／异色是；原始 E.sav 和输入工作副本没有写入。缺陷截图与状态见 `.tmp/pkhex-nickname-before-fix.jpg`、`.tmp/pkhex-nickname-regression-before.json`，原生新增夹具已复现 PK3 命名意外重新生成 PID 的失败。
 
@@ -12,7 +12,9 @@
 
 外部 Chrome 正式页面已完成改名、合法性、冻结预览取消与确认、下载及重新打开实际下载文件：昵称 UIAUDIT，PID 始终为 2ECD5732，异色保留，重新读取后报告“合法！”。覆盖前需要勾选确认；此前把未勾选时禁用的按钮误判成提交卡住，实际未派发写入请求，补勾后写入成功。另修正编辑区锁定时误报“正在处理”的状态，仅本区实际请求显示加载提示。修复后零字节预览、取消和控制台均已核对。原件及输入副本哈希不变，下载和页面证据见 `.tmp/pkhex-api190-nickname-browser-audit.json` 与 `.tmp/pkhex-api190-nickname-roundtrip.jpg`。
 
-完整 `npm run verify` 退出 0，377 文件／2292 项、全仓格式、Lint、类型、生产网页及 PWA 缓存生成通过；证据为 `.tmp/pkhex-api190-verify.log` 和 `.tmp/pkhex-api190-verify-result.json`。保留第三世代定点既有 Hook、包体及插件耗时提示，没有重复未修改的原生检查。完整门禁期间暂时停止本任务 5173 服务释放内存，结束后恢复。提交和发布待跟踪；当前已部署产品代码仍为 57f4dcc7／API189，不将页面工程检查写成全部功能或所有者验收。
+完整 `npm run verify` 退出 0，377 文件／2292 项、全仓格式、Lint、类型、生产网页及 PWA 缓存生成通过；证据为 `.tmp/pkhex-api190-verify.log` 和 `.tmp/pkhex-api190-verify-result.json`。保留第三世代定点既有 Hook、包体及插件耗时提示，没有重复未修改的原生检查。完整门禁期间暂时停止本任务 5173 服务释放内存，结束后恢复。产品代码 `fcfbcd2cee7f3ac456e3169b642ab05018e1eb0e` 已提交并推送；[Actions 40497786043](https://github.com/HaKu76/PokeRNGKit/actions/runs/40497786043) 的 build、GitHub Pages、Cloudflare 和 Windows 四任务均 completed／success。不将页面工程检查写成全部功能或所有者验收。
+
+发布期间另补真实 Chrome 检查：背包中／英／日均显示新版说明，保留 28 条道具数据，语言已恢复中文；双箱 BOX1 格位 1 移到 BOX2 格位 1 后，两箱占用 10→9、3→4，撤销恢复来源、空目标和 10／3，未导出本次移动。证据为 `.tmp/pkhex-api190-cross-box-browser-audit.json`；恢复单箱与原选中格位，并保留外部 Chrome 预览。组合修饰键、跨视图其他模式、触控、离线、启动更新日志／启动画面及其余完整清单继续保留。发布结果补记仅涉及文档，沿已核对的 `[skip ci]` 避免重复部署。
 
 ## 2026-10-27 外部 Chrome 恢复与存档工作区布局修复（已发布，页面工程核验）
 
