@@ -1,5 +1,19 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-27 昵称编辑保留个性值修复（API190，工程通过，发布待跟踪）
+
+真实 Chrome 检查发现：第三世代大颚蚁仅取消“使用种类名称”并改昵称 UIAUDIT 后，编辑缓冲的异色状态由是变否，原箱位尚未变化。已撤销缓冲，恢复 TRAPINCH／异色是；原始 E.sav 和输入工作副本没有写入。缺陷截图与状态见 `.tmp/pkhex-nickname-before-fix.jpg`、`.tmp/pkhex-nickname-regression-before.json`，原生新增夹具已复现 PK3 命名意外重新生成 PID 的失败。
+
+原因是命名开关与物种／形态／性别共用 identity，前端因此传入未改变的特性槽，核心也为所有 identity 更新补选特性。旧世代 Core 的 SetAbilityIndex 会生成 PID。现分别判断物种／形态／性别变化与命名变化，后者不补选特性；草稿合并也不为仅命名的操作占用 PID／特性字段。依据为上游 PKMEditor 的 UpdateIsNicknamed、UpdateNickname、UpdateRandomPID、LoadSave.SaveNickname 及 Core CommonEdits.SetAbilityIndex，名称上限沿既有实体目录和控件 maxLength，不新增或放宽输入范围。
+
+协议、Worker、解析器及相关夹具同步升级 API190，避免缓存中的旧核心继续处理新流程。另移除中／英／日背包说明中“道具图片未接入”的过期句子，保留实际操作与异常值说明。非默认起拖阈值 2000 的短拖不产生编辑，100 的同一路径可移动，撤销恢复；已通过正式设置页保存原值 0，并重新读取确认。证据为 `.tmp/pkhex-threshold-browser-audit.json`。
+
+新增原生回归覆盖 15 种实体、普通／HaX、昵称／种类名称切换、独立完整字节预期、命名与显式 PID 草稿合并、真实 E.sav 的独立文件／完整存档及冻结放入。新增夹具先后修正 Memory<byte> 输出比较、CK3 显示名称副本和解密缓冲输出预期，未放宽完整字节断言，原失败日志保留。专项、默认完整原生及 API190 浏览器核心构建均退出 0，前端专项为 11 文件／247 项；日志分别为 `.tmp/pkhex-api190-nickname-native-checked.log`、`.tmp/pkhex-api190-native-full.log`、`.tmp/pkhex-api190-core.log` 和 `.tmp/pkhex-api190-frontend-focus.log`。
+
+外部 Chrome 正式页面已完成改名、合法性、冻结预览取消与确认、下载及重新打开实际下载文件：昵称 UIAUDIT，PID 始终为 2ECD5732，异色保留，重新读取后报告“合法！”。覆盖前需要勾选确认；此前把未勾选时禁用的按钮误判成提交卡住，实际未派发写入请求，补勾后写入成功。另修正编辑区锁定时误报“正在处理”的状态，仅本区实际请求显示加载提示。修复后零字节预览、取消和控制台均已核对。原件及输入副本哈希不变，下载和页面证据见 `.tmp/pkhex-api190-nickname-browser-audit.json` 与 `.tmp/pkhex-api190-nickname-roundtrip.jpg`。
+
+完整 `npm run verify` 退出 0，377 文件／2292 项、全仓格式、Lint、类型、生产网页及 PWA 缓存生成通过；证据为 `.tmp/pkhex-api190-verify.log` 和 `.tmp/pkhex-api190-verify-result.json`。保留第三世代定点既有 Hook、包体及插件耗时提示，没有重复未修改的原生检查。完整门禁期间暂时停止本任务 5173 服务释放内存，结束后恢复。提交和发布待跟踪；当前已部署产品代码仍为 57f4dcc7／API189，不将页面工程检查写成全部功能或所有者验收。
+
 ## 2026-10-27 外部 Chrome 恢复与存档工作区布局修复（已发布，页面工程核验）
 
 按所有者授权完成 Codex 官方 Windows 包更新：26.1007.2314.0 升至 26.1021.3705.0，包名、发布者及声明能力一致，应用通过原有包上下文与进程代理启动。外部 Chrome 标签枚举、页面读取及操作已恢复；一次性更新任务退出 0 后移除，不再以旧连接失败阻塞后续工作。

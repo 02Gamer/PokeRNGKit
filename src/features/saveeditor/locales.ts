@@ -169,7 +169,7 @@ export const saveEditorResources = {
     bagCrampedNote: "口袋容量小于道具目录，将按所选方式填满可用格位。",
     bagClearAllNote: "这会清空当前口袋的全部道具及标记，其他口袋保持不变。",
     inventoryReadNote:
-      "选择道具编辑种类、数量和标记，或展开口袋整理。应用后更新工作副本，可撤销或导出。读取不会自动清理异常值。道具图片尚未接入。",
+      "选择道具编辑种类、数量和标记，或展开口袋整理。应用后更新工作副本，可撤销或导出。读取不会自动清理异常值。",
     editBagItem: "编辑道具",
     revertBagItem: "还原道具草稿",
     clearBagItem: "清空此格位",
@@ -824,7 +824,7 @@ export const saveEditorResources = {
     bagClearAllNote:
       "Clears every item and flag in this pouch. Other pouches are preserved.",
     inventoryReadNote:
-      "Select an item to edit its identity, quantity and flags, or expand pouch actions. Apply to the working copy, then undo or export. Reading does not clean unusual values. Item images are not connected yet.",
+      "Select an item to edit its identity, quantity and flags, or expand pouch actions. Apply to the working copy, then undo or export. Reading does not clean unusual values.",
     editBagItem: "Edit item",
     revertBagItem: "Revert item draft",
     clearBagItem: "Clear this slot",
@@ -1515,7 +1515,7 @@ export const saveEditorResources = {
     bagClearAllNote:
       "現在のポケットの道具とフラグをすべて消去します。他のポケットは保持します。",
     inventoryReadNote:
-      "道具の種類・個数・フラグを編集するか、ポケットの整理を開きます。作業コピーに適用後、元に戻すか出力できます。読み取り時は異常値を自動削除しません。道具画像は未対応です。",
+      "道具の種類・個数・フラグを編集するか、ポケットの整理を開きます。作業コピーに適用後、元に戻すか出力できます。読み取り時は異常値を自動削除しません。",
     editBagItem: "道具を編集",
     revertBagItem: "道具の変更を戻す",
     clearBagItem: "このスロットを空にする",

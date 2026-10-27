@@ -14,7 +14,7 @@ describe("Stadium and Ranch shared entry points", () => {
     (extension) => {
       const hash = "A".repeat(64),
         value = {
-          apiVersion: 189,
+          apiVersion: 190,
           sourceHash: hash,
           version: 1,
           directory: "template",

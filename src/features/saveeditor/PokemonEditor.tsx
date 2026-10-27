@@ -90,12 +90,13 @@ export function PokemonEditor({
     (choice) => choice.id === Number(values.species),
   );
   const formChoice = speciesChoice?.forms[Number(values.form)];
-  const identityChanged =
+  const speciesFormGenderChanged =
     Number(values.species) !== pokemon.species ||
     Number(values.form) !== pokemon.form ||
-    Number(values.gender) !== pokemon.gender ||
-    values.useSpeciesName !== !pokemon.isNicknamed;
-  const abilityChoices = identityChanged
+    Number(values.gender) !== pokemon.gender;
+  const identityChanged =
+    speciesFormGenderChanged || values.useSpeciesName !== !pokemon.isNicknamed;
+  const abilityChoices = speciesFormGenderChanged
     ? (formChoice?.abilities ?? pokemon.abilityChoices)
     : pokemon.abilityChoices;
   const changeIdentity = (species: string, form: string) => {
@@ -186,7 +187,7 @@ export function PokemonEditor({
           ? null
           : integer(values.statAlignment, 24),
       abilityIndex:
-        (!identityChanged || manualAbility) &&
+        (!speciesFormGenderChanged || manualAbility) &&
         Number(values.abilityIndex) === pokemon.abilityIndex
           ? null
           : integer(values.abilityIndex, abilityChoices.length - 1),

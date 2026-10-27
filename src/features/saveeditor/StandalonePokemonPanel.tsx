@@ -1046,7 +1046,7 @@ export function StandalonePokemonPanel({
       haX={report?.pokemon.haX ?? true}
       disabled={busy || !report?.canEdit}
     >
-      <div className="save-editor-panel" aria-busy={busy}>
+      <div className="save-editor-panel" aria-busy={localBusy}>
         <p>{saveContext ? pokemonSetWords[lang].note : words.intro}</p>
         {!seed && (
           <div className="save-editor-fields">
@@ -1167,7 +1167,7 @@ export function StandalonePokemonPanel({
             </button>
           )}
         </div>
-        {busy && <p role="status">{common.loading}</p>}
+        {localBusy && <p role="status">{common.loading}</p>}
         {error && (
           <p className="save-editor-error" role="alert">
             {words[error]}

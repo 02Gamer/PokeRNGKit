@@ -49,11 +49,12 @@ internal static class PokemonEditing
         PokemonChoiceCatalog.ValidateChanges(p,edit.Identity?.Species??p.Species,edit.HeldItem,edit.Moves,saveContext);
         if (edit.Identity is not null)
         {
+            var identityChanged = PokemonIdentity.ChangesIdentity(p, edit.Identity);
             applyIdentity(edit.Identity);
             if (edit.Identity.UseSpeciesName)
                 edit = edit with { Nickname = SpeciesName.GetSpeciesNameGeneration(p.Species, p.Language, p.Format) };
             // Changing species/form must select an ability from the new personal entry.
-            if(!PokemonEditorMode.HaX&&!PokemonModeRules.Read(p).ManualAbility)edit = edit with { AbilityIndex = edit.AbilityIndex ?? Math.Clamp(p.AbilityNumber >> 1, 0, p.PersonalInfo.AbilityCount - 1) };
+            if(identityChanged&&!PokemonEditorMode.HaX&&!PokemonModeRules.Read(p).ManualAbility)edit = edit with { AbilityIndex = edit.AbilityIndex ?? Math.Clamp(p.AbilityNumber >> 1, 0, p.PersonalInfo.AbilityCount - 1) };
         }
         if (edit.Nature is < 0 or > 24 || edit.StatAlignment is < 0 or > 24)
             throw new ArgumentException("Pokemon nature is outside the format limits.");

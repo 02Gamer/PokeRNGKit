@@ -105,9 +105,12 @@ internal static class PokemonIdentity
             throw new ArgumentException("Pokemon gender is outside the species limits.");
         ApplyIdentity(p, edit, box);
     }
+    internal static bool ChangesIdentity(PKM p, PokemonIdentityEdit edit) =>
+        p.Species != edit.Species || p.Form != edit.Form || p.Gender != edit.Gender;
+
     private static void ApplyIdentity(PKM p, PokemonIdentityEdit edit, int box)
     {
-        var changed = p.Species != edit.Species || p.Form != edit.Form || p.Gender != edit.Gender;
+        var changed = ChangesIdentity(p, edit);
         var oldSpecies = p.Species;
         var oldForm = p.Form;
         p.Species = edit.Species;

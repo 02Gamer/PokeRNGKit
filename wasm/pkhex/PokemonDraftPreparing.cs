@@ -60,7 +60,7 @@ internal static class PokemonDraftPreparing
                     if(fields.Contains("trainerIds")&&(fields.Contains("tid")||fields.Contains("sid")))throw new ArgumentException("Conflicting trainer ID representations.");
                     if(fields.Contains("level")){if(edit.Level is <1 or >100)throw new ArgumentException("Invalid editor level.");levels.Add(edit.Level);}
                     foreach(var field in fields.Where(f=>f!="level"))Claim(field=="friendship"?Friendship():field=="abilityIndex"?"ability":field,index,step.Edit.GetProperty(field).GetRawText());
-                    if(fields.Contains("identity"))
+                    if(fields.Contains("identity") && edit.Identity is {} requestedIdentity && PokemonIdentity.ChangesIdentity(p, requestedIdentity))
                     {
                         if(!PokemonEditorMode.HaX&&!PokemonModeRules.Read(p).ManualAbility)Claim("ability",index,"identity");
                         if(p.Format<=5&&(!PokemonEditorMode.HaX||edit.Identity is{} identity&&(identity.Species!=p.Species||identity.Gender!=p.Gender)))Claim("pid",index,"identity");
