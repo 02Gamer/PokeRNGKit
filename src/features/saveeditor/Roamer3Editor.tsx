@@ -103,6 +103,7 @@ function RoamerForm({
         <label className="field">
           <span>{w.species}</span>
           <Select
+            disabled={disabled}
             value={draft.species}
             onChange={(e) =>
               setDraft({ ...draft, species: Number(e.target.value) })

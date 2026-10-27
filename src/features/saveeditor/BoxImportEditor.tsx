@@ -156,6 +156,7 @@ export function BoxImportEditor({
           <label className="field">
             <span>{words.start}</span>
             <Select
+              disabled={busy}
               value={options.firstBox}
               onChange={(e) => change({ firstBox: Number(e.target.value) })}
             >
@@ -171,6 +172,7 @@ export function BoxImportEditor({
               <label className="field" key={key}>
                 <span>{words.settings[i]}</span>
                 <Select
+                  disabled={busy}
                   value={options[key]}
                   onChange={(e) => change({ [key]: Number(e.target.value) })}
                 >

@@ -161,6 +161,7 @@ export function FileBatchEditor({
             <label className="field">
               <span>{words.catalogFormat}</span>
               <Select
+                disabled={busy}
                 value={format}
                 onChange={(e) => setFormat(e.target.value)}
               >
@@ -188,6 +189,7 @@ export function FileBatchEditor({
           <label className="field">
             <span>{common.operator}</span>
             <Select
+              disabled={busy}
               value={operator}
               onChange={(e) => setOperator(e.target.value)}
             >

@@ -189,6 +189,7 @@ function GearForm({
               <span>{w.value}</span>
               {mode === "choice" ? (
                 <Select
+                  disabled={busy || !c.canEdit}
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
                 >

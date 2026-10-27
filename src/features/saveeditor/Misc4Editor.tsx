@@ -197,6 +197,7 @@ function MainForm({
                     {w.slot} {pos + 1}
                   </span>
                   <Select
+                    disabled={busy || !c.canEdit || !!preview}
                     value={id}
                     onChange={(e) => {
                       const next = [...(backdrops ?? c.backdrops!)];

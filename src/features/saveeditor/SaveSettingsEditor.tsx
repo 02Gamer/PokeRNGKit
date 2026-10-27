@@ -148,6 +148,7 @@ export function SaveSettingsEditor({
       <label className="field">
         <span>{words.group}</span>
         <Select
+          disabled={disabled}
           value={group}
           onChange={(event) => setGroup(event.target.value)}
         >

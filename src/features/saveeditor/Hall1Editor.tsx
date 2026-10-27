@@ -124,7 +124,7 @@ function HallForm({
         <span>{w.team}</span>
         <Select
           value={team}
-          disabled={dirty}
+          disabled={dirty || busy}
           onChange={(e) => onTeam(Number(e.target.value))}
         >
           {catalog.teams.map((t, i) => (
@@ -168,7 +168,7 @@ function HallForm({
           <label className="field">
             <span>{w.species}</span>
             <Select
-              disabled={countDirty}
+              disabled={countDirty || busy || !catalog.canEdit}
               value={draft.species}
               onChange={(e) =>
                 setDraft({ ...draft, species: Number(e.target.value) })
@@ -200,7 +200,7 @@ function HallForm({
           <label className="field">
             <span>{w.mode}</span>
             <Select
-              disabled={countDirty}
+              disabled={countDirty || busy || !catalog.canEdit}
               value={draft.mode}
               onChange={(e) =>
                 setDraft({

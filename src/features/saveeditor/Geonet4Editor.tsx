@@ -144,7 +144,7 @@ function MapForm({
           <span>{w.point}</span>
           <Select
             value={draft ?? row.point}
-            disabled={flag !== undefined || preview}
+            disabled={flag !== undefined || preview || busy || !c.canEdit}
             onChange={(e) => setDraft(Number(e.target.value))}
           >
             {w.points.map((point, i) => (
@@ -215,7 +215,7 @@ function MapForm({
           <span>{w.batch}</span>
           <Select
             value={action}
-            disabled={locked}
+            disabled={locked || !c.canEdit}
             onChange={(e) => setAction(e.target.value as typeof action)}
           >
             {(["all", "legal", "clear", "save"] as const).map((key) => (

@@ -4,10 +4,11 @@ import { SAVE_EDITOR_API_VERSION } from "./domain";
 // Internal launch-history version: API + Web UI revision. This is independent
 // of PKHeX's desktop version and does not introduce a product release number.
 export const SAVE_STARTUP_RELEASE = {
-  version: `0.${SAVE_EDITOR_API_VERSION}.3.0`,
+  version: `0.${SAVE_EDITOR_API_VERSION}.4.0`,
   date: "2026-10-28",
   changes: {
     zh: [
+      "统一存档表单的下拉禁用状态，保留各项只读与草稿限制。",
       "关闭箱子导出面板时记住选项，并保留未应用的编辑草稿。",
       "设置页隐藏自动维护的内部字段，并补齐空白存档版本的语言标签。",
       "仅修改昵称会保留宝可梦的个性值、异色和其他未编辑内容。",
@@ -15,6 +16,7 @@ export const SAVE_STARTUP_RELEASE = {
       "接入启动画面与更新日志设置，可在启动设置中查看本次更新。",
     ],
     en: [
+      "Unified disabled states for save-form menus while retaining read-only and draft restrictions.",
       "Closing box export remembers its options while preserving unapplied editing drafts.",
       "Settings hide automatically maintained internal fields and use localized blank-save version labels.",
       "Nickname-only edits preserve the Pokémon's PID, shininess and other unedited data.",
@@ -22,6 +24,7 @@ export const SAVE_STARTUP_RELEASE = {
       "Connected splash-screen and changelog settings. Review these notes in Startup settings.",
     ],
     ja: [
+      "セーブ編集フォームの選択メニューの無効状態を統一し、読み取り専用や編集中の制限を保持しました。",
       "ボックス書き出しパネルを閉じると設定を記憶し、未適用の編集内容は保持します。",
       "設定画面で自動管理の内部項目を非表示にし、空白セーブの種類のラベルを各言語に対応しました。",
       "ニックネームのみの変更では、性格値・色違い状態・未編集の内容を保持します。",

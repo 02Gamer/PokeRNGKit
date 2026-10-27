@@ -54,6 +54,7 @@ export function SaveInventoryBatch({
         <label className="field">
           <span>{words.bagAction}</span>
           <Select
+            disabled={disabled}
             value={action}
             onChange={(e) =>
               setAction(e.target.value as BagOperation["action"])
@@ -83,6 +84,7 @@ export function SaveInventoryBatch({
           <label className="field">
             <span>{words.bagCapacityOrder}</span>
             <Select
+              disabled={disabled}
               value={shuffle ? "random" : "ordered"}
               onChange={(e) => setShuffle(e.target.value === "random")}
             >

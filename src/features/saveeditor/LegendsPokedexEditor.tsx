@@ -174,6 +174,7 @@ export function LegendsPokedexEditor({
               <label className="field">
                 <span>{la.displayForm}</span>
                 <Select
+                  disabled={disabled || advancedDirty}
                   value={state.displayForm}
                   onChange={(e) =>
                     setDraft({ ...state, displayForm: Number(e.target.value) })
@@ -227,6 +228,7 @@ export function LegendsPokedexEditor({
                 <label className="field">
                   <span>{la.form}</span>
                   <Select
+                    disabled={disabled || advancedDirty}
                     value={form.form}
                     onChange={(e) => setFormId(Number(e.target.value))}
                   >

@@ -147,6 +147,7 @@ function PaintingForm({
             <label className="field">
               <span>{w.species}</span>
               <Select
+                disabled={busy || !catalog.canEdit || !draft.enabled}
                 value={draft.species}
                 onChange={(e) =>
                   setDraft({ ...draft, species: Number(e.target.value) })
@@ -168,6 +169,7 @@ function PaintingForm({
             <label className="field">
               <span>{w.caption}</span>
               <Select
+                disabled={busy || !catalog.canEdit || !draft.enabled}
                 value={draft.caption}
                 onChange={(e) =>
                   setDraft({ ...draft, caption: e.target.value })
@@ -219,6 +221,7 @@ function PaintingForm({
               <label className="field" key={k}>
                 <span>{w[k]}</span>
                 <Select
+                  disabled={busy || !catalog.canEdit || !draft.enabled}
                   value={draft[`${k}Mode`]}
                   onChange={(e) =>
                     setDraft({

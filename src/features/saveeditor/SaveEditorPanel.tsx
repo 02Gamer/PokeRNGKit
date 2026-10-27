@@ -6803,6 +6803,11 @@ export function SaveEditorPanel(
                       <label className="field">
                         <span>{words.trainerGameVersion}</span>
                         <Select
+                          disabled={
+                            busy ||
+                            !(report.canEdit || report.trainerOnly) ||
+                            trainer6Draft
+                          }
                           value={draft.gameVersion}
                           onChange={(e) =>
                             setDraft({
@@ -6841,6 +6846,11 @@ export function SaveEditorPanel(
                       <label className="field">
                         <span>{words.trainerLanguage}</span>
                         <Select
+                          disabled={
+                            busy ||
+                            !(report.canEdit || report.trainerOnly) ||
+                            trainer6Draft
+                          }
                           value={draft.language}
                           onChange={(e) =>
                             setDraft({ ...draft, language: e.target.value })
@@ -6909,6 +6919,11 @@ export function SaveEditorPanel(
                       <label className="field">
                         <span>{words.gender}</span>
                         <Select
+                          disabled={
+                            busy ||
+                            !(report.canEdit || report.trainerOnly) ||
+                            trainer6Draft
+                          }
                           value={draft.gender}
                           onChange={(e) =>
                             setDraft({ ...draft, gender: e.target.value })

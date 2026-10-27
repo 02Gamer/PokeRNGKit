@@ -106,7 +106,7 @@ function DecorationForm({
         <span>{w.category}</span>
         <Select
           value={category}
-          disabled={dirty}
+          disabled={dirty || busy}
           onChange={(e) => onCategory(Number(e.target.value))}
         >
           {catalog.categories.map((v) => (
@@ -126,6 +126,7 @@ function DecorationForm({
                 {w.slot} {i + 1}
               </span>
               <Select
+                disabled={busy || !catalog.canEdit}
                 value={value}
                 onChange={(e) =>
                   setSlots(

@@ -62,6 +62,7 @@ export function SaveDetectionEditor({
         <label className="field">
           <span>{words.type}</span>
           <Select
+            disabled={busy || !catalog}
             value={type}
             onChange={(event) => {
               const next = Number(event.target.value);
@@ -83,6 +84,7 @@ export function SaveDetectionEditor({
           <label className="field">
             <span>{words.version}</span>
             <Select
+              disabled={busy || !catalog}
               value={version}
               onChange={(event) => setVersion(Number(event.target.value))}
             >
@@ -97,6 +99,7 @@ export function SaveDetectionEditor({
         <label className="field">
           <span>{words.language}</span>
           <Select
+            disabled={busy || !catalog}
             value={language}
             onChange={(event) => setLanguage(Number(event.target.value))}
           >
@@ -114,6 +117,7 @@ export function SaveDetectionEditor({
         <label className="field">
           <span>{words.handler}</span>
           <Select
+            disabled={busy || !catalog}
             value={handler}
             onChange={(event) => setHandler(event.target.value)}
           >

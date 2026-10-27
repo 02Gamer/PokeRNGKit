@@ -42,7 +42,12 @@ const info: PokemonVitalsInfo = {
   },
   showGender: true,
 };
-function render(lang: "zh" | "en" | "ja", data = info, generation = 3) {
+function render(
+  lang: "zh" | "en" | "ja",
+  data = info,
+  generation = 3,
+  disabled = false,
+) {
   const i18n = createInstance();
   void i18n.init({ lng: lang, initAsync: false, resources: {} });
   return renderToStaticMarkup(
@@ -50,13 +55,52 @@ function render(lang: "zh" | "en" | "ja", data = info, generation = 3) {
       <PokemonVitalsEditor
         info={data}
         generation={generation}
-        disabled={false}
+        disabled={disabled}
         onApply={async () => {}}
       />
     </I18nextProvider>,
   );
 }
 describe("source entity editor vitals", () => {
+  it.each(["zh", "en", "ja"] as const)(
+    "locks shared selection menus in %s",
+    (lang) => {
+      const buttons = Array.from(
+        render(lang, info, 3, true).matchAll(
+          /<button\b[^>]*aria-haspopup="listbox"[^>]*>/g,
+        ),
+        (match) => match[0],
+      );
+      expect(buttons.length).toBeGreaterThan(0);
+      for (const button of buttons) expect(button).toContain('disabled=""');
+    },
+  );
+  it.each(["zh", "en", "ja"] as const)(
+    "keeps editable type choices while locking read-only status in %s",
+    (lang) => {
+      const typeName = { zh: "格斗", en: "Fighting", ja: "かくとう" };
+      const html = render(lang, {
+        ...info,
+        hiddenPower: {
+          ...info.hiddenPower!,
+          types: [{ id: 0, name: typeName }],
+        },
+        status: { ...info.status, canEdit: false },
+      });
+      const buttons = Array.from(
+        html.matchAll(
+          /<button\b[^>]*aria-haspopup="listbox"[^>]*>[\s\S]*?<\/button>/g,
+        ),
+        (match) => match[0],
+      );
+      expect(buttons.find((button) => button.includes(name[lang]))).toContain(
+        'disabled=""',
+      );
+      expect(
+        buttons.find((button) => button.includes(typeName[lang])),
+      ).not.toContain('disabled=""');
+    },
+  );
   it.each(["zh", "en", "ja"] as const)(
     "renders localized, initially locked party stats with shared controls in %s",
     (lang) => {

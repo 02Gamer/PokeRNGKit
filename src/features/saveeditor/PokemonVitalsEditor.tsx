@@ -379,7 +379,11 @@ export function PokemonVitalsEditor({
                   ? ` · ${w.power} ${info.hiddenPower.power}`
                   : ""}
               </span>
-              <Select value={type} onChange={(e) => setType(e.target.value)}>
+              <Select
+                disabled={locked}
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+              >
                 {info.hiddenPower.types.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name[lang]}
@@ -422,6 +426,7 @@ export function PokemonVitalsEditor({
             <label className="field">
               <span>{w.status}</span>
               <Select
+                disabled={locked || !info.status.canEdit}
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >

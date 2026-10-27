@@ -734,6 +734,7 @@ function PokemonForm({
         <label className="field">
           <span>{baseLabel(lang, "DGV_Species")}</span>
           <Select
+            disabled={busy || !c.canEdit}
             value={draft.species}
             onChange={(e) => update("species", e.target.value)}
           >
@@ -752,6 +753,7 @@ function PokemonForm({
         <label className="field">
           <span>{w.form}</span>
           <Select
+            disabled={busy || !c.canEdit}
             value={draft.form}
             onChange={(e) => update("form", e.target.value)}
           >
@@ -773,7 +775,7 @@ function PokemonForm({
               <span>{w.gender}</span>
               <Select
                 value={draft.gender}
-                disabled={p.gender > 1}
+                disabled={p.gender > 1 || busy || !c.canEdit}
                 onChange={(e) => update("gender", e.target.value)}
               >
                 {p.gender > 1 && (
@@ -914,6 +916,7 @@ function TrainerForm({
           <label className="field">
             <span>{baseLabel(lang, "L_Language")}</span>
             <Select
+              disabled={busy || !c.canEdit}
               value={draft.language}
               onChange={(e) => update("language", e.target.value)}
             >

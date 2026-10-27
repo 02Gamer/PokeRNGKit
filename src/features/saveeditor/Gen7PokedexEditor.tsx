@@ -349,6 +349,7 @@ export function Gen7PokedexEditor({
             <label className="field">
               <span>{labels.action}</span>
               <Select
+                disabled={disabled || dirty}
                 value={action}
                 onChange={(e) => setAction(e.target.value as Dex7Action)}
               >

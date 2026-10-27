@@ -128,7 +128,7 @@ export function PokemonRibbonEditor({
               <label className="field">
                 <span>{words.affixedRibbon}</span>
                 <Select
-                  disabled={disabled}
+                  disabled={disabled || readDisabled}
                   value={draft.affixed}
                   onChange={(e) =>
                     setDraft({ ...draft, affixed: Number(e.target.value) })

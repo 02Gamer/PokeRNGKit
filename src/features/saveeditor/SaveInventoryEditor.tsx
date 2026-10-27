@@ -68,6 +68,7 @@ export function SaveInventoryEditor({
           {words.bagItem}
         </span>
         <Select
+          disabled={disabled}
           value={draft.id}
           onChange={(e) => {
             const id = Number(e.target.value);

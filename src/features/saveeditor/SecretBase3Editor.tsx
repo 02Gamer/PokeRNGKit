@@ -270,6 +270,7 @@ function EntryForm({
               <label className="field">
                 <span>{w.gender}</span>
                 <Select
+                  disabled={busy || !c.canEdit}
                   value={trainer.gender}
                   onChange={(e) =>
                     setTrainer({ ...trainer, gender: e.target.value })
@@ -285,6 +286,7 @@ function EntryForm({
               <label className="field">
                 <span>{w.registry}</span>
                 <Select
+                  disabled={busy || !c.canEdit}
                   value={trainer.registry}
                   onChange={(e) =>
                     setTrainer({ ...trainer, registry: e.target.value })
@@ -353,6 +355,7 @@ function EntryForm({
               <label className="field">
                 <span>{w.species}</span>
                 <Select
+                  disabled={busy || !c.canEdit}
                   value={draft.species}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -394,7 +397,7 @@ function EntryForm({
               <label className="field">
                 <span>{w.item}</span>
                 <Select
-                  disabled={species === 0}
+                  disabled={species === 0 || busy || !c.canEdit}
                   value={draft.item}
                   onChange={(e) => setDraft({ ...draft, item: e.target.value })}
                 >
@@ -414,7 +417,7 @@ function EntryForm({
                     {w.move} {i + 1}
                   </span>
                   <Select
-                    disabled={species === 0}
+                    disabled={species === 0 || busy || !c.canEdit}
                     value={m}
                     onChange={(e) =>
                       setDraft({
@@ -467,6 +470,7 @@ function EntryForm({
                     {p.species === 201 ? base3Letters[p.form] : "—"}
                   </span>
                   <Select
+                    disabled={busy || !c.canEdit}
                     value={wantedForm}
                     onChange={(e) => setWantedForm(Number(e.target.value))}
                   >

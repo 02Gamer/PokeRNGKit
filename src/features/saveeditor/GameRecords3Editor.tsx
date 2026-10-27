@@ -126,7 +126,7 @@ function RecordForm({
         <span>{w.record}</span>
         <Select
           value={index}
-          disabled={dirty}
+          disabled={dirty || busy}
           onChange={(e) => onIndex(Number(e.target.value))}
         >
           {catalog.entries.map((e) => (
@@ -141,7 +141,7 @@ function RecordForm({
           <span>{w.mode}</span>
           <Select
             value={mode}
-            disabled={dirty}
+            disabled={dirty || busy}
             onChange={(e) => {
               setMode(e.target.value as "value" | "time");
               setInvalid(false);

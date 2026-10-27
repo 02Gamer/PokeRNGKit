@@ -1,12 +1,20 @@
 # PokeRNGKit 项目进度与交接
 
-## 2026-10-28 存档表单下拉禁用规则核对（API190 前端，待批量实现）
+## 2026-10-28 存档表单下拉禁用规则批量修复（API190 前端，工程通过，待发布）
 
-源码扫描基于已发布产品 5d928918：182 个生产 TSX 文件中，有 158 个 Select 位于带禁用条件的 fieldset 内；67 处未显式传入 disabled，另 23 处原表达式未直接包含全部祖先条件，共涉及 40 个文件、90 个候选位置。这是源码候选统计，不表示 90 种已复现缺陷，也不替代页面核验。完整记录为 `.tmp/pkhex-select-disabled-audit.json`。
+基于干净 main／e43f6598，已按同一规则修改 40 个表单的 90 处 Select：补齐 67 处显式 disabled，并为 23 处已有条件合并父状态。未修改父级全局变量，保留表单外浏览入口及原有局部限制。结构比较确认这 40 个文件除 Select.disabled 及格式外的语法保持，输入范围、校验器和事件处理不变；证据为 `.tmp/pkhex-select-state-migration.json` 与 `.tmp/pkhex-select-state-boundary.json`。
 
-已核对这些候选没有 legend 例外、JSX 属性展开或祖先条件标识符遮蔽，22 种父条件均为现有只读状态表达式；范围核对见 `.tmp/pkhex-select-disabled-scope.json`。PokemonSelect 会把 disabled 交给共享 Select，同样需要覆盖父表单状态。下一批统一以“全部祖先禁用条件 OR 原局部限制”传入控件，保留 dirty、preview、性别、空种类、计数和只读限制；不修改全局禁用变量，避免影响父 fieldset 外的浏览入口。数字限制、Core、Worker、API190 和控件皮肤均保持既有来源。
+先加入三语锁定／可编辑和只读状态回归，原代码为 12 失败／17 通过；修改后两文件／29 项全部通过，包含只读二进制导出仍可选择范围、只读异常状态锁定而可编辑属性保留。复扫 158 处相关 Select 已没有缺失的 disabled；形式扫描剩余三处均由 locked 的现有 busy 派生覆盖，逐项核对后保留 `locked || !c.canEdit`，不为清零形式告警添加重复判断。这些源码及 SSR 证据不代替实际 Chrome 弹层、键盘和触控核验。
 
-下一步先补批量、导入、二进制和生命值控件的锁定／可编辑及只读回归，再按规则批量修复候选，完成定向与完整门禁。Chrome 的页面核验和导出测试偏好恢复仍待连接恢复；不以源码扫描宣称页面通过。
+批量格式化曾对 SaveInventoryBatch.tsx 报 UNKNOWN 打开错误，session10145 的退出 2 发生在格式阶段，未运行测试；原文件及失败日志保留，单文件重试退出 0，随后回归通过。内部网页修订推进 0.190.4.0，增加三语更新说明；API190、Core、Worker 及既有控件样式不变。包含启动日志的最终三文件／65 项和本批 44 个 TS／TSX 文件的定向 Lint 均退出 0；两处 PokemonMoveSelect 包装入口也已核对，原来就显式传入相应禁用状态，无需修改。
+
+完整 `npm run verify` 现已退出 0：383 文件／2382 项测试、全仓格式、Lint、完整类型及网页／PWA 均通过，生成 257 条预缓存。日志与终态为 `.tmp/pkhex-select-state-gate.log`／`.tmp/pkhex-select-state-gate-result.json`；保留第三世代定点既有 Hook、包体及插件耗时提示。本批仅前端状态接线，本机原生／核心未重跑。原件、confirmed-input 及昵称测试下载的哈希与此前一致，记录见 `.tmp/pkhex-select-state-save-guard.json`。
+
+修改前的源码扫描基于已发布产品 5d928918：182 个生产 TSX 文件中，有 158 个 Select 位于带禁用条件的 fieldset 内；67 处未显式传入 disabled，另 23 处原表达式未直接包含全部祖先条件，共涉及 40 个文件、90 个候选位置。这是源码候选统计，不表示 90 种已复现缺陷，也不替代页面核验。修改前记录为 `.tmp/pkhex-select-state-source-before.json`，当前复扫见 `.tmp/pkhex-select-disabled-audit.json`。
+
+已核对这些候选没有 legend 例外、JSX 属性展开或祖先条件标识符遮蔽，22 种父条件均为现有只读状态表达式；范围核对见 `.tmp/pkhex-select-disabled-scope.json`。PokemonSelect 会把 disabled 交给共享 Select，同样需要覆盖父表单状态。本批按“全部祖先禁用条件 OR 原局部限制”统一传入控件，保留 dirty、preview、性别、空种类、计数和只读限制；不修改全局禁用变量，避免影响父 fieldset 外的浏览入口。数字限制、Core、Worker、API190 和控件皮肤均保持既有来源。
+
+下一步完成文档格式收尾，按已有授权提交推送并跟踪本次流水线。本轮 Chrome 的两个原存档标签均在焦点绑定超时，未操作页面或新建重复标签；代理重启此前已完成，不重复申请权限或重启。页面核验和导出测试偏好恢复仍待连接恢复，不以源码扫描宣称页面通过，完整目标继续进行。
 
 ## 2026-10-28 箱子导出选项记忆（API190 前端，已发布，页面待核验）
 

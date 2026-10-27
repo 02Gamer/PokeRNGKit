@@ -208,6 +208,7 @@ export function ZaPokedexEditor({
                   <label className="field">
                     <span>{sv.form}</span>
                     <Select
+                      disabled={disabled}
                       value={state.displayForm}
                       onChange={(e) =>
                         setDraft({
@@ -231,6 +232,7 @@ export function ZaPokedexEditor({
                   <label className="field">
                     <span>{sv.gender}</span>
                     <Select
+                      disabled={disabled}
                       value={state.displayGender}
                       onChange={(e) =>
                         setDraft({
@@ -342,6 +344,7 @@ export function ZaPokedexEditor({
             <label className="field">
               <span>{labels.action}</span>
               <Select
+                disabled={disabled || dirty || !entry}
                 value={action}
                 onChange={(e) => setAction(e.target.value as Dex9aAction)}
               >

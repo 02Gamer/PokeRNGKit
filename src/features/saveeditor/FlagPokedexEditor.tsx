@@ -151,6 +151,7 @@ export function FlagPokedexEditor({
               <label className="field">
                 <span>{labels.initial}</span>
                 <Select
+                  disabled={disabled || entryDirty}
                   value={globals.initialSpecies}
                   onChange={(e) =>
                     setGlobalDraft({
@@ -450,6 +451,7 @@ export function FlagPokedexEditor({
             <label className="field">
               <span>{labels.action}</span>
               <Select
+                disabled={disabled || dirty}
                 value={action}
                 onChange={(e) => setAction(e.target.value as Dex5Action)}
               >

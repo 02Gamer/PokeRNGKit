@@ -90,6 +90,7 @@ export function BoxBatchEditor({
         <label className="field">
           <span>{words.action}</span>
           <Select
+            disabled={disabled}
             value={choice.id}
             onChange={(e) => {
               setId(e.target.value);
@@ -106,6 +107,7 @@ export function BoxBatchEditor({
         <label className="field">
           <span>{words.scope}</span>
           <Select
+            disabled={disabled}
             value={all ? "all" : "current"}
             onChange={(e) => {
               setAll(e.target.value === "all");

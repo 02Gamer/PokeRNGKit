@@ -374,6 +374,7 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                 <label className="field">
                   <span>{w.gender}</span>
                   <Select
+                    disabled={locked || !catalog.canEdit}
                     value={draft.gender}
                     onChange={(e) => update({ gender: Number(e.target.value) })}
                   >
@@ -384,6 +385,7 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                 <label className="field">
                   <span>{w.language}</span>
                   <Select
+                    disabled={locked || !catalog.canEdit}
                     value={draft.language}
                     onChange={(e) =>
                       update({ language: Number(e.target.value) })
@@ -445,6 +447,7 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                     <label className="field">
                       <span>{w.species}</span>
                       <Select
+                        disabled={locked || !catalog.canEdit}
                         value={trashSpecies}
                         onChange={(e) =>
                           setTrashSpecies(Number(e.target.value))
@@ -460,6 +463,7 @@ function Form({ busy, lang, onRead, onPreview, onApply, onDiscard }: Props) {
                     <label className="field">
                       <span>{w.language}</span>
                       <Select
+                        disabled={locked || !catalog.canEdit}
                         value={trashLanguage}
                         onChange={(e) =>
                           setTrashLanguage(Number(e.target.value))

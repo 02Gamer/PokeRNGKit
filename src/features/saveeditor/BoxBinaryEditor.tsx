@@ -94,6 +94,7 @@ export function BoxBinaryEditor({
         <label className="field">
           <span>{words.scope}</span>
           <Select
+            disabled={busy}
             value={options.all ? 1 : 0}
             onChange={(e) => change({ all: e.target.value === "1" })}
           >
@@ -151,6 +152,7 @@ export function BoxBinaryEditor({
                 <label className="field" key={key}>
                   <span>{common.settings[i]}</span>
                   <Select
+                    disabled={busy}
                     value={options[key]}
                     onChange={(e) => change({ [key]: Number(e.target.value) })}
                   >

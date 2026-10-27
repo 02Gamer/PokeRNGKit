@@ -166,6 +166,7 @@ export function BdspPokedexEditor({
                 <label className="field">
                   <span>{bdsp.state}</span>
                   <Select
+                    disabled={disabled || globalDirty}
                     value={state.state}
                     onChange={(e) =>
                       setDraft({ ...state, state: Number(e.target.value) })
@@ -296,6 +297,7 @@ export function BdspPokedexEditor({
             <label className="field">
               <span>{labels.action}</span>
               <Select
+                disabled={disabled || dirty}
                 value={action}
                 onChange={(e) => setAction(e.target.value as Dex8bAction)}
               >

@@ -142,6 +142,7 @@ export function SvPokedexEditor({
                     <label className="field">
                       <span>{sv.state}</span>
                       <Select
+                        disabled={disabled}
                         value={state.status}
                         onChange={(e) =>
                           setDraft({ ...state, status: Number(e.target.value) })
@@ -227,6 +228,9 @@ export function SvPokedexEditor({
                     <label className="field">
                       <span>{sv.form}</span>
                       <Select
+                        disabled={
+                          disabled || (catalog.modern && !entry.regions[r])
+                        }
                         value={display.form}
                         onChange={(e) => {
                           const displays = state.displays.map((d, i) =>
@@ -252,6 +256,9 @@ export function SvPokedexEditor({
                     <label className="field">
                       <span>{sv.gender}</span>
                       <Select
+                        disabled={
+                          disabled || (catalog.modern && !entry.regions[r])
+                        }
                         value={display.gender}
                         onChange={(e) => {
                           const displays = state.displays.map((d, i) =>
@@ -378,6 +385,7 @@ export function SvPokedexEditor({
             <label className="field">
               <span>{labels.action}</span>
               <Select
+                disabled={disabled || dirty || !entry}
                 value={action}
                 onChange={(e) => setAction(e.target.value as Dex9Action)}
               >

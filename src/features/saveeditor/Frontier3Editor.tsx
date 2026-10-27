@@ -129,7 +129,7 @@ function FrontierForm({
           <span>{w.facility}</span>
           <Select
             value={s.facility}
-            disabled={dirty}
+            disabled={dirty || busy}
             onChange={(e) =>
               onSelection({
                 facility: Number(e.target.value),
@@ -149,7 +149,7 @@ function FrontierForm({
           <span>{w.mode}</span>
           <Select
             value={s.mode}
-            disabled={dirty || facility.modeCount === 1}
+            disabled={dirty || facility.modeCount === 1 || busy}
             onChange={(e) =>
               onSelection({ ...s, mode: Number(e.target.value) })
             }
@@ -165,7 +165,7 @@ function FrontierForm({
           <span>{w.record}</span>
           <Select
             value={s.record}
-            disabled={dirty}
+            disabled={dirty || busy}
             onChange={(e) =>
               onSelection({ ...s, record: Number(e.target.value) })
             }
@@ -274,6 +274,7 @@ function FrontierForm({
               <label className="field" key={symbol.facility}>
                 <span>{w.facilities[symbol.facility]}</span>
                 <Select
+                  disabled={busy || !c.canEdit || recordDirty}
                   value={globals.symbols[i]}
                   onChange={(e) =>
                     setGlobals({

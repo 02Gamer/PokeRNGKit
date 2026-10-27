@@ -212,6 +212,7 @@ export function BoxEditor({
           <label className="field">
             <span>{labels.target}</span>
             <Select
+              disabled={busy || changed}
               value={target}
               onChange={(e) => setTarget(Number(e.target.value))}
             >

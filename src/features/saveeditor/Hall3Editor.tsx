@@ -127,7 +127,7 @@ function HallForm({
           <span>{w.team}</span>
           <Select
             value={team}
-            disabled={dirty}
+            disabled={dirty || busy}
             onChange={(e) => onTeam(Number(e.target.value))}
           >
             {catalog.teams.map((_, i) => (
@@ -141,7 +141,7 @@ function HallForm({
           <span>{w.version}</span>
           <Select
             value={catalog.version}
-            disabled={dirty || catalog.versions.length === 1}
+            disabled={dirty || catalog.versions.length === 1 || busy}
             onChange={(e) => onVersion(Number(e.target.value))}
           >
             {catalog.versions.map((v) => (
@@ -185,6 +185,7 @@ function HallForm({
           <label className="field">
             <span>{w.species}</span>
             <Select
+              disabled={busy || !catalog.canEdit}
               value={draft.species}
               onChange={(e) =>
                 setDraft({ ...draft, species: Number(e.target.value) })
@@ -247,6 +248,7 @@ function HallForm({
           <label className="field">
             <span>{w.mode}</span>
             <Select
+              disabled={busy || !catalog.canEdit}
               value={draft.mode}
               onChange={(e) =>
                 setDraft({
@@ -324,7 +326,7 @@ function HallForm({
         <span>{w.scope}</span>
         <Select
           value={all ? "all" : "current"}
-          disabled={dirty || !catalog.canEdit}
+          disabled={dirty || !catalog.canEdit || busy}
           onChange={(e) => setAll(e.target.value === "all")}
         >
           <option value="current">{w.current}</option>

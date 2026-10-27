@@ -217,6 +217,7 @@ function MainForm({
                     {w.slot} {i.slot + 1}
                   </span>
                   <Select
+                    disabled={busy || !c.canEdit || coinDirty || rivalDirty}
                     value={icons[pos]}
                     onChange={(e) =>
                       setIcons(

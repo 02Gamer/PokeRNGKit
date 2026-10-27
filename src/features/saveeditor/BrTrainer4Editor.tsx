@@ -188,7 +188,7 @@ function TrainerForm({
               <span>{w.field}</span>
               <Select
                 value={selected.key}
-                disabled={locked}
+                disabled={locked || !c.canEdit}
                 onChange={(e) => {
                   setRaw(false);
                   onView({ ...view, field: e.target.value });
@@ -205,6 +205,7 @@ function TrainerForm({
               <span>{fieldLabel(lang, selected.source)}</span>
               {number?.choices ? (
                 <Select
+                  disabled={busy || !c.canEdit}
                   value={value}
                   onChange={(e) => setDraft(e.target.value)}
                 >

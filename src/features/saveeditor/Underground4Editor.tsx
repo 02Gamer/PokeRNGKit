@@ -170,7 +170,7 @@ function MainForm({
               <span>{w.slot}</span>
               <Select
                 value={slot.id}
-                disabled={dirty}
+                disabled={dirty || busy || !c.canEdit || !!preview}
                 onChange={(e) => setSelected(Number(e.target.value))}
               >
                 {pouch.slots.map((s) => (
@@ -185,6 +185,7 @@ function MainForm({
               <label>
                 <span>{w.item}</span>
                 <Select
+                  disabled={busy || !c.canEdit || !!preview}
                   value={item ?? slot.item}
                   onChange={(e) => setItem(Number(e.target.value))}
                 >

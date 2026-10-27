@@ -68,7 +68,7 @@ export function LetsGoCaptureEditor({
           <span>{labels.choose}</span>
           <Select
             value={species}
-            disabled={dirty}
+            disabled={dirty || disabled}
             onChange={(e) => {
               setSpecies(Number(e.target.value));
               setDraft(undefined);

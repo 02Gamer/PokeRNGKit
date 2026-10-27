@@ -156,7 +156,7 @@ it("rejects invalid release metadata before any storage access", () => {
   expect(() => recordSaveStartup("invalid", defaults, port)).toThrow();
   expect(port.getItem).not.toHaveBeenCalled();
   expect(port.setItem).not.toHaveBeenCalled();
-  expect(SAVE_STARTUP_RELEASE.version).toBe(`0.${SAVE_EDITOR_API_VERSION}.3.0`);
+  expect(SAVE_STARTUP_RELEASE.version).toBe(`0.${SAVE_EDITOR_API_VERSION}.4.0`);
 });
 
 it("does not initialize a hidden workspace or the discarded StrictMode setup", async () => {
@@ -250,6 +250,6 @@ it.each(["zh", "en", "ja"] as const)(
         lang,
       ),
     ).toEqual({});
-    expect(SAVE_STARTUP_RELEASE.changes[lang]).toHaveLength(5);
+    expect(SAVE_STARTUP_RELEASE.changes[lang]).toHaveLength(6);
   },
 );

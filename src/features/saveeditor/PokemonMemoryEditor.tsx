@@ -153,7 +153,7 @@ export function PokemonMemoryEditor({
             <label className="field">
               <span>{words.memoryEvent}</span>
               <Select
-                disabled={disabled || !catalog.canEdit}
+                disabled={disabled || !catalog.canEdit || readDisabled}
                 value={draft.memory}
                 onChange={(e) =>
                   void load(draft.handler, Number(e.target.value))

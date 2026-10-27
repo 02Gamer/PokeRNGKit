@@ -320,6 +320,7 @@ function Form({
               <label>
                 <span>{w.item}</span>
                 <Select
+                  disabled={!writable}
                   value={item ?? row.id}
                   onChange={(e) => setItem(Number(e.target.value))}
                 >

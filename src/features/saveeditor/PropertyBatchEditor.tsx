@@ -84,6 +84,7 @@ export function PropertyBatchEditor({
           <label className="field">
             <span>{words.scope}</span>
             <Select
+              disabled={busy}
               value={scope}
               onChange={(e) => {
                 clear();
@@ -101,6 +102,7 @@ export function PropertyBatchEditor({
             <label className="field">
               <span>{words.box}</span>
               <Select
+                disabled={busy}
                 value={box}
                 onChange={(e) => {
                   clear();
@@ -146,6 +148,7 @@ export function PropertyBatchEditor({
           <label className="field">
             <span>{words.operator}</span>
             <Select
+              disabled={busy}
               value={operator}
               onChange={(e) => setOperator(e.target.value)}
             >

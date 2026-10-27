@@ -227,6 +227,7 @@ export function SwshPokedexEditor({
                   <label className="field">
                     <span>{sw.gender}</span>
                     <Select
+                      disabled={disabled}
                       value={state.gender}
                       onChange={(e) =>
                         setDraft({ ...state, gender: Number(e.target.value) })
@@ -377,6 +378,7 @@ export function SwshPokedexEditor({
             <label className="field">
               <span>{labels.action}</span>
               <Select
+                disabled={disabled || dirty}
                 value={action}
                 onChange={(e) => setAction(e.target.value as Dex8Action)}
               >

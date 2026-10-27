@@ -318,7 +318,7 @@ function PassForm({
               <span>{w.field}</span>
               <Select
                 value={field.key}
-                disabled={locked}
+                disabled={locked || !c.canEdit}
                 onChange={(e) => {
                   setRaw(false);
                   onSelect({ ...selection, field: e.target.value });
@@ -335,6 +335,7 @@ function PassForm({
               <span>{fieldLabel(lang, field.source)}</span>
               {number?.choices ? (
                 <Select
+                  disabled={busy || !c.canEdit}
                   value={value}
                   onChange={(e) => setDraft(e.target.value)}
                 >
