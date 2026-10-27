@@ -1,5 +1,13 @@
 import { saveFailureFeedback } from "./saveFailureFeedback";
-import { readSaveSettings } from "./settingsRepository";
+import { readSaveSettings, replaceSaveSettings } from "./settingsRepository";
+import {
+  coreSaveSettingsDefaults,
+  editingSettingsJson,
+} from "./settingsPolicy";
+import {
+  rememberBoxExportPreferences,
+  type RememberBoxExport,
+} from "./boxExportPreferences";
 import {
   programStartupSettings,
   localizeSaveStartupError,
@@ -28,7 +36,7 @@ import { PokemonHoverSurface } from "./PokemonHoverSurface";
 import { useMysteryGiftChanges } from "./useMysteryGiftChanges";
 import { useSavePrivacy } from "./useSavePrivacy";
 import { saveDocumentTitle } from "./saveDocumentTitle";
-import { beginSaveRequest } from "./clientActivity";
+import { beginSaveRequest, getSaveRequestCount } from "./clientActivity";
 import { SaveDetectionEditor } from "./SaveDetectionEditor";
 import { saveDetectionWords, type SaveDetectionChoice } from "./saveDetection";
 import { SimpleTrainerEditor } from "./SimpleTrainerEditor";
@@ -789,8 +797,7 @@ export function SaveEditorPanel(
             const snapshot = readSaveSettings();
             const json = snapshot?.json ?? "";
             setStartupSplash(!programStartupSettings(json).skipSplashScreen);
-            // Reuse the save client's Worker. No second runtime or settings
-            // write is needed to validate and warm up the local save tools.
+            // Reuse the save client's Worker; no second runtime or settings write.
             const result = await client.current.run(
               new Uint8Array(),
               json || undefined,
@@ -803,6 +810,10 @@ export function SaveEditorPanel(
               ? result.programSettingsJson
               : result.programSettings?.json;
             if (!normalized) throw Error("Missing startup settings.");
+            if (!snapshot) {
+              previousSettings.current = editingSettingsJson(normalized);
+              coreSaveSettingsDefaults.remember(normalized);
+            }
             policy = programStartupSettings(normalized);
           } catch (cause) {
             throw new Error(saveStartupWords[batchLang].failed, { cause });
@@ -1041,6 +1052,7 @@ export function SaveEditorPanel(
     payload: string,
     kind: "fileExport" | "boxArchive" | "boxBinaryExport",
     filename: string,
+    notify?: 0 | 1,
   ) => {
     let downloaded = false;
     await perform(async (id) => {
@@ -1071,7 +1083,7 @@ export function SaveEditorPanel(
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
       downloaded = true;
-      if (kind === "boxArchive") playSilentBoxExportSound();
+      if (kind === "boxArchive") playSilentBoxExportSound(notify);
     });
     return downloaded;
   };
@@ -1081,12 +1093,50 @@ export function SaveEditorPanel(
       "fileExport",
       "PokeRNGKit-Pokemon.zip",
     );
-  const downloadBoxes = (request: import("./boxArchive").BoxArchiveRequest) =>
+  const downloadBoxes = (
+    request: import("./boxArchive").BoxArchiveRequest,
+    notify: 0 | 1,
+  ) =>
     downloadArchive(
       JSON.stringify(request),
       "boxArchive",
       "PokeRNGKit-Boxes.zip",
+      notify,
     );
+  const rememberBoxExport: RememberBoxExport = async (request) => {
+    if (running.current || getSaveRequestCount())
+      throw new Error("An edit is still running.");
+    let saved: Awaited<ReturnType<RememberBoxExport>> | undefined;
+    let failure: unknown;
+    await perform(async (id) => {
+      try {
+        saved = await rememberBoxExportPreferences(request, {
+          // perform owns one activity. Other requests and cancellation block the write.
+          busy: () => id !== operation.current || getSaveRequestCount() > 1,
+          read: readSaveSettings,
+          defaults: coreSaveSettingsDefaults.read,
+          validate: async (json) => {
+            const result = await client.current.run(
+              new Uint8Array(),
+              json,
+              "programSettingsValidate",
+            );
+            if (!result.programSettingsJson)
+              throw new Error("Missing validated settings.");
+            return result.programSettingsJson;
+          },
+          write: (json, revision) => replaceSaveSettings(json, revision),
+        });
+      } catch (cause) {
+        failure = cause;
+      }
+    });
+    if (!saved)
+      throw (
+        failure ?? new Error("Remembering box export options was cancelled.")
+      );
+    return saved;
+  };
   const downloadBoxBinary = (request: { box: number; all: boolean }) =>
     downloadArchive(
       JSON.stringify(request),
@@ -6593,6 +6643,7 @@ export function SaveEditorPanel(
                     onImport={importPokemon}
                     onExport={exportPokemon}
                     onExportBoxes={downloadBoxes}
+                    onRememberBoxExport={rememberBoxExport}
                     onPreviewBoxImport={previewBoxImport}
                     onApplyBoxImport={(confirmation) =>
                       applyWorkingEdit(confirmation, "boxImportCommit")

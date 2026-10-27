@@ -53,6 +53,7 @@ import { BoxImportEditor } from "./BoxImportEditor";
 import { BoxBinaryEditor, type BoxBinaryActions } from "./BoxBinaryEditor";
 import type { BoxImportOptions, BoxImportConfirmation } from "./boxImport";
 import type { BoxArchiveRequest } from "./boxArchive";
+import type { RememberBoxExport } from "./boxExportPreferences";
 import { type PokemonEdit } from "./PokemonEditor";
 import { SaveBoxGrid } from "./SaveBoxGrid";
 import { SaveBoxGallery } from "./SaveBoxGallery";
@@ -90,6 +91,7 @@ export function SavePokemonBrowser({
   onImport,
   onExport,
   onExportBoxes,
+  onRememberBoxExport,
   onPreviewBoxImport,
   onApplyBoxImport,
   onDiscardBoxImport,
@@ -116,7 +118,8 @@ export function SavePokemonBrowser({
   onStorage(edit: StorageEdit): Promise<void>;
   onImport(position: PokemonPosition, file: File): Promise<void>;
   onExport(position: PokemonPosition): Promise<void>;
-  onExportBoxes(request: BoxArchiveRequest): Promise<boolean>;
+  onExportBoxes(request: BoxArchiveRequest, notify: 0 | 1): Promise<boolean>;
+  onRememberBoxExport: RememberBoxExport;
   onPreviewBoxImport(
     files: File[],
     options: BoxImportOptions,
@@ -837,10 +840,10 @@ export function SavePokemonBrowser({
             )}
             {report.boxCount > 0 && report.checksumsValid && (
               <BoxArchiveEditor
-                key={`archive-${toolBox}:${revision}`}
                 box={toolBox}
                 busy={busy}
                 onExport={onExportBoxes}
+                onRemember={onRememberBoxExport}
               />
             )}
             {report.boxCount > 0 && report.canEdit && report.checksumsValid && (

@@ -13,6 +13,14 @@ vi.mock("./settingsRepository", () => ({
   subscribeSaveSettings: () => () => {},
 }));
 const players: SaveSoundPlayback[] = [];
+it("uses the current export notification override before remembered defaults", () => {
+  const play = vi.spyOn(saveSoundPlayback, "play").mockImplementation(() => {});
+  stored.json = '{"sounds":{"playSoundOther":true}}';
+  playSilentBoxExportSound(1);
+  expect(play).toHaveBeenCalledOnce();
+  playSilentBoxExportSound(0);
+  expect(play).toHaveBeenCalledOnce();
+});
 beforeEach(() => {
   vi.stubGlobal(
     "document",

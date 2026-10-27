@@ -1,16 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { readSaveSettings } from "./settingsRepository";
+import { parseBoxExportOptions } from "./boxExportOptions";
+export type { BoxExportDefaults } from "./boxExportOptions";
 export interface ReportSettings {
   extra: string[];
   hidden: string[];
-}
-export interface BoxExportDefaults {
-  scope: 0 | 1;
-  folderCreation: 0 | 1;
-  folderPrefix: 0 | 1 | 2;
-  emptySlots: 0 | 1;
-  fileIndexPrefix: 0 | 1 | 2 | 3;
-  notify: 0 | 1;
 }
 function root(): Record<string, unknown> | undefined {
   try {
@@ -38,32 +32,10 @@ export function loadReportSettings(): ReportSettings {
     hidden: list(value.hiddenProperties),
   };
 }
-export function loadBoxExportDefaults(): BoxExportDefaults {
-  const value = (
-    root()?.slotExport as { boxExport?: BoxExportDefaults } | undefined
-  )?.boxExport;
-  const defaults: BoxExportDefaults = {
-    scope: 0,
-    folderCreation: 0,
-    folderPrefix: 0,
-    emptySlots: 0,
-    fileIndexPrefix: 0,
-    notify: 0,
-  };
-  if (!value) return defaults;
-  for (const [name, max] of Object.entries({
-    scope: 1,
-    folderCreation: 1,
-    folderPrefix: 2,
-    emptySlots: 1,
-    fileIndexPrefix: 3,
-    notify: 1,
-  })) {
-    const item = value[name as keyof BoxExportDefaults];
-    if (!Number.isInteger(item) || item < 0 || item > max)
-      throw new Error("Invalid box export defaults.");
-  }
-  return { ...value };
+export function loadBoxExportDefaults() {
+  return parseBoxExportOptions(
+    (root()?.slotExport as { boxExport?: unknown } | undefined)?.boxExport,
+  );
 }
 export function reportHiddenIndices(columns: readonly { visible: boolean }[]) {
   return columns.flatMap((column, index) => (column.visible ? [] : [index]));

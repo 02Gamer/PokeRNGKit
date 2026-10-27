@@ -50,7 +50,8 @@ export const settingsWords = {
     save: "保存设置",
     reset: "恢复默认草稿",
     check: "核对保存结果",
-    changed: "更改设置会清除未应用的编辑草稿与预览，工作副本及撤销记录会保留。",
+    changed:
+      "更改编辑相关设置会清除未应用的草稿与预览；导出选项不清除草稿，工作副本及撤销记录会保留。",
     invalid: "设置值无效，请检查输入内容。",
     loading: "正在读取设置…",
     loadError: "无法读取设置。已保存的设置未改动。",
@@ -70,7 +71,7 @@ export const settingsWords = {
     reset: "Reset draft to defaults",
     check: "Review saved values",
     changed:
-      "Changing settings clears unapplied drafts and previews. Working copies and undo history are preserved.",
+      "Changes to editing settings clear unapplied drafts and previews. Export options preserve drafts. Working copies and undo history are preserved.",
     invalid: "Invalid settings. Check the entered values.",
     loading: "Loading settings…",
     loadError: "Could not read settings. Saved settings are unchanged.",
@@ -90,7 +91,7 @@ export const settingsWords = {
     reset: "下書きを初期値に戻す",
     check: "保存結果を確認",
     changed:
-      "設定の変更で未適用の下書きとプレビューは消去されます。作業コピーと元に戻す履歴は保持されます。",
+      "編集に関する設定の変更で未適用の下書きとプレビューは消去されます。書き出し設定は下書きを消去しません。作業コピーと元に戻す履歴は保持されます。",
     invalid: "設定値が無効です。項目を確認してください。",
     loading: "設定を読み込み中…",
     reload: "設定を再読み込み",

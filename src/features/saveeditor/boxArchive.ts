@@ -1,3 +1,7 @@
+import {
+  parseBoxExportOptions,
+  type BoxExportDefaults,
+} from "./boxExportOptions";
 export interface BoxArchiveRequest {
   box: number;
   all: boolean;
@@ -6,9 +10,31 @@ export interface BoxArchiveRequest {
   emptySlots: number;
   indexPrefix: number;
 }
+export function boxArchiveRequest(
+  box: number,
+  preferences: BoxExportDefaults,
+): BoxArchiveRequest {
+  const options = parseBoxExportOptions(preferences);
+  return {
+    box,
+    all: box < 0 || options.scope === 0,
+    folderMode: options.folderCreation,
+    folderNaming: options.folderPrefix,
+    emptySlots: options.emptySlots,
+    indexPrefix: options.fileIndexPrefix,
+  };
+}
 
 export const boxArchiveWords = {
   zh: {
+    namer: "文件命名规则",
+    rememberNote: "关闭此面板后记住导出选项，未应用的编辑草稿会保留。",
+    remembering: "正在记住导出选项…",
+    remembered: "已记住导出选项。",
+    rememberFailed:
+      "未能记住导出选项，已保存的设置未改变。请重试或重新载入选项。",
+    retryRemember: "重试保存导出选项",
+    reloadOptions: "重新载入已保存的导出选项",
     title: "导出箱子",
     note: "导出已应用的箱子数据，按原格式生成宝可梦文件并下载 ZIP 副本。同名文件自动加后缀。",
     scope: "范围",
@@ -33,6 +59,15 @@ export const boxArchiveWords = {
     empty: "所选范围没有可导出的宝可梦。",
   },
   en: {
+    namer: "Namer:",
+    rememberNote:
+      "Closing this panel remembers export options and preserves unapplied editing drafts.",
+    remembering: "Remembering export options…",
+    remembered: "Export options remembered.",
+    rememberFailed:
+      "Could not remember export options. Saved settings are unchanged. Retry or reload the options.",
+    retryRemember: "Retry saving export options",
+    reloadOptions: "Reload saved export options",
     title: "Export boxes",
     note: "Export applied box data as native Pokémon files in a ZIP copy. Duplicate names receive a suffix.",
     scope: "Scope",
@@ -58,6 +93,15 @@ export const boxArchiveWords = {
     empty: "No eligible Pokémon in the selected scope.",
   },
   ja: {
+    namer: "ファイル命名規則",
+    rememberNote:
+      "このパネルを閉じると書き出し設定を記憶します。未適用の編集内容は保持されます。",
+    remembering: "書き出し設定を記憶中…",
+    remembered: "書き出し設定を記憶しました。",
+    rememberFailed:
+      "書き出し設定を記憶できませんでした。保存済みの設定は変更されていません。再試行するか設定を再読み込みしてください。",
+    retryRemember: "書き出し設定の保存を再試行",
+    reloadOptions: "保存済みの書き出し設定を再読み込み",
     title: "ボックスを書き出す",
     note: "適用済みのボックスデータを元の形式のポケモンファイルとして ZIP に書き出します。同名ファイルには接尾辞を付けます。",
     scope: "範囲",

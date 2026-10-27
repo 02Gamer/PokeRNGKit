@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { SaveEditorClient } from "./client";
 import { getSaveRequestCount } from "./clientActivity";
 import { replaceSaveSettings } from "./settingsRepository";
+import { editingSettingsJson } from "./settingsPolicy";
 import { SAVE_EDITOR_API_VERSION } from "./domain";
 class FakeWorker {
   static instances: FakeWorker[] = [];
@@ -187,6 +188,40 @@ describe("save player context across Worker lifecycle", () => {
       data: { id: message.id, bulkLegality: { clean: true } },
     });
     expect(getSaveRequestCount()).toBe(before);
+  });
+  it("keeps full in-flight settings guards for export-only preference changes", async () => {
+    let raw: string | null = null;
+    const storage = {
+      getItem: () => raw,
+      setItem: (_key: string, value: string) => {
+        raw = value;
+      },
+    };
+    vi.stubGlobal("localStorage", storage);
+    const json = JSON.stringify({
+      slotExport: {
+        boxExport: {
+          scope: 0,
+          folderCreation: 0,
+          folderPrefix: 0,
+          emptySlots: 0,
+          fileIndexPrefix: 0,
+          notify: 0,
+        },
+        defaultBoxExportNamer: "Default",
+      },
+    });
+    const first = replaceSaveSettings(json, undefined, storage);
+    const changed = JSON.parse(json);
+    changed.slotExport.boxExport.notify = 1;
+    const next = JSON.stringify(changed);
+    expect(editingSettingsJson(next)).toBe(editingSettingsJson(json));
+    const client = new SaveEditorClient(),
+      pending = client.run(new Uint8Array([1]));
+    const stopped = expect(pending).rejects.toThrow("Settings changed");
+    replaceSaveSettings(next, first.revision, storage);
+    await stopped;
+    client.dispose();
   });
   it("stops in-flight work immediately when stored settings change", async () => {
     let raw: string | null = null;

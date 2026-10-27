@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { Buffer } from "node:buffer";
 import {
   CGEAR5_PIXEL_BYTES,
   CGEAR5_RAW_BYTES,
@@ -36,14 +37,18 @@ describe("C-Gear background imports", () => {
       { length: CGEAR5_PIXEL_BYTES },
       (_, i) => i % 256,
     );
-    expect(cgear5Bytes(cgear5Base64(bytes), CGEAR5_PIXEL_BYTES)).toEqual(bytes);
+    const encoded = cgear5Base64(bytes);
+    expect(encoded).toBe(Buffer.from(bytes).toString("base64"));
+    const decoded = cgear5Bytes(encoded, CGEAR5_PIXEL_BYTES);
+    expect(decoded).toBeInstanceOf(Uint8Array);
+    expect(decoded.byteLength).toBe(CGEAR5_PIXEL_BYTES);
+    // Native comparison checks every byte without expanding 196608 properties.
+    expect(Buffer.compare(decoded, bytes)).toBe(0);
     expect(cgear5Import(c, "raw", c.raw)).toMatchObject({
       action: "raw",
       data: c.raw,
     });
-    expect(cgear5Import(c, "image", cgear5Base64(bytes)).data).toBe(
-      cgear5Base64(bytes),
-    );
+    expect(cgear5Import(c, "image", encoded).data).toBe(encoded);
   });
   it("rejects malformed lengths, hashes and disabled writes without interpreting skin data", () => {
     for (const size of [CGEAR5_RAW_BYTES - 1, CGEAR5_RAW_BYTES + 1])

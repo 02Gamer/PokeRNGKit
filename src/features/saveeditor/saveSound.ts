@@ -156,9 +156,10 @@ export function playSaveSound(
     /* Invalid or unavailable settings must not interrupt save work. */
   }
 }
-export function playSilentBoxExportSound() {
+export function playSilentBoxExportSound(notify?: 0 | 1) {
   try {
-    if (loadBoxExportDefaults().notify === 1) playSaveSound("other");
+    if ((notify ?? loadBoxExportDefaults().notify) === 1)
+      playSaveSound("other");
   } catch {
     /* A display preference cannot turn an initiated download into failure. */
   }
