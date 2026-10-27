@@ -1,5 +1,13 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-27 设置平台说明与代理重启
+
+基线56932064572581aaeaca65ecaf69d82607d99bbe，API189。设置页为11个已核对的桌面／外壳选项补中／英／日逐项限制及网页对应入口，并把说明关联到具体控件。可编辑集合、原有值与Core输入校验不变；起拖阈值、启动更新日志、启动画面和未知选项继续待接。四文件12项专项及定向Lint通过；补入实际列表／整数／枚举夹具后，完整`npm run verify`退出0：372文件／2263项前端、类型、Lint及网页／PWA打包通过。证据为`.tmp/pkhex-platform-reasons-verify.log`和`.tmp/pkhex-platform-reasons-verify-result.json`，保留既有Hook、包体及插件耗时提示。本批不重跑未改动的原生核心。
+
+按所有者明确授权重启Codex，修正本机启动器的过期Windows包路径，并采用一次性、无触发器的Windows任务承载跨进程重启。最终启动记录确认26.1007.2314.0及进程代理参数，任务退出0后已移除。仅修改应用进程代理，不改全局安全配置。外部Chrome仍能被发现，但标签读取继续报`nodeRepl.fetch request failed`；尚未恢复页面，未将重启成功写作浏览器修复成功。代码与检查状态已落盘，完整接入目标保持进行中。
+
+原始E.sav和工作副本再次核对，SHA-256均保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。完整前端门禁结束后，仅文档补记结果；提交前执行最终格式收尾。正式页面仍须经可用外部Chrome或Edge逐项核验，工程通过不代替所有者验收。
+
 ## 2026-10-27 拖放修复发布与素材核验（工程通过，页面仍阻塞）
 
 产品基线e14fdffd5ec93739540877222eb05718ea42d354，API189。[Actions40371477829](https://github.com/HaKu76/PokeRNGKit/actions/runs/40371477829)已completed／success，build、GitHub Pages、Cloudflare Pages及windows-desktop四任务均成功。存档往返、完整前端、原生Core对照及Wasm／网页构建均通过。命令行跟踪曾因TLS超时退出，随后续查同一流水线并经GitHub接口与最终状态查询确认成功，未重启构建。

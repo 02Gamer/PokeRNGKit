@@ -119,6 +119,7 @@ export function SaveSettingsWorkspace({
   const unavailable = unavailableProgramSettings(
     loaded.bundle.catalog,
     words.pending,
+    lang,
   );
   return (
     <>

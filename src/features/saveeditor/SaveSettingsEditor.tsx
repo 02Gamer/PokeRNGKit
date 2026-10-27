@@ -76,11 +76,9 @@ export function SaveSettingsEditor({
   );
   const currentFields =
     groups.find((value) => value.id === group)?.fields ?? [];
-  const reasons = [
-    ...new Set(
-      currentFields.map((field) => unavailable[field.path]).filter(Boolean),
-    ),
-  ];
+  const hasPending = currentFields.some(
+    (field) => unavailable[field.path] === words.pending,
+  );
   function update(field: SaveSettingsField, value: Value) {
     setDraft((previous) => write(previous, field.path, value));
     setPreview(undefined);
@@ -167,16 +165,22 @@ export function SaveSettingsEditor({
       </label>
       {renderGroupTools?.(group)}
       {invalid && <p role="alert">{invalid}</p>}
-      {reasons.length > 0 && (
+      {hasPending && (
         <p id={noticeId} className="save-editor-note">
-          {reasons.join(" ")}
+          {words.pending}
         </p>
       )}
       <div className="save-editor-fields">
-        {currentFields.map((field) => {
+        {currentFields.map((field, index) => {
           const value = read(draft, field.path),
             description = settingsFieldDescription(field.name, lang);
           const reason = unavailable[field.path];
+          const sharedReason = reason === words.pending;
+          const reasonId = reason
+            ? sharedReason
+              ? noticeId
+              : `${noticeId}-${index}`
+            : undefined;
           const changed = (text: string) => {
             setTexts((previous) => ({ ...previous, [field.path]: text }));
             setPreview(undefined);
@@ -186,7 +190,7 @@ export function SaveSettingsEditor({
             <label
               className="field"
               key={field.path}
-              aria-describedby={reason ? noticeId : undefined}
+              aria-describedby={reasonId}
             >
               <span>{settingsFieldCaption(field, lang)}</span>
               {field.kind === "boolean" ? (
@@ -194,12 +198,14 @@ export function SaveSettingsEditor({
                   type="checkbox"
                   checked={Boolean(value)}
                   disabled={disabled || Boolean(reason)}
+                  aria-describedby={reasonId}
                   onChange={(event) => update(field, event.target.checked)}
                 />
               ) : field.kind === "enum" ? (
                 <Select
                   value={Number(value)}
                   disabled={disabled || Boolean(reason)}
+                  aria-describedby={reasonId}
                   onChange={(event) =>
                     update(field, Number(event.target.value))
                   }
@@ -213,6 +219,7 @@ export function SaveSettingsEditor({
               ) : field.kind === "list" ? (
                 <textarea
                   disabled={disabled || Boolean(reason)}
+                  aria-describedby={reasonId}
                   value={texts[field.path] ?? (value as Value[]).join("\n")}
                   aria-label={
                     settingsFieldCaption(field, lang) + " · " + words.list
@@ -245,11 +252,13 @@ export function SaveSettingsEditor({
                         : undefined
                   }
                   disabled={disabled || Boolean(reason)}
+                  aria-describedby={reasonId}
                   maxLength={32767}
                   value={texts[field.path] ?? String(value)}
                   onChange={(event) => changed(event.target.value)}
                 />
               )}
+              {reason && !sharedReason && <small id={reasonId}>{reason}</small>}
               {description && <small>{description}</small>}
             </label>
           );

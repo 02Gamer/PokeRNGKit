@@ -2,11 +2,13 @@
 
 ## 当前结论
 
-2026-10-27，产品代码基线为`e14fdffd5ec93739540877222eb05718ea42d354`，协议API189。完整接入目标尚未证明完成，不能把工程门禁通过、子窗口名称覆盖或部署成功写成所有者验收。
+2026-10-27，已核对部署结果的产品代码基线为`e14fdffd5ec93739540877222eb05718ea42d354`，协议API189。后续设置说明为本批前端改动，不能套用该流水线证明其已部署。完整接入目标尚未证明完成，不能把工程门禁通过、子窗口名称覆盖或部署成功写成所有者验收。
 
 [API189流水线40371477829](https://github.com/HaKu76/PokeRNGKit/actions/runs/40371477829)已completed／success，build、GitHub Pages、Cloudflare Pages及Windows桌面包四任务均成功。它证明该代码基线可构建和部署，不证明每个界面的布局、交互及真实游戏结果。后续仅文档变更不会增加这份代码基线的功能覆盖。
 
 本批修复单箱、全箱和双箱的dragover提示，使其与当前模式及精确修饰键规则一致；外部文件只请求复制效果，并检查来源允许效果。专项五文件76项、完整类型、定向Lint及全仓格式通过。可配置起拖阈值没有因此实现；来源、约束及页面缺口见[存档模块文档](modules/saveeditor.md)。
+
+本批设置平台说明的完整`npm run verify`退出0，覆盖372文件／2263项前端、Lint、类型、格式及网页／PWA打包。日志为`.tmp/pkhex-platform-reasons-verify.log`；Core／Worker未改。11项说明的真实布局、三语切换与焦点仍需页面证据，不把字段说明或静态渲染写成完整功能覆盖。
 
 ## 按原目标核对
 
@@ -34,17 +36,24 @@
 
 下表不删除上游能力，也不把尚未实现的行为改写为已完成。网页替代流程与桌面原行为分别记录。
 
-| 上游设置或行为                   | 已核对的来源                                                                                                                                | 当前网页行为及限制                                                                                                                                                                     |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `startup.tryDetectRecentSave`    | WinForms `MainWindow/Main.cs`赋值给`WinFormsUtil.DetectSaveFileOnFileOpen`；`SuggestInitialFileName`调用`SaveFinder.FindMostRecentSaveFile` | 网页由所有者选择文件，另有本机资料库与最近记录。没有扫描磁盘或设置Windows打开对话框初始文件的同等行为，不将最近记录直接写作完全等价                                                    |
-| `backup.otherSaveFileExtensions` | `MainWindow/Main.cs`调用`WinFormsUtil.AddSaveFileExtensions`，扩展桌面文件选择器的筛选                                                      | 当前`SaveEditorPanel`文件输入没有`accept`扩展名筛选，选中文件直接交给Core识别。额外扩展名不需要绕过前端过滤；这不表示Core支持任意文件内容                                              |
-| `backup.bakPrompt`               | Core `StartupUtil`记录是否已询问创建备份目录，首次处理后置true                                                                              | 这是启动时目录询问的记账字段，不是每次导入前的备份确认开关。网页已有`bakEnabled`与本机备份分类，不宣称复制Windows目录创建对话框                                                        |
-| `advanced.saveExportForceSaveAs` | `SAVEditor.ExportSaveFile`把该值传给`WinFormsUtil.ExportSAVDialog`                                                                          | 网页创建下载副本，未取得或覆盖源文件句柄；覆盖／另存对话框由浏览器管理，不虚构可覆盖原件的开关                                                                                         |
-| `slotExport.allowBoxDataDrop`    | `SAVEditor.TabMouseDown／TabMouseMove`创建临时`box_<src>.bin`，通过Windows `DataFormats.FileDrop`拖出，随后删除临时文件                     | 网页已有整箱二进制导出入口；没有同等的Windows临时文件／OLE拖出流程。此字段不是整箱导入开关                                                                                             |
-| `display.focusBorderDeflate`     | `SelectablePictureBox`与`GenderToggle`使用`rc.Inflate`自绘焦点矩形                                                                          | 网页遵循固定UI契约的语义焦点样式，不把WinForms绘图偏移直接套到CSS控件上。页面可见焦点仍待核验                                                                                          |
-| `advanced.dragStartThreshold`    | `Controls/Slots/DragManager.cs`按左键状态及`abs(dx)+abs(dy)>setting`决定起拖                                                                | 当前`SaveBoxGrid`使用浏览器原生`draggable`／`onDragStart`，没有该可配置阈值。尚不能写作已实现或已证明不适用；只取消过早的dragstart也不能证明后续手势仍正确，需要可用外部浏览器验证适配 |
+2026-10-27设置页已为下列11个确定路径提供中／英／日逐项原因与网页对应入口，禁用集合和保存值不变。主题、两个DPI设置、两个插件设置，以及下表除起拖阈值外的六个设置均有说明。起拖阈值、启动更新日志与跳过启动画面继续显示待接入；说明存在不代表网页行为已验收。
+
+| 上游设置或行为                                         | 已核对的来源                                                                                                                                | 当前网页行为及限制                                                                                                                                                                     |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `startup.darkMode`                                     | WinForms `Program.cs`按该值调用`Application.SetColorMode`                                                                                   | 网页沿顶部全局主题设置，不另建PKHeX配色开关                                                                                                                                            |
+| `startup.highDpiText`／`display.disableScalingDpi`     | `Program.cs`调用`SetHighDpiMode`，`MainWindow/Main.cs`修改`AutoScaleMode`                                                                   | 网页依浏览器缩放与系统显示设置，不复用WinForms DPI渲染开关                                                                                                                             |
+| `startup.pluginLoadEnable`／`startup.pluginLoadMerged` | `Program.cs`控制插件初始化，`MainWindow/Main.cs`调用`PluginLoader.LoadPlugins`                                                              | 静态网页不加载本机.NET程序集，不提供伪插件开关                                                                                                                                         |
+| `startup.tryDetectRecentSave`                          | WinForms `MainWindow/Main.cs`赋值给`WinFormsUtil.DetectSaveFileOnFileOpen`；`SuggestInitialFileName`调用`SaveFinder.FindMostRecentSaveFile` | 网页由所有者选择文件，另有本机资料库与最近记录。没有扫描磁盘或设置Windows打开对话框初始文件的同等行为，不将最近记录直接写作完全等价                                                    |
+| `backup.otherSaveFileExtensions`                       | `MainWindow/Main.cs`调用`WinFormsUtil.AddSaveFileExtensions`，扩展桌面文件选择器的筛选                                                      | 当前`SaveEditorPanel`文件输入没有`accept`扩展名筛选，选中文件直接交给Core识别。额外扩展名不需要绕过前端过滤；这不表示Core支持任意文件内容                                              |
+| `backup.bakPrompt`                                     | Core `StartupUtil`记录是否已询问创建备份目录，首次处理后置true                                                                              | 这是启动时目录询问的记账字段，不是每次导入前的备份确认开关。网页已有`bakEnabled`与本机备份分类，不宣称复制Windows目录创建对话框                                                        |
+| `advanced.saveExportForceSaveAs`                       | `SAVEditor.ExportSaveFile`把该值传给`WinFormsUtil.ExportSAVDialog`                                                                          | 网页创建下载副本，未取得或覆盖源文件句柄；覆盖／另存对话框由浏览器管理，不虚构可覆盖原件的开关                                                                                         |
+| `slotExport.allowBoxDataDrop`                          | `SAVEditor.TabMouseDown／TabMouseMove`创建临时`box_<src>.bin`，通过Windows `DataFormats.FileDrop`拖出，随后删除临时文件                     | 网页已有整箱二进制导出入口；没有同等的Windows临时文件／OLE拖出流程。此字段不是整箱导入开关                                                                                             |
+| `display.focusBorderDeflate`                           | `SelectablePictureBox`与`GenderToggle`使用`rc.Inflate`自绘焦点矩形                                                                          | 网页遵循固定UI契约的语义焦点样式，不把WinForms绘图偏移直接套到CSS控件上。页面可见焦点仍待核验                                                                                          |
+| `advanced.dragStartThreshold`                          | `Controls/Slots/DragManager.cs`按左键状态及`abs(dx)+abs(dy)>setting`决定起拖                                                                | 当前`SaveBoxGrid`使用浏览器原生`draggable`／`onDragStart`，没有该可配置阈值。尚不能写作已实现或已证明不适用；只取消过早的dragstart也不能证明后续手势仍正确，需要可用外部浏览器验证适配 |
 
 ## 当前阻塞与恢复条件
+
+后续代理排查已按所有者授权完成Codex包上下文重启；一次性任务退出0，新进程带有代理参数。外部Chrome标签读取仍报同一请求失败，重启没有解除页面核验阻塞。
 
 2026-10-27，已恢复本地`http://127.0.0.1:5173/`开发服务，Chrome运行、扩展启用状态及本机桥接清单检查通过。为Default资料新开窗口后仍报`nodeRepl.fetch request failed`；本轮旧连接3不可用，发现并绑定新连接4后控制请求仍失败，未取得页面，也没有权限拒绝提示。该条件已跨恢复排查、拖放修复及本轮连续出现；工程发布和素材检查已经完成，剩余真实页面及手势需要可用外部连接。项目规则要求浏览器／Worker／控制台调试使用外部Chrome或Edge，因此不能用内置浏览器、Node-Wasm或命令行浏览器检查替代。
 

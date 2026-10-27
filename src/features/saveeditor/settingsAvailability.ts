@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { SaveSettingsBundle } from "./settingsProtocol";
+import { settingsPlatformReason } from "./settingsPlatformReasons";
 // Enable only settings with a verified runtime consumer; unknown paths stay pending.
 export function unavailableProgramSettings(
   catalog: SaveSettingsBundle["catalog"],
   pending: string,
+  lang?: "zh" | "en" | "ja",
 ): Record<string, string> {
   const unavailable: Record<string, string> = {};
   const enabled = new Set([
@@ -96,7 +98,8 @@ export function unavailableProgramSettings(
       ) &&
       !enabled.has(field.path)
     )
-      unavailable[field.path] = pending;
+      unavailable[field.path] =
+        (lang && settingsPlatformReason(field.path, lang)) || pending;
   }
   return unavailable;
 }

@@ -1,5 +1,13 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-27 设置平台说明（API189，页面待核验）
+
+设置页为11个已确认的桌面或全局外壳选项增加中／英／日逐项说明，保留原始值与禁用状态。主题指向顶部主题入口，DPI指向浏览器／系统缩放，插件明确为桌面.NET程序集，最近文件与备份指向显式选择和本机资料库，覆盖另存与整箱拖出说明网页下载／二进制导出路径，焦点缩进沿统一网页控件样式。说明直接放在对应字段下，并通过`aria-describedby`关联实际控件；普通待接项目仍共用一条待接提示。
+
+来源为上游WinForms `Program.cs`、`MainWindow/Main.cs`、`Settings/StartupSettings.cs`、`Settings/DisplaySettings.cs`、`SAVEditor`、`WinFormsUtil`及Core `StartupUtil`／`BackupSettings.cs`；具体桌面文件行为见[平台边界审计](../pkhex-completion-audit.md)。本批不改变目录元数据、HTML输入范围、Core校验或Worker协议，也不开放未接消费点。`advanced.dragStartThreshold`、启动更新日志、跳过启动画面及未知设置仍待接入，不能据这些说明宣称全部设置完成。
+
+四文件12项专项、定向Lint及完整类型通过。补入列表／整数／枚举控件夹具后的完整`npm run verify`退出0，372文件／2263项前端测试、全仓格式、Lint、类型及网页／PWA打包通过；保留第三世代定点既有Hook、包体和插件耗时提示。证据为`.tmp/pkhex-platform-reasons-verify.log`及同名前缀的`verify-result.json`。本批没有Core／Worker改动，不重跑原生核心。外部Chrome读取仍失败，字段说明的真实布局、焦点和三语切换未核验；静态渲染检查不作为页面验收。
+
 ## 2026-10-27 箱子拖放效果一致性（API189，页面待核验）
 
 修复格位dragover与实际drop使用不同操作判断的问题。单箱、全箱和双箱共用当前复制／覆盖／自动模式，提示与写入复用同一修饰键解析：仅Shift复制，仅Alt覆盖，其他组合按当前模式处理。来源为WinForms Controls/Slots/SlotUtil.cs的GetDropModifier及Controls/SAV Editor/SlotChangeManager.cs的DragEnter／DragDrop。实际存档写入仍由既有Core存储接口处理，本批不更改Core或Worker协议。
