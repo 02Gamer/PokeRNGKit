@@ -123,7 +123,51 @@
 .save-section-navigation .save-section-mobile {
   display: none;
 }
+@media (min-width: 901px) {
+  .save-section-content:has(.save-pokemon-browser) {
+    overflow: hidden;
+  }
+  .save-section-content .save-pokemon-browser {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+  .save-section-content .save-pokemon-browser > .save-editor-toolbar {
+    flex: none;
+  }
+  .save-section-content .save-pokemon-workspace {
+    flex: 1;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .save-section-content :is(.save-pokemon-storage, .save-pokemon-detail) {
+    max-height: 100%;
+    min-height: 0;
+    overflow: auto;
+    padding: 2px;
+    scrollbar-gutter: stable;
+  }
+  .save-section-content .save-box-gallery {
+    max-height: none;
+    overflow: visible;
+  }
+}
 @media (max-width: 900px) {
+  .app-shell[data-primary-workspace="save"] {
+    height: auto;
+    min-height: 100dvh;
+  }
+  .save-primary-workspace {
+    flex: none;
+    overflow: visible;
+  }
+  .save-primary-workspace .save-file-workspace {
+    display: grid;
+    overflow: visible;
+  }
   .topbar:has(.primary-workspace-tabs) {
     flex-wrap: wrap;
     gap: 8px 12px;
@@ -137,13 +181,16 @@
   }
   .save-editor-body {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
     gap: 12px;
   }
   .save-section-navigation {
     overflow: visible;
     padding: 0;
     border: 0;
+  }
+  .save-section-content {
+    overflow: visible;
   }
   .save-section-desktop {
     display: none;

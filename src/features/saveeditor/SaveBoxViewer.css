@@ -18,7 +18,7 @@
   min-height: var(--workspace-control-height, var(--control-height, 44px));
   padding-inline: 8px;
 }
-.save-pokemon-browser > label[hidden] {
+.save-pokemon-storage > label[hidden] {
   display: none;
 }
 .save-pokemon-workspace[data-viewer="true"] {
