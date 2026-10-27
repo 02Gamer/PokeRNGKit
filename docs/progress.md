@@ -1,10 +1,10 @@
 # PokeRNGKit 项目进度与交接
 
-## 2026-10-27 外部 Chrome 恢复与存档工作区布局修复（页面工程核验）
+## 2026-10-27 外部 Chrome 恢复与存档工作区布局修复（已发布，页面工程核验）
 
 按所有者授权完成 Codex 官方 Windows 包更新：26.1007.2314.0 升至 26.1021.3705.0，包名、发布者及声明能力一致，应用通过原有包上下文与进程代理启动。外部 Chrome 标签枚举、页面读取及操作已恢复；一次性更新任务退出 0 后移除，不再以旧连接失败阻塞后续工作。
 
-代码基线 `f57a78a5db5986c4def91f05dfb3f7d21c1aa306` 已提交并推送；[Actions 40455939184](https://github.com/HaKu76/PokeRNGKit/actions/runs/40455939184) 的 build、Windows、GitHub Pages 和 Cloudflare 四任务均 completed／success。以下布局修复属于后续代码，不套用该流水线证明已经部署。
+布局修复产品代码 `57f4dcc714c1473a3c7e59effd1ba18a52581c6c` 已提交并推送；[Actions 40470311047](https://github.com/HaKu76/PokeRNGKit/actions/runs/40470311047) 的 build、Windows、GitHub Pages 和 Cloudflare 四任务均 completed／success。存档往返、完整前端、原生 Core 对照及 Wasm／网页构建全部通过。命令行跟踪曾因 TLS 超时退出，续查同一运行，并通过 GitHub 连接器确认四任务成功，没有重启构建。
 
 在外部 Chrome 的 `http://127.0.0.1:5173/` 使用真实 E.sav 工作副本核验：Core 识别绿宝石，训练家 MICHAEL，队伍 5、箱子 14；全览具有 14×30 个物理格位，单箱显示壁纸、宝可梦图片、异色和空位。训练家姓名改为 UIAUDIT 后下载、撤销恢复 MICHAEL，再导入实际下载文件读到 UIAUDIT。单箱鼠标拖动 1→5 后来源为空、目标为大颚蚁；撤销恢复。复制模式保留来源、BOX1 占用 10→11，撤销恢复 10，未额外弹出放入确认。双箱第二箱独立导航至 BOX2。下载事件等待曾超时，但实际文件已生成，已直接重新导入该下载文件核对，不把等待超时写成下载失败。
 
@@ -13,6 +13,10 @@
 核验尺寸为 390／768／1280／1920px，中文、英文和日文切换保持实际存档；390px 内容高度恢复 4356px，390／768 的页面宽度与滚动宽度相等。1280px 桌面截图已核对箱子与详情并列。尺寸覆盖与部分三语入口不代表全部字段及全部模块通过；特殊形态、所有功能清单、非默认起拖阈值、组合修饰键、触控、离线和完整焦点检查继续保留。未运行生产算法回归，也不作所有者验收。
 
 原件及 confirmed-input.sav 的 SHA-256 仍为 `7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442`；无编辑下载与输入逐字节一致，编辑下载 SHA-256 为 `F314C6C7914A9F152AEACD8CE1F834B38F3BF322452E080037A62759566AE94A`。原件未写入。定向 Lint 与完整 `npm run verify` 均退出 0：377 文件／2292 项、全仓格式、Lint、类型、网页及 PWA 缓存生成通过。证据为 `.tmp/pkhex-workspace-browser-verify.log`、`.tmp/pkhex-workspace-browser-verify-result.json`、`.tmp/pkhex-chrome-engineering-audit.json` 和 `.tmp/pkhex-workspace-chrome-default.jpg`。保留第三世代定点既有 Hook、包体及插件耗时提示；未重跑未修改的原生核心。完整门禁期间暂停本任务 Vite 释放内存，完成后恢复 5173。完整接入目标保持进行中。
+
+后续只读页面补查已取得背包、图鉴、游戏记录、事件标记、游走和开拓区数据及控件；没有执行这些工具的全部编辑行为。背包 28 张道具图实际加载成功，但 `inventoryReadNote` 的中／英／日仍宣称图片未接，列入下一批文字与入口一致性修复。此前无样式的“读取训练家数据”按钮实测约 44px 高、15px 字体、10px 圆角；起拖阈值为启用的 Int32 步进输入，当前值 0。保留原始 E.sav 工作副本的箱子页供所有者复核，最终截图为 `.tmp/pkhex-workspace-final-chrome.jpg`。
+
+本次发布结果补记仅涉及文档，提交正文使用 GitHub 支持的 `[skip ci]`，避免为记录已成功的运行再次触发完整部署；产品代码证据仍绑定上面的准确提交和流水线。机制见 [GitHub 官方说明](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs)。文档仍执行全仓格式与差异检查。
 
 ## 2026-10-27 可配置起拖阈值接线（工程通过，页面待核验）
 
