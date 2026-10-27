@@ -12,6 +12,8 @@
 
 本批基于已发布 main／f8f1a594，全部工作区改动属于本任务，按既有授权提交并推送，发布待跟踪。下一步先核对新流水线终态，再继续整箱导出与其余 129 项行为清单的实际页面核验；不以本批显示修正宣称完整 PKHeX 接入或所有者验收。
 
+产品提交 59a2fc89 已推送，工作区曾干净；[Actions 40538823305](https://github.com/HaKu76/PokeRNGKit/actions/runs/40538823305) 已启动，build 122311314078 正在运行原生往返检查。恢复 Chrome 时旧标签焦点绑定超时，新建标签的导航等待也超时，但绑定同一个新标签 1601081988 后读取成功；自动恢复 E.sav 测试下载，UIAUDIT／异色／合法性及禁用撤销均保持，新版四条日志正常显示并关闭。未重启应用或新增授权，预览已保留。补记上述状态并纠正审计中的两处过期表述，仅文档跟进使用 [skip ci]，继续跟踪产品流水线，不重复部署。
+
 ## 2026-10-27 网页启动设置接线（API190 前端，已发布）
 
 继续完整接入目标，接入此前仍待接的 ShowChangelogOnUpdate 和 SkipSplashScreen。来源为只读上游 WinForms Settings/StartupSettings.cs、Program.Main 及 Core Editing/Program/StartupUtil.GetShowChangelog：布尔默认分别 true／false；首次或无效历史版本不弹日志，只有旧版升级才自动弹出，同版和降级不弹，关闭自动显示仍记录当前版本。
