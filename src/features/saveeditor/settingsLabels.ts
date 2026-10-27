@@ -15,6 +15,9 @@ function text(prefix: string, name: string, language: Language) {
 export const settingsFieldName = (name: string, lang: Language) =>
   text("PropertyGrid", name, lang);
 export function settingsFieldCaption(field: SaveSettingsField, lang: Language) {
+  // SettingsEditor exposes this Browsable(false) property through CB_Blank.
+  if (field.path === "startup.defaultSaveVersion")
+    return text("SettingsEditor", "L_Blank", lang);
   const parents = field.path
     .split(".")
     .slice(1, -1)
@@ -23,6 +26,12 @@ export function settingsFieldCaption(field: SaveSettingsField, lang: Language) {
     );
   return [...parents, settingsFieldName(field.name, lang)].join(" · ");
 }
+// StartupSettings hides these automatic values from its property grid. Keep
+// their serialized data; do not apply leaf visibility to top-level groups.
+export const settingsFieldVisible = (path: string) =>
+  !["startup.version", "startup.recentlyLoaded", "startup.language"].includes(
+    path,
+  );
 export const settingsGroupName = (name: string, lang: Language) =>
   text("SettingsEditor", name, lang);
 export const settingsEnumName = (

@@ -1,6 +1,14 @@
 # PKHeX 存档读取与编辑
 
-## 2026-10-27 启动画面与更新日志（API190 前端，工程通过，发布待跟踪）
+## 2026-10-27 设置可见性与默认空白版本（API190 前端，工程通过，发布待跟踪）
+
+来源为 WinForms Settings/StartupSettings.cs、Subforms/SettingsEditor.cs 的 CB_Blank／LoadSettings、Util/PropertyGridLocalization.cs 和 Core Util/ReflectUtil.cs。Version、RecentlyLoaded、Language 是上游隐藏的自动维护叶字段；网页不显示它们，保留完整序列化目录与值，恢复默认草稿时也保持原值。DefaultSaveVersion 由独立下拉框暴露，不能因 Browsable(false) 删除该功能。SlotExport 的顶层标记不改变 LoadSettings 的公共可写分组枚举，网页继续显示该分组。
+
+空白版本标签直接复用 lang_zh-Hans／en／ja 的 SettingsEditor.L_Blank，分别为“空白存档版本：”“Blank Save Version:”和“Blank セーブの種類:”。候选沿既有 Core 目录及上游 VersionDataSource，排除 0、GO、CP；不增加数值文本输入、位宽或空值转换，不改变既有空白上下文／宝可梦模板消费点，也不创建可游玩的新存档。Core JSON 验证、保存前预览及现有工作副本保护继续有效。
+
+三文件／47 项专项通过；真实 Chrome 核对 41 个候选、三语标签、绿宝石选择及单项保存预览后取消，15px／约 44px 控件保持统一，底部焦点与控件未被页脚遮挡。2026-10-28 完整门禁退出 0，379 文件／2335 项、格式、Lint、类型及网页／PWA 均通过；日志、截图限制及发布跟踪见进度。Core／Worker 不变，未重跑本机原生／核心，不将这批显示修正写成所有设置或所有存档格式验收。网页启动日志修订推进 0.190.2.0。
+
+## 2026-10-27 启动画面与更新日志（API190 前端，已发布）
 
 来源：PKHeX.WinForms/Settings/StartupSettings.cs 的 SkipSplashScreen（默认 false）与 ShowChangelogOnUpdate（默认 true）、Program.cs 的启动画面生命周期，以及 Core/Editing/Program/StartupUtil.cs 的 GetShowChangelog／FormLoadInitialActions。两项均为布尔，无数值进制、位宽、范围或空值 HTML 输入；既有 Core JSON 设置验证保持类型及缺省值约束，不将字符串、null 或数字当作勾选值。
 
@@ -8,7 +16,7 @@
 
 网页历史使用独立 localStorage 键，不改桌面 Startup.Version、设置修订、存档或编辑票据。比较元数据为 0.API.网页修订.0，本批 0.190.1.0；历史数字格式为 2–4 个非负 Int32 段，缺省 build／revision 按 -1 排序，仅消费本工具自己的历史。API 不变而更新内容变化时推进网页修订，维护本机三语日志，不冒用正式产品版本号。
 
-最终五文件／59 项专项、完整门禁 378 文件／2328 项及网页／PWA 均通过。真实 Chrome 的三语手动入口、默认／跳过画面、升级／关闭／同版／降级、取消重试、Escape 和焦点已取得有限证据，临时元数据与开关原值已恢复。Tab／Shift+Tab 保持在唯一关闭按钮；已知启动失败消息在渲染时按当前语言重映射。Core、协议和上游只读源码不变，默认原生及 API190 核心沿上一批证据；截图接口限制及发布状态见进度。完整接入目标继续进行。
+最终五文件／59 项专项、完整门禁 378 文件／2328 项及网页／PWA 均通过。真实 Chrome 的三语手动入口、默认／跳过画面、升级／关闭／同版／降级、取消重试、Escape 和焦点已取得有限证据，临时元数据与开关原值已恢复。Tab／Shift+Tab 保持在唯一关闭按钮；已知启动失败消息在渲染时按当前语言重映射。Core、协议和上游只读源码不变，本机默认原生及 API190 核心沿上一批证据；f8f1a594 的 Actions 40528147562 四任务均成功，CI 原生／核心门禁通过。截图接口限制及发布细节见进度。完整接入目标继续进行。
 
 ## 2026-10-27 仅命名操作保留 PID（API190，已发布）
 

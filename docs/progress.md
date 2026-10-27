@@ -1,6 +1,18 @@
 # PokeRNGKit 项目进度与交接
 
-## 2026-10-27 网页启动设置接线（API190 前端，工程通过，发布待跟踪）
+## 2026-10-27 设置字段可见性与空白版本标签（API190 前端，工程通过，发布待跟踪）
+
+按只读上游 StartupSettings 的 Browsable(false) 隐藏 Version、RecentlyLoaded 和 Language；完整 Core 目录及 JSON 保留，恢复默认草稿也保留这三个自动维护值。DefaultSaveVersion 虽有相同标记，但上游 SettingsEditor.CB_Blank 提供独立控件，网页保留现有功能并复用 L_Blank 的中／英／日来源标签。SlotExport 分组与未知待接字段仍可见，不把顶层或未来字段推断为平台排除。
+
+字段和下拉框沿现有共享控件，未改 Core、Worker、协议或输入范围；内部网页启动修订推进为 0.190.2.0。三文件／47 项专项通过，覆盖三语呈现、SlotExport、未知字段及恢复默认草稿时的元数据保护。首轮专项中旧日志条数断言、SSR 原生 select 假设和 HTML 引号转义断言失败，已按实际共享控件及新增日志修正，保留失败日志，不放宽功能断言。
+
+外部 Chrome 的本地 5173 页面已核对三语标签与保存预览：41 个版本候选中选择绿宝石，预览仅列默认版本变化；随后通过重新读取取消草稿，没有保存设置。中文控件实测 15px／约 44px，页面无横向溢出；内部字段未显示。底部控件可滚动到可见区，Tab 到恢复默认草稿按钮，未被页脚遮挡。顶部及底部截图、DOM 边界和范围限制见 `.tmp/pkhex-settings-visibility-browser-audit.json`；第一张截图捕获前一帧菜单，作为诊断保留，不作当前页面证据。
+
+2026-10-28 完整 `npm run verify` 退出 0：379 文件／2335 项前端测试、全仓格式、Lint、类型、网页及 PWA 缓存生成通过。日志与终态为 `.tmp/pkhex-settings-visibility-verify.log` 和同名前缀 `verify-result.json`；仅保留第三世代定点既有 Hook、包体及插件耗时提示。Core／Worker 未改，未重跑本机原生／核心，沿 API190 已发布证据。原件和输入副本 SHA-256 均保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。检查期间只停止本任务 Vite，结束后恢复 5173 服务。
+
+本批基于已发布 main／f8f1a594，全部工作区改动属于本任务，按既有授权提交并推送，发布待跟踪。下一步先核对新流水线终态，再继续整箱导出与其余 129 项行为清单的实际页面核验；不以本批显示修正宣称完整 PKHeX 接入或所有者验收。
+
+## 2026-10-27 网页启动设置接线（API190 前端，已发布）
 
 继续完整接入目标，接入此前仍待接的 ShowChangelogOnUpdate 和 SkipSplashScreen。来源为只读上游 WinForms Settings/StartupSettings.cs、Program.Main 及 Core Editing/Program/StartupUtil.GetShowChangelog：布尔默认分别 true／false；首次或无效历史版本不弹日志，只有旧版升级才自动弹出，同版和降级不弹，关闭自动显示仍记录当前版本。
 
@@ -16,9 +28,11 @@
 
 首轮完整门禁的格式、Lint 和类型通过，进入前端测试后为修正启动失败消息的语言切换映射主动中止；`.tmp/pkhex-startup-verify.log`／同名 result 的退出 1 是本任务中止结果，不是失败用例。已在渲染时按活动语言重新映射已知启动错误，并补三语交叉断言；最终专项五文件／59 项通过。
 
-最终完整 `npm run verify` 退出 0，378 文件／2328 项、全仓格式、Lint、类型、网页及 PWA 缓存生成通过，日志和终态分别为 `.tmp/pkhex-startup-final-verify.log`、`.tmp/pkhex-startup-final-verify-result.json`。保留第三世代定点既有 Hook、包体与插件耗时提示。原件及输入副本 SHA-256 均保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。检查期间停止本任务 Vite 并关闭重复测试标签释放内存，结束后恢复服务与新预览。Core、Worker 协议和输入范围未改，复用已发布 API190 原生及核心证据，不写作本批重跑；提交发布待跟踪，当前已发布产品仍为 fcfbcd2c，文档基线 8a2fb555。
+最终完整 `npm run verify` 退出 0，378 文件／2328 项、全仓格式、Lint、类型、网页及 PWA 缓存生成通过，日志和终态分别为 `.tmp/pkhex-startup-final-verify.log`、`.tmp/pkhex-startup-final-verify-result.json`。保留第三世代定点既有 Hook、包体与插件耗时提示。原件及输入副本 SHA-256 均保持 7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。检查期间停止本任务 Vite 并关闭重复测试标签释放内存，结束后恢复服务与新预览。Core、Worker 协议和输入范围未改，本机原生及核心未重跑。
 
-后续设置页核对发现：上游 Startup.Version／RecentlyLoaded／Language 标为 Browsable(false)，当前通用目录仍把这些元数据暴露为“待接”；DefaultSaveVersion 则由 SettingsEditor.CB_Blank 独立提供，中文来源标签为“空白存档版本：”。应修正字段可见性及对应标签，保留 JSON 元数据与实际默认版本功能。SlotExport 的顶层属性虽也有该标记，但 SettingsEditor.LoadSettings 使用的 ReflectUtil 不据此排除分组，不能套用叶字段规则隐藏整个分组。完整目标继续进行。
+产品提交 `f8f1a594abf8015796f53645628269f6814d954a` 已推送。[Actions 40528147562](https://github.com/HaKu76/PokeRNGKit/actions/runs/40528147562) 的 build 122273249852、GitHub Pages 122291443000、Cloudflare Pages 122291443075 及 Windows 包 122291443343 均 completed／success；CI 已重跑完整原生／核心及发布门禁。详细终态见 `.tmp/pkhex-startup-release-proof.json`。这份发布证据覆盖启动设置批，不覆盖后续未发布修改，也不代替所有者验收。
+
+后续设置页核对发现：上游 Startup.Version／RecentlyLoaded／Language 标为 Browsable(false)，通用目录曾把这些元数据暴露为“待接”；DefaultSaveVersion 则由 SettingsEditor.CB_Blank 独立提供。可见性及三语标签已在本轮修正，JSON 元数据与实际默认版本功能保留。SlotExport 的顶层属性虽也有该标记，但 SettingsEditor.LoadSettings 使用的 ReflectUtil 不据此排除分组，不能套用叶字段规则隐藏整个分组。完整目标继续进行。
 
 ## 2026-10-27 昵称编辑保留个性值修复（API190，已发布）
 

@@ -115,8 +115,8 @@ export function SaveSettingsWorkspace({
       </>
     );
   if (!loaded) return <p role="status">{words.loading}</p>;
-  // Keep the complete source directory visible, but never enable a saved option
-  // until its actual browser behavior is bound. Remaining bindings stay in scope.
+  // Keep the complete serialized catalog. The editor follows upstream leaf
+  // visibility and enables options only after their browser behavior is bound.
   const unavailable = unavailableProgramSettings(
     loaded.bundle.catalog,
     words.pending,

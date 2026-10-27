@@ -2,9 +2,11 @@
 
 ## 当前结论
 
-网页启动设置已接线：ShowChangelogOnUpdate 与 SkipSplashScreen 已有实际前端消费点、串行会话和手动三语日志入口，具体来源及输入约束见模块文档。最终专项五文件／59 项、完整门禁 378 文件／2328 项、格式、Lint、类型与网页／PWA 均通过。真实 Chrome 的三语、升级／关闭／同版／降级、取消重试、焦点与原设置恢复已取得有限证据，临时元数据逐字节还原。发布待跟踪；下面的 fcfbcd2c 发布证据不覆盖这批工作区修改，完整目标继续进行。
+设置可见性已修正：按来源隐藏三个自动维护的 Startup 叶字段，保留 JSON 及恢复默认草稿时的原值；默认空白版本保留既有消费点，改用独立控件的三语标签。SlotExport 与未知待接字段不受隐藏规则影响。专项三文件／47 项及真实 Chrome 的三语选择／单项预览通过，未保存测试设置。2026-10-28 完整门禁 379 文件／2335 项、格式、Lint、类型及网页／PWA 均通过，发布待跟踪。这是来源界面一致性修正，不表示待接能力已完成。
 
-2026-10-27，已核对部署结果的产品代码基线为 `fcfbcd2cee7f3ac456e3169b642ab05018e1eb0e`，协议 API190。[流水线 40497786043](https://github.com/HaKu76/PokeRNGKit/actions/runs/40497786043) 的 build、两处部署及 Windows 包均 success。外部 Chrome 已恢复并完成下述真实 E.sav 有限页面核验；本批修复的默认完整原生、浏览器核心及完整 `npm run verify` 已退出 0，377 文件／2292 项、格式、Lint、类型与网页／PWA 均通过；四个发布任务均 completed／success。完整接入目标尚未证明完成，不能把工程门禁、路径覆盖或部署成功写成所有者验收。
+网页启动设置已接线：ShowChangelogOnUpdate 与 SkipSplashScreen 已有实际前端消费点、串行会话和手动三语日志入口，具体来源及输入约束见模块文档。最终专项五文件／59 项、完整门禁 378 文件／2328 项、格式、Lint、类型与网页／PWA 均通过。真实 Chrome 的三语、升级／关闭／同版／降级、取消重试、焦点与原设置恢复已取得有限证据，临时元数据逐字节还原。该批 f8f1a594 已发布，完整目标继续进行。
+
+2026-10-28，已核对部署结果的产品代码基线为 `f8f1a594abf8015796f53645628269f6814d954a`，协议 API190。[流水线 40528147562](https://github.com/HaKu76/PokeRNGKit/actions/runs/40528147562) 的 build、GitHub Pages、Cloudflare Pages 及 Windows 包均 completed／success，CI 原生／核心门禁通过。昵称修复的本机原生／核心和真实 E.sav 下载重读证据沿 fcfbcd2c；启动设置本机完整门禁为 378 文件／2328 项。后续设置可见性工作区尚待发布。完整接入目标尚未证明完成，不能把工程门禁、路径覆盖或部署成功写成所有者验收。
 
 [API189流水线40371477829](https://github.com/HaKu76/PokeRNGKit/actions/runs/40371477829)已completed／success，build、GitHub Pages、Cloudflare Pages及Windows桌面包四任务均成功。它证明该代码基线可构建和部署，不证明每个界面的布局、交互及真实游戏结果。后续仅文档变更不会增加这份代码基线的功能覆盖。
 

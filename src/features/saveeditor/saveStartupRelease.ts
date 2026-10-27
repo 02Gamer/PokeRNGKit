@@ -4,20 +4,23 @@ import { SAVE_EDITOR_API_VERSION } from "./domain";
 // Internal launch-history version: API + Web UI revision. This is independent
 // of PKHeX's desktop version and does not introduce a product release number.
 export const SAVE_STARTUP_RELEASE = {
-  version: `0.${SAVE_EDITOR_API_VERSION}.1.0`,
+  version: `0.${SAVE_EDITOR_API_VERSION}.2.0`,
   date: "2026-10-27",
   changes: {
     zh: [
+      "设置页隐藏自动维护的内部字段，并补齐空白存档版本的语言标签。",
       "仅修改昵称会保留宝可梦的个性值、异色和其他未编辑内容。",
       "更新背包说明，修正确认放入时的处理提示。",
       "接入启动画面与更新日志设置，可在启动设置中查看本次更新。",
     ],
     en: [
+      "Settings hide automatically maintained internal fields and use localized blank-save version labels.",
       "Nickname-only edits preserve the Pokémon's PID, shininess and other unedited data.",
       "Updated inventory descriptions and corrected the pending indicator during slot confirmation.",
       "Connected splash-screen and changelog settings. Review these notes in Startup settings.",
     ],
     ja: [
+      "設定画面で自動管理の内部項目を非表示にし、空白セーブの種類のラベルを各言語に対応しました。",
       "ニックネームのみの変更では、性格値・色違い状態・未編集の内容を保持します。",
       "バッグの説明と、スロットに入れる際の処理表示を修正しました。",
       "起動画面と更新履歴の設定を接続しました。起動設定から今回の更新を確認できます。",

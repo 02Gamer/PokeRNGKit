@@ -3,28 +3,21 @@ import { useId, useState, type ReactNode } from "react";
 import { Select } from "../shared/Select";
 import type { SaveSettingsBundle, SaveSettingsField } from "./settingsProtocol";
 import {
+  read,
+  write,
+  resetSettingsDraft,
+  type Value,
+  type ObjectValue,
+} from "./settingsDraft";
+import {
   settingsFieldCaption,
+  settingsFieldVisible,
   settingsFieldDescription,
   settingsGroupName,
   settingsEnumName,
   settingsWords,
 } from "./settingsLabels";
 
-type Value = boolean | number | string | Value[] | { [key: string]: Value };
-type ObjectValue = { [key: string]: Value };
-function read(root: ObjectValue, path: string): Value {
-  let value: Value = root;
-  for (const key of path.split(".")) value = (value as ObjectValue)[key];
-  return value;
-}
-function write(root: ObjectValue, path: string, value: Value): ObjectValue {
-  const copy = structuredClone(root);
-  const parts = path.split(".");
-  let node = copy;
-  for (const part of parts.slice(0, -1)) node = node[part] as ObjectValue;
-  node[parts.at(-1)!] = value;
-  return copy;
-}
 export function SaveSettingsEditor({
   bundle,
   json,
@@ -75,7 +68,9 @@ export function SaveSettingsEditor({
     ),
   );
   const currentFields =
-    groups.find((value) => value.id === group)?.fields ?? [];
+    groups
+      .find((value) => value.id === group)
+      ?.fields.filter((field) => settingsFieldVisible(field.path)) ?? [];
   const hasPending = currentFields.some(
     (field) => unavailable[field.path] === words.pending,
   );
@@ -268,14 +263,7 @@ export function SaveSettingsEditor({
         <button
           type="button"
           onClick={() => {
-            let next = JSON.parse(bundle.json) as ObjectValue;
-            for (const field of bundle.catalog.groups.flatMap(
-              (value) => value.fields,
-            )) {
-              if (unavailable[field.path])
-                next = write(next, field.path, read(savedValues, field.path));
-            }
-            setDraft(next);
+            setDraft(resetSettingsDraft(bundle, savedValues, unavailable));
             setTexts({});
             setPreview(undefined);
             setInvalid("");
