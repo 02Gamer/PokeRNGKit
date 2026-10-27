@@ -197,6 +197,10 @@ export function PokemonHoverSurface({
     y: number,
     altKey: boolean,
   ) {
+    if (button.hasAttribute("data-pointer-source")) {
+      close();
+      return;
+    }
     if (busy || !settings || button.disabled) return;
     setAlt(altKey);
     setPoint({ x: x + settings.offset.x, y: y + settings.offset.y });

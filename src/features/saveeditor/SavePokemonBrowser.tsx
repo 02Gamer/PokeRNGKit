@@ -535,13 +535,25 @@ export function SavePokemonBrowser({
     keys: GalleryModifiers,
   ) {
     if (locked || flight.current) return;
+    return dropInput(
+      target,
+      transfer.getData(BOX_SLOT_DRAG_TYPE),
+      Array.from(transfer.files),
+      keys,
+    );
+  }
+  async function dropInput(
+    target: PokemonPosition,
+    payload: string,
+    files: File[],
+    keys: GalleryModifiers,
+  ) {
+    if (locked || flight.current) return;
     if (!access.canStorage || !report.checksumsValid) {
       playSaveSound("other");
       setGalleryError("readonly");
       return;
     }
-    const payload = transfer.getData(BOX_SLOT_DRAG_TYPE),
-      files = Array.from(transfer.files);
     flight.current = true;
     setPending(true);
     setGalleryError("");
@@ -814,6 +826,9 @@ export function SavePokemonBrowser({
               onSlotMenu={openSlotMenu}
               onSet={(position) => void startSet(position)}
               onDrop={drop}
+              onPointerDrop={(target, payload, keys) =>
+                dropInput(target, payload, [], keys)
+              }
             />
           ) : gallery ? (
             <SaveBoxGallery
@@ -830,6 +845,9 @@ export function SavePokemonBrowser({
               onSlotMenu={openSlotMenu}
               onSet={(position) => void startSet(position)}
               onDrop={drop}
+              onPointerDrop={(target, payload, keys) =>
+                dropInput(target, payload, [], keys)
+              }
             />
           ) : (
             <SaveBoxGrid
@@ -847,6 +865,9 @@ export function SavePokemonBrowser({
               onSlotMenu={openSlotMenu}
               onSet={(position) => void startSet(position)}
               onDrop={drop}
+              onPointerDrop={(target, payload, keys) =>
+                dropInput(target, payload, [], keys)
+              }
             />
           )}
           {!gallery && !viewer && (

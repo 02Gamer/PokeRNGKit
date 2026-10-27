@@ -1,4 +1,5 @@
 import type { SlotMenuInvocation } from "./slotMenu";
+import type { BoxPointerDrop } from "./boxPointerController";
 import { Select } from "../shared/Select";
 import { SaveBoxGrid } from "./SaveBoxGrid";
 import { boxViewerWords, moveBoxView } from "./boxViewer";
@@ -22,6 +23,7 @@ export function SaveBoxViewer({
   onSelect,
   onSwapViews,
   onDrop,
+  onPointerDrop,
   onSlotMenu,
   onSet,
 }: {
@@ -40,6 +42,7 @@ export function SaveBoxViewer({
   onSelect(position: PokemonPosition): void;
   onSlotMenu?(invocation: SlotMenuInvocation): boolean;
   onSet?(position: PokemonPosition): void;
+  onPointerDrop?: BoxPointerDrop;
   onSwapViews(): void;
   onDrop(
     target: PokemonPosition,
@@ -156,6 +159,7 @@ export function SaveBoxViewer({
               onSet={onSet}
               onSelect={onSelect}
               onDrop={onDrop}
+              onPointerDrop={onPointerDrop}
             />
             <p className="save-editor-note">
               {name(pane.box)} ·{" "}

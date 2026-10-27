@@ -1,5 +1,13 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-27 可配置起拖阈值接线（工程通过，页面待核验）
+
+8313428e设置说明的[流水线40447227473](https://github.com/HaKu76/PokeRNGKit/actions/runs/40447227473)已completed／success，build、GitHub Pages、Cloudflare及Windows桌面包四任务均成功。期间有查询网络错误，续查同一运行确认终态，未重新触发构建。
+
+新增完整鼠标手势消费点并接入单箱、全箱、双箱：完整Int32阈值、严格L1位移、源快照、真实目标命中、精确修饰键反馈、取消及拖后点击抑制；保留原生文件拖入和触控／笔路径。来源及CSS坐标单位见[存档模块](modules/saveeditor.md)，设置已开放。十文件76项专项与本批全部TypeScript定向Lint退出0，证据为`.tmp/pkhex-pointer-integration-tests-final.log`和`.tmp/pkhex-pointer-integration-lint-final.log`。捕获点击边界追加后，控制器10项与四文件Lint通过，完整`npm run verify`退出0：377文件／2292项前端、类型、Lint及网页／PWA打包通过，见`.tmp/pkhex-pointer-integration-verify.log`和`.tmp/pkhex-pointer-integration-verify-result.json`。保留既有Hook、包体与插件耗时提示；Core／Worker／API189未改，不重跑本机原生核心。
+
+首轮点击监听清理和React ref规则失败已修正，原日志保留。原始E.sav与工作副本SHA-256再次保持7DA8AD6A95CB58076705118947C41BD0131A622CA95336D3F617C091FDD30442。外部Chrome绑定5173仍报nodeRepl.fetch失败，正式手势、焦点、混合输入与布局未核验，完整接入目标保持进行中。另查明官方离线应用包为26.1021.3705.0，高于本机26.1007.2314.0；包名、发布者和声明能力一致，更新包准备中，尚未安装，不宣称通道恢复。
+
 ## 2026-10-27 设置平台说明与代理重启
 
 基线56932064572581aaeaca65ecaf69d82607d99bbe，API189。设置页为11个已核对的桌面／外壳选项补中／英／日逐项限制及网页对应入口，并把说明关联到具体控件。可编辑集合、原有值与Core输入校验不变；起拖阈值、启动更新日志、启动画面和未知选项继续待接。四文件12项专项及定向Lint通过；补入实际列表／整数／枚举夹具后，完整`npm run verify`退出0：372文件／2263项前端、类型、Lint及网页／PWA打包通过。证据为`.tmp/pkhex-platform-reasons-verify.log`和`.tmp/pkhex-platform-reasons-verify-result.json`，保留既有Hook、包体及插件耗时提示。本批不重跑未改动的原生核心。

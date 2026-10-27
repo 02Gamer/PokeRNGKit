@@ -48,11 +48,12 @@ it("exposes existing HaX and symbol consumers while unbound and unknown browser 
     "startup.pluginLoadEnable",
   ]);
 });
-it("enables the three bound Advanced consumers and keeps unknown settings unavailable", () => {
+it("enables the bound Advanced consumers and keeps unknown settings unavailable", () => {
   const fields = [
     "advanced.saveExportCheckUnsavedEntity",
     "advanced.pathBlockKeyList",
     "advanced.hideEvent8Contains",
+    "advanced.dragStartThreshold",
     "advanced.future",
   ].map((path) => field(path, path));
   expect(
@@ -62,6 +63,53 @@ it("enables the three bound Advanced consumers and keeps unknown settings unavai
     ),
   ).toEqual({ "advanced.future": "pending" });
 });
+it.each(["zh", "en", "ja"] as const)(
+  "exposes the full signed threshold input in %s",
+  (lang) => {
+    const catalog = {
+      groups: [
+        {
+          id: "advanced",
+          fields: [
+            {
+              path: "advanced.dragStartThreshold",
+              name: "DragStartThreshold",
+              kind: "integer" as const,
+              minimum: -2147483648,
+              maximum: 2147483647,
+              choices: [],
+            },
+          ],
+        },
+      ],
+    };
+    for (const threshold of [-2147483648, 0, 2147483647]) {
+      const json = JSON.stringify({
+        advanced: { dragStartThreshold: threshold },
+      });
+      const html = renderToStaticMarkup(
+        <SaveSettingsEditor
+          bundle={{ apiVersion: SAVE_EDITOR_API_VERSION, json, catalog }}
+          json={json}
+          lang={lang}
+          busy={false}
+          unavailable={unavailableProgramSettings(
+            catalog,
+            settingsWords[lang].pending,
+            lang,
+          )}
+          initialGroup="advanced"
+          onValidate={async (value) => value}
+          onSave={async () => {}}
+        />,
+      );
+      const input = html.match(/<input[^>]*type="number"[^>]*>/)?.[0];
+      expect(input).toContain('min="-2147483648" max="2147483647" step="1"');
+      expect(input).toContain(`value="${threshold}"`);
+      expect(input).not.toContain("disabled");
+    }
+  },
+);
 it("places contextual tools in the actually selected settings group", () => {
   const props = {
     bundle: {

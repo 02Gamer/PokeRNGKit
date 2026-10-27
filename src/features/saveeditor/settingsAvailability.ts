@@ -13,6 +13,7 @@ export function unavailableProgramSettings(
     "advanced.saveExportCheckUnsavedEntity",
     "advanced.hideEvent8Contains",
     "advanced.pathBlockKeyList",
+    "advanced.dragStartThreshold",
     "startup.forceHaXOnLaunch",
     "display.unicode",
     "startup.defaultSaveVersion",

@@ -8,6 +8,7 @@ export const boxGalleryWords = {
     modes: { auto: "移动／交换", copy: "复制", overwrite: "覆盖并清空来源" },
     hint: "拖到空格位移动，拖到已有格位交换。单独按 Shift 复制，单独按 Alt 覆盖并清空来源；也可选择拖放操作或使用详情中的按钮。",
     dragError: "拖放未完成。来源可能已变化，请重新拖动当前存档中的有效宝可梦。",
+    dropUnavailable: "不可放置",
     readonly: "当前存档不能编辑。",
     swapError: "整箱交换未完成，请检查存档和受保护格位。",
     pending: "正在更新工作副本…",
@@ -34,6 +35,7 @@ export const boxGalleryWords = {
     hint: "Drop on an empty slot to move, or an occupied slot to swap. Shift alone copies; Alt alone overwrites and clears the source. You can also choose a drop action or use the detail buttons.",
     dragError:
       "Drop did not complete. The source may have changed; drag a valid Pokémon from the current save again.",
+    dropUnavailable: "Cannot drop here",
     readonly: "This save cannot be edited.",
     swapError: "Box swap did not complete. Check the save and protected slots.",
     pending: "Updating the working copy…",
@@ -60,6 +62,7 @@ export const boxGalleryWords = {
     hint: "空き枠へのドロップは移動、使用中の枠へは交換します。Shift のみでコピー、Alt のみで上書きし元の枠を空にします。操作を選ぶか詳細のボタンも使用できます。",
     dragError:
       "ドロップを完了できませんでした。現在のセーブから有効なポケモンを再度ドラッグしてください。",
+    dropUnavailable: "ここには置けません",
     readonly: "このセーブは編集できません。",
     swapError:
       "ボックス交換を完了できませんでした。セーブと保護枠を確認してください。",

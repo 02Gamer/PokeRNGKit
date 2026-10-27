@@ -21,9 +21,12 @@ const paths = [
   "display.focusBorderDeflate",
   "display.disableScalingDpi",
 ] as const;
-const enabled = ["startup.forceHaXOnLaunch", "display.unicode"];
-const pending = [
+const enabled = [
+  "startup.forceHaXOnLaunch",
+  "display.unicode",
   "advanced.dragStartThreshold",
+];
+const pending = [
   "advanced.future",
   "startup.showChangelogOnUpdate",
   "startup.skipSplashScreen",

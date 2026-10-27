@@ -1,4 +1,5 @@
 import type { SlotMenuInvocation } from "./slotMenu";
+import type { BoxPointerDrop } from "./boxPointerController";
 import { useMemo } from "react";
 import { boxBackgroundDragOver, boxBackgroundDrop } from "./boxDropFeedback";
 import {
@@ -27,6 +28,7 @@ export function SaveBoxGallery({
   onSelect,
   onSwap,
   onDrop,
+  onPointerDrop,
   onSlotMenu,
   onSet,
 }: {
@@ -41,6 +43,7 @@ export function SaveBoxGallery({
   onSelect(position: PokemonPosition): void;
   onSlotMenu?(invocation: SlotMenuInvocation): boolean;
   onSet?(position: PokemonPosition): void;
+  onPointerDrop?: BoxPointerDrop;
   onSwap(edit: BoxEdit): Promise<void>;
   onDrop(
     target: PokemonPosition,
@@ -110,6 +113,7 @@ export function SaveBoxGallery({
               onSet={onSet}
               onSelect={onSelect}
               onDrop={onDrop}
+              onPointerDrop={onPointerDrop}
             />
             <div className="save-box-gallery-actions">
               <button

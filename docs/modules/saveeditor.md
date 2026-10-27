@@ -1,5 +1,19 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-27 可配置起拖阈值（API189，工程通过，页面待核验）
+
+新增鼠标手势状态层，依据WinForms `Controls/Slots/DragManager.cs.CanStartDrag`及Core `Editing/Program/Settings/AdvancedSettings.cs.DragStartThreshold`：默认0，完整Int32范围，无额外Range限制；保持左键按下，横纵位移绝对值之和严格大于阈值才起拖。网页坐标使用CSS像素。起拖后返回原点仍保持拖动，鼠标释放本身不发起新拖动；不同指针不接管，丢失左键或来源修订／作用域／格位变化终止旧手势。
+
+状态层已接入单箱、全箱和双箱。主鼠标按下时先接管手势并临时关闭来源的原生draggable，按阈值起拖；真实目标沿elementFromPoint和已注册箱子解析，保留实际箱号与格位。目标再次检查作用域、修订、可写状态及是否仍挂载，沿现有来源载荷解析、存储操作和工作副本流程处理，不直接写文件。释放时重新命中并读取精确修饰键，反馈与实际操作复用boxDropMode；滚动／缩放后刷新命中。
+
+Escape、失焦、页面隐藏、失去捕获、松键、卸载、来源／设置变化取消手势并清理反馈。点击抑制只拦截拖动或取消后的鼠标兼容click，保留键盘激活，并在下次独立按下时移除，避免误触Shift放入。来源悬浮预览在手势期间关闭；原生外部文件拖入和触控／笔原有路径保留。设置已接消费点并开放，HTML沿SaveSettingsCatalog的Int32最小／最大值与step=1，空值及非整数拒绝；损坏设置不静默转成数值阈值，仍由Worker报告。
+
+捕获后的click按[Pointer Events派发规则](https://www.w3.org/TR/pointerevents3/#event-dispatch)仍可能指向来源；未跨阈值时也需在原按钮内部释放且来源仍有效才保留点击，防止在其他位置释放后误触来源的Shift放入。
+
+十文件76项专项及本批全部TypeScript定向Lint通过，日志为`.tmp/pkhex-pointer-integration-tests-final.log`和`.tmp/pkhex-pointer-integration-lint-final.log`。追加捕获点击边界后，控制器10项及对应四文件Lint再次通过；完整`npm run verify`退出0，377文件／2292项前端、全仓格式、Lint、完整类型与网页／PWA打包通过，保留既有Hook、包体和插件耗时提示。完整日志为`.tmp/pkhex-pointer-integration-verify.log`，终态为同名前缀的`verify-result.json`。
+
+覆盖完整阈值边界、源快照、目标失效、三模式／16种修饰键、原生事件原型属性、释放时重新命中、取消与点击保留、三视图接线及三语完整范围输入。首轮点击清理专项与React ref规则失败，已修正捕获监听移除方式、幂等保护和Hook结果解构，未关闭规则或放宽断言；原失败日志保留。Core／Worker和API未改，未重跑本机原生核心。外部Chrome绑定本地页仍报nodeRepl.fetch失败，真实鼠标、滚动、混合输入、焦点与布局未核验。状态层测试、SSR和DOM事件端口测试不代替真实浏览器验收。
+
 ## 2026-10-27 设置平台说明（API189，页面待核验）
 
 设置页为11个已确认的桌面或全局外壳选项增加中／英／日逐项说明，保留原始值与禁用状态。主题指向顶部主题入口，DPI指向浏览器／系统缩放，插件明确为桌面.NET程序集，最近文件与备份指向显式选择和本机资料库，覆盖另存与整箱拖出说明网页下载／二进制导出路径，焦点缩进沿统一网页控件样式。说明直接放在对应字段下，并通过`aria-describedby`关联实际控件；普通待接项目仍共用一条待接提示。
