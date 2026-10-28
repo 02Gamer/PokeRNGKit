@@ -1,10 +1,12 @@
 # PokeRNGKit 项目进度与交接
 
-## 2026-10-28 设置工作区会话保留（API190 前端，工程通过，待发布）
+## 2026-10-28 设置工作区会话保留（API190 前端，已发布，页面待核验）
+
+76690ac1d419819c32cbe0286b65cf6ac0b2bc4a 已推送并成功发布。[Actions 40638638189](https://github.com/HaKu76/PokeRNGKit/actions/runs/40638638189) 的 build 122651351761、Windows 包 122660712244、Cloudflare 122660712246 和 GitHub Pages 122660712239 均 completed／success；已按精确提交核对 PKHeX 往返、完整前端、原生 Core 与 Wasm／网页四项门禁。原始与归纳终态为 `.tmp/pkhex-settings-session-release-proof-raw.json`／`.tmp/pkhex-settings-session-release-proof.json`。观察进程 79701 因 TLS 握手超时退出 1，连接器与独立 gh 查询随后确认实际成功，未重新推送或重跑流水线。网页启动修订为 0.190.6.0，Core／Worker／API190 不变；页面及所有者验收仍待核验。
 
 第三轮完整 `npm run verify` 已退出 0：385 文件／2406 项测试、全仓格式、Lint、完整类型及网页／PWA 均通过，预缓存 257 条／25291.63KiB。日志／终态为 `.tmp/pkhex-settings-session-gate-serial.log`／`.tmp/pkhex-settings-session-gate-serial-result.json`，归纳证据为 `.tmp/pkhex-settings-session-local-proof.json`。本次进程使用 Node 老生代上限 3072MiB、`VITEST_MAX_WORKERS=1`；没有修改项目配置、测试内容、隔离、超时或检查范围。最终九文件／91 项专项及八文件定向 Lint 也通过。保留既有 Hook、包体及插件耗时提示；Core／Worker／API190 未改，本机原生／核心未重跑。以下保留开发和失败过程，当前工程状态以本段为准，页面及所有者验收仍未完成。
 
-所有者暂时无法更新扩展，要求继续开发。本机连接清单仍只有 Chrome 扩展，没有可直接使用的外部 Edge；真实页面核验继续保留，源码开发和已授权工程检查独立推进。本批开始时 main／20305570 干净，不重复重启桌面应用或申请既有权限。
+所有者暂时无法更新扩展，要求继续开发。本批开始时 main／20305570 干净。只读桌面更新探测返回 restart_required，但当前安装与运行包一致，未返回新版目标，另有两个任务在运行，因此未重复重启或中断任务。通过正式电脑控制接口启动 Edge 后，进程已运行，浏览器接口仍返回 Browser is not available: edge；启动成功不等于连接可用。证据为 `.tmp/pkhex-settings-session-app-update-probe.json` 和 `.tmp/pkhex-settings-session-edge-connection-probe.json`。未新增权限或安装扩展，真实页面核验继续保留。
 
 核对上游 `PKHeX.WinForms/Subforms/SettingsEditor.cs` 的 `_last` 会话分类记忆，确认网页设置页此前按当前模式条件挂载：离开设置会卸载表单，丢失未保存草稿、预览与分类。改为保留挂载后，快捷入口还须通过受控分类更新表单，不能只依赖 initialGroup；这项新增要求在旧代码的三语回归为 3 失败／1 通过，日志 `.tmp/pkhex-settings-session-baseline.log`。该结果不是既有页面快捷入口故障的复现；基线文件格式、全仓格式与差异检查均通过。
 
@@ -18,7 +20,7 @@
 
 已核对安装的 Vitest 4.1.10 解析器与[官方 v4 迁移说明](https://v4.vitest.dev/guide/migration.html#pool-rework)，支持进程环境变量 `VITEST_MAX_WORKERS`。第三轮仅在本次检查进程设置 `VITEST_MAX_WORKERS=1`，继续保留 Node 的 3072MiB 老生代上限；从头运行相同 `npm run verify`。不改项目／CI 配置、测试内容、文件隔离、5000ms 超时或任何筛选，仍检查全部文件。实际参数见 `.tmp/pkhex-settings-session-gate-serial-options.json`，完整结果见本节首段。这里的 Worker 数只影响 Vitest，不改变产品 RNG 或存档 Worker。
 
-完整门禁后核对 12 个任务文件，全部与本次输入哈希一致；原件和两份输入副本的只读哈希仍保持，见 `.tmp/pkhex-settings-session-save-guard-final.json`。产品代码保持冻结，下一步仅收尾四文档格式及全仓格式复查，再按已有授权提交推送并跟踪精确提交的四个发布任务。真实草稿往返、焦点、弹层、双标签冲突及布局不由工程结果验收；完整目标继续推进，当前尚未提交或发布。
+完整门禁后核对 12 个任务文件，全部与本次输入哈希一致；原件和两份输入副本的只读哈希仍保持，见 `.tmp/pkhex-settings-session-save-guard-final.json`。产品代码已按已有授权提交推送并完成四项发布；本次仅收尾四份发布记录，文档提交使用 [skip ci]，不重复部署。真实草稿往返、焦点、弹层、双标签冲突及布局不由工程结果验收；完整目标尚未证明完成。
 
 ## 2026-10-28 存档设置多语言与本地预览稳定性（API190 前端，已发布，页面待核验）
 
