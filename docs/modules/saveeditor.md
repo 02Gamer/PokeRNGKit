@@ -1,5 +1,19 @@
 # PKHeX 存档读取与编辑
 
+## 2026-10-28 设置分类与草稿会话（API190 前端，工程通过，待发布）
+
+第三轮完整 `npm run verify` 已退出 0，385 文件／2406 项、全仓格式、Lint、完整类型和网页／PWA 通过，预缓存 257 条／25291.63KiB。最终专项九文件／91 项与八文件定向 Lint 通过；结果见 `.tmp/pkhex-settings-session-gate-serial-result.json` 及 `.tmp/pkhex-settings-session-local-proof.json`。本次进程使用 Node 老生代上限 3072MiB、单 Vitest Worker，检查范围与规则保持；Core／Worker／API190 未改，本机原生／核心未重跑。原件及两份输入副本的只读哈希保持，产品代码仍与门禁输入一致；实际页面不由工程结果验收。
+
+来源为只读 PKHeX 26.08.26 的 `PKHeX.WinForms/Subforms/SettingsEditor.cs`：静态 `_last` 保存本次进程的上次分类，构造时恢复。网页原来离开设置即卸载，现以工具导航状态保留首次访问的设置页和所选分类。保留挂载后，具名入口通过受控分类切换，不再只依赖 initialGroup 的首次取值；普通返回保留分类，完整目录对未知分类提供有效分组回退。分类仅为本次页面会话，不写入 Core JSON 或新增本机存储。
+
+表单保持挂载以保留草稿和校验预览，隐藏时沿现有 hidden／inert 及 disabled 规则隔离操作；不改变 44px 控件或增加局部样式。保存继续经过完整 Core 校验及仓库修订比较，外部设置变化仍拒绝过期保存，显式重新读取沿原有重建路径。不自动提交草稿，重置仍只修改待校验草稿。Core 参数、数值边界、空值和 JSON 不变，未改变任何上游 RNG 输入。
+
+新增受控分类要求在旧代码的三语回归为 3 失败／1 通过，证据 `.tmp/pkhex-settings-session-baseline.log`，不将它写作旧页面快捷入口的故障复现。导航状态回归覆盖延迟首次挂载、三种离开／返回、具名入口和分类记忆，并增加目录缺少请求分类及初始分类时的三语回退。首轮九文件专项 90 通过／1 失败，启动修订旧预期已同步 .6.0；最终九文件／91 项及八文件定向 Lint 均退出 0。完整门禁首轮格式／Lint 通过，类型阶段因 Node 约 2GB 堆限耗尽退出 134，未进入全量测试或网页打包。失败终态保留；按本机资源核对，仅为重跑进程设置 3072MiB 堆限并从头执行同一完整门禁，未修改规则或项目配置。日志为 `.tmp/pkhex-settings-session-gate-3g.log`。
+
+第二轮完整门禁的格式／Lint／完整类型均通过，385 文件／2404 项通过，仅两项图片原资源校验在默认 5000ms 超时，退出 1，未进入打包；失败终态 `.tmp/pkhex-settings-session-gate-3g-result.json` 保留。两文件原样单 Worker 重跑的 14 项全部通过。已按安装解析器及官方 v4 迁移说明核对 `VITEST_MAX_WORKERS`，第三轮仅为当前检查进程设为 1，再从头运行完整 `npm run verify`；保留 Node 老生代上限 3072MiB，不改变测试、隔离、超时、文件筛选或产品 Worker，日志 `.tmp/pkhex-settings-session-gate-serial.log`。
+
+静态渲染和状态回归不代替浏览器草稿、焦点和弹层核验。网页启动修订 0.190.6.0、八条说明，API190 不变；当前完整前端工程已通过，四文档格式收尾后按已有授权提交推送，发布另行跟踪。
+
 ## 2026-10-28 设置目录、三语标题与不可用原因（API190 前端，已发布，页面待核验）
 
 2555bd11 已成功发布，Actions 40608620805 的构建、Windows 包、Cloudflare 与 GitHub Pages 四任务均成功，精确提交、任务 ID 和完整终态见进度及 `.tmp/pkhex-settings-captions-release-proof.json`。CI 的存档往返、完整前端、原生 Core 和 Wasm／网页门禁均通过；网页启动修订为 0.190.5.0，API190 不变。页面及所有者验收仍待核验。

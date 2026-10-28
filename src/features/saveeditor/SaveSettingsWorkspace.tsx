@@ -25,13 +25,18 @@ import { SaveStartupSettingsTools } from "./SaveStartupFeedback";
 export function SaveSettingsWorkspace({
   lang,
   group = "legality",
+  active = true,
+  onGroupChange,
 }: {
   lang: "zh" | "en" | "ja";
   group?: string;
+  active?: boolean;
+  onGroupChange?(group: string): void;
 }) {
   const words = settingsWords[lang];
   const client = useRef<SaveEditorClient | undefined>(undefined);
-  const busy = useSaveClientBusy();
+  const requestBusy = useSaveClientBusy();
+  const busy = requestBusy || !active;
   const [loaded, setLoaded] = useState<{
     bundle: SaveSettingsBundle;
     json: string;
@@ -135,6 +140,8 @@ export function SaveSettingsWorkspace({
           ) : undefined
         }
         initialGroup={group}
+        group={onGroupChange ? group : undefined}
+        onGroupChange={onGroupChange}
         bundle={loaded.bundle}
         json={loaded.json}
         lang={lang}

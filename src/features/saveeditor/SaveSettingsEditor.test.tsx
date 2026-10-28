@@ -52,3 +52,80 @@ describe("settings input metadata", () => {
     expect(html).toContain("aria-describedby=");
   });
 });
+
+describe("settings category navigation", () => {
+  const json = JSON.stringify({
+    legality: { check: true },
+    startup: { showChangelogOnUpdate: true },
+    localResources: { templatePath: "template" },
+  });
+  const bundle: SaveSettingsBundle = {
+    apiVersion: 190,
+    json,
+    catalog: {
+      groups: ["legality", "startup", "localResources"].map((id) => ({
+        id,
+        fields: [
+          {
+            path:
+              id === "startup"
+                ? "startup.showChangelogOnUpdate"
+                : id === "localResources"
+                  ? "localResources.templatePath"
+                  : "legality.check",
+            name: id === "localResources" ? "TemplatePath" : "Check",
+            kind: id === "localResources" ? "text" : "boolean",
+            minimum: null,
+            maximum: null,
+            choices: [],
+          },
+        ],
+      })),
+    },
+  };
+
+  it.each(["zh", "en", "ja"] as const)(
+    "honors a settings shortcut instead of the initial category in %s",
+    (lang) => {
+      const html = renderToStaticMarkup(
+        <SaveSettingsEditor
+          bundle={bundle}
+          json={json}
+          lang={lang}
+          busy={false}
+          initialGroup="legality"
+          group="localResources"
+          onGroupChange={() => {}}
+          onValidate={async (value) => value}
+          onSave={async () => {}}
+        />,
+      );
+      expect(html).toContain('value="template"');
+      expect(html).not.toContain('type="checkbox"');
+    },
+  );
+
+  it.each(["zh", "en", "ja"] as const)(
+    "falls back to an available category when the requested and initial categories are absent in %s",
+    (lang) => {
+      const html = renderToStaticMarkup(
+        <SaveSettingsEditor
+          bundle={{
+            ...bundle,
+            catalog: { groups: [bundle.catalog.groups[2]] },
+          }}
+          json={json}
+          lang={lang}
+          busy={false}
+          initialGroup="legality"
+          group="futureCategory"
+          onGroupChange={() => {}}
+          onValidate={async (value) => value}
+          onSave={async () => {}}
+        />,
+      );
+      expect(html).toContain('value="template"');
+      expect(html).not.toContain("futureCategory");
+    },
+  );
+});

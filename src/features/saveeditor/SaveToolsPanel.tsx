@@ -1,4 +1,4 @@
-import { useRef, useState, type ComponentProps } from "react";
+import { useReducer, useRef, useState, type ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import { SaveEditorPanel } from "./SaveEditorPanel";
 import { EntityTemplateWorkspace } from "./EntityTemplateWorkspace";
@@ -11,6 +11,10 @@ import { standaloneWords } from "./standaloneWords";
 import { SaveSettingsWorkspace } from "./SaveSettingsWorkspace";
 import { settingsWords } from "./settingsLabels";
 import { useSaveClientBusy } from "./useSaveClientBusy";
+import {
+  createSaveToolsNavigation,
+  reduceSaveToolsNavigation,
+} from "./saveToolsNavigation";
 import "./StandalonePokemonPanel.css";
 
 export function SaveToolsPanel({
@@ -25,13 +29,12 @@ export function SaveToolsPanel({
       : "en";
   const words = standaloneWords[lang];
   const busy = useSaveClientBusy();
-  const [mode, setMode] = useState<"save" | "entity" | "template" | "settings">(
-    "save",
+  const [{ mode, opened, settingsGroup }, navigate] = useReducer(
+    reduceSaveToolsNavigation,
+    undefined,
+    createSaveToolsNavigation,
   );
-  const [templateOpened, setTemplateOpened] = useState(false);
   const [templateSource, setTemplateSource] = useState<EntityTemplateSource>();
-  const [opened, setOpened] = useState(false);
-  const [settingsGroup, setSettingsGroup] = useState("legality");
   const settingsTrigger = useRef<HTMLButtonElement>(null);
   return (
     <div className="save-tools-workspace">
@@ -44,7 +47,7 @@ export function SaveToolsPanel({
           type="button"
           aria-pressed={mode === "save"}
           disabled={busy}
-          onClick={() => setMode("save")}
+          onClick={() => navigate({ type: "open", mode: "save" })}
         >
           {words.save}
         </button>
@@ -52,10 +55,7 @@ export function SaveToolsPanel({
           type="button"
           aria-pressed={mode === "entity"}
           disabled={busy}
-          onClick={() => {
-            setOpened(true);
-            setMode("entity");
-          }}
+          onClick={() => navigate({ type: "open", mode: "entity" })}
         >
           {words.title}
         </button>
@@ -64,7 +64,7 @@ export function SaveToolsPanel({
           aria-pressed={mode === "settings"}
           ref={settingsTrigger}
           disabled={busy}
-          onClick={() => setMode("settings")}
+          onClick={() => navigate({ type: "open", mode: "settings" })}
         >
           {settingsWords[lang].title}
         </button>
@@ -72,10 +72,7 @@ export function SaveToolsPanel({
           type="button"
           aria-pressed={mode === "template"}
           disabled={busy}
-          onClick={() => {
-            setTemplateOpened(true);
-            setMode("template");
-          }}
+          onClick={() => navigate({ type: "open", mode: "template" })}
         >
           {entityTemplateWords[lang].title}
         </button>
@@ -86,33 +83,46 @@ export function SaveToolsPanel({
           startupActive={active}
           onTemplateSource={setTemplateSource}
           onOpenSettings={(group) => {
-            setSettingsGroup(group);
-            setMode("settings");
+            navigate({ type: "open", mode: "settings", settingsGroup: group });
             settingsTrigger.current?.focus();
           }}
         />
       </div>
       <div className="save-tools-pane" hidden={mode !== "entity"}>
-        {opened && <StandalonePokemonPanel />}
+        {opened.entity && <StandalonePokemonPanel />}
       </div>
       <div className="save-tools-pane" hidden={mode !== "template"}>
-        {templateOpened && (
+        {opened.template && (
           <EntityTemplateWorkspace
             lang={lang}
             active={mode === "template"}
             source={templateSource}
             onOpenSettings={() => {
-              setSettingsGroup("localResources");
-              setMode("settings");
+              navigate({
+                type: "open",
+                mode: "settings",
+                settingsGroup: "localResources",
+              });
               settingsTrigger.current?.focus();
             }}
           />
         )}
       </div>
-      {mode === "settings" && (
-        <div className="save-tools-pane">
+      {opened.settings && (
+        <div
+          className="save-tools-pane"
+          hidden={mode !== "settings"}
+          inert={!active || mode !== "settings"}
+        >
           <div className="save-editor-panel save-settings-workspace">
-            <SaveSettingsWorkspace lang={lang} group={settingsGroup} />
+            <SaveSettingsWorkspace
+              lang={lang}
+              group={settingsGroup}
+              active={active && mode === "settings"}
+              onGroupChange={(group) =>
+                navigate({ type: "settingsGroup", group })
+              }
+            />
           </div>
         </div>
       )}

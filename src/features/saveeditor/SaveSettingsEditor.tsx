@@ -27,6 +27,8 @@ export function SaveSettingsEditor({
   onValidate,
   onSave,
   initialGroup = "legality",
+  group: controlledGroup,
+  onGroupChange,
   renderGroupTools,
 }: {
   bundle: SaveSettingsBundle;
@@ -37,12 +39,14 @@ export function SaveSettingsEditor({
   onValidate(json: string): Promise<string>;
   onSave(json: string): Promise<void>;
   initialGroup?: string;
+  group?: string;
+  onGroupChange?(group: string): void;
   renderGroupTools?(group: string): ReactNode;
 }) {
   const words = settingsWords[lang];
   const noticeId = useId();
   const [draft, setDraft] = useState(() => JSON.parse(json) as ObjectValue);
-  const [group, setGroup] = useState(initialGroup);
+  const [localGroup, setLocalGroup] = useState(initialGroup);
   const [invalid, setInvalid] = useState("");
   const [preview, setPreview] = useState<string>();
   const [running, setRunning] = useState(false);
@@ -67,6 +71,12 @@ export function SaveSettingsEditor({
       lang === "zh" ? "zh-CN" : lang === "ja" ? "ja-JP" : "en-US",
     ),
   );
+  const requestedGroup = controlledGroup ?? localGroup;
+  const group = groups.some((value) => value.id === requestedGroup)
+    ? requestedGroup
+    : groups.some((value) => value.id === initialGroup)
+      ? initialGroup
+      : (groups[0]?.id ?? "");
   const currentFields =
     groups
       .find((value) => value.id === group)
@@ -150,7 +160,10 @@ export function SaveSettingsEditor({
         <Select
           disabled={disabled}
           value={group}
-          onChange={(event) => setGroup(event.target.value)}
+          onChange={(event) => {
+            setLocalGroup(event.target.value);
+            onGroupChange?.(event.target.value);
+          }}
         >
           {groups.map((value) => (
             <option key={value.id} value={value.id}>

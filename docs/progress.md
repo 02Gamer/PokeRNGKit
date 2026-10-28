@@ -1,5 +1,25 @@
 # PokeRNGKit 项目进度与交接
 
+## 2026-10-28 设置工作区会话保留（API190 前端，工程通过，待发布）
+
+第三轮完整 `npm run verify` 已退出 0：385 文件／2406 项测试、全仓格式、Lint、完整类型及网页／PWA 均通过，预缓存 257 条／25291.63KiB。日志／终态为 `.tmp/pkhex-settings-session-gate-serial.log`／`.tmp/pkhex-settings-session-gate-serial-result.json`，归纳证据为 `.tmp/pkhex-settings-session-local-proof.json`。本次进程使用 Node 老生代上限 3072MiB、`VITEST_MAX_WORKERS=1`；没有修改项目配置、测试内容、隔离、超时或检查范围。最终九文件／91 项专项及八文件定向 Lint 也通过。保留既有 Hook、包体及插件耗时提示；Core／Worker／API190 未改，本机原生／核心未重跑。以下保留开发和失败过程，当前工程状态以本段为准，页面及所有者验收仍未完成。
+
+所有者暂时无法更新扩展，要求继续开发。本机连接清单仍只有 Chrome 扩展，没有可直接使用的外部 Edge；真实页面核验继续保留，源码开发和已授权工程检查独立推进。本批开始时 main／20305570 干净，不重复重启桌面应用或申请既有权限。
+
+核对上游 `PKHeX.WinForms/Subforms/SettingsEditor.cs` 的 `_last` 会话分类记忆，确认网页设置页此前按当前模式条件挂载：离开设置会卸载表单，丢失未保存草稿、预览与分类。改为保留挂载后，快捷入口还须通过受控分类更新表单，不能只依赖 initialGroup；这项新增要求在旧代码的三语回归为 3 失败／1 通过，日志 `.tmp/pkhex-settings-session-baseline.log`。该结果不是既有页面快捷入口故障的复现；基线文件格式、全仓格式与差异检查均通过。
+
+现统一四种工具模式的访问状态，设置首次打开后保持同一挂载，隐藏时使用 hidden／inert 并锁定设置操作；保留内存草稿、已校验预览和本次会话分类。普通返回使用上次分类，具名快捷入口显式切换分类，未知分类退回目录中的有效分组。未新增持久化键或自动保存；完整 Core 校验、设置修订比较、冲突拒绝和显式重新读取路径保持。设置工作区会像已有独立宝可梦与模板页一样在首次访问后保留，退出应用时释放。
+
+内部网页启动修订为 0.190.6.0、八条三语说明；Core／Worker／API190、字段范围和控件样式不变。修改文件、全仓格式与差异检查通过。首轮九文件专项为 90 通过／1 失败，失败是启动修订断言仍为 .5.0，已同步为 .6.0；最终九文件／91 项及八文件定向 Lint 均退出 0，终态 `.tmp/pkhex-settings-session-focused-final-result.json`，原失败日志保留。
+
+首轮完整门禁 88570 已终止，退出 134：普通全仓格式和 Lint 通过，仅有既有第三世代定点 Hook 提醒；完整类型阶段的 Node 堆在约 2GB 达到上限，尚未进入全量测试或打包。失败日志／终态为 `.tmp/pkhex-settings-session-gate.log`／`.tmp/pkhex-settings-session-gate-result.json`，不列为完整通过。核对本机约 8GB 物理内存及约 7.8GB 可用虚拟内存后，仅为重跑进程设置 `NODE_OPTIONS=--max-old-space-size=3072`，保留其他既有进程选项，实际堆限另行记录；从头执行相同 `npm run verify`，重跑日志使用 `.tmp/pkhex-settings-session-gate-3g.log`。不修改项目／CI 配置、浏览器运行时、类型规则、测试范围或超时，也不重复启动已终止的旧检查。
+
+第二轮完整门禁 72097 已退出 1：全仓格式、Lint 和完整类型通过；385 文件的 2404 项测试通过，仅 art／ribbonArt 两项原资源字节校验触发默认 5000ms 超时，未开始网页打包。完整终态为 `.tmp/pkhex-settings-session-gate-3g-result.json`，原失败不覆盖。这两个文件原样以单 Worker 重跑，14 项全部通过，见 `.tmp/pkhex-settings-session-art-isolated-result.json`；不能与上一轮结果拼成完整门禁通过。
+
+已核对安装的 Vitest 4.1.10 解析器与[官方 v4 迁移说明](https://v4.vitest.dev/guide/migration.html#pool-rework)，支持进程环境变量 `VITEST_MAX_WORKERS`。第三轮仅在本次检查进程设置 `VITEST_MAX_WORKERS=1`，继续保留 Node 的 3072MiB 老生代上限；从头运行相同 `npm run verify`。不改项目／CI 配置、测试内容、文件隔离、5000ms 超时或任何筛选，仍检查全部文件。实际参数见 `.tmp/pkhex-settings-session-gate-serial-options.json`，完整结果见本节首段。这里的 Worker 数只影响 Vitest，不改变产品 RNG 或存档 Worker。
+
+完整门禁后核对 12 个任务文件，全部与本次输入哈希一致；原件和两份输入副本的只读哈希仍保持，见 `.tmp/pkhex-settings-session-save-guard-final.json`。产品代码保持冻结，下一步仅收尾四文档格式及全仓格式复查，再按已有授权提交推送并跟踪精确提交的四个发布任务。真实草稿往返、焦点、弹层、双标签冲突及布局不由工程结果验收；完整目标继续推进，当前尚未提交或发布。
+
 ## 2026-10-28 存档设置多语言与本地预览稳定性（API190 前端，已发布，页面待核验）
 
 2555bd11e2a632036779b0807585db2019b6a8bc 已推送并成功发布。[Actions 40608620805](https://github.com/HaKu76/PokeRNGKit/actions/runs/40608620805) 的 build 122554323326、Windows 包 122565189558、Cloudflare 122565189474 和 GitHub Pages 122565189586 均 completed／success；已按精确提交核对 PKHeX 往返、完整前端、原生 Core 与 Wasm／网页四项门禁。原始与归纳终态为 `.tmp/pkhex-settings-captions-release-proof-raw.json`／`.tmp/pkhex-settings-captions-release-proof.json`。网页启动修订为 0.190.5.0，Core／Worker／API190 不变；部署成功不代替页面或所有者验收。
