@@ -1,6 +1,24 @@
 # PokeRNGKit 项目进度与交接
 
-## 2026-10-28 存档表单下拉禁用规则批量修复（API190 前端，工程通过，待发布）
+## 2026-10-28 存档设置多语言与本地预览稳定性（API190 前端，工程通过，待发布）
+
+扩展后的完整 `npm run verify` 已退出 0：384 文件／2394 项测试、全仓格式、Lint、完整类型、网页及 PWA 均通过，生成 257 条预缓存。完整日志与终态为 `.tmp/pkhex-settings-captions-gate.log`／`.tmp/pkhex-settings-captions-gate-result.json`。保留第三世代定点既有 Hook、包体及插件耗时提示；本批仅前端文本与开发监听，Core／Worker／API190 不变，本机完整原生未重跑。原件及两份输入副本的只读哈希均与既有记录一致，见 `.tmp/pkhex-settings-captions-save-guard.json`。源码覆盖、SSR 和工程门禁不代替真实页面或所有者验收。
+
+基于干净 main／18131aab，对 API190 现有原生测试程序集只读导出的 22 组／200 个设置字段，调用实际前端可用性判定核对。原判定为 173 项可编辑、3 项自动元数据、11 项有平台原因、插件目录 1 项缺少具体原因，以及 12 项上游未使用的自定义格式字段。此统计是目录与可用性分类，不证明 173 项实际消费点全部正确。快照、程序集及前端文件哈希和分类记录见 `.tmp/pkhex-settings-consumer-audit/audit.json`。
+
+已补齐插件目录和 12 个自定义格式字段的中／英／日原因，保留既有禁用范围、JSON、默认值及控件样式。插件目录沿 Core LocalResourceSettings.PluginPath／WinForms Main.GetPluginPath，只用于桌面插件加载；提供的 PKHeX 26.08.26 中 StatsCustom 仅有声明，BattleTemplateTypeSetting.GetSettings 没有读取它。只对白名单中的两个目标各六个叶字段说明来源未使用，不把未来未知字段归为平台排除。当前目录分类为 173 可编辑／3 自动元数据／12 平台说明／12 来源未使用说明，无未解释的待接路径。
+
+三语原因回归先为 6 失败／1 通过，补齐后四文件／59 项和当时四个 TS／TSX 文件的定向 Lint 全部通过。进一步核对 197 个可见字段，发现三语各有 78 个标题回退到属性代码，涉及 58 个名称。已按已知完整路径及分组前缀补充 96 条三语标题，仅作为缺失资源时的网页后备；当前语言的上游译名优先，未知未来路径不套用现有字段含义。原始 settings-labels.json 未改，原训练家、个体值、相应世代和游戏名称沿来源语义描述。复扫三语各 78 个缺失标题均有可读后备，未映射的属性代码回退为零；证据为 `.tmp/pkhex-settings-consumer-audit/labels-audit.json`，修改前记录为同目录 labels-audit-before.json。该统计不证明真实页面的换行、焦点或几何。
+
+标题回归首轮有两处既有英文／日文资源的预期写错，核对原资源修正后为 3 失败／6 通过；补齐后最终六文件／69 项及本批八个 TS／TSX 文件定向 Lint 通过。首次格式化 settingsLabels.ts 出现 UNKNOWN 打开错误，故当次未运行测试；同文件重试退出 0，失败日志保留在 `.tmp/pkhex-settings-captions-format.log`。完整门禁 67662 在全仓格式通过后的 Lint 阶段，因新增标题缺口而主动停止，退出 -1 不是测试失败；此时尚未进入类型、测试或构建，记录见 `.tmp/pkhex-settings-reasons-gate-abort.json`。扩展范围后的完整结果见本节首段。内部网页修订为 0.190.5.0、七条更新说明，Core／Worker／API190 和输入范围未变；目录工具使用仓库现有固定 SDK，未重跑本机完整原生／核心，也未处理存档。
+
+本地 Vite 曾因监听 `.tmp` 中正在生成的 SettingsAudit.dll 报 EBUSY 退出，原诊断保留在 `.tmp/pkhex-dev-select-state.stderr.log`。在既有 server.watch.ignored 补入 `**/.tmp/**` 后，实际启动 5173 并重建相同临时 .NET 工程：源码目录保持监听，临时目录前后均未进入监听清单、事件与错误为零、重建退出 0，服务仍在监听。专项终态为 `.tmp/pkhex-dev-watch-probe.json`，随后主动关闭专项服务准备完整门禁；这不是浏览器或 UI 验收，也不说明 Chrome 连接已恢复。未扩大其他源码或公开资源的忽略范围。
+
+上一批产品 18131aab 已成功发布，四任务终态见下节；它的本地完整门禁为 383 文件／2382 项，不能挪作本批完整结果。下一步完成最终四文档格式与全仓格式复查，恢复本地预览，按既有授权提交推送并跟踪本次流水线。Chrome 原生只读状态仍不可用，截图操作又被工具因无法可靠确认 Windows 浏览器地址而终止；不再在外部状态未变时重复尝试或绕过检查。页面、测试偏好恢复和完整目标仍待继续。
+
+## 2026-10-28 存档表单下拉禁用规则批量修复（API190 前端，已发布，页面待核验）
+
+18131aab3bdd59b731f0027d73d68bc9964d8b1f 已推送并成功发布。[Actions 40595944298](https://github.com/HaKu76/PokeRNGKit/actions/runs/40595944298) 的 build 122511755102、Windows 包 122524527503、Cloudflare 122524527533 和 GitHub Pages 122524527541 均 completed／success，PKHeX 往返、完整前端、原生 Core 及 Wasm／网页门禁通过。观察进程 31554 曾因 GitHub 读取 EOF 退出 1；连接器与 gh 按同一提交及 run 独立确认四任务成功，未重新推送或重跑流水线。原始与归纳终态分别为 `.tmp/pkhex-select-state-release-proof-raw.json`、`.tmp/pkhex-select-state-release-proof.json`。以下保留开发过程，当前提交／发布状态以本段为准，页面及所有者验收未因此完成。
 
 基于干净 main／e43f6598，已按同一规则修改 40 个表单的 90 处 Select：补齐 67 处显式 disabled，并为 23 处已有条件合并父状态。未修改父级全局变量，保留表单外浏览入口及原有局部限制。结构比较确认这 40 个文件除 Select.disabled 及格式外的语法保持，输入范围、校验器和事件处理不变；证据为 `.tmp/pkhex-select-state-migration.json` 与 `.tmp/pkhex-select-state-boundary.json`。
 

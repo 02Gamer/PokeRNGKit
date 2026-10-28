@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Source: PKHeX Program, Main, SAVEditor, WinFormsUtil and StartupUtil.
+// PKHeX 26.08.26 declares StatsCustom, but GetSettings does not read it.
 const reasons = {
   zh: {
     theme: "网页主题使用顶部的主题设置，此项控制桌面程序的启动配色。",
     dpi: "此项控制桌面 DPI 渲染。网页显示比例使用浏览器缩放和系统显示设置。",
     plugins: "此项控制桌面 .NET 插件加载，静态网页不加载本机程序集。",
+    pluginPath:
+      "此项指定桌面 .NET 插件目录，静态网页不扫描本机插件目录或加载程序集。",
+    sourceUnused:
+      "此上游版本保留自定义能力值格式配置，但生成模板时没有读取这些字段；网页暂不开放编辑。",
     recent:
       "网页使用文件选择器与本机资料库打开存档；此项用于桌面的磁盘最近文件检测。",
     backupPrompt:
@@ -22,6 +27,10 @@ const reasons = {
     dpi: "This option controls desktop DPI rendering. Web scale follows browser zoom and system display settings.",
     plugins:
       "This option loads desktop .NET plugins. The static web app does not load local .NET assemblies.",
+    pluginPath:
+      "This specifies the desktop .NET plugin folder. The static web app does not scan local plugin folders or load assemblies.",
+    sourceUnused:
+      "This upstream version retains custom stat-format settings, but these fields are not read when generating templates. Editing remains unavailable on the web.",
     recent:
       "Open web saves through the file picker or local library. This option detects recent files on desktop disks.",
     backupPrompt:
@@ -41,6 +50,10 @@ const reasons = {
     dpi: "この項目はデスクトップの DPI 描画を制御します。ウェブの表示倍率はブラウザーのズームとシステムの表示設定に従います。",
     plugins:
       "この項目はデスクトップの .NET プラグインを読み込みます。静的ウェブ版はローカルのアセンブリを読み込みません。",
+    pluginPath:
+      "この項目はデスクトップの .NET プラグインフォルダーを指定します。静的ウェブ版はローカルのプラグインフォルダーを走査せず、アセンブリも読み込みません。",
+    sourceUnused:
+      "この上流バージョンは能力値の独自書式設定を保持しますが、テンプレート生成時には参照しません。ウェブでは現在編集できません。",
     recent:
       "ウェブではファイル選択またはローカルライブラリからセーブを開きます。この項目はデスクトップのディスク上の最近のファイルを検出します。",
     backupPrompt:
@@ -61,12 +74,25 @@ const paths: Readonly<Record<string, keyof (typeof reasons)["en"]>> = {
   "display.disableScalingDpi": "dpi",
   "startup.pluginLoadEnable": "plugins",
   "startup.pluginLoadMerged": "plugins",
+  "localResources.pluginPath": "pluginPath",
   "startup.tryDetectRecentSave": "recent",
   "backup.bakPrompt": "backupPrompt",
   "backup.otherSaveFileExtensions": "extensions",
   "advanced.saveExportForceSaveAs": "saveAs",
   "slotExport.allowBoxDataDrop": "boxDrop",
   "display.focusBorderDeflate": "focus",
+  "battleTemplate.hover.statsCustom.names": "sourceUnused",
+  "battleTemplate.hover.statsCustom.separator": "sourceUnused",
+  "battleTemplate.hover.statsCustom.valueGap": "sourceUnused",
+  "battleTemplate.hover.statsCustom.isLeft": "sourceUnused",
+  "battleTemplate.hover.statsCustom.alwaysShow": "sourceUnused",
+  "battleTemplate.hover.statsCustom.minimumDigits": "sourceUnused",
+  "battleTemplate.export.statsCustom.names": "sourceUnused",
+  "battleTemplate.export.statsCustom.separator": "sourceUnused",
+  "battleTemplate.export.statsCustom.valueGap": "sourceUnused",
+  "battleTemplate.export.statsCustom.isLeft": "sourceUnused",
+  "battleTemplate.export.statsCustom.alwaysShow": "sourceUnused",
+  "battleTemplate.export.statsCustom.minimumDigits": "sourceUnused",
 };
 export function settingsPlatformReason(path: string, lang: "zh" | "en" | "ja") {
   const key = paths[path];

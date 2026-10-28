@@ -1,8 +1,20 @@
 # PKHeX 存档读取与编辑
 
-## 2026-10-28 表单下拉禁用规则（API190 前端，工程通过，待发布）
+## 2026-10-28 设置目录、三语标题与不可用原因（API190 前端，工程通过，待发布）
 
-工作区已按规则补齐 40 个表单／90 处 JSX 位置。复扫 158 处相关 Select 无缺失 disabled；BattlePass4、BrTrainer4、Geonet4 的三处 busy 由既有 locked 派生覆盖，保留显式只读判断。结构比较确认这些表单的其他语法不变，不调整输入范围、Core 参数、Worker 或事件回调。内部网页启动修订为 0.190.4.0，当前仍未提交。
+API190 现有原生测试程序集的只读快照包含 22 组／200 个叶字段。实际前端判定原有 173 项可编辑、3 项自动元数据、11 项平台原因；本批为 localResources.pluginPath 和 battleTemplate.hover／export.statsCustom 的六类叶字段补充三语原因。当前分类为 173／3／12／12，没有未解释的待接项；它只证明目录分类覆盖，不能证明全部运行时消费点或真实页面。
+
+来源为 Core Editing/Program/Settings/LocalResourceSettings.cs 的 PluginPath／GetPluginPath、WinForms MainWindow/Main.cs 的插件加载，以及 Core Editing/BattleTemplate/BattleTemplateTypeSetting.cs 和 StatDisplayConfig.cs。PluginPath 默认为字符串 plugins，网页不扫描该目录或加载桌面程序集。StatsCustom 的 Names、Separator、ValueGap、IsLeft、AlwaysShow、MinimumDigits 在所提供的 26.08.26 中未进入 GetSettings；本批仍为只读，不新增输入范围或重写模板规则。完整 JSON、默认值和原有不可用值的保存／重置保持不变。
+
+正式设置组件的三语原因回归先失败 6 项／通过 1 项，修复后四文件／59 项通过。另核对 197 个可见字段，三语各有 78 个标题缺少 PropertyGrid 资源，涉及 58 个名称；按 96 个已知完整路径和分组前缀增加网页标题后备，保留当前语言的上游译名优先，不覆盖原资源或猜测未来路径。当前三语的未映射属性代码回退均为零；字段值、可用性、JSON、数值边界和事件处理不变。来源另含 Core Legality/Settings/Specialized 下的 BulkAnalysis、FramePattern、GameSpecific、HandlerRestrictions、HOMETransfer、NicknameRestriction、Tradeback、WordFilter，以及 Handler 的 HistoryVerifier 消费点；浏览器光标偏移沿既有 BrowserHoverSettings。后备标题是网页本地化，不冒称为未修改的上游资源。
+
+修正两处既有译名的测试预期后，标题基线为 3 失败／6 通过；最终六文件／69 项及本批八文件定向 Lint 通过。完整门禁 67662 在格式通过后的 Lint 阶段为扩大标题修复主动停止，退出 -1，不是用例失败；扩展后的 `npm run verify` 已退出 0，384 文件／2394 项、全仓格式、Lint、完整类型及网页／PWA 均通过，预缓存 257 条，终态 `.tmp/pkhex-settings-captions-gate-result.json`。内部网页启动修订为 0.190.5.0；Core／Worker 不变，本机完整原生／核心未重跑，实际 Chrome 布局、长标题换行、焦点及交互未验收。
+
+目录核对期间发现 Vite 监听临时原生构建的 DLL 导致 EBUSY 退出，已在既有忽略列表补入 `**/.tmp/**`。实际开发服务及临时项目重建专项通过：源码仍监听、临时目录与事件均为零、重建及持续监听正常，证据 `.tmp/pkhex-dev-watch-probe.json`。该专项只验证开发文件监听，不替代 Chrome 页面检查；专项服务已主动关闭，完整门禁结束后恢复。
+
+## 2026-10-28 表单下拉禁用规则（API190 前端，已发布，页面待核验）
+
+18131aab 已成功发布，Actions 40595944298 的构建、Windows 包、Cloudflare 与 GitHub Pages 四任务成功，具体 ID 和完整终态见进度及 `.tmp/pkhex-select-state-release-proof.json`。按规则补齐的 40 个表单／90 处 JSX 位置已包含在该提交；复扫 158 处相关 Select 无缺失 disabled，三处 locked 覆盖 busy，其他语法不变。未调整输入范围、Core 参数、Worker 或事件回调，内部网页启动修订为 0.190.4.0；页面仍待核验。
 
 原代码的三语回归为 12 失败／17 通过，修复后两文件／29 项通过，覆盖锁定、可编辑和只读导出／异常状态。包含启动日志的最终三文件／65 项及本批 44 文件定向 Lint 通过；完整 `npm run verify` 退出 0，383 文件／2382 项测试、全仓格式、Lint、完整类型和网页／PWA 均通过，预缓存 257 条。源码覆盖与 SSR 不是实际菜单、焦点或触控验收，Chrome 连接恢复后继续核验。本机原生／核心未重跑。
 

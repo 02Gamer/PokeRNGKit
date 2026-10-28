@@ -2,15 +2,23 @@
 // Names/descriptions derived from PKHeX 26.08.26 WinForms lang files.
 import source from "./settings-labels.json";
 import type { SaveSettingsField } from "./settingsProtocol";
+import { settingsCaptionFallback } from "./settingsCaptionFallbacks";
 type Language = "zh" | "en" | "ja";
 const labels: Readonly<Record<string, Record<Language, string | null>>> =
   source;
 const keys = new Map(
   Object.keys(labels).map((key) => [key.toLowerCase(), key]),
 );
-function text(prefix: string, name: string, language: Language) {
+function text(
+  prefix: string,
+  name: string,
+  language: Language,
+  fallback?: string,
+) {
   const key = keys.get((prefix + "." + name).toLowerCase());
-  return key ? (labels[key][language] ?? labels[key].en ?? name) : name;
+  return key
+    ? (labels[key][language] ?? fallback ?? labels[key].en ?? name)
+    : (fallback ?? name);
 }
 export const settingsFieldName = (name: string, lang: Language) =>
   text("PropertyGrid", name, lang);
@@ -18,13 +26,25 @@ export function settingsFieldCaption(field: SaveSettingsField, lang: Language) {
   // SettingsEditor exposes this Browsable(false) property through CB_Blank.
   if (field.path === "startup.defaultSaveVersion")
     return text("SettingsEditor", "L_Blank", lang);
-  const parents = field.path
-    .split(".")
-    .slice(1, -1)
-    .map((name) =>
-      settingsFieldName(name[0].toUpperCase() + name.slice(1), lang),
+  const path = field.path.split(".");
+  const parents = path.slice(1, -1).map((name, index) => {
+    const title = name[0].toUpperCase() + name.slice(1);
+    return text(
+      "PropertyGrid",
+      title,
+      lang,
+      settingsCaptionFallback(path.slice(0, index + 2).join("."), lang),
     );
-  return [...parents, settingsFieldName(field.name, lang)].join(" · ");
+  });
+  return [
+    ...parents,
+    text(
+      "PropertyGrid",
+      field.name,
+      lang,
+      settingsCaptionFallback(field.path, lang),
+    ),
+  ].join(" · ");
 }
 // StartupSettings hides these automatic values from its property grid. Keep
 // their serialized data; do not apply leaf visibility to top-level groups.

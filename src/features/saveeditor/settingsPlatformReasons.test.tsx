@@ -13,6 +13,7 @@ const paths = [
   "startup.highDpiText",
   "startup.pluginLoadEnable",
   "startup.pluginLoadMerged",
+  "localResources.pluginPath",
   "startup.tryDetectRecentSave",
   "backup.bakPrompt",
   "backup.otherSaveFileExtensions",
@@ -33,26 +34,33 @@ const field = (path: string): SaveSettingsField => ({
   path,
   name: path.split(".").at(-1)!,
   kind:
-    path === "backup.otherSaveFileExtensions"
-      ? "list"
-      : path === "display.focusBorderDeflate" ||
-          path === "advanced.dragStartThreshold"
-        ? "integer"
-        : path === "advanced.future"
-          ? "enum"
-          : "boolean",
+    path === "localResources.pluginPath"
+      ? "text"
+      : path === "backup.otherSaveFileExtensions"
+        ? "list"
+        : path === "display.focusBorderDeflate" ||
+            path === "advanced.dragStartThreshold"
+          ? "integer"
+          : path === "advanced.future"
+            ? "enum"
+            : "boolean",
   minimum: null,
   maximum: null,
   choices: path === "advanced.future" ? [{ value: 0, name: "Default" }] : [],
 });
-const groups = ["startup", "backup", "advanced", "slotExport", "display"].map(
-  (id) => ({
-    id,
-    fields: [...paths, ...enabled, ...pending]
-      .filter((path) => path.startsWith(id + "."))
-      .map(field),
-  }),
-);
+const groups = [
+  "startup",
+  "localResources",
+  "backup",
+  "advanced",
+  "slotExport",
+  "display",
+].map((id) => ({
+  id,
+  fields: [...paths, ...enabled, ...pending]
+    .filter((path) => path.startsWith(id + "."))
+    .map(field),
+}));
 const catalog = { groups };
 const values = Object.fromEntries(
   groups.map((group) => [
@@ -60,13 +68,15 @@ const values = Object.fromEntries(
     Object.fromEntries(
       group.fields.map((entry, index) => [
         entry.path.split(".")[1],
-        entry.kind === "list"
-          ? ["sav", "main"]
-          : entry.kind === "integer"
-            ? 3
-            : entry.kind === "enum"
-              ? 0
-              : !!(index % 2),
+        entry.kind === "text"
+          ? "plugins"
+          : entry.kind === "list"
+            ? ["sav", "main"]
+            : entry.kind === "integer"
+              ? 3
+              : entry.kind === "enum"
+                ? 0
+                : !!(index % 2),
       ]),
     ),
   ]),
@@ -152,6 +162,9 @@ it("keeps arbitrary future paths pending rather than inferring platform exclusio
   for (const path of [
     "future.desktopThing",
     "advanced.dragStartThresholdExtra",
+    "localResources.pluginPathExtra",
+    "battleTemplate.hover.statsCustom.future",
+    "battleTemplate.export.statsCustom.minimumDigitsExtra",
   ]) {
     expect(settingsPlatformReason(path, "zh")).toBeUndefined();
     expect(
@@ -163,3 +176,84 @@ it("keeps arbitrary future paths pending rather than inferring platform exclusio
     ).toEqual({ [path]: "pending" });
   }
 });
+
+// PKHeX 26.08.26 BattleTemplateTypeSetting declares StatsCustom, while
+// GetSettings does not read it. Keep these exact source leaves unavailable.
+it.each(["zh", "en", "ja"] as const)(
+  "explains the source-inactive custom stat settings in %s",
+  (lang) => {
+    const format = {
+      names: ["H", "A", "B", "C", "D", "S"],
+      separator: " ",
+      valueGap: ":",
+      isLeft: true,
+      alwaysShow: true,
+      minimumDigits: 0,
+    };
+    const fields = (["hover", "export"] as const).flatMap((target) =>
+      Object.entries(format).map(([name, value]): SaveSettingsField => ({
+        path: `battleTemplate.${target}.statsCustom.${name}`,
+        name,
+        kind: Array.isArray(value)
+          ? "list"
+          : typeof value === "boolean"
+            ? "boolean"
+            : typeof value === "number"
+              ? "integer"
+              : "text",
+        minimum: typeof value === "number" ? -2147483648 : null,
+        maximum: typeof value === "number" ? 2147483647 : null,
+        choices: [],
+      })),
+    );
+    const value = {
+      battleTemplate: {
+        hover: { statsCustom: format },
+        export: { statsCustom: format },
+      },
+    };
+    const input = JSON.stringify(value);
+    const catalog = { groups: [{ id: "battleTemplate", fields }] };
+    const unavailable = unavailableProgramSettings(
+      catalog,
+      settingsWords[lang].pending,
+      lang,
+    );
+    expect(Object.keys(unavailable)).toHaveLength(12);
+    const phrase = {
+      zh: "生成模板时没有读取",
+      en: "not read when generating templates",
+      ja: "テンプレート生成時には参照",
+    };
+    for (const entry of fields)
+      expect(unavailable[entry.path]).toContain(phrase[lang]);
+    const html = renderToStaticMarkup(
+      <SaveSettingsEditor
+        bundle={{ apiVersion: SAVE_EDITOR_API_VERSION, json: input, catalog }}
+        json={input}
+        lang={lang}
+        busy={false}
+        unavailable={unavailable}
+        initialGroup="battleTemplate"
+        onValidate={async (draft) => draft}
+        onSave={async () => {}}
+      />,
+    );
+    const reasons = [...html.matchAll(/<small id="([^"]+)">([^<]*)<\/small>/g)];
+    expect(reasons).toHaveLength(12);
+    expect(new Set(reasons.map((match) => match[1])).size).toBe(12);
+    const controls = [...html.matchAll(/<(?:input|textarea|button)\b[^>]*>/g)];
+    for (const [, id, reason] of reasons) {
+      expect(reason).toContain(escaped(phrase[lang]));
+      expect(
+        controls.some(
+          ([tag]) =>
+            tag.includes(`aria-describedby="${id}"`) &&
+            tag.includes("disabled"),
+        ),
+      ).toBe(true);
+    }
+    expect(html).not.toContain(escaped(settingsWords[lang].pending));
+    expect(JSON.parse(input)).toEqual(value);
+  },
+);

@@ -161,6 +161,7 @@ export default defineConfig(({ mode }) => ({
         "**/wasm/pkhex/**/bin/**",
         "**/wasm/pkhex/**/obj/**",
         "**/.tools/**",
+        "**/.tmp/**",
       ],
     },
   },
