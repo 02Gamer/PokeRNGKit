@@ -2,7 +2,9 @@
 
 当前范围审计见[完整接入证据与平台边界](pkhex-completion-audit.md)。129个来源文件映射不等于129项功能已经验收；历史记录保留各批验证范围，完整目标仍未完成。
 
-## 2026-10-28 设置分类与三语名称（API190 前端，工程通过，待发布）
+## 2026-10-28 设置分类与三语名称（API190 前端，已发布，页面待核验）
+
+2555bd11 已成功发布，Actions 40608620805 的 build、Windows 包、Cloudflare 和 GitHub Pages 均 completed／success；CI 存档往返、完整前端、原生 Core 和 Wasm／网页门禁通过。精确提交与终态见进度及 `.tmp/pkhex-settings-captions-release-proof.json`。网页修订 0.190.5.0、Core／Worker／API190 不变，129 项实际验收状态未因此改变。
 
 现有 API190 原生测试程序集只读目录为 22 组／200 字段；对实际前端函数核对后，补齐此前仍显示笼统待接的插件目录和 12 个 StatsCustom 叶字段。当前 173 项判定可编辑、3 项自动隐藏、12 项有平台说明、12 项说明来源未使用，完整证据见 `.tmp/pkhex-settings-consumer-audit/audit.json`。白名单之外的未来路径仍待接，不由本表推定可用。
 
